@@ -4232,3 +4232,26 @@ where compliance is clean.
   provenance) changed from Terrence's own server Generate/Review runs, not this session's code.
 - One more task queued for this session per Terrence.
 - Resume: PROGRESS.md top entry.
+
+## Session Close / Handoff (2026-09-16, cont.³) — clean-slate reset to square one
+
+The "one more thing": rewind every case and re-run the improved pipeline from scratch.
+
+- **Sessions wiped** (63 → 0, wizard + pt) server-side via `POST /api/admin/reset-session`;
+  corpora untouched. Terrence committed the emptied `ck.db` to LFS (`3684a4f`, ahead 1, his to
+  push) — square one is now the repo baseline, not only the live server.
+- **On-disk drop-ins removed** (`e35bbb2`): `generated/` (25) + `refined-cases/` (121, incl. the
+  `zephyr_payload.json` completion markers). Recoverable from git; both writers `mkdir(parents=True)`.
+- **`reset-session {scope:"all"}` fixed** (`2755f48`): it enumerated the progress maps (which skip
+  below-threshold cases), leaving 24 of 63 rows behind on a "reset all". Now
+  `db.clear_case_sessions()` deletes by kind directly. Verified live (cleared a browser-created
+  below-threshold row the old code would have kept). Side-effect unchanged: "all" also clears the
+  workspace LLM default — re-Apply a model after.
+- **5 Zephyr-push tests decoupled from the live corpus** (`4d9001a`): were pinned to
+  `--keys AWPTCM-T33235` read from disk; now use whatever bundle exists and skip when empty (the
+  repo's existing convention). The wipe also tripped 6 other pre-existing skip-when-absent guards
+  (export_authority, pt_preflight, zephyr:217) — all legitimate.
+- Gate at close: guards OK; backend 1538 passed / 12 skipped; vitest 300; ck.db signature stable.
+- Memory added: `explain-in-plain-language` (Terrence flagged jargon-heavy framing; lead plain).
+- Resume: draft the FIRST case through the improved pipeline — it re-arms the skipped push tests
+  and repopulates refined-cases/. PROGRESS.md top entry has the detail.

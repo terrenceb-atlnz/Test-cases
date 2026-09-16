@@ -4,6 +4,27 @@
 
 **Last Updated**: 2026-09-16 (by Claude, with Terrence for every decision)
 
+## Latest session (2026-09-16, cont.³) — clean-slate reset to square one
+
+Terrence wanted every case re-run through the improved pipeline from scratch. Rewound both
+persistence layers; corpora untouched.
+
+- **Wiped 63 sessions** (wizard + pt) server-side via `POST /api/admin/reset-session`; Terrence
+  committed the emptied `ck.db` into LFS (`3684a4f`), so square one is the repo baseline.
+- **Removed drop-ins** (`e35bbb2`): `pytest-creator/generated/` (25) + `generator/refined-cases/`
+  (121, incl. the `zephyr_payload.json` "complete" markers). Recoverable from git; writers recreate.
+- **Fixed `reset-session {scope:"all"}`** (`2755f48`): it enumerated the *progress maps*, which
+  skip below-threshold cases, so 24 of 63 wizard rows survived "reset all". Now
+  `db.clear_case_sessions()` = a direct `DELETE ... WHERE kind IN ('wizard','pt')`. Verified live.
+- **Decoupled 5 Zephyr-push tests from the live corpus** (`4d9001a`): they hardcoded
+  `--keys AWPTCM-T33235` off disk. Now use whatever bundle is present and `skip` when empty —
+  the repo's existing convention (test_export_authority / test_pt_preflight). Re-arm on the first
+  re-drafted case.
+- Gate green: backend 1538 passed / **12 skipped** (all "nothing to test yet" — self-heal as cases
+  are re-drafted). Pushed by Terrence (my 4 commits on origin; his ck.db commit ahead 1).
+- Saved memory `explain-in-plain-language` (lead with plain words, unpack jargon).
+- Pick up here: draft the first case through the improved pipeline; it re-arms the skipped tests.
+
 ## Latest session (2026-09-16, cont.²) — generated scripts comply with PEP 8
 
 Closed the pep8-churn thread from the acceptance run. Key finding: a large share of the pep8

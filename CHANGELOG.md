@@ -11,6 +11,35 @@ current working thread see
 [`ask-ck/functions/generator/PROGRESS.md`](ask-ck/functions/generator/PROGRESS.md).
 
 
+## 2026-09-16 — clean-slate reset to square one; admin "reset all" made truthful; push tests decoupled from the corpus
+
+Terrence chose to re-run every case through the improved drafting + PyTest Creator pipeline
+from scratch, so all derived progress was rewound. Two persistence layers, both cleared, with
+every corpus (raw manual cases, CLI reference, exemplars, embeddings) left untouched:
+- **`ck.db` `sessions` table** (63 rows: `wizard` + `pt`) — wiped server-side via
+  `POST /api/admin/reset-session`, WAL-safe and corpora-safe. Terrence then committed the
+  wiped `ck.db` into LFS (square one is now the repo baseline, not just the live server).
+- **On-disk drop-ins** — `pytest-creator/generated/` (25 files) and
+  `generator/refined-cases/` (121 files, incl. the `zephyr_payload.json` completion markers)
+  removed (recoverable from git history; both writers `mkdir(parents=True)` on next export).
+
+Doing the wipe surfaced two latent defects, both fixed:
+- **`reset-session {scope:"all"}` didn't clear all.** It enumerated the wizard/pt *progress
+  maps*, but the wizard map only emits a case above a progress threshold — so barely-started
+  sessions survived a "reset all" (24 of 63 the first time). Replaced with
+  `db.clear_case_sessions()`: a direct `DELETE FROM sessions WHERE kind IN ('wizard','pt')`.
+  The `workspace` LLM-default row is a different kind and is cleared by its own branch.
+- **Five Zephyr-push tests were coupled to live user data.** They drove the real
+  `upload_refined` CLI with a hardcoded `--keys AWPTCM-T33235`, discovered from
+  `refined-cases/` on disk — so the wipe broke them over a case that no longer existed. They
+  now run against whichever bundle IS on disk and `pytest.skip` when the corpus is empty,
+  matching guards already present in `test_export_authority` / `test_pt_preflight` /
+  `test_zephyr_push:217`. The first case re-drafted through the new pipeline re-arms them.
+
+Operational note: `scope:"all"` also clears the workspace default LLM, so re-Apply a model
+after a full reset. Zephyr uploads are intentionally left as-is (overwritten by a new push).
+
+
 ## 2026-09-16 — generated scripts comply with PEP 8 instead of tripping their own lint
 
 The pep8 investigation (per "the better the outcomes, the better the tool") found the 6.4
