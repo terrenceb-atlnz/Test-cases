@@ -54,16 +54,15 @@ async def reset_session(body: dict):
             db.delete_session("wizard", "_workspace_llm")
             cleared.append("workspace_llm")
         if scope == "all":
-            # Wipe every wizard AND pytest session row (leaves corpora untouched).
-            # Wizard and PT sessions live under different kinds ("wizard" vs "pt") and
-            # different progress maps — the old code iterated only the wizard map with
-            # kind "pytest", so it deleted nothing on the PT side and mis-kinded the
-            # wizard side. Enumerate each from its own map with its own kind.
-            for k in list((db.list_session_progress() or {}).keys()):
-                db.delete_session("wizard", k)
-            for k in list((db.list_pt_progress() or {}).keys()):
-                db.delete_session("pt", k)
-            cleared.append("all_sessions")
+            # Wipe every wizard AND pytest session row (leaves corpora untouched). Delete
+            # by kind directly — NOT by enumerating the progress maps. Those maps filter:
+            # the wizard map only emits a case once it clears a progress threshold (a
+            # confirmed step / objective / gaps), so barely-started rows were invisible to
+            # it and SURVIVED a "reset all" (2026-09-16: 24 of 63 left behind). `db.clear_
+            # case_sessions()` is a single DELETE WHERE kind IN ('wizard','pt'), so "all"
+            # means all; the workspace LLM default is cleared by its own branch above.
+            n = db.clear_case_sessions()
+            cleared.append(f"all_sessions:{n}")
     except HTTPException:
         raise
     except Exception as e:

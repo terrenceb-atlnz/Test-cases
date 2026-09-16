@@ -1048,6 +1048,21 @@ def delete_session(kind: str, key: str) -> None:
     conn.commit()
 
 
+def clear_case_sessions() -> int:
+    """Delete EVERY wizard/pt case session row; return how many were removed.
+
+    Admin scope="all" used to enumerate `list_session_progress()` / `list_pt_progress()`
+    and delete their keys — but the wizard map only emits a case once it clears a progress
+    threshold (a confirmed step, an objective, gaps), so barely-started wizard rows fell
+    below it and SURVIVED a "reset all" (2026-09-16: 24 of 63 rows left behind). Delete by
+    kind directly so "all" means all. Corpora are other kinds; the `workspace` LLM-default
+    row (kind="workspace") is deliberately NOT matched here — its own branch clears it."""
+    conn = get_connection()
+    cur = conn.execute("DELETE FROM sessions WHERE kind IN ('wizard', 'pt')")
+    conn.commit()
+    return cur.rowcount
+
+
 def save_workspace_llm(cfg: dict) -> None:
     """Workspace-default LLM config (the old sessions/_workspace_llm.json). The
     whole record IS a credential, so it lives in the llm_config column; payload

@@ -56,3 +56,36 @@ def test_pt_session_kind_is_pt_not_pytest():
     assert db._session_id("pt", "AWPTCM-T1") == "pt-AWPTCM-T1"
     # The buggy old kind string does not resolve to the pt row id.
     assert db._session_id("pytest", "AWPTCM-T1") != "pt-AWPTCM-T1"
+
+
+def test_clear_case_sessions_removes_below_threshold_wizard_rows():
+    """admin scope='all' must clear EVERY wizard/pt row — including barely-started wizard
+    sessions that fall below list_session_progress()'s threshold. That threshold was the
+    2026-09-16 bug: reset-session 'all' enumerated the progress maps, so 24 of 63 rows
+    (opened but with no confirmed step / objective / gaps) survived a full reset. The
+    fix deletes by kind directly. The workspace LLM row (kind='workspace') must survive."""
+    # One wizard session WITH progress (visible in the map)...
+    db.save_session("wizard", "AWPTCM-TCLR1",
+                    {"key": "AWPTCM-TCLR1", "step1": {"confirmed": True}})
+    # ...and one BELOW threshold — opened, nothing confirmed, no objective, no gaps.
+    db.save_session("wizard", "AWPTCM-TCLR2", {"key": "AWPTCM-TCLR2"})
+    db.save_session("pt", "AWPTCM-TCLR1", {"key": "AWPTCM-TCLR1"})
+    db.save_workspace_llm({"model": "keep-me"})
+    try:
+        prog = db.list_session_progress()
+        assert "AWPTCM-TCLR1" in prog, "a progressed wizard case is in the map"
+        assert "AWPTCM-TCLR2" not in prog, \
+            "the below-threshold case is invisible to the progress map — the bug's root cause"
+
+        removed = db.clear_case_sessions()
+        assert removed >= 3
+
+        # Every wizard/pt row gone — crucially INCLUDING the below-threshold one the old
+        # progress-map enumeration left behind.
+        assert db.load_session("wizard", "AWPTCM-TCLR1") is None
+        assert db.load_session("wizard", "AWPTCM-TCLR2") is None
+        assert db.load_session("pt", "AWPTCM-TCLR1") is None
+        # Corpora aside, the workspace default is a different kind and must be untouched.
+        assert db.load_workspace_llm() == {"model": "keep-me"}
+    finally:
+        db.delete_session("workspace", "_workspace_llm")   # leave the shared test DB as found
