@@ -293,7 +293,7 @@ class TestCase_{{ step.n }}(ATTestCase.TestCase):
     def main(self):
         # >>> provenance tag (rule 8): replace THIS line with `# ART ...` / `# AI ...` <<<
 {{- shortcuts('self.testSet') }}
-        self.log({{ ('STEP ' ~ step.n ~ ': ' ~ (step.action | default('', true))) | pyliteral }})
+        self.log({{ ('STEP ' ~ (step.orig_n | default(step.n, true)) ~ ': ' ~ (step.action | default('', true))) | pyliteral }})
 {%- if step.kind == 'physical' %}
         # PHYSICAL: the operator acts on the hardware, then we poll for the state change.
         port = {{ phys_port }}

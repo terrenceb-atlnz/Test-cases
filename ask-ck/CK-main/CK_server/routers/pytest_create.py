@@ -1348,6 +1348,13 @@ def _split_sequence(sequence: List[dict]) -> Tuple[List[dict], List[dict]]:
     for s in sequence:
         (setup_steps if _step_kind(s) == "setup" else tc_steps).append(dict(s))
     for i, s in enumerate(tc_steps, 1):
+        # `orig_n` keeps the SOURCE Test Step number so the `self.log('STEP n')` line traces to
+        # the manual case's steps; `n` becomes the contiguous TestCase index (class name / unit
+        # id). Because step 1 is the setup/disclaimer, orig_n on the cases starts at 2 — which is
+        # exactly the alignment Terrence asked for (2026-09-16): STEP logs follow the source
+        # steps, class numbering unchanged. Without this, the log said the case index (STEP 25 for
+        # source step 26), off by one against every manual step (Review finding on T44297).
+        s["orig_n"] = s.get("n")
         s["n"] = i          # on the COPY, not the caller's dict
     return setup_steps, tc_steps
 
@@ -5565,7 +5572,7 @@ def _render_unit_prompt(key: str, data: dict, sess: PtSession, ctx: dict, unit: 
         "case_title": _case_title(data, key),
         "mode": unit["kind"],
         "tc_n": unit.get("tc_n"),
-        "source_n": (src or {}).get("n"),
+        "source_n": (src or {}).get("orig_n") or (src or {}).get("n"),
         "step": src or {},
         "setup_steps": ctx["setup_steps"],
         "blank_block": unit["block"],
@@ -6110,7 +6117,7 @@ async def step_prompts(key: str, request: Request):
             src = _unit_source_step(u, ctx["tc_steps"])
             out.append({
                 "id": u["id"], "kind": u["kind"], "tc_n": u.get("tc_n"), "label": u["label"],
-                "source_n": (src or {}).get("n"),
+                "source_n": (src or {}).get("orig_n") or (src or {}).get("n"),
                 "action": (src or {}).get("action", ""),
                 "verify": (src or {}).get("verify", ""),
                 "blank_block": u["block"],

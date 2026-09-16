@@ -302,3 +302,36 @@ def test_the_new_errors_are_not_overridable(msg, cls):
     """No reviewer judgement turns an unfilled slot into a test."""
     blocking, policy = pc._split_lint_errors([msg])
     assert blocking == [msg] and policy == []
+
+
+# --- 2026-09-16 (Terrence): the STEP log line traces to the SOURCE Test Step, not the class index.
+# SEQ's step 1 is `setup` (→ TestSet.configure), so verify/physical/manual become TestCase_1/2/3
+# but implement source steps 2/3/4. Review found the log said `STEP 1/2/3` (the class index),
+# off by one against every manual step. `_split_sequence` now keeps `orig_n` and the skeleton logs
+# it. Class names / unit ids stay contiguous — only the STEP number follows the source step.
+
+def test_split_sequence_keeps_the_source_step_number_as_orig_n():
+    setup, tc = pc._split_sequence(SEQ)
+    assert [s["n"] for s in tc] == [1, 2, 3], "class index stays contiguous"
+    assert [s["orig_n"] for s in tc] == [2, 3, 4], "orig_n is the SOURCE step (step 1 was setup)"
+    assert [s["n"] for s in setup] == [1]
+
+
+def test_the_step_log_line_uses_the_source_step_not_the_class_index():
+    skel = _skeleton()
+    import re
+    assert re.findall(r"class (TestCase_\d+)\b", skel) == ["TestCase_1", "TestCase_2", "TestCase_3"]
+    steps = re.findall(r"self\.log\('STEP (\d+):", skel)
+    assert steps == ["2", "3", "4"], f"STEP logs must follow the source steps 2/3/4, got {steps}"
+    # the off-by-one Review caught: never the class index for a suite with a leading setup step
+    assert "self.log('STEP 1:" not in skel
+
+
+def test_with_no_setup_step_the_numbering_is_unchanged():
+    # No leading setup → class index == source step, so nothing shifts (regression guard that the
+    # fix touches only the setup-offset case).
+    seq = [{"n": 1, "action": "a", "verify": "v", "kind": "verify"},
+           {"n": 2, "action": "b", "verify": "w", "kind": "verify"}]
+    skel = _skeleton(seq)
+    import re
+    assert re.findall(r"self\.log\('STEP (\d+):", skel) == ["1", "2"]

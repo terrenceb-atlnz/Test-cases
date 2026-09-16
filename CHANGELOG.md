@@ -11,6 +11,27 @@ current working thread see
 [`ask-ck/functions/generator/PROGRESS.md`](ask-ck/functions/generator/PROGRESS.md).
 
 
+## 2026-09-16 — STEP log lines trace to the source Test Step, not the TestCase index
+
+Review of the T44297 acceptance run flagged it (a real finding, verified against the data): every
+`TestCase_k` logged `self.log('STEP k …')` while it actually implemented **source step k+1** — off
+by one against the manual case's 38 steps, on all 37 cases. Cause: `_split_sequence` renumbers the
+verify steps contiguously from 1 (`s["n"] = i`) after dropping the `kind: setup` step, and the
+skeleton (`pt_script_template.py.jinja`) logged that contiguous `n`. So the log named the case
+index, not the step the case runs.
+
+Fix (Terrence's call: STEP logs follow the source steps, class numbering unchanged): `_split_sequence`
+now keeps the source number as `orig_n`, and the skeleton's `self.log('STEP …')` and the prompt's
+"implements sequence step …" both use `orig_n`. Since step 1 is always the setup/disclaimer
+precondition (run as Setup first), the cases' STEP numbers now correctly start at **2**. Class names
+and unit ids (`TestCase_1..37`, `tc1..tc37`) stay contiguous and untouched — only the reported STEP
+number moves. A suite with no leading setup step is unchanged (class index == source step). 3 new
+tests pin it: `orig_n` preservation, the skeleton logging 2/3/4 for a setup-led sequence, and the
+no-setup no-op. *Why the STEP-log-only scope:* the STEP number is the traceability anchor a reader
+maps to the manual case; the class name is internal plumbing, and renumbering it would churn unit
+ids / chunk keys / assembly for no traceability gain.
+
+
 ## 2026-09-16 — Seat agent: the browser can find it on a port other than 8765
 
 The page hard-coded the local ck-agent at `127.0.0.1:8765`, with no override. On a seat whose
