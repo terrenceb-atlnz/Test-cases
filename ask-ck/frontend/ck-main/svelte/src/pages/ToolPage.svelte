@@ -1,5 +1,8 @@
 <script>
+// @ts-nocheck
+
   import PageCard from '../lib/components/PageCard.svelte';
+  import PageHeader from '../lib/components/PageHeader.svelte';
 
   /**
    * @type {{
@@ -11,10 +14,9 @@
   export let page;
 </script>
 
-<div class="generic-page">
-  <h1>{page.title}</h1>
-  <p>{page.intro}</p>
+<PageHeader title={page.title} intro={page.intro} />
 
+<div class="generic-page">
   <div class="card-grid single-column">
     {#each page.cards as card}
       <PageCard {card} />
