@@ -29,6 +29,7 @@
 - [Site-default LLM gotcha (per-seat since 2026-09-10)](workspace-llm-default-gotcha.md) — headless curl with no X-CK-LLM header gets the SITE DEFAULT, which ANY seat's Apply rewrites (D17); send the header or POST set_site_default_llm
 - [Physical-interaction steps are in scope](physical-interaction-steps.md) — generate prompt + wait-for-state-change for plug/unplug steps (model: SVT 3009 waitForReplugEvent); do NOT skip them
 - [User prefers manual UI testing](user-prefers-manual-ui-testing.md) — skip Playwright, give a manual test checklist instead
+- [Explain in plain language](explain-in-plain-language.md) — lead with plain words, unpack jargon (gate/fixture/coupling); Terrence will otherwise ask "what does that even mean"
 - [Browser fan-out connection ceiling](browser-fanout-connection-ceiling.md) — never fire N blocking requests from the page: HTTP/1.1 caps 6/origin and starves the broker poll; one request + polling
 - [Ask CK LAN hosting](askck-lan-hosting.md) — server of record http://10.33.22.17:8000/ (systemd ask-ck.service + `ck` cmd, none in repo); the working tree IS production; NEVER run.sh --stop/--bg
 - [Ask CK over VPN](askck-vpn-access.md) — ping works but :8000 TIMES OUT from a VPN seat = the VPN blocks internal TCP:8000 (not the server); fix = `ssh -L 8000:localhost:8000` then browse localhost:8000, or run the browser ON the seat
