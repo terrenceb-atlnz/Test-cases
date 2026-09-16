@@ -1,0 +1,86 @@
+{
+  "AWPTCM-T44187": {
+    "objective": "<ul>\n<li>An SSH server enabled on the DUT and reachable over IPv6 on the standard SSH port, with IPv6 addressing configured on the management/transit interface.</li>\n<li>Successful SSH sessions established from an IPv6 client to the DUT using global unicast, link-local (with scope/zone identifier) and, where supported, loopback IPv6 addresses.</li>\n<li>Authenticated interactive shell over IPv6 with a valid username and password, granting a functional CLI prompt at the expected privilege level.</li>\n<li>CLI commands issued over the IPv6 SSH session returning correct, complete and unmangled output, equivalent to the same commands issued over IPv4 SSH or console.</li>\n<li>Equivalent SSH server behaviour over IPv4 and IPv6 concurrently, with sessions on both address families active at the same time and neither interfering with the other.</li>\n<li>Allowed users listed in the SSH server user configuration able to log in over IPv6.</li>\n<li>Denied or unlisted users rejected over IPv6, with the connection refused or closed and no CLI access granted.</li>\n<li>Failed authentication attempts over IPv6 (wrong password, unknown user, disabled account) rejected without partial access, with retry limits and lockout behaviour applied as configured.</li>\n<li>Multiple concurrent IPv6 SSH sessions supported up to the configured maximum session limit, each independent and correctly attributed to its own user.</li>\n<li>Connection attempts beyond the maximum session limit refused or queued per design, with existing sessions unaffected.</li>\n<li>An administrator-initiated termination of a remote IPv6 SSH session resulting in the targeted session closing immediately, its resources released, and other sessions remaining intact.</li>\n<li>SSH server disabled state resulting in IPv6 connection attempts being refused with no listener present on the SSH port for IPv6.</li>\n<li>Existing IPv6 sessions handled deterministically when the SSH server is disabled (dropped per product design) without device instability.</li>\n<li>Re-enabling the SSH server restoring IPv6 connectivity and accepting new sessions without a device restart.</li>\n<li>Unsupported or invalid conditions handled gracefully: malformed IPv6 addresses, unreachable destinations, mismatched scope identifiers, unsupported ciphers/key exchange algorithms, and unsupported protocol versions \u2014 each producing a clean rejection and no crash, leak or lockup.</li>\n<li>Persistence of SSH server enable state, IPv6 listener and allow/deny user configuration across configuration save and device restart.</li>\n<li>Operational status output showing SSH server state, listening address families, active session list with source IPv6 addresses, usernames and session identifiers.</li>\n<li>Log entries recording IPv6 SSH session establishment, authentication success and failure, administrative session termination, and server enable/disable transitions, each with accurate timestamps and source IPv6 address.</li>\n<li>No unexpected errors, exception traces, memory leaks or resource exhaustion on the DUT after repeated IPv6 SSH connect, authenticate, command execution and disconnect cycles.</li>\n</ul>",
+    "testScript": {
+      "type": "steps",
+      "steps": [
+        {
+          "description": "Note: Related ART Tests linked in Traceability.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Configure IPv6 addressing on the DUT's management/transit interface and enable the SSH server. Verify from an IPv6-capable client that the DUT is reachable over IPv6 and that a listener is present on the standard SSH port for the IPv6 address family.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Open SSH sessions to the DUT from the client using each supported form of IPv6 destination address in turn \u2014 global unicast, link-local with the appropriate scope/zone identifier, and loopback where the platform supports it. Verify each form establishes a session.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Authenticate over IPv6 with a valid username and password. Verify an interactive shell is granted at the expected privilege level and that the session is usable at the CLI prompt.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Issue a representative range of CLI commands over the IPv6 SSH session, including commands producing long, paged and multi-line output. Compare the returned output against the same commands issued over an IPv4 SSH session or the console, and verify equivalence with no truncation or corruption.",
+          "expectedResult": ""
+        },
+        {
+          "description": "With the SSH server enabled, establish sessions over IPv4 and IPv6 at the same time from separate clients. Verify both address families are served concurrently, that each session operates independently, and that activity on one does not disturb the other.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Populate the SSH server's allowed-user configuration and attempt IPv6 logins as each listed user. Verify the permitted users authenticate and reach the CLI.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Attempt IPv6 logins as users that are explicitly denied and as users absent from the SSH server user configuration. Verify each attempt is rejected with the connection refused or closed and no CLI access granted.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Drive failed authentications over IPv6 covering a valid user with an incorrect password, an unknown username, and a disabled or expired account. Repeat attempts to exercise the configured retry limit and any lockout behaviour, then verify no partial access is granted at any point and that recovery after lockout expiry behaves as configured.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Open concurrent IPv6 SSH sessions from multiple clients or multiple users up to the configured maximum session limit. Verify every session stays independent and that the DUT attributes each to its own username and source IPv6 address.",
+          "expectedResult": ""
+        },
+        {
+          "description": "With the maximum number of IPv6 SSH sessions already established, attempt a further connection. Verify the attempt is refused or queued according to the product design and that the pre-existing sessions remain usable and unaffected.",
+          "expectedResult": ""
+        },
+        {
+          "description": "From an administrative session, terminate one of the active remote IPv6 SSH sessions by its session identifier. Verify the targeted session closes immediately on the client side, its resources are released on the DUT, and all other sessions \u2014 IPv4 and IPv6 \u2014 continue uninterrupted.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Disable the SSH server while IPv6 sessions are active. Verify the existing sessions are handled deterministically per product design, that no listener remains on the SSH port for IPv6, that fresh IPv6 connection attempts are refused, and that the DUT remains stable.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Re-enable the SSH server without restarting the device and verify new IPv6 sessions can be established and authenticated as before.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Exercise invalid and unsupported connection conditions from the client over IPv6: malformed or incomplete IPv6 destination addresses, an unreachable IPv6 destination, a link-local address given with a missing or mismatched scope identifier, an unsupported cipher or key exchange algorithm, and an unsupported SSH protocol version. Verify each is rejected cleanly and that the DUT shows no crash, exception trace, hang or resource leak.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Save the configuration with the SSH server enabled, the IPv6 listener active and the allow/deny user lists populated, then restart the device. Verify the SSH server state, IPv6 listener and user configuration are restored and that IPv6 logins behave as before the restart.",
+          "expectedResult": ""
+        },
+        {
+          "description": "With IPv6 sessions established, inspect the SSH server operational status. Verify it reports the server state, the address families being listened on, and an active session list showing source IPv6 addresses, usernames and session identifiers that match the sessions actually open.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Review the DUT's log output after exercising IPv6 session establishment, successful and failed authentication, administrative session termination, and SSH server enable and disable transitions. Verify each event is recorded with an accurate timestamp and the correct source IPv6 address.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Repeat a cycle of IPv6 SSH connect, authenticate, command execution and disconnect many times, mixing valid and failed authentications. Verify sessions continue to be served throughout and that the DUT shows no accumulating memory, session or file-descriptor usage, no exception traces and no degradation after the final cycle.",
+          "expectedResult": ""
+        }
+      ]
+    }
+  }
+}

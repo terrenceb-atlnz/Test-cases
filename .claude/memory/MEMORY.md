@@ -1,5 +1,6 @@
 # Memory Index
 
+- [Frontend pages diverge from PageCard](frontend-pages-diverge-from-pagecard.md) — Llm/Settings/Tool pages reuse PageCard as a placeholder; expect page-specific content later, not a fixed shape
 - [Generator steps: uniform deferred load](generator-steps-uniform-deferred-load.md) — all 3 data steps load identically & on-demand, never at case-load; use db.* search + shared _relevance_score
 - [Permutation-expander (deferred)](permutation-expander-deferred.md) — WANTED subsystem: CLI-bounded permutation cross-product; brief at plans/PLAN-permutation-expander.md
 - [Topology: framework discovery, [misc] contract RETIRED](topology-profiles-contract.md) — 2026-09-21: the frame binds swi_a, discovers cables via get_all_port_links(), reads media from the DUT (show interface status / show system pluggable); NEVER pre-declare ck_link_*/ck_role_dut in [misc]; empty cage = no role; stacked DUT = swi_a for cmds + dut_stack for ports (ART shape, never re-assign dut); LAG members are partner ports
