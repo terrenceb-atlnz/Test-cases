@@ -1,18 +1,20 @@
 <script>
   import { onMount } from 'svelte';
 
-  import atLogo from './assets/at-logo.png';
-  import houseIcon from './assets/icons/House_01.svg';
-  import helpIcon from './assets/icons/Circle_Help.svg';
-  import listIcon from './assets/icons/List_Checklist.svg';
-  import squareWarningIcon from './assets/icons/Square_Warning.svg';
+  import houseIcon from './assets/icons/house.svg';
+  import helpIcon from './assets/icons/circle-question-mark.svg';
+  import settingsIcon from './assets/icons/settings.svg';
+
+  import testCaseIcon from './assets/icons/clipboard-list.svg';
+  import pytestIcon from './assets/icons/pytest.svg';
+  import testComposerIcon from './assets/icons/list-check.svg';
+  import zephyrIcon from './assets/icons/getzephyr-icon.svg';
 
   import Sidebar from './lib/components/Sidebar.svelte';
   import Topbar from './lib/components/Topbar.svelte';
 
   import HomePage from './pages/HomePage.svelte';
   import HelpPage from './pages/HelpPage.svelte';
-  import LlmPage from './pages/LlmPage.svelte';
   import SettingsPage from './pages/SettingsPage.svelte';
   import ToolPage from './pages/ToolPage.svelte';
 
@@ -20,14 +22,13 @@
     main: [
       { id: 'home', label: 'Home', icon: houseIcon },
       { id: 'help', label: 'Help', icon: helpIcon },
-      { id: 'llm', label: 'LLM', icon: squareWarningIcon },
-      { id: 'settings', label: 'Settings', icon: squareWarningIcon }
+      { id: 'settings', label: 'Settings', icon: settingsIcon }
     ],
     tool: [
-      { id: 'generator', label: 'Test Case Generator', icon: squareWarningIcon },
-      { id: 'pytest', label: 'PyTest Creator', icon: squareWarningIcon },
-      { id: 'composer', label: 'Test Composer', icon: listIcon },
-      { id: 'zephyr', label: 'Zephyr Templating', icon: squareWarningIcon }
+      { id: 'generator', label: 'Test Case Generator', icon: testCaseIcon },
+      { id: 'pytest', label: 'PyTest Creator', icon: pytestIcon },
+      { id: 'composer', label: 'Test Composer', icon: testComposerIcon },
+      { id: 'zephyr', label: 'Zephyr Templating', icon: zephyrIcon }
     ]
   };
 
@@ -35,7 +36,6 @@
   const routeMap = {
     home: '/',
     help: '/help',
-    llm: '/llm',
     settings: '/settings',
     generator: '/generator',
     pytest: '/pytest',
@@ -123,7 +123,7 @@
 
 <div class="app-shell" style:--sidebar-width={sidebarCollapsed ? '82px' : '260px'}>
   <Sidebar items={navigation} activePage={activePage} collapsed={sidebarCollapsed} onSelect={selectPage} onToggle={toggleSidebar} />
-  <Topbar brandLogo={atLogo} />
+  <Topbar />
 
   <main class="content-panel">
     <div class="content-inner">
@@ -131,8 +131,6 @@
         <HomePage />
       {:else if activePage === 'help'}
         <HelpPage />
-      {:else if activePage === 'llm'}
-        <LlmPage />
       {:else if activePage === 'settings'}
         <SettingsPage />
       {:else}

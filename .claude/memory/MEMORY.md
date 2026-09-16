@@ -1,5 +1,6 @@
 # Memory Index
 
+- [Frontend pages diverge from PageCard](frontend-pages-diverge-from-pagecard.md) — Llm/Settings/Tool pages reuse PageCard as a placeholder; expect page-specific content later, not a fixed shape
 - [Generator steps: uniform deferred load](generator-steps-uniform-deferred-load.md) — all 3 data steps load identically & on-demand, never at case-load; use db.* search + shared _relevance_score
 - [Permutation-expander (deferred)](permutation-expander-deferred.md) — WANTED subsystem: CLI-bounded permutation cross-product; brief at plans/PLAN-permutation-expander.md
 - [Topology profiles contract](topology-profiles-contract.md) — generation targets a PROFILE, never a bench .setup; spec TOPOLOGY-PROFILES.md + ask-ck/tools/pt_profiles.py; roles name LINKS not devices
