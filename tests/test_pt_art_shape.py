@@ -179,10 +179,38 @@ def test_the_physical_step_acts_on_the_bound_port_not_a_fill_slot():
 
 def test_testcase_method_is_the_art_multi_line_form():
     sk = render(CAPTURE_SEQ)
-    assert "    testCaseMethod  = 'select the port-description TLV\\n'\n" in sk
+    assert "    testCaseMethod = 'select the port-description TLV\\n'\n" in sk
     assert "    testCaseMethod += 'Verify: capture LLDPDUs" in sk
     assert "testCaseRef = 'AWPTCM-T1'" in sk
     assert "testCaseExcl" not in sk, "platform lists are hardware-verified, never generated"
+
+
+def test_the_frame_itself_is_pep8_clean_on_structural_codes(tmp_path):
+    """The frame must not manufacture its own pycodestyle findings (2026-09-16). The bare
+    frame used to emit E265 (shebang pushed to line 2 by a leading blank line), E221
+    (`testCaseMethod  =` aligned with two spaces), and W292 (jinja strips the trailing
+    newline) on EVERY generated script — deterministic noise the generate PROMPT can never
+    fix, that still tripped the 6.4 prompt-defect alarm. E501 on the descriptive
+    `testCaseDesc`/`testCaseMethod` strings is left by design (reviewer prose, kept whole)."""
+    pycodestyle = pytest.importorskip("pycodestyle")
+    sk = render(BOTH_SEQ)                       # setup + verify + peer: exercises every path
+    assert sk.startswith("#!/usr/bin/python3\n"), "shebang must be line 1 (else E265)"
+    assert sk.endswith("\n"), "script must end with a newline (else W292)"
+    assert "testCaseMethod  =" not in sk, "no aligned double space before = (E221)"
+    p = tmp_path / "frame.py"
+    p.write_text(sk, encoding="utf-8")
+    checker = pycodestyle.Checker(str(p), max_line_length=120, show_source=False)
+    codes = set()
+    orig = checker.report.error
+
+    def _capture(line_number, offset, text, check):
+        codes.add(text.split()[0])
+        return orig(line_number, offset, text, check)
+
+    checker.report.error = _capture
+    checker.check_all()
+    structural = codes & {"E265", "E221", "W292", "W293", "E101", "W191"}
+    assert not structural, f"frame emits structural pep8 findings: {sorted(structural)}"
 
 
 # ----------------------------------------------------------------- 5. verdict rule (checkpoints)

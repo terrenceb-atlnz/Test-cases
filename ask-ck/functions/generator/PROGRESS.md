@@ -4,6 +4,24 @@
 
 **Last Updated**: 2026-09-16 (by Claude, with Terrence for every decision)
 
+## Latest session (2026-09-16, cont.²) — generated scripts comply with PEP 8
+
+Closed the pep8-churn thread from the acceptance run. Key finding: a large share of the pep8
+findings the 6.4 alarm was reacting to were the **frame's own output**, not the model — so no
+prompt change could ever clear them. Fixed the frame deterministically and added safe model-side
+rules; left descriptive strings long by design.
+
+- **Frame fixes** (`pt_script_template.py.jinja` + `_skeleton_env`): shebang → line 1
+  (`{%- endmacro -%}`), single-space `testCaseMethod =`, `keep_trailing_newline=True`. Bare-frame
+  render: 8 findings → 3 (the 3 are the intentional `testCaseDesc`/`testCaseMethod` E501s).
+- **Prompt** (`pt_fill_rules.jinja`): new rule 9 — E741/indent/operator-spacing + wrap-code-not-prose;
+  rule 5 example synced to single space. Whole-script prompt snapshot regenerated.
+- **Guard**: `test_the_frame_itself_is_pep8_clean_on_structural_codes` (E265/E221/W292/W293).
+- Gate green (backend 1548 / frontend 300). Committed; **Terrence pushes.** One more thing queued
+  for this session per Terrence.
+- Still deferred: E501 on descriptive strings (left long); 6.4 alarm re-weighting (error vs
+  warning classes) — not in scope.
+
 ## Latest session (2026-09-16, cont.) — seat access over VPN + agent on a non-8765 port
 
 Support tail after the suite-owned work; two small commits + housekeeping, all pushed:

@@ -1294,7 +1294,8 @@ def _restamp_provenance(code: str, fragments: List[dict], model: str,
 from jinja2 import Environment as _J2Env, FileSystemLoader as _J2Loader
 
 _TEMPLATES_DIR = Path(__file__).resolve().parent.parent / "templates"
-_skeleton_env = _J2Env(loader=_J2Loader(str(_TEMPLATES_DIR)))
+_skeleton_env = _J2Env(loader=_J2Loader(str(_TEMPLATES_DIR)),
+                       keep_trailing_newline=True)   # pep8 W292: scripts end with a newline
 
 
 def _pyliteral(value) -> str:

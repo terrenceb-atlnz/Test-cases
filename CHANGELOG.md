@@ -11,6 +11,36 @@ current working thread see
 [`ask-ck/functions/generator/PROGRESS.md`](ask-ck/functions/generator/PROGRESS.md).
 
 
+## 2026-09-16 — generated scripts comply with PEP 8 instead of tripping their own lint
+
+The pep8 investigation (per "the better the outcomes, the better the tool") found the 6.4
+prompt-defect alarm was partly measuring the **tool's own frame**, not the model. On every
+generated script the frame deterministically emitted **E265** (a leading blank line pushed the
+shebang to line 2, so pycodestyle stopped exempting it), **E221** (`testCaseMethod  =` used two
+spaces to align its `=` under the `+=` below it), and **W292** (jinja's default
+`keep_trailing_newline=False` stripped the final newline) — noise the *generate prompt* can never
+fix, yet it crossed the alarm's prompt-defect threshold and told the operator to "change the
+prompt." Decision (with Terrence): comply rather than ignore, but only where compliance is clean —
+fix the frame deterministically, nudge the model on the safe classes, and **leave long descriptive
+strings whole** (verdict/log reasons and `testCaseDesc` are prose a human reads; splitting them
+with `\` or gluing fragments to save columns makes the output worse, and E501 is non-blocking).
+
+- **Frame (deterministic, zero test-logic risk):** `{%- endmacro -%}` trims the leading blank line
+  so the shebang is line 1; `testCaseMethod =` drops the alignment space; `_skeleton_env` now sets
+  `keep_trailing_newline=True`. A bare-frame render went from 8 pycodestyle findings to 3, and the
+  3 remaining are the intentional `testCaseDesc`/`testCaseMethod` E501s. Locked by
+  `test_the_frame_itself_is_pep8_clean_on_structural_codes` (E265/E221/W292/W293 can never return).
+- **Prompt (safe model-side rules):** new rule 9 in `pt_fill_rules.jinja` — no `l`/`I`/`O` names
+  (E741), 4-space indent + one space around operators, wrap long *code* with a hanging indent
+  (E127/E128) — with an explicit carve-out **not** to butcher descriptive strings. Rule 5's example
+  was synced to the single-space `testCaseMethod =` so the prompt example matches the frame
+  (*prompt-examples-are-the-spec*); the pinned whole-script prompt snapshot was regenerated.
+
+Not done, deliberately: E501 on descriptive strings (left long), and re-weighting the 6.4 alarm to
+key on error vs warning classes (out of scope — but with the frame no longer manufacturing pep8
+noise, the alarm's remaining signal is already the model's own output).
+
+
 ## 2026-09-16 — STEP log lines trace to the source Test Step, not the TestCase index
 
 Review of the T44297 acceptance run flagged it (a real finding, verified against the data): every

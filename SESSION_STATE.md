@@ -4206,3 +4206,29 @@ Support tail after the suite-owned work; all commits pushed by Terrence, tree le
 - OPEN (unchanged from the entry above): the T44297 acceptance proof (re-gen tc25 → Assemble +
   settle → Review), the fix-path "allow unsets" decision, D6 Opus re-measurement, R1(b), R5's JS.
 - Resume: PROGRESS.md top entry.
+
+## Session Close / Handoff (2026-09-16, cont.²) — generated scripts comply with PEP 8
+
+Closed the pep8-churn thread from the acceptance run. The finding that shaped it: a large share of
+the pep8 findings the 6.4 alarm reacted to were the **frame's own output**, not the model — so no
+generate-prompt change could ever clear them. Terrence's call: comply rather than ignore, but only
+where compliance is clean.
+
+- **Frame fixes** (`pt_script_template.py.jinja` + `_skeleton_env` in `pytest_create.py`): shebang →
+  line 1 (`{%- endmacro -%}` trims the leading blank line), single-space `testCaseMethod =` (was two
+  spaces to align under `+=`, E221), `keep_trailing_newline=True` (W292). Bare-frame render: 8
+  pycodestyle findings → 3, the 3 being the intentional `testCaseDesc`/`testCaseMethod` E501s.
+- **Prompt** (`pt_fill_rules.jinja`): rule 9 added — E741 (no `l`/`I`/`O`), indent + operator
+  spacing, wrap long *code* with a hanging indent — plus an explicit carve-out **not** to butcher
+  descriptive strings. Rule 5's example synced to single-space `testCaseMethod =`. Whole-script
+  prompt snapshot (`tests/data/pt_generate_script_rendered.txt`) regenerated; delta is only rule
+  5 + rule 9.
+- **Guard**: `test_the_frame_itself_is_pep8_clean_on_structural_codes` (E265/E221/W292/W293).
+- Gate at close: guards OK; backend 1548 passed / 1 skipped (+1); vitest 300; ck.db signature
+  unchanged.
+- Left by design: E501 on descriptive strings (long); 6.4 alarm re-weighting (error vs warning
+  classes) — out of scope.
+- NOT staged (Terrence's call): `ck.db` and `generated/Management/*` (261 LLDP test .py + library +
+  provenance) changed from Terrence's own server Generate/Review runs, not this session's code.
+- One more task queued for this session per Terrence.
+- Resume: PROGRESS.md top entry.

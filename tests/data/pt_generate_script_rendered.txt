@@ -257,7 +257,7 @@ show lldp
    ```
    Same rule for any `show` whose output covers more than the port under test.
 5. Keep `testCaseRef = 'K'` on every TestCase; keep `testCaseDesc` and the
-   `testCaseMethod  = ...` / `testCaseMethod += ...` lines as given (the ART multi-line
+   `testCaseMethod = ...` / `testCaseMethod += ...` lines as given (the ART multi-line
    method: one procedure line per statement, each ending `\n`); keep the `__main__` block
    adding every TestCase in order then `ts.run(sys.argv)`.
 6. **DELETE every `# >>> FILL ... <<<` (and `>>> replace` / `>>> remove`) comment
@@ -274,6 +274,23 @@ show lldp
    yourself with no matching fragment. This is a best-effort signal only — the
    server re-stamps every block's tag authoritatively from the real fragment
    mapping afterward, so get it close but don't agonize over exactness.
+9. **Write PEP 8-clean code where it costs nothing** — the finished script is linted
+   (pycodestyle, max line 120). The frame is already clean; keep the code you fill clean too:
+   - **Never name a variable `l`, `I`, or `O`** (they read as `1`/`0`). Use a real name —
+     `for line in output.splitlines():`, never `for l in ...`.
+   - **Four-space indents, spaces not tabs; one space around `=` and operators** (`x = 1`,
+     not `x=1` or `x  = 1`).
+   - **Keep CODE lines within 120 columns.** When a call is genuinely long, wrap it with a
+     hanging indent — the continuation lines indented under it, never over-indented past the
+     opening `(`:
+     ```python
+     self.failed('{} ecofriendly Configured is {}, expected off'.format(
+         name, row.split()[-2]))
+     ```
+   - This does NOT mean butchering a descriptive MESSAGE to fit: a long verdict/log reason
+     (`self.log(...)`, `self.passed(...)`, `self.failed(...)`) or a `testCaseDesc` may run
+     past 120 as one readable string. Never split a sentence mid-word with `\` or glue
+     fragments together to save columns. Wrap CODE; leave prose whole.
 
 DEVICE NAME RECONCILIATION: dut is swi_a When you adapt a reused fragment, RENAME
 its device references (e.g. `self.dut` / `self.remote`) to the names init() binds so the
