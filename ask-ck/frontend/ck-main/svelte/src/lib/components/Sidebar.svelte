@@ -56,6 +56,7 @@
       {#if !collapsed}<span class="nav-label">{item.label}</span>{/if}
     </button>
   {/each}
+   {#if !collapsed}<p class="sidebar-footer" aria-hidden="true">© 2026 Allied Telesis</p>{/if}
 </aside>
 
 <style>
@@ -71,6 +72,7 @@
   .nav-item {
     display: flex;
     align-items: center;
+    font-size: 0.9rem;
     gap: 12px;
     width: 100%;
     background: transparent;
@@ -129,5 +131,12 @@
 
   .collapse-toggle:hover {
     background: rgba(255, 255, 255, 0.12);
+  }
+
+  .sidebar-footer {
+    margin-top: auto;
+    font-size: 0.72rem;
+    color: rgba(234, 246, 255, 0.7);
+    text-align: left;
   }
 </style>
