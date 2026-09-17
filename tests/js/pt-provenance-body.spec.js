@@ -58,39 +58,45 @@ describe('mountPtProvenance', () => {
 describe('the Generate panel', () => {
   const body = fnBody(PT, 'renderPtGenPanel');
 
-  it('dry-runs against the live naming fields', () => {
+  it('dry-runs against the resolved naming', () => {
     expect(body).toMatch(/mountPtProvenance\([\s\S]*generate_script[\s\S]*ptGenNaming/);
   });
 
-  it('autosaves the naming fields when they lose focus', () => {
-    expect(body).toMatch(/groupEl\.onblur\s*=\s*ptSaveGenNaming/);
-    expect(body).toMatch(/nameEl\.onblur\s*=\s*ptSaveGenNaming/);
+  // 2026-09-17: the Group / Script-name inputs were REMOVED. The framework parses its suite
+  // and set numbers out of the script filename (`test-<suite>.<set>.py`) and names the run
+  // log from them, so a typed name could not satisfy the convention — the server derives it
+  // from the case key instead. These pin the removal, not just the addition.
+  it('no longer seeds or autosaves naming inputs', () => {
+    expect(body).not.toMatch(/pt-gen-group/);
+    expect(body).not.toMatch(/pt-gen-name/);
+    expect(body).not.toMatch(/ptSaveGenNaming/);
+  });
+
+  it('still reports where the file will land', () => {
+    expect(body).toMatch(/ptUpdateGenPath\(\)/);
   });
 });
 
 describe('ptGenNaming', () => {
   const body = fnBody(PT, 'ptGenNaming');
 
-  it('reads both fields straight from the DOM, so it cannot go stale', () => {
-    expect(body).toMatch(/getElementById\('pt-gen-group'\)/);
-    expect(body).toMatch(/getElementById\('pt-gen-name'\)/);
+  it('reads the naming the SERVER resolved, not a DOM field', () => {
+    expect(body).toMatch(/step6/);
+    expect(body).toMatch(/naming/);
+    expect(body).not.toMatch(/getElementById/);
+  });
+
+  it('falls back to the derived ART name before the first generation', () => {
+    expect(body).toMatch(/ptArtName/);
   });
 });
 
-describe('ptSaveGenNaming', () => {
-  const body = fnBody(PT, 'ptSaveGenNaming');
+describe('ptArtName (display mirror of the server rule)', () => {
+  const body = fnBody(PT, 'ptArtName');
 
-  it('posts to the naming-only endpoint', () => {
-    expect(body).toMatch(/save_naming/);
-  });
-
-  it('stays silent on failure — it fires on blur, not on a button press', () => {
-    expect(body).toMatch(/if\s*\(!res\.ok\)\s*return/);
-    expect(body).toMatch(/catch\s*\(/);
-  });
-
-  it('skips the round trip when nothing actually changed', () => {
-    expect(body).toMatch(/cur\.group === group && cur\.name === name/);
+  it('builds test-<suite>.<case digits> from the case key', () => {
+    expect(body).toMatch(/PT_ART_SUITE/);
+    expect(body).toMatch(/\\d\+/);
   });
 });
 

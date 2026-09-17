@@ -40,7 +40,7 @@ const DOM = `
   <div id="pt-unit-errors"></div>
   <div id="pt-unit-page"></div>
   <div id="pt-summary-page" class="hidden">
-    <input id="pt-gen-group" value="Management"><input id="pt-gen-name" value="x_test">
+    <span id="pt-gen-path"></span>
     <span id="pt-gen-path"></span><span id="pt-gen-status"></span>
     <div id="pt-lint-result"></div><div id="pt-review-result"></div>
     <textarea id="pt-gen-code"></textarea>

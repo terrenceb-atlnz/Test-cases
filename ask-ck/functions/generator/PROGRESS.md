@@ -2,7 +2,91 @@
 
 **Purpose**: This file exists so future sessions can quickly understand exactly where we are, what has been built, what the priorities are, and how to continue seamlessly.
 
-**Last Updated**: 2026-09-16 (by Claude, with Terrence for every decision)
+**Last Updated**: 2026-09-17 (by Claude, with Terrence for every decision)
+
+## Latest session (2026-09-17) — Port family (T33233–36): objectives, steps, script identity; T33234 repair IN FLIGHT
+
+Wrapped mid-task at Terrence's request (usage cap); the wrap commit landed 2026-09-18 when the
+same session resumed. **Resume = the "IN FLIGHT" block below, inline, no agents.**
+
+**Shipped (code, all tested):**
+- **Load Case & New Session** (`POST /load_case/{key}?fresh=true`): a plain reload short-circuits on
+  the stored `pt` session *by design*, so upstream re-drafts were invisible. Fresh path resolves the
+  on-disk bundle BEFORE deleting anything, refuses while another seat holds the lock, UI confirms.
+  Tests `test_pt_load_fresh.py` (4) + `pt-load-fresh.spec.js` (3).
+- **Script identity = ART triple.** `_NAME_RX` forbade dots → every script's framework log was
+  `test-0.0.log` → `pt_exec`'s `remote_logs[0]` fallback could return a **device console
+  transcript**, which parses to zero cases and reads as success. Now `PT_ART_SUITE="9000"`,
+  `_art_script_name(key)` → `test-9000.<zephyr number>` (authoritative at generate; Group/Script-name
+  inputs removed from the panel; `_propose_name` deleted), and `_framework_log_name` resolves
+  `test-<suite>.<set>.log`, falls back to `test-0.0.log`, never a console log.
+  `test_pt_script_identity.py` (19).
+- **`generate_objectives.jinja` rewritten (general, not case-specific).** Measured bleed: T33234's
+  synthesis wrote the Duplex objective, T33236's the Polarity one. Now a `## Scope` block names the
+  folder siblings (`db.get_folder_siblings`, `llm._scope_boundary`, applied at BOTH synthesize call
+  sites, NOT in `_synthesis_context`), 1–10 bullets, ~140 chars, observability ≤ 1 bullet, worked
+  example that omits sibling subjects. `test_objectives_prompt_contract.py` (16);
+  `test_prompt_layer_boundaries.py` gained `OBJECTIVE_SCOPE_CONTEXT`.
+- Docs: SERVER-README (fresh load), PLAN-pytest-creator log-name facts corrected (were "basename").
+
+**Content (via the UI, Terrence driving):** T33233 steps reviewed/reworded, RJ-45 autoneg steps
+added, CLI strings verified against `ck.db` (two real fixes: `disabled` for admin-down, `Not
+present` for an empty bay; `default interface` withdrawn — no such command). T33234/35/36
+objectives condensed and overwritten. Four Port cases' steps de-overlapped (T33233 =
+auto-negotiation, T33235 = speeds — the manual objective text is unreliable, titles are truth).
+
+**T33234 → `generated/Port/test-9000.33234.py`** (committed here in its PARTIALLY repaired state):
+generate → Assemble+settle 0 errors → Review 15 findings (6 high) → Fix Units: 8 held, 3 refused by
+the G2/G6 guardrail (correctly — no-op replies), `setup`+`tc4` unattempted (structural) → **Fix
+whole script** rewrote 19/19 classes and fixed all 6 highs (role contract, tc4 dataflow,
+configured-vs-current) → Review 7 findings, of which `expect_value=True` (real kwarg) and the TC9
+link-down branch (consistent given link state) are false positives. Held fixes were DISCARDED.
+
+**IN FLIGHT — finish the T33234 repair (inline Edits only, then one save, one review):**
+- Already applied: `_ck_bind_link(..., assert_media=False)` + new `TestSet.assert_role_media_now()`;
+  `init` binds `fibre`/`cusfp` by port reference in try/except (`fibre_supported`, `cusfp_supported`);
+  `'copper'` restored to `NOT_APPLICABLE_MARKERS` with a DELIBERATE comment.
+- To do: (a) None-guard `portFibre`/`fibre_peer`/`portCuSfp` derefs in `TestSet.configure`/`tear_down`
+  (fallout of the try/except); (b) step-1 verify: `TestSet.configure` stashes its CLI responses,
+  `TestCase_1` adjudicates no-parser-error + partner running-config has no `polarity` line (Terrence
+  rejected "a new TestCase"); (c) `TestCase_7`: branch the step-8 verdict on the recorded
+  `before_state` (link is likely ALREADY down — "poll until it leaves connected" would stall);
+  (d) `TestCase_15`/`_16`: skip path → `self.supported = False` + log + return; TC15 calls
+  `self.testSet.assert_role_media_now(self, dut, dut.portCuSfp, 'cusfp')` after the operator
+  confirms; (e) `TestCase_17`/`_18`: gate on `fibre_supported` the same way; TC17 calls it with
+  `'fibre'`; (f) judge the F1–F6 findings from the stopped workflow's journal
+  (`~/.claude/projects/<slug>/subagents/workflows/wf_089adf01-afb/journal.jsonl`): TC6 asserts
+  current-mdix unconditionally on an expected-down link; TC14 pair 2 unadjudicated; TC10 no settle;
+  TC11 post-reset target; TC3 no pre-unplug `connected` check.
+- **Do NOT change:** the `'copper'` marker (copper-only test; fibre has no MDI/MDI-X);
+  `expect_value=True`; TC9's branch logic; TC4's semantics (decision below).
+- Then: `py_compile` → `POST /api/pytest-create/save_script/AWPTCM-T33234 {"code": ...}` (updates
+  session + disk + lint; no lock check) → `POST /review_script/AWPTCM-T33234` with an `X-CK-LLM`
+  header (headless = site default otherwise) → judge findings in-context → fix the real ones → save →
+  ONE re-review → stop. "Save the script" = `save_script`; do NOT confirm step 5.
+- **NEVER post/press `assemble_script`, `assemble_and_settle`, `fix_units`, `apply_held`,
+  `generate_units`** on this case: `fix_script` leaves `step6.chunks` STALE and each of those
+  re-splices the pre-repair units, silently destroying the repair (memory
+  `frame-binds-two-roles-only`, adjacent bug).
+
+**DECISION FOR TERRENCE — step 5's verify vs physics.** A crossover cable does the crossing, so
+for the link to come up both ports must resolve to the SAME role: exactly ONE end flips relative
+to the straight-through result. Sequence step 5 says *"inverse assignment at each end"* AND *"still
+complementary (one mdi, one mdix)"* — both clauses contradict that, and `TestCase_4` faithfully
+asserts them → a likely false RED on working hardware. Fix the sequence text first, then TC4.
+Raised by the audit; not acted on.
+
+**Gate: 1586 passed, 2 failed, 1 skipped.** (1) `test_the_real_bundles_now_yield_their_links` —
+corpus floor, Terrence: ignore. (2) `test_pt_preflight::test_real_scripts_on_the_live_bench` —
+re-armed by the first real script and asserts a PRE-RESET hardcoded name
+`Port_Auto_MDI_MDI_test.py`; it also reports tb470 cannot host `test-9000.33234.py` (no `cusfp`
+role declared — the script makes it optional via try/except, which a static preflight cannot see).
+Needs re-aiming; not a script fix.
+
+**Deferred, recorded in memory:** `frame-binds-two-roles-only` (frame binds only {tb, peer};
+profiles spec collapses copper+fibre onto one handle; `fix_script`/chunks desync + the UI half —
+Terrence wants this repaired next session); `configured-vs-current-show-interface` (prompt rule);
+`editing-backend-restarts-production` (`--reload` stays). Per-suite `library_9000.py` still open.
 
 ## Latest session (2026-09-16, cont.³) — clean-slate reset to square one
 

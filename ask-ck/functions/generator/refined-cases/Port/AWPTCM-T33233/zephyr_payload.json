@@ -1,0 +1,62 @@
+{
+  "AWPTCM-T33233": {
+    "objective": "<ul>\n<li>Link established between two ports both configured for auto-negotiation, on copper and fibre media types, where supported. Speak with SVT for a list of supported tranceivers.</li>\n<li>Negotiated speed and duplex equal to the highest common capability advertised by both link partners.</li>\n<li>Operational status of both ports reported as up, with matching speed and duplex on each end of the link.</li>\n<li>Auto-negotiation as the default administrative setting on ports that support it, present after a fresh start with no explicit configuration.</li>\n<li>Negotiated operational values distinguishable from configured values in the reported port state, with negotiation mode shown as auto/enabled.</li>\n<li>Re-negotiation performed after link loss, cable reconnection, port disable/enable, or device restart, returning the same negotiated result.</li>\n<li>Updated negotiated speed and duplex after a link partner's advertised capabilities change, without requiring manual intervention.</li>\n<li>Auto-negotiation on a port whose partner is fixed-configured resolving to a link at a compatible speed, with duplex behaviour consistent with the platform's fallback rules.</li>\n<li>No link, or a clearly reported fault state, when the two ends share no common capability.</li>\n<li>Fibre ports negotiating in line with the capabilities of the inserted transceiver, including after transceiver removal and insertion of a different type.</li>\n<li>Link state and negotiation transitions recorded in logs and available through statistics, counters, and management interfaces.</li>\n<li>No unexpected link flapping, error counter growth, or resource leakage across repeated negotiation cycles.</li>\n</ul>",
+    "testScript": {
+      "type": "steps",
+      "steps": [
+        {
+          "description": "Note: Related ART Tests linked in Traceability.",
+          "expectedResult": ""
+        },
+        {
+          "description": "With a fresh start and no explicit port configuration applied, inspect the administrative negotiation setting on ports that support auto-negotiation across the available media types. Confirm auto-negotiation is the default state and that the reported port state distinguishes the configured setting from the operational result.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Connect the DUT to a link partner on a port with both ends set to auto-negotiation using a fibre port and a supported transceiver, selecting transceiver types from the list agreed with SVT so that more than one supported speed grade is exercised. Confirm the link establishes and the negotiated values are consistent with the inserted transceiver's capabilities.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Establish an auto/auto link using crossover copper cabling. Confirm the link comes up, that the negotiated speed and duplex match on both ends, and that the resolved MDI/MDIX polarity is reported.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Repeat the copper auto/auto link with straight-through cabling in place of crossover. Confirm polarity is resolved automatically and the same negotiated speed and duplex result is reached as with crossover cabling.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Restrict the capabilities advertised by the link partner so that the highest common capability is below the maximum either port can support, covering a lower speed and a half-duplex case where the platform supports it. Confirm the negotiated speed and duplex settle on the highest capability common to both ends rather than the port maximum.",
+          "expectedResult": ""
+        },
+        {
+          "description": "On an established auto/auto link, force re-negotiation by each of the available means in turn \u2014 removing and restoring the cable, administratively disabling and re-enabling the port, and restarting the device. Confirm the link re-establishes in each case and the negotiated speed, duplex and polarity return to the same values as before.",
+          "expectedResult": ""
+        },
+        {
+          "description": "While an auto/auto link is up, change the capabilities advertised by the link partner to a different speed or duplex grade without touching the DUT configuration. Confirm the DUT updates its negotiated speed and duplex to the new highest common capability with no manual intervention on the DUT.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Leave the DUT port on auto-negotiation while fixing the link partner to a specific speed and duplex, covering both a matching-speed and a differing-speed partner setting. Confirm the resulting link state and duplex behaviour follow the platform's documented fallback rules and that the reported operational values reflect what was actually resolved.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Configure the two ends so that they share no common speed or duplex capability. Confirm no link is brought up, or that a fault state is clearly reported, and that the port does not flap between states while the mismatch persists.",
+          "expectedResult": ""
+        },
+        {
+          "description": "With a fibre port in an auto/auto configuration, remove the transceiver and insert a different supported type with different capabilities, then return to the original. Confirm the port re-negotiates to values in line with each inserted transceiver and that removal and insertion are reported in the port state.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Across the link-up, link-loss and re-negotiation events exercised above, review the logging, statistics, counters and management interfaces available on the platform. Confirm link state and negotiation transitions are recorded consistently and that the negotiated values are reported identically across the available management paths.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Cycle the link repeatedly through negotiation over a sustained run on both copper and fibre ports. Confirm the negotiated result is consistent on every cycle, that no unexpected flapping or error counter growth occurs, and that device resource usage does not trend upward across the run.",
+          "expectedResult": ""
+        }
+      ]
+    }
+  }
+}

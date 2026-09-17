@@ -4255,3 +4255,19 @@ The "one more thing": rewind every case and re-run the improved pipeline from sc
 - Memory added: `explain-in-plain-language` (Terrence flagged jargon-heavy framing; lead plain).
 - Resume: draft the FIRST case through the improved pipeline — it re-arms the skipped push tests
   and repopulates refined-cases/. PROGRESS.md top entry has the detail.
+
+## Session Close / Handoff (2026-09-17) — Port family + T33234 repair in flight
+
+- Shipped: Load Case & New Session; ART script identity (`test-9000.<case>`, `_NAME_RX` dots,
+  `_framework_log_name`); `generate_objectives.jinja` scope guardrails; 42 new tests; PLAN log-name
+  facts corrected. Content: T33233–36 objectives/steps revised via the UI.
+- T33234 script generated → Fix Units → Fix whole script → Review 7 (2 false positives). Repair
+  PARTIALLY applied by hand and committed; an agent workflow was started and STOPPED at Terrence's
+  request (usage cap) before it edited anything.
+- Resume: PROGRESS.md top entry, "IN FLIGHT" block — inline Edits only, one `save_script`, one
+  `review_script`, no chunk-based endpoints. One decision parked for Terrence (step 5 verify vs
+  crossover physics). Resumed in the same session on 2026-09-18.
+- Gate 1586/2 red (corpus floor — ignore; preflight test asserts a pre-reset script name — re-aim).
+- Memories: +frame-binds-two-roles-only, +configured-vs-current-show-interface,
+  +editing-backend-restarts-production; re-verified art-suite-shape, topology-profiles-contract,
+  askck-lan-hosting.

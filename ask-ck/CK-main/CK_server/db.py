@@ -366,6 +366,33 @@ def get_target_cases() -> List[dict]:
             _rows("SELECT * FROM zephyr_cases WHERE is_target=1 ORDER BY key")]
 
 
+def get_folder_siblings(key: str, limit: int = 12) -> List[dict]:
+    """The other target cases filed in the same Zephyr folder as `key`.
+
+    The objective prompt's scope boundary (generate_objectives.jinja). A manual suite
+    divides one feature area across several cases -- the Port folder splits auto-negotiation,
+    MDI/MDI-X, fixed speed and fixed duplex into four -- but the TestLink/ATP evidence each
+    case is grounded on describes the whole matrix at once (a single source case is titled
+    "Fixed Copper-1Gig-Cross-10/Half-MDI to MDI": speed AND duplex AND cabling AND polarity).
+    With no boundary the model unions its evidence and writes its neighbours' objectives:
+    measured 2026-09-16, T33234 (MDI/MDI-X) was handed an ATP *Duplex* bundle and produced
+    duplex bullets, while T33236 (duplex) was handed the *Polarity* bundle and produced four
+    polarity bullets. Naming the siblings lets the prompt say "that ground is theirs".
+
+    Returns [] for an unknown key or a case with no folder -- a missing boundary must
+    degrade to the old behaviour, never to an error. `is_target` keeps this to the curated
+    set, so a folder holding thousands of archive rows cannot flood the prompt.
+    """
+    row = _one("SELECT folder FROM zephyr_cases WHERE key=?", (key,))
+    folder = (row["folder"] if row else "") or ""
+    if not folder:
+        return []
+    return [{"key": r["key"], "title": r["title"]} for r in
+            _rows("SELECT key, title FROM zephyr_cases "
+                  "WHERE folder=? AND key<>? AND is_target=1 AND title<>'' "
+                  "ORDER BY key LIMIT ?", (folder, key, max(0, int(limit))))]
+
+
 # iter_zephyr_slim() was removed here. Its sole caller was the Generator's Step-2
 # related-ref ranking, which streamed all ~45k rows through a bespoke Python scorer
 # on the event loop. That path now uses search_zephyr() below (FTS + the shared

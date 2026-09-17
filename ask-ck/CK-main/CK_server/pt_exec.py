@@ -243,6 +243,32 @@ _PASS_LINE = re.compile(r"^PASS:\s*(.*)$")
 _FAIL_LINE = re.compile(r"^!!FAIL:\s*(.*)$")
 
 
+# The framework's own rule, mirrored: ATTestSet.py:71 pulls <suite>/<set> out of the script
+# filename, and create_log_file() (:108) writes `test-<suite>.<set>.log`. Kept identical on
+# purpose — if the framework's pattern ever changes, this is the one place that must follow.
+_FW_TESTSET_RX = re.compile(r"test-(\d+)\.(\d+).*\.py")
+
+
+def _framework_log_name(test_name: str, remote_logs: List[str]) -> Optional[str]:
+    """Pick the TESTSET log out of a run directory, never a device transcript.
+
+    Returns None rather than an arbitrary `.log` when the testset log is absent: a run that
+    produced no testset log has nothing to parse, and `parse_framework_log` already reports
+    that honestly as `empty_log`/`no_results`. Handing it a device console transcript instead
+    would parse to zero cases and read as a clean sweep — the exact "empty must not equal
+    success" failure that parser was hardened against.
+    """
+    m = _FW_TESTSET_RX.search(Path(test_name).name)
+    if m:
+        wanted = "test-%s.%s.log" % (m.group(1), m.group(2))
+        if wanted in remote_logs:
+            return wanted
+    # A script whose name carries no ART identity leaves the framework on its '0' defaults.
+    if "test-0.0.log" in remote_logs:
+        return "test-0.0.log"
+    return None
+
+
 def parse_framework_log(text: str, expected_cases: Optional[int] = None) -> Dict[str, Any]:
     """Parse an ATTestSet log into per-case results.
 
@@ -668,15 +694,23 @@ class RunManager:
             exit_code = out.channel.recv_exit_status()
             stdout_text = "".join(chunks)
 
-            # Retrieve the framework log (named after the script basename)
+            # Retrieve the framework log. Its name is NOT the script basename — the framework
+            # builds it from the filename's ART identity: ATTestSet.py:71 matches
+            # `test-(\d+).(\d+).*\.py` and create_log_file() writes `test-<suite>.<set>.log`.
+            # Guessing the basename meant `test-9000.33233.py` was looked up as
+            # `test-9000.33233.log`... only by accident of the suffix swap, and any other name
+            # missed entirely, falling through to `remote_logs[0]`. That fallback is the real
+            # hazard: a run leaves one console transcript PER DEVICE in the same workdir
+            # (ATSwitch names them `<device>.log`), so the arbitrary pick could return
+            # `swi_a.log` and the parser would then report a verdict from a device transcript
+            # that contains no case blocks at all.
             local_run_dir.mkdir(parents=True, exist_ok=True)
             (local_run_dir / "stdout.txt").write_text(stdout_text, encoding="utf-8")
-            log_name = Path(test_name).with_suffix(".log").name
             log_text = ""
             sftp = client.open_sftp()
             try:
                 remote_logs = [f for f in sftp.listdir(workdir) if f.endswith(".log")]
-                preferred = log_name if log_name in remote_logs else (remote_logs[0] if remote_logs else None)
+                preferred = _framework_log_name(test_name, remote_logs)
                 if preferred:
                     local_log = local_run_dir / preferred
                     sftp.get(f"{workdir}/{preferred}", str(local_log))

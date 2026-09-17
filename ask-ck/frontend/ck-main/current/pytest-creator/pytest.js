@@ -125,10 +125,29 @@ async function ptRefreshCases() {
   if (btn) btn.disabled = false;
 }
 
-export async function ptLoadCase() {
+// "Load Case & Continue": resume the stored session (reuses step2-step8 work).
+export async function ptLoadCase() { return _ptLoadCase({ fresh: false }); }
+
+// "Load Case & New Session": discard the stored session and reload objective + steps fresh
+// from the last exported bundle on disk. For when the case was edited upstream (objectives/
+// steps + re-export/push) after it was last loaded here — a plain reload keeps serving the
+// old snapshot by design, so this is the explicit "throw it away and start over" path.
+export async function ptLoadCaseFresh() {
+  if (!S.ptCase.key) { alert('Select a case first (Open/Partial, or Complete to revisit one).'); return; }
+  if (!confirm(
+    `Start a NEW PyTest session for ${S.ptCase.key}?\n\n`
+    + `This discards the current PyTest progress for this case — sequence, script matches, `
+    + `fragments, generated script and any run history — and reloads the objective and steps `
+    + `fresh from the last exported bundle on disk.\n\n`
+    + `Your case in Zephyr / on disk is untouched. This cannot be undone.`
+  )) return;
+  return _ptLoadCase({ fresh: true });
+}
+
+async function _ptLoadCase({ fresh = false } = {}) {
   if (!S.ptCase.key) { alert('Select a case first (Open/Partial, or Complete to revisit one).'); return; }
   const st = ptStatusEl('pt-load-status');
-  const d = await ptApi(`/load_case/${S.ptCase.key}`, { method: 'POST' }, st);
+  const d = await ptApi(`/load_case/${S.ptCase.key}${fresh ? '?fresh=true' : ''}`, { method: 'POST' }, st);
   if (!d) return;
   ptSession = d.session;
   ptCaseInfo = { title: d.case_title, group_display: d.group_display,
@@ -1527,42 +1546,35 @@ async function ptAssembleAndSettle() {
 
 // --- Step 6: Generate ---------------------------------------------------------
 
+// The ART identity the server will derive (`AWPTCM-T33233` -> `test-9000.33233`). Mirrored
+// here for DISPLAY ONLY so the panel can show the target path before the first generation —
+// `_art_script_name` on the server is authoritative and is what actually names the file. A
+// drift between the two shows a wrong path, never a wrong file.
+const PT_ART_SUITE = '9000';
+function ptArtName(key) {
+  const digits = String(key || '').match(/\d+/g);
+  return digits ? `test-${PT_ART_SUITE}.${digits.join('')}` : '';
+}
+
 function ptUpdateGenPath() {
-  const g = document.getElementById('pt-gen-group').value.trim() || '<Group>';
-  const n = document.getElementById('pt-gen-name').value.trim() || '<Name>';
+  const naming = ((ptSession || {}).step6 || {}).naming || {};
+  const g = naming.group || (ptCaseInfo ? ptCaseInfo.group_display : '') || '<Group>';
+  const n = naming.name || ptArtName(S.ptCase && S.ptCase.key) || '<Name>';
   document.getElementById('pt-gen-path').textContent = `→ generated/${g}/${n}.py`;
 }
 
-// The step-6 naming as the page currently shows it — one reader for the dry-run body,
-// the autosave and (by shape) what ptGenerateScript posts.
+// The step-6 naming as the server resolved it — the one reader for the dry-run body. The
+// Group/Script-name inputs were removed on 2026-09-17: the name is derived from the case key
+// so it satisfies the framework's `test-<suite>.<set>.py` pattern, which is the only place
+// the framework can learn its own identity and the name it gives the run log.
 function ptGenNaming() {
+  const naming = ((ptSession || {}).step6 || {}).naming || {};
   return {
-    group: (document.getElementById('pt-gen-group').value || '').trim(),
-    name: (document.getElementById('pt-gen-name').value || '').trim(),
+    group: naming.group || (ptCaseInfo ? ptCaseInfo.group_display : '') || '',
+    name: naming.name || ptArtName(S.ptCase && S.ptCase.key),
   };
 }
 
-// Best-effort persistence of the naming fields alone. Silent by design: this fires on
-// blur, so a 409 (a script already exists — Save to generated/ owns the rename then) or a
-// 400 (half-typed name) must not throw a dialog at someone who is simply tabbing between
-// fields. The Generate and Save buttons still surface those errors properly.
-async function ptSaveGenNaming() {
-  if (!S.ptCase || !ptSession) return;
-  const { group, name } = ptGenNaming();
-  if (!group || !name) return;
-  const cur = (ptSession.step6 || {}).naming || {};
-  if (cur.group === group && cur.name === name) return;
-  try {
-    const res = await fetch(`${PT_API}/save_naming/${encodeURIComponent(S.ptCase.key)}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ group, name }),
-    });
-    if (!res.ok) return;
-    const d = await res.json();
-    ptSession.step6 = { ...(ptSession.step6 || {}), naming: d.naming };
-  } catch (e) { /* offline / navigating away — the field is still on screen */ }
-}
 
 export function renderPtGenPanel() {
   if (!ptSession) { ptStatusEl('pt-gen-status').textContent = 'Load a case first.'; return; }
@@ -1570,18 +1582,8 @@ export function renderPtGenPanel() {
   // immediately and the pills fill in when the render returns.
   if (!_ptUnits.length) { ptLoadUnits(); } else { ptRenderUnits(); }
   const s6 = ptSession.step6 || {};
-  const naming = s6.naming || {};
-  const groupEl = document.getElementById('pt-gen-group');
-  const nameEl = document.getElementById('pt-gen-name');
-  groupEl.value = naming.group || (ptCaseInfo ? ptCaseInfo.group_display : '');
-  nameEl.value = naming.name || '';
-  groupEl.oninput = ptUpdateGenPath;
-  nameEl.oninput = ptUpdateGenPath;
-  // Autosave on blur. Until a generation SUCCEEDS the server has no other writer for these
-  // two fields (save_script 409s without a file), so an edit lived only in the DOM and the
-  // re-seed above quietly restored the default when the panel was left and re-entered.
-  groupEl.onblur = ptSaveGenNaming;
-  nameEl.onblur = ptSaveGenNaming;
+  // Naming has no inputs to seed or autosave since 2026-09-17 — the server derives the
+  // script name from the case key, so the panel only reports where the file will land.
   ptUpdateGenPath();
   const files = s6.files || {};
   document.getElementById('pt-gen-code').value = (files.test || {}).code || '';
@@ -1769,11 +1771,10 @@ async function ptGenerateScript() {
   if (!ptRequireCase()) return;
   const btn = document.getElementById('pt-gen-btn');
   const d = await ptApi(`/generate_script/${S.ptCase.key}`, {
+    // No naming is posted: the server derives the ART script name from the case key so it
+    // matches `test-<suite>.<set>.py`, and defaults the group from the refined-case folder.
     method: 'POST',
-    body: JSON.stringify({
-      group: document.getElementById('pt-gen-group').value.trim(),
-      name: document.getElementById('pt-gen-name').value.trim(),
-    }),
+    body: '{}',
     btn, busyLabel: 'Generating…', llm: true,
   }, ptStatusEl('pt-gen-status'));
   recordLLMDebug(btn);
@@ -1791,11 +1792,10 @@ async function ptLintScript() {
 }
 
 async function ptPushCodeEdits(writeFiles) {
-  const body = {
-    group: document.getElementById('pt-gen-group').value.trim(),
-    name: document.getElementById('pt-gen-name').value.trim(),
-    code: document.getElementById('pt-gen-code').value,
-  };
+  // Code only — no group/name. save_script rewrites step6.naming ONLY when the body carries
+  // one of them, so omitting both leaves the server-derived ART name in place; sending the
+  // old DOM values back would have re-imposed a typed name over the convention.
+  const body = { code: document.getElementById('pt-gen-code').value };
   const libWrap = document.getElementById('pt-gen-lib-wrap');
   if (!libWrap.classList.contains('hidden')) {
     body.library_code = document.getElementById('pt-gen-lib-code').value;
@@ -2219,7 +2219,7 @@ async function ptCheckProfileNamed(name) {
 // Register this tool's data-action handlers.
 registerActions({
   ptApplyHeld, ptDiscardHeld, ptApplyAllHeld,
-  ptLoadCase, ptRefreshCases, ptExtractSequence,
+  ptLoadCase, ptLoadCaseFresh, ptRefreshCases, ptExtractSequence,
   ptAddSeqRow, ptRemoveSeqRow, ptSaveSequence,
   ptConfirm, ptSuggestStep, ptSuggestAllSteps, ptSearchStep,
   ptChooseMatches, ptClearChosen,

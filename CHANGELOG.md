@@ -11,6 +11,32 @@ current working thread see
 [`ask-ck/functions/generator/PROGRESS.md`](ask-ck/functions/generator/PROGRESS.md).
 
 
+## 2026-09-17 — Load Case & New Session; ART script identity (`test-9000.<case>`); objectives prompt scope guardrails; framework-log resolution
+
+- **Load Case & New Session** (`load_case?fresh=true`). *Why:* Load Case & Continue reuses the
+  stored `pt` session by design — that is what preserves step 2–8 work — so a case re-drafted and
+  re-pushed upstream kept serving its old snapshot with no way to refresh short of an admin reset.
+  The fresh path resolves the on-disk bundle before deleting anything, refuses while another seat
+  holds the lock, and the UI confirms because it discards sequence, matches, fragments, script and
+  run history.
+- **Generated scripts are named `test-9000.<zephyr number>.py` automatically**; the Group/Script-name
+  inputs are gone. *Why:* `ATTestSet.create_log_file` names the log from the FILENAME
+  (`test-<suite>.<set>.log`), and `_NAME_RX` forbade dots, so every generated script logged to
+  `test-0.0.log` and `pt_exec`'s `remote_logs[0]` fallback could return a device console transcript —
+  zero parsed cases, read as success. `9000` is the unused ART suite number assigned to this family;
+  the set number is the Zephyr key, so the four Port cases get four native logs.
+  `_framework_log_name` now resolves the real name and never falls back to a console log.
+- **`generate_objectives.jinja` rewritten with a scope boundary.** *Why:* measured on the Port
+  family — T33234's synthesis produced the Duplex objective and T33236's the Polarity one, because
+  the prompt never told the model which sibling cases own which subject. The prompt now names the
+  folder siblings and rules them out, caps bullets at 1–10 and ~140 chars, and demotes
+  observability to at most one bullet. General by construction (siblings come from `ck.db`), per
+  Terrence: *"this topic crossover doesn't only happen here."*
+- **Recorded, not fixed:** the whole-script Fix leaves `step6.chunks` stale, so Assemble / Fix units /
+  Apply held / Generate all units silently re-splice the pre-fix units over a repair, and the panel
+  shows every pill green while doing it. Memory `frame-binds-two-roles-only` holds the full
+  diagnosis (server half + UI half) for the next session.
+
 ## 2026-09-16 — clean-slate reset to square one; admin "reset all" made truthful; push tests decoupled from the corpus
 
 Terrence chose to re-run every case through the improved drafting + PyTest Creator pipeline

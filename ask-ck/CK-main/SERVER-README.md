@@ -699,6 +699,17 @@ a clean sweep to every count-based check. Expected-case count comes from the scr
 
 **Gated flow (sidebar steps, each with an explicit Confirm):**
 1. **Cases** — pick a Complete case, Load Case & Continue.
+   - **Load Case & Continue** reuses the case's stored PyTest session (`sessions`, kind `pt`) —
+     that reuse is what preserves the step 2–8 work across a reload. It only reads the on-disk
+     refined bundle when *no* session exists yet.
+   - **Load Case & New Session** (`POST /load_case/{key}?fresh=true`) is the opt-in for when the
+     case was edited **upstream** — objective/steps re-drafted, re-exported and pushed — after it
+     was last loaded here: a plain reload keeps serving the old snapshot by design, so this one
+     **discards** the stored `pt` session and rebuilds objective + steps from the last exported
+     bundle on disk (the same bundle `push` reads). It resolves that bundle *before* deleting
+     anything (a case with no drop-in 404s with the session left intact), refuses when another
+     seat holds the live lock, and the button confirms first because it throws away sequence,
+     matches, fragments, the generated script and run history for the case.
 2. **Sequence** — LLM extracts a prescriptive sequence of automatable steps from the
    refined payload (traceability note skipped); edit rows, Save, Confirm.
    **Per-step carousel (2026-07-23):** Script Search and Fragments are now
@@ -778,7 +789,19 @@ a clean sweep to every count-based check. Expected-case count comes from the scr
    `stepN` keys are unchanged, step5=fragments etc.; only the visible sidebar numbers shifted.)*
 5. **Generate** — the LLM **fills a standardized skeleton** rendered from the reviewed
    sequence (`templates/pt_script_template.py.jinja`), not a free-form compose
-   **Naming survives the page and the call (2026-08-31).** `step6.naming` had exactly two
+   **Script identity is derived, not typed (2026-09-17).** Every generated script is named
+   `test-9000.<zephyr number>.py` (`PT_ART_SUITE = "9000"`, `_art_script_name(key)`; e.g.
+   `AWPTCM-T33234` → `test-9000.33234`), authoritative at `generate_script`. *Why:* the
+   framework's `ATTestSet.create_log_file` names the run log from the script **filename**
+   (`re.search(r'test-(\d+).(\d+).*\.py')` → `test-<suite>.<set>.log`, else `test-0.0.log`), and
+   `_NAME_RX` used to forbid dots — so every generated script logged to `test-0.0.log` and
+   `pt_exec`'s old `remote_logs[0]` fallback could hand back a device **console transcript**,
+   which parses to zero cases and reads as success. `9000` is the unused ART suite number
+   assigned to this work; the set number is the Zephyr key, so sibling cases get distinct native
+   logs. `pt_exec._framework_log_name` resolves that name first, falls back to `test-0.0.log`, and
+   never returns a console log. The Group / Script-name inputs were removed from the panel; the
+   path readout (`pt-gen-path`) shows the derived name. The paragraph below is history.
+   **Naming survives the page and the call (2026-08-31 — superseded above).** `step6.naming` had exactly two
    writers — the SUCCESS tail of `generate_script`, and `save_script`, which 409s until a
    generated file exists. So before a first successful generation nothing would store the
    Group / script-name fields at all: an edit lived only in the DOM, and
@@ -872,8 +895,9 @@ a clean sweep to every count-based check. Expected-case count comes from the scr
    `# AI <model> <date>` for gap-fill). It now takes the `sequence` and remaps
    original-step-number → `TestCase_<n>` class number before stamping — fixing a divergence
    bug where a dropped setup step shifted the class numbers and the wrong fragment's tag was
-   stamped on the wrong TestCase. Edit the **Group / Script name**
-   (`generated/<Group>/<Name>.py`), review/edit, **Lint** (py_compile + structure +
+   stamped on the wrong TestCase. The script name is fixed by the server
+   (`generated/<Group>/test-9000.<zephyr number>.py`, see *Script identity* above); review/edit,
+   **Lint** (py_compile + structure +
    framework-import + **template/logging-contract conformance**: each `main()` needs a
    `self.log()` and ≥1 non-empty `passed()`/`failed()`, no empty verdicts, no leftover
    FILL placeholders), **Save**, Confirm.

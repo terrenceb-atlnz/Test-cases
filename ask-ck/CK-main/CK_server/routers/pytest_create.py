@@ -237,7 +237,15 @@ def _translate_py2(code: str, name: str = "fragment") -> Tuple[str, str]:
 # and asks the LLM to fill its slots. See TEMPLATE-SPEC.md.
 
 _GROUP_RX = re.compile(r"^[A-Za-z0-9][A-Za-z0-9 _()\-]{0,59}$")
-_NAME_RX = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_\-]{0,59}$")
+# A dot is allowed so a generated script can carry the ART identity `test-<suite>.<set>`
+# (2026-09-17). The framework derives EVERYTHING from that filename: ATTestSet.py:71 matches
+# `test-(\d+).(\d+).*\.py` and, failing to match, silently keeps the defaults at :53
+# (`testSuiteNum = testSetNum = '0'`) — so a dotless name produced `test-0.0.log` with cases
+# named `0.0.<n>`, and pt_exec's basename lookup then missed it and fell back to an arbitrary
+# `.log` in the workdir, which can be a DEVICE console log. Barring dots made that
+# unavoidable. Callers must still reject `..` (see _validate_naming) — that is the only
+# traversal this character class would otherwise open.
+_NAME_RX = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.\-]{0,59}$")
 
 
 # ---------------------------------------------------------------------------
@@ -883,11 +891,36 @@ def _group_display(group_dir: str) -> str:
     return g or "Ungrouped"
 
 
-def _propose_name(title: str) -> str:
-    words = re.findall(r"[A-Za-z0-9]+", title)
-    stop = {"the", "a", "an", "of", "and", "or", "to", "for", "with", "test", "verify", "check"}
-    core = [w for w in words if w.lower() not in stop][:4]
-    return ("_".join(core) + "_test") if core else "generated_test"
+# Our assigned, previously-unused ART suite number. The family lives at 9000.<set>.<case>,
+# modelled on the 1000-series convention (2026-09-17, Terrence).
+PT_ART_SUITE = "9000"
+
+
+def _art_script_name(case_key: str) -> str:
+    """`AWPTCM-T33233` -> `test-9000.33233`: the script's ART identity, derived not typed.
+
+    The filename is NOT cosmetic — it is the only input the framework has for its own
+    identity. `ATTestSet.py:71` parses `test-(\\d+).(\\d+).*\\.py` out of it and
+    `create_log_file()` writes `test-<suite>.<set>.log`; no match means the '0' defaults
+    stand and every run lands in `test-0.0.log`. Putting the Zephyr case number in the SET
+    position is what makes each case's log natively named and self-describing
+    (`9000.33233.<step>` = suite · case · step), so the four Port cases produce four
+    correctly-named logs with no post-processing.
+
+    Derived from the key rather than the title, and authoritative over anything stored or
+    posted: a typed name cannot satisfy a convention the framework parses.
+    """
+    digits = "".join(re.findall(r"\d+", case_key or ""))
+    if digits:
+        return f"test-{PT_ART_SUITE}.{digits}"
+    slug = re.sub(r"[^A-Za-z0-9]+", "_", case_key or "generated").strip("_") or "generated"
+    return f"test-{PT_ART_SUITE}.0_{slug}"[:60]
+
+
+# `_propose_name(title)` — which coined a name from the case TITLE ("MDIX_test") — was removed
+# on 2026-09-17 along with the Generate panel's naming inputs. A title-derived name cannot
+# satisfy the framework's `test-<suite>.<set>.py` pattern, so every script it named produced a
+# `test-0.0.log`. `_art_script_name(case_key)` above replaced it as the only namer.
 
 
 # ---------------------------------------------------------------------------
@@ -929,8 +962,10 @@ def _validate_naming(group: str, name: str) -> Tuple[str, str]:
     group, name = (group or "").strip(), (name or "").strip()
     if not _GROUP_RX.match(group) or ".." in group:
         raise HTTPException(400, "Invalid group name (letters/digits/space/()-_ only).")
-    if not _NAME_RX.match(name):
-        raise HTTPException(400, "Invalid script name (letters/digits/-_ only, no extension).")
+    # `..` is rejected explicitly now that _NAME_RX admits a dot: before that, no-dots made
+    # traversal impossible by construction, exactly as it still is for _GROUP_RX above.
+    if not _NAME_RX.match(name) or ".." in name:
+        raise HTTPException(400, "Invalid script name (letters/digits/.-_ only, no '..', no extension).")
     return group, name
 
 
@@ -3827,8 +3862,8 @@ def _persist_generated_files(sess: PtSession) -> List[str]:
         stem = Path(raw_name).name                      # drop any directory component
         if not stem.endswith(".py"):
             raise HTTPException(400, "Library file name must end with .py")
-        if not _NAME_RX.match(stem[:-3]):               # base (sans .py) must be safe
-            raise HTTPException(400, "Invalid library file name (letters/digits/-_ only).")
+        if not _NAME_RX.match(stem[:-3]) or ".." in stem:   # base (sans .py) must be safe
+            raise HTTPException(400, "Invalid library file name (letters/digits/.-_ only, no '..').")
         lib_path = script_path.parent / stem            # basename only — never the raw name
         # Belt-and-suspenders: the resolved path must stay inside the script's own dir.
         if lib_path.parent.resolve() != script_path.parent.resolve():
@@ -3960,7 +3995,7 @@ async def pt_cases(request: Request):
 
 
 @router.post("/load_case/{key}")
-async def load_case(key: str, request: Request):
+async def load_case(key: str, request: Request, fresh: bool = False):
     data = _data(request)
     # Per-case lock (PLAN-auth-and-case-locking.md Phase 1). If another tab/user holds a
     # LIVE lock, serve a read-only snapshot and touch nothing — pt_sessions is shared
@@ -3981,10 +4016,28 @@ async def load_case(key: str, request: Request):
             "read_only": True,
         }
 
-    sess = pt_sessions.get(key) or _pt_load(key)
-    if not sess:
+    if fresh:
+        # "Load Case & New Session" (the sibling of "& Continue"). load_case REUSES an
+        # existing session by design — that is what preserves the step2-step8 work across a
+        # reload — so an upstream objective/steps edit + re-export is NOT picked up by a plain
+        # load. This is the explicit opt-in to throw the stored session away and rebuild from
+        # the on-disk refined bundle (the same bundle `push` reads). Only reachable holding the
+        # lock: the not-by_me branch above already returned a read-only snapshot, so we never
+        # overwrite a session another seat is actively editing.
+        #
+        # Resolve the disk bundle BEFORE deleting anything: _find_refined_case raises 404 for a
+        # case with no drop-in, and we must not destroy the persisted session only to fail the
+        # rebuild. If the read succeeds, discard the old session (cache + ck.db row) and build
+        # fresh from disk.
         group, payload, trace = _find_refined_case(key)
+        pt_sessions.pop(key, None)
+        dbx.delete_session("pt", key)
         sess = PtSession(key=key, group=group, payload=payload, traceability=trace)
+    else:
+        sess = pt_sessions.get(key) or _pt_load(key)
+        if not sess:
+            group, payload, trace = _find_refined_case(key)
+            sess = PtSession(key=key, group=group, payload=payload, traceability=trace)
     _sweep_stale_runs(sess)
     # The LLM choice is per seat since 2026-09-10 (X-CK-LLM, resolved at dispatch); nothing
     # is copied onto the case any more. The response field below stays for API compatibility.
@@ -4880,7 +4933,11 @@ async def generate_script(key: str, request: Request, body: dict = Body(default=
 
     naming = (sess.step6 or {}).get("naming") or {}
     group = body.get("group") or naming.get("group") or _group_display(sess.group)
-    name = body.get("name") or naming.get("name") or _propose_name(_case_title(data, key))
+    # The script name is DERIVED, never chosen (2026-09-17). The Generate panel's Group and
+    # Script-name inputs were removed with this change: a name the reviewer types cannot
+    # satisfy a convention the framework parses out of the filename, and a stored name from
+    # before the convention would otherwise keep winning here.
+    name = _art_script_name(key)
     group, name = _validate_naming(group, name)
     file_name = f"{name}.py"
 
@@ -5971,7 +6028,7 @@ async def assemble_script(key: str, request: Request, body: dict = Body(default=
 
     naming = step6.get("naming") or {}
     group = (body.get("group") or naming.get("group") or "").strip()
-    name = (body.get("name") or naming.get("name") or "").strip()
+    name = (body.get("name") or naming.get("name") or _art_script_name(key)).strip()
     return _assemble_and_store(key, sess, ctx, group, name)
 
 
@@ -6045,7 +6102,7 @@ async def assemble_and_settle(key: str, request: Request, body: dict = Body(defa
         raise HTTPException(409, "The skeleton has no fillable units — confirm step 4 first.")
     naming = step6.get("naming") or {}
     group = (body.get("group") or naming.get("group") or "").strip()
-    name = (body.get("name") or naming.get("name") or "").strip()
+    name = (body.get("name") or naming.get("name") or _art_script_name(key)).strip()
     res = await run_in_threadpool(_assemble_and_store, key, sess, ctx, group, name)
 
     async def _settle_chain():
@@ -7233,7 +7290,7 @@ async def fix_units(key: str, request: Request, body: dict = Body(default={})):
               for uid in targets}
     naming = step6.get("naming") or {}
     group = (naming.get("group") or "").strip()
-    name = (naming.get("name") or "").strip()
+    name = (naming.get("name") or _art_script_name(key)).strip()
     previous_code = code
     iteration = int(step6.get("iterations") or 1)
     file_name = test.get("name") or f"{name}.py"
@@ -7328,7 +7385,7 @@ async def apply_held(key: str, request: Request, body: dict = Body(default={})):
     ctx = _pt_generation_context(key, data, sess)
     naming = step6.get("naming") or {}
     group = (naming.get("group") or "").strip()
-    name = (naming.get("name") or "").strip()
+    name = (naming.get("name") or _art_script_name(key)).strip()
     test = (step6.get("files") or {}).get("test") or {}
     previous_code = test.get("code") or ""
     iteration = int(step6.get("iterations") or 1)

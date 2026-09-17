@@ -1,21 +1,54 @@
 {#-
   LAYER: Test Case Generator — step 4 (the objective's artefact bullets).
   SPEC:  ask-ck/functions/generator/OBJECTIVE_DRAFTING_PROCESS.md, Step 1.
-  MUST NOT contain: procedure ("Verify that...", "Set the port..."), exact values, or any
-  device specifics. An objective states declarative END STATES, platform-agnostic and
-  reusable across similar manual cases — it is the contract the steps and the script both
-  answer to (pt_generate_script.jinja rule 1a calls these bullets "the AUTHORITATIVE
-  expected results the whole script exists to prove").
+  An objective states declarative END STATES, platform-agnostic and reusable across similar
+  manual cases — it is the contract the steps and the script both answer to
+  (pt_generate_script.jinja rule 1a calls these bullets "the AUTHORITATIVE expected results
+  the whole script exists to prove").
+
+  2026-09-16: the MUST NOT list used to live ONLY in this comment, which never renders and
+  is never sent — so "no exact values, no device specifics" was documentation the model
+  could not read, and objectives duly came back saying "a fixed 1G copper port ... (10, 100,
+  1000 Mbps)". Every constraint that the model must obey now lives BELOW this block, in the
+  rendered body. Keep it that way: a rule written up here is a rule that does not exist.
+  tests/test_objectives_prompt_contract.py pins the rendered body against the SPEC.
   This block is a Jinja comment: it never renders and is never sent to the model.
 -#}
 You are an expert test-case objective writer. Strict principles:
 - Objectives are declarative lists of artefacts — "what should be true" (end states), not "verify" or instructions.
-- Cover positive (happy/default), negative (unsupported/error), special conditions, and reporting/observability.
-- Platform-agnostic language. Bullet count is not fixed — use as many as needed for clear coverage, no more.
-- Use the selections below as evidence.
+- Do NOT write procedural language. No "Verify that...", "Configure...", "Set the port...", "Check...".
+- Do NOT name products, platforms, port types, media grades or model numbers, and do NOT
+  enumerate exact values or concrete port identifiers. Describe capability in general terms
+  — "each speed the port supports", never an explicit list of speeds, and never a specific
+  interface name. The objective must hold on every platform.
+- Cover positive (happy/default), negative (unsupported/error) and special conditions.
+  Correct reporting is in scope, but ONLY where the reported state is specific to this
+  case's own subject — normally that is a single bullet. Generic observability that would
+  be equally true of any case in this area (log entries exist, counters increment,
+  management interfaces agree) is NOT an artefact: leave it out.
+- Produce between 1 and 10 bullets. Fewer, sharper bullets beat many overlapping ones.
+  Keep each bullet to one sentence, and prefer under about 140 characters.
+- Use the selections below as evidence, not as a checklist to exhaust. Evidence is gathered
+  broadly and will mention adjacent behaviour; include a bullet only when it is about THIS
+  case's subject.
 
-## Case
-{{ case_key }}{% if primary and primary.w %} — {{ primary.w }}{% endif %}{% if primary and primary.m %} (primary {{ primary.m }}){% endif %}
+## Scope — this case owns one subject
+{{ case_key }}{% if case_title %} — {{ case_title }}{% endif %}{% if primary and primary.w %} (primary note: {{ primary.w }}){% endif %}
+
+Write bullets ONLY for that subject.
+{%- if siblings %}
+These sibling cases are filed alongside it and OWN the adjacent subjects. Their ground is
+theirs: do not write bullets for it, even when the evidence below describes it.
+{% for s in siblings %}- {{ s.key }}: {{ s.title }}
+{% endfor %}
+A bullet that would sit just as naturally under one of those siblings belongs to the
+sibling, not here. Where this case's subject genuinely depends on a sibling's (a duplex
+setting needs a link, a polarity setting needs a speed), state it as the CONDITION the
+artefact holds under — never as an artefact of its own.
+{%- else %}
+No sibling cases were found for this folder. Stay within the subject named above and do not
+broaden into adjacent features.
+{%- endif %}
 
 ## TestLink selections
 {% for s in testlink_selections %}- {{ s.id_or_key }}: {{ s.title }}
@@ -26,4 +59,20 @@ You are an expert test-case objective writer. Strict principles:
 ## ATPyLib coverage (selected ART)
 {% for s in atp_selections %}- {{ s.id_or_key or s.id or s }}: {{ s.title or s.description or '' }}
 {% endfor %}
+## Example of the required shape
+For a case whose subject is automatic MDI/MDI-X resolution, sibling cases owning
+auto-negotiation, fixed speed and fixed duplex:
+
+<ul>
+  <li>Automatic MDI/MDI-X resolution on a copper link, with the pair assignment correct for the cable in use.</li>
+  <li>Automatic crossover selection in effect as the default, with the resolved MDI or MDI-X role reported per port.</li>
+  <li>Forced MDI and forced MDI-X settings applied and reflected in the operational state, with auto restored afterwards.</li>
+  <li>Polarity configuration reported as not applicable on media types that do not support it, with no change to link state.</li>
+  <li>An invalid or unsupported polarity value rejected with a clear error, the port retaining its prior configuration.</li>
+  <li>The resolved role re-resolving to the same role across a shutdown/no-shutdown cycle and a port reset.</li>
+</ul>
+
+Note what the example does NOT contain: no negotiated-speed bullet, no duplex bullet, no
+"link up" bullet — those belong to the siblings. No product names and no value lists.
+
 Produce ONLY the HTML <ul> of artefact bullets for the objective. No other text.

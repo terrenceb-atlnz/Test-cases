@@ -613,6 +613,7 @@
           </select>
           <div class="compact-flex mb-2">
             <button data-action="ptLoadCase" class="btn btn-primary btn-compact">Load Case &amp; Continue</button>
+            <button data-action="ptLoadCaseFresh" class="btn btn-secondary btn-compact" title="Discard this case's saved PyTest session and reload objective + steps fresh from the last exported bundle on disk. Use after editing the case upstream and re-exporting.">Load Case &amp; New Session</button>
             <span id="pt-selected-summary" class="justification-note"></span>
           </div>
           <div id="pt-load-status" class="justification-note"></div>
@@ -728,11 +729,7 @@
           </div>
         </div>
         <div class="compact-flex mb-2">
-          <label class="justification-note">Group:</label>
-          <input id="pt-gen-group" class="form-input form-input-small" placeholder="Port">
-          <label class="justification-note">Script name:</label>
-          <input id="pt-gen-name" class="form-input form-input-small" placeholder="MDIX_test">
-          <span id="pt-gen-path" class="justification-note"></span>
+          <span id="pt-gen-path" class="justification-note" title="Derived from the case key, not typed: the framework parses its suite and set numbers out of this filename (test-&lt;suite&gt;.&lt;set&gt;.py) and names the run log from them."></span>
         </div>
         <!-- The happy-path flow, numbered 1-4 and contiguous so the sequence reads cleanly.
              LOCAL steps are grey; the one LLM step (Review) is blue. -->

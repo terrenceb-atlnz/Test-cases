@@ -1,0 +1,58 @@
+{
+  "AWPTCM-T33234": {
+    "objective": "<ul>\n  <li>Automatic MDI/MDI-X resolution on a copper link, with the pair assignment correct for the cable in use \u2014 opposite roles at the two ends for a straight-through cable, and the inverse resolution for a crossover cable.</li>\n  <li>Automatic crossover selection in effect as the default, with the resolved MDI or MDI-X role reported per port.</li>\n  <li>Forced MDI and forced MDI-X settings applied and reflected in the operational state, with auto restored afterwards and the port returning to an automatically resolved role.</li>\n  <li>Equivalent automatic crossover resolution over a copper SFP module, including the module-inserted and module-recognised states.</li>\n  <li>Polarity configuration having no effect on media types that do not support it \u2014 notably a fibre SFP link \u2014 reported as not applicable rather than silently applied, with no change to link state.</li>\n  <li>Invalid or unsupported polarity values rejected with a clear error, the port retaining its prior configuration.</li>\n  <li>Resolved MDI/MDI-X role re-resolving to the same role across an administrative shutdown/no-shutdown cycle and a port reset, with the polarity configuration persisting.</li>\n</ul>",
+    "testScript": {
+      "type": "steps",
+      "steps": [
+        {
+          "description": "Note: Related ART Tests linked in Traceability.",
+          "expectedResult": ""
+        },
+        {
+          "description": "With a straight-through copper cable between the DUT and a link partner, bring the link up with both ends set to auto-negotiation, full duplex and automatic crossover. Confirm the link establishes and check the resolved pair assignment reported at each end for the straight-through cable.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Replace the straight-through cable with a crossover cable on the same copper link, leaving both ends on automatic crossover. Confirm the link re-establishes and compare the resolved role at each end against the result recorded for the straight-through cable.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Confirm automatic crossover is the default polarity setting on a copper port that has never been explicitly configured, and that the port's operational state reports the resolved MDI or MDI-X role rather than only the configured mode.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Force the copper port to MDI, then to MDI-X, allowing the link to settle after each change. Confirm the configured setting is reflected in the port's operational role in each case, and exercise this with the link partner on both a straight-through and a crossover cable so that one combination is a matched pair and one is not.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Return the copper port from a forced setting to automatic crossover. Confirm the port re-resolves its role automatically and no longer reports a forced polarity.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Repeat the automatic crossover resolution over a copper SFP module on a port that accepts pluggables, using a straight-through cable to a partner. Confirm the module is detected and recognised as a copper transceiver, the link comes up, and a resolved MDI or MDI-X role is reported for the SFP port.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Apply polarity configuration to a port carrying a fibre SFP link. Confirm the DUT reports the setting as not applicable to the media type rather than accepting it silently, and check the link state before and after the attempt.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Attempt to set polarity to values outside the supported set, including a malformed or unsupported keyword, on a copper port with a known good configuration. Confirm each attempt is rejected with an error and that the port's prior polarity configuration and link state are unchanged.",
+          "expectedResult": ""
+        },
+        {
+          "description": "On a copper link with an automatically resolved role, record the resolved role, then administratively shut down and re-enable the port. Confirm the link re-establishes, the role resolves to the same value, and the polarity configuration is unchanged.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Repeat the disruption test with a forced polarity setting in place and across a port reset rather than an administrative cycle. Confirm the configured polarity persists across the reset and the operational role returns to the configured value once the link is up.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Exercise polarity changes in combination with duplex changes on the same copper port \u2014 alternating between forced and automatic settings for each in turn, including a shutdown between changes. Confirm each command is accepted in sequence and that the port's reported duplex and polarity state remain consistent with the last applied configuration.",
+          "expectedResult": ""
+        }
+      ]
+    }
+  }
+}

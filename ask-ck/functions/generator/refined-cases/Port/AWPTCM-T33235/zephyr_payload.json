@@ -1,0 +1,54 @@
+{
+  "AWPTCM-T33235": {
+    "objective": "<ul>\n  <li>Each speed supported by the port configurable as an explicit fixed value, with the operational speed matching the configured value.</li>\n  <li>Auto-negotiation reported as disabled on a port carrying an explicit fixed speed, distinguishing a forced speed from a negotiated one in the port's reported state.</li>\n  <li>A link re-established at the newly configured speed after each speed change, without a device restart.</li>\n  <li>The port returned to its default negotiated behaviour when the fixed speed is removed or set back to auto.</li>\n  <li>A speed value that is invalid, out of range, or unsupported on the port's media type rejected with a clear error, the previous valid configuration remaining in effect.</li>\n  <li>No link established, and no spurious link-up reported, while the link partner is fixed at an incompatible speed \u2014 the link returning once the partner is set to a compatible value.</li>\n  <li>The configured fixed speed retained across an administrative shutdown/no-shutdown cycle and reapplied from saved configuration after a device restart.</li>\n  <li>Fixed speed applied per port, with configuration of one port leaving the speed and link state of other ports unchanged.</li>\n  <li>Configured speed and operational speed reported consistently in port status and configuration output.</li>\n</ul>",
+    "testScript": {
+      "type": "steps",
+      "steps": [
+        {
+          "description": "Note: Related ART Tests linked in Traceability.",
+          "expectedResult": ""
+        },
+        {
+          "description": "With the DUT connected to a link partner over a link, and both ends at their default auto-negotiated settings, establish a baseline. Confirm the link comes up and record the negotiated speed, duplex and auto-negotiation state reported for the port.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Configure the port to each fixed speed the port supports in turn (checking both fibre and copper tranceivers where applicable), setting the link partner to a matching fixed speed for each. For every value, confirm the link re-establishes without restarting the device and that the operational speed matches the configured value.",
+          "expectedResult": ""
+        },
+        {
+          "description": "With a fixed speed in effect on the port, inspect the port's reported state. Confirm auto-negotiation is reported as disabled, distinguishing the forced speed from the negotiated baseline recorded earlier.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Compare the configured speed against the operational speed for a port carrying a fixed speed, using both the port status view and the running configuration view. Confirm the two views agree with each other and with the value that was applied.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Remove the fixed speed from the port, and separately set it back to auto, with the link partner left auto-negotiating. Confirm the port returns to its default negotiated behaviour and that auto-negotiation is once again reported as enabled.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Attempt to configure speed values that are invalid, outside the supported range, and valid on other media but unsupported on this port. Confirm each attempt is rejected with a clear error and that the port's previously applied speed and link state are unaffected.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Fix the DUT port at one supported speed and fix the link partner at a different, incompatible speed. Confirm no link is established and that no spurious link-up is reported over a sustained observation period, then set the partner to a compatible speed and confirm the link returns.",
+          "expectedResult": ""
+        },
+        {
+          "description": "With a fixed speed configured, administratively shut down the port and bring it back up. Confirm the fixed speed and auto-negotiation state are retained across the cycle and that the link re-establishes at the configured speed.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Save the configuration with a fixed speed applied and restart the device. Confirm the fixed speed is reapplied from saved configuration at startup and that the link comes up at that speed without further operator action.",
+          "expectedResult": ""
+        },
+        {
+          "description": "With multiple ports linked to partners, apply a fixed speed to one port only. Confirm the configured speed, operational speed and link state of the other ports are unchanged, then repeat by changing the fixed speed on that port while the others remain linked.",
+          "expectedResult": ""
+        }
+      ]
+    }
+  }
+}

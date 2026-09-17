@@ -1,0 +1,54 @@
+{
+  "AWPTCM-T33236": {
+    "objective": "<ul>\n  <li>Half duplex and full duplex each configurable as an explicit fixed value on ports that support them, with the operational duplex matching the configured value.</li>\n  <li>Auto-negotiation reported as disabled on a port carrying an explicit fixed duplex, distinguishing a forced duplex from a negotiated one in the port's reported state.</li>\n  <li>A link established and stable when both ends are fixed to the same duplex, at each speed for which the platform offers that duplex.</li>\n  <li>Half duplex offered only where the port's speed permits it, with the setting rejected or reported as unsupported at speeds where it does not apply.</li>\n  <li>Half-duplex operation exhibiting CSMA/CD behaviour, with collision counters incrementing only under contention and remaining at zero on a full-duplex link.</li>\n  <li>A duplex mismatch between the two ends producing a reported degraded outcome \u2014 a link that does not come up, or one whose error counters record the mismatch \u2014 rather than silent traffic loss.</li>\n  <li>A duplex value that is invalid, or unsupported on the port's media type, rejected with a clear error, the previous valid configuration remaining in effect.</li>\n  <li>The configured fixed duplex retained across an administrative shutdown/no-shutdown cycle and reapplied from saved configuration after a device restart.</li>\n  <li>The port returned to its default negotiated duplex when the fixed setting is removed or set back to auto.</li>\n  <li>Configured duplex and operational duplex reported consistently in port status and configuration output.</li>\n</ul>",
+    "testScript": {
+      "type": "steps",
+      "steps": [
+        {
+          "description": "Note: Related ART Tests linked in Traceability.",
+          "expectedResult": ""
+        },
+        {
+          "description": "On a copper port that supports both duplex modes, configure an explicit fixed half duplex and then an explicit fixed full duplex, at each speed the platform offers for that media. Confirm the operational duplex matches the configured value in each case and that the port's reported state shows auto-negotiation as disabled while a fixed duplex is in effect.",
+          "expectedResult": ""
+        },
+        {
+          "description": "With the DUT and a link partner connected over a copper link, fix both ends to the same duplex at each supported speed \u2014 including half duplex at the lower speeds and full duplex across the range \u2014. Confirm the link comes up and remains stable, and that both ends report the same operational speed and duplex.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Attempt to configure half duplex on a port running at a speed where the platform does not offer half duplex. Confirm the DUT either rejects the setting or reports it as unsupported, and that the port's prior speed/duplex configuration remains in effect.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Establish a half-duplex link between the DUT and a partner and drive bidirectional traffic from both ends simultaneously to create contention on the shared medium. Confirm collision-related counters on the half-duplex port increment under contention, then repeat the same traffic profile over a full-duplex link and confirm those counters stay at zero.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Create a duplex mismatch by fixing one end to full duplex and the other end to half duplex on the same link, at a speed where both modes are supported. Confirm the outcome is reported \u2014 either the link does not come up, or the port's error counters record the mismatch while traffic is offered \u2014 rather than passing silently.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Attempt to configure a duplex value that is invalid, and a duplex value that is valid in general but unsupported on the port's media type (for example a fibre or SFP-based port that offers only one duplex mode). Confirm each attempt is rejected with a clear error and the port's previously configured duplex remains in effect and operational.",
+          "expectedResult": ""
+        },
+        {
+          "description": "With a fixed duplex configured on a linked port, administratively shut down the port and bring it back up. Confirm the configured duplex is retained across the cycle and that the link re-establishes at the same duplex without reverting to negotiation.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Save the running configuration with fixed duplex settings applied on multiple ports, including at least one half-duplex port, then restart the device. Confirm each port's duplex configuration is reapplied from saved configuration after boot and that the operational duplex matches on link-up.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Remove the fixed duplex setting from a port, or set it back to auto, while the link partner remains connected. Confirm the port returns to its default negotiated duplex, that auto-negotiation is once again reported as enabled, and that the link re-establishes at the negotiated speed and duplex.",
+          "expectedResult": ""
+        },
+        {
+          "description": "For a port under each configuration state exercised above \u2014 fixed half, fixed full, and auto \u2014 cross-check the port status reporting against the configuration output. Confirm the configured duplex and the operational duplex are reported consistently between the two, including on a port that is administratively down or has no link partner.",
+          "expectedResult": ""
+        }
+      ]
+    }
+  }
+}

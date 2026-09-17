@@ -897,6 +897,51 @@ def _resolve_llm_runtime(llm_config: Optional[Dict] = None) -> Dict[str, Any]:
     }
 
 
+def _case_title_for(key: Optional[str]) -> str:
+    """The case's Zephyr title — the plainest statement of what it is about.
+
+    `primary.w` is a decision NOTE, not the title ("Auto/Full/MDI-MDIX negotiation" for the
+    MDI/MDI-X case), so it cannot carry the prompt's scope boundary on its own.
+    """
+    if not key:
+        return ""
+    try:
+        import db
+        case = db.get_case(key) or {}
+        return case.get("title") or ""
+    except Exception:
+        return ""
+
+
+def _scope_boundary(key: Optional[str]) -> Dict[str, Any]:
+    """The objective prompt's scope-boundary context: this case's subject + its siblings.
+
+    Deliberately NOT part of `_synthesis_context`. That context is shared with
+    generate_steps.jinja, and tests/test_prompt_layer_boundaries.py treats every key reaching
+    a prompt as an approved channel — the steps prompt has no use for a sibling list, so it
+    does not get one. Applied at BOTH synthesize_objectives call sites: the dry-run preview
+    is documented as byte-identical to the real send, and a boundary that appeared in only
+    one of them would make the provenance preview a lie.
+    """
+    return {"case_title": _case_title_for(key), "siblings": _folder_siblings_for(key)}
+
+
+def _folder_siblings_for(key: Optional[str]) -> List[Dict[str, str]]:
+    """Sibling cases sharing this case's Zephyr folder — see db.get_folder_siblings.
+
+    Imported lazily (locks.py does the same) so this module keeps no import-time dependency
+    on the database layer. Any failure degrades to no boundary rather than failing synthesis:
+    a missing sibling list costs precision, an exception costs the user their generation.
+    """
+    if not key:
+        return []
+    try:
+        import db
+        return db.get_folder_siblings(key)
+    except Exception:
+        return []
+
+
 def _synthesis_context(session: Dict[str, Any], gaps_text: str = "") -> Dict[str, Any]:
     """Shared template context from confirmed review selections + gaps."""
     return {
@@ -923,14 +968,14 @@ def synthesize_objectives(session: Dict[str, Any], llm_config: Optional[Dict] = 
     """
     rt = _resolve_llm_runtime(llm_config)
     if dry_run:
-        context = _synthesis_context(session)
+        context = {**_synthesis_context(session), **_scope_boundary(session.get("key"))}
         objective_prompt = render_prompt("generate_objectives.jinja", context)
         return {"dry_run": True, "prompt": objective_prompt,
                 "provider": rt["provider"], "model": rt["model"], "auth_method": rt["auth_method"]}
     # Traceability gaps belong to the Traceability artefact (traceability.md), which is
     # rendered at export time and generates its own gaps there. The objective prompt no
     # longer consumes gaps, so we no longer make the extra generate_coverage_gaps call here.
-    context = _synthesis_context(session)
+    context = {**_synthesis_context(session), **_scope_boundary(session.get("key"))}
 
     objective_prompt = render_prompt("generate_objectives.jinja", context)
     obj_meta = _call_llm_with_meta(

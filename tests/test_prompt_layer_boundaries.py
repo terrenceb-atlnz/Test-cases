@@ -62,6 +62,13 @@ ALLOWED_CONTEXT = {
     "atp_selections", "gaps", "art_string",
 }
 
+# The objective prompt's scope boundary (2026-09-16) — this case's own subject plus the
+# sibling cases that own the adjacent ones, so the model stops writing its neighbours'
+# objectives. Deliberately NOT in ALLOWED_CONTEXT: it is approved for generate_objectives
+# ONLY. The steps prompt has no use for a sibling list, and the test above still fails if
+# these ever reach it, which is what keeps `_synthesis_context` from quietly growing them.
+OBJECTIVE_SCOPE_CONTEXT = {"case_title", "siblings"}
+
 
 def _capture_context(monkeypatch, which):
     """Run a synthesis call with the LLM stubbed and return the render context."""
@@ -99,7 +106,7 @@ def test_steps_prompt_receives_only_whitelisted_context(monkeypatch):
 
 def test_objectives_prompt_receives_only_whitelisted_context(monkeypatch):
     ctx = _capture_context(monkeypatch, "objectives")
-    extra = set(ctx) - ALLOWED_CONTEXT
+    extra = set(ctx) - (ALLOWED_CONTEXT | OBJECTIVE_SCOPE_CONTEXT)
     assert not extra, f"generate_objectives.jinja gained context: {sorted(extra)}"
 
 

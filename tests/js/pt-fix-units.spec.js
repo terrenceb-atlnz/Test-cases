@@ -41,7 +41,10 @@ describe('the buttons', () => {
     expect(HTML).toMatch(/data-action="ptFixScript"/);
   });
   it('follow-up #3: the legend names BOTH Fix buttons and both LLM buttons are blue', () => {
-    const legend = HTML.slice(HTML.indexOf("If something's wrong &nbsp;"), HTML.indexOf('id="pt-gen-group"'));
+    // Ends at the naming row. That row used to be anchored on id="pt-gen-group"; the
+    // Group/Script-name inputs were removed on 2026-09-17 (the server derives the ART name),
+    // so the path readout is what now closes the legend.
+    const legend = HTML.slice(HTML.indexOf("If something's wrong &nbsp;"), HTML.indexOf('id="pt-gen-path"'));
     expect(legend).toMatch(/Fix units \(LLM\)/);
     expect(legend).toMatch(/Fix whole script \(LLM\)/);
     expect(legend).toMatch(/HELD/);                               // what a review-driven fix now does

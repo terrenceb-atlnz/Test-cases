@@ -24,6 +24,7 @@
 - [Opus for per-unit Fix](opus-for-per-unit-fix.md) — Terrence 2026-09-09: Fix units on Opus (unit dropdown drives generate+fix); a wrong Sonnet fix costs a re-review; verify fixes at attribute level
 - [CLI fabrication starts at step 2](cli-fabrication-originates-step2.md) — `speed=1000` originates in Sequence Extraction, not Generate; the skeleton repeats it and step6 amplifies it
 - [Generator CLI hallucination](generator-cli-hallucination.md) — ALL 5 models fabricate CLI output formats; a resourcing gap (no sample output in the prompt), not model quality
+- [configured vs current in show interface](configured-vs-current-show-interface.md) — DEFERRED prompt rule (agreed 2026-09-17): AW+ prints BOTH lines; asserting on `configured` when the step wants `current` passes lint and proves nothing — evidence from T33234 already collected
 - [PyTest step numbering divergence](pt-step-numbering-divergence.md) — internal step5 = UI "4. Fragments", step6 = "5. Generate"; never show raw stepN to users
 - [Stale session connection bug](stale-session-connection-bug.md) — a 200 outside readers never see: CAUSE (FIXED 2026-09-10) = two SQLite libs in one process stripped server locks; .nfs* orphans
 - [Site-default LLM gotcha (per-seat since 2026-09-10)](workspace-llm-default-gotcha.md) — headless curl with no X-CK-LLM header gets the SITE DEFAULT, which ANY seat's Apply rewrites (D17); send the header or POST set_site_default_llm
@@ -32,6 +33,7 @@
 - [Explain in plain language](explain-in-plain-language.md) — lead with plain words, unpack jargon (gate/fixture/coupling); Terrence will otherwise ask "what does that even mean"
 - [Browser fan-out connection ceiling](browser-fanout-connection-ceiling.md) — never fire N blocking requests from the page: HTTP/1.1 caps 6/origin and starves the broker poll; one request + polling
 - [Ask CK LAN hosting](askck-lan-hosting.md) — server of record http://10.33.22.17:8000/ (systemd ask-ck.service + `ck` cmd, none in repo); the working tree IS production; NEVER run.sh --stop/--bg
+- [Editing the backend restarts production](editing-backend-restarts-production.md) — the unit runs uvicorn --reload on the working tree: any CK_server/*.py save bounces the live server, and the reload can WEDGE on the 25s agent long-polls (no worker, unit still "active")
 - [Ask CK over VPN](askck-vpn-access.md) — ping works but :8000 TIMES OUT from a VPN seat = the VPN blocks internal TCP:8000 (not the server); fix = `ssh -L 8000:localhost:8000` then browse localhost:8000, or run the browser ON the seat
 - [Ask CK admin + restart](ask-ck-admin-restart.md) — run.sh flags are for NON-hosted contexts; the hosted server via `ck`; the admin panel (double-click CK's face) restart is service-safe
 - [Files/Terminal open on the xrdp display](seat-files-terminal-open-on-xrdp-display.md) — RECURRING on terrenceb-dl: an xrdp login pushes DISPLAY=:10 (+PATH, XDG_DATA_DIRS) into the shared systemd --user env so D-Bus-activated GNOME apps open invisibly (Thunar fine); fix = re-push GNOME's env + nautilus -q; ~/.xsession repair + sssd krb5 renewal applied 2026-09-14, both UNVERIFIED until next xrdp login / unlock; mounts were a misdiagnosis
@@ -64,6 +66,7 @@
 - [Terrence prefers the session model as judge](terrence-prefers-session-model-as-judge.md) — quality verdicts: READ AND JUDGE IN-CONTEXT, no claude -p / vLLM judge calls; generation runs are fine
 - [Setup unit re-indent at assembly](setup-unit-reindent-at-assembly.md) — the setup unit is the ONLY non-top-level unit, so models flush-left a def; _assemble_units re-indents it
 - [ART suite shape is the target](art-suite-shape.md) — the frame/prompt emulate the ART house shape (2026-09-07): (dutA.portA, tb.ethA) + peer, shortcut block, CHECKPOINT verdicts, library_<case>.py
+- [Frame binds two roles only](frame-binds-two-roles-only.md) — DEFERRED repair: _detect_links returns {tb, peer} and the profiles spec collapses copper+fibre onto ONE handle, so a multi-role case makes the setup UNIT invent the role contract; cause of 4 of 6 high findings on T33234
 - [claude_agent is the ONLY Claude transport; TWO backends only](claude-agent-is-the-release-transport.md) — server-side Claude REMOVED 2026-09-10, Grok 2026-09-11; allowlist = (local_llm, claude_agent); seats install the agent from the splash one-liner; LLM choice is per seat (X-CK-LLM)
 - [AW+ service-gated routing daemons](awplus-service-gated-routing-daemons.md) — "daemon is not running or feature license" = run `service ospf|rip|vrrp|pim` first; PIM-DM has no service cmd
 - [Demo Windows seat](demo-windows-seat.md) — 10.33.25.50 (TROLLEY3-N11) is the Windows demo/test seat; §9 ran there and on fresh 10.33.22.18 on 2026-09-11

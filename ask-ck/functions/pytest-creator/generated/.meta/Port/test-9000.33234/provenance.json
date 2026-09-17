@@ -1,0 +1,227 @@
+{
+  "case_key": "AWPTCM-T33234",
+  "group": "Port",
+  "name": "test-9000.33234",
+  "saved_at": "2026-09-17T19:23:58.970124+00:00",
+  "iterations": 2,
+  "fragments": [
+    {
+      "source_id": "legacy/5000_mdi_mdix/test-5000.0001-CopperFixed_Straight.py",
+      "symbol": "TestCase_1",
+      "maps_to": [
+        1,
+        2
+      ]
+    },
+    {
+      "source_id": "legacy/5000_mdi_mdix/test-5000.0002-CopperFixed_Cross.py",
+      "symbol": "TestCase_1",
+      "maps_to": [
+        1,
+        5
+      ]
+    },
+    {
+      "source_id": "legacy/5000_mdi_mdix/test-5000.0003-CopperSFP_Straight.py",
+      "symbol": "TestCase_1",
+      "maps_to": [
+        1,
+        17
+      ]
+    },
+    {
+      "source_id": "legacy/5000_mdi_mdix/library_5000.py",
+      "symbol": "configureDefaultPort",
+      "maps_to": [
+        1
+      ]
+    },
+    {
+      "source_id": "legacy/5000_mdi_mdix/library_5000.py",
+      "symbol": "configurePort",
+      "maps_to": [
+        1,
+        6,
+        7,
+        9,
+        10,
+        15,
+        12
+      ]
+    },
+    {
+      "source_id": "legacy/5000_mdi_mdix/library_5000.py",
+      "symbol": "checkConfiguredPort",
+      "maps_to": [
+        1,
+        3,
+        6,
+        7,
+        9,
+        10,
+        11,
+        12,
+        14,
+        15,
+        19
+      ]
+    },
+    {
+      "source_id": "legacy/5000_mdi_mdix/library_5000.py",
+      "symbol": "checkLinkStatus",
+      "maps_to": [
+        2,
+        4,
+        8,
+        12,
+        14,
+        16,
+        7,
+        10,
+        11,
+        19
+      ]
+    },
+    {
+      "source_id": "legacy/5000_mdi_mdix/library_5000.py",
+      "symbol": "checkCurrentPort",
+      "maps_to": [
+        2,
+        3,
+        5,
+        12,
+        14,
+        15,
+        17
+      ]
+    },
+    {
+      "source_id": "legacy/5000_mdi_mdix/test-5000.0001-CopperFixed_Straight.py",
+      "symbol": "TestCase_28",
+      "maps_to": [
+        3,
+        13
+      ]
+    },
+    {
+      "source_id": "svt/3009_pluggable_qualifications/libPluggableAutomate.py",
+      "symbol": "yesNo",
+      "maps_to": [
+        4,
+        8,
+        16,
+        18
+      ]
+    },
+    {
+      "source_id": "svt/3009_pluggable_qualifications/libPluggableAutomateConfig.py",
+      "symbol": "checkPortStatusVerify",
+      "maps_to": [
+        4,
+        16,
+        18
+      ]
+    },
+    {
+      "source_id": "legacy/5000_mdi_mdix/test-5000.0002-CopperFixed_Cross.py",
+      "symbol": "TestCase_4",
+      "maps_to": [
+        6
+      ]
+    },
+    {
+      "source_id": "legacy/5000_mdi_mdix/test-5000.0002-CopperFixed_Cross.py",
+      "symbol": "TestCase_3",
+      "maps_to": [
+        7
+      ]
+    },
+    {
+      "source_id": "legacy/5703_Speed_Duplex_Polarity/test-5000.1003.py",
+      "symbol": "TestCase_2",
+      "maps_to": [
+        8,
+        11
+      ]
+    },
+    {
+      "source_id": "legacy/5703_Speed_Duplex_Polarity/test-5000.1003.py",
+      "symbol": "TestCase_1",
+      "maps_to": [
+        8,
+        11,
+        13,
+        15
+      ]
+    },
+    {
+      "source_id": "legacy/5000_mdi_mdix/test-5000.0001-CopperFixed_Straight.py",
+      "symbol": "TestCase_2",
+      "maps_to": [
+        9
+      ]
+    },
+    {
+      "source_id": "legacy/5000_mdi_mdix/test-5000.0005-CopperFixed2.5G_5G_Straight.py",
+      "symbol": "TestCase_4",
+      "maps_to": [
+        10
+      ]
+    },
+    {
+      "source_id": "svt/3009_pluggable_qualifications/libPluggableAutomateConfig.py",
+      "symbol": "checkInvalidCmd",
+      "maps_to": [
+        11,
+        19
+      ]
+    },
+    {
+      "source_id": "art/6010_ART_interface_test/library_6010.py",
+      "symbol": "shutdown_all_interfaces",
+      "maps_to": [
+        12,
+        14
+      ]
+    },
+    {
+      "source_id": "art/6010_ART_interface_test/library_6010.py",
+      "symbol": "enable_all_interfaces",
+      "maps_to": [
+        12,
+        14
+      ]
+    },
+    {
+      "source_id": "legacy/5000_mdi_mdix/test-5000.0001-CopperFixed_Straight.py",
+      "symbol": "TestCase_10",
+      "maps_to": [
+        15
+      ]
+    },
+    {
+      "source_id": "svt/3009_pluggable_qualifications/libPluggableAutomate.py",
+      "symbol": "getPluggableSpeed",
+      "maps_to": [
+        16,
+        18
+      ]
+    },
+    {
+      "source_id": "art/6000_link_check/library_6000.py",
+      "symbol": "colate_pluggables_by_id",
+      "maps_to": [
+        16,
+        18
+      ]
+    },
+    {
+      "source_id": "legacy/5703_Speed_Duplex_Polarity/test-5000.1003.py",
+      "symbol": "TestCase_7",
+      "maps_to": [
+        19
+      ]
+    }
+  ],
+  "llm": {}
+}
