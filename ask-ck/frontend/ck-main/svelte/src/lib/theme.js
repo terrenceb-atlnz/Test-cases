@@ -23,6 +23,7 @@ export const theme = writable(getInitial());
 /** The theme actually in effect: 'light' or 'dark', with 'system' already resolved. */
 export const resolvedTheme = writable(systemPrefersDark() ? 'dark' : 'light');
 
+// @ts-ignore
 export function setTheme(value) {
   theme.set(value);
   try {
