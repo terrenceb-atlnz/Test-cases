@@ -8,14 +8,14 @@
   };
 </script>
 
-<article class={`tool-card`}>
+<button type="button" class="tool-card" on:click>
   <div class="card-icon">
     <img src={card.icon?.src} alt={card.title} />
   </div>
   <h2>{card.title}</h2>
   <p>{card.description}</p>
   <img class="card-arrow" src={arrowRightIcon} alt="" aria-hidden="true" />
-</article>
+</button>
 
 <style>
   .tool-card {

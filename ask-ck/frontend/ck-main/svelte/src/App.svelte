@@ -17,6 +17,10 @@
   import HelpPage from './pages/HelpPage.svelte';
   import SettingsPage from './pages/SettingsPage.svelte';
   import ToolPage from './pages/ToolPage.svelte';
+  import CaseGeneratorPage from './pages/GeneratorPage.svelte';
+    import PyTestPage from './pages/PyTestPage.svelte';
+    import TestComposerPage from './pages/TestComposerPage.svelte';
+    import ZephyrPage from './pages/ZephyrPage.svelte';
 
   const navigation = {
     main: [
@@ -25,7 +29,7 @@
       { id: 'settings', label: 'Settings', icon: settingsIcon }
     ],
     tool: [
-      { id: 'generator', label: 'Test Case Generator', icon: testCaseIcon },
+      { id: 'generator', label: 'Objective Generator', icon: testCaseIcon },
       { id: 'pytest', label: 'PyTest Creator', icon: pytestIcon },
       { id: 'composer', label: 'Test Composer', icon: testComposerIcon },
       { id: 'zephyr', label: 'Zephyr Templating', icon: zephyrIcon }
@@ -99,7 +103,7 @@
    */
   const toolPages = {
     generator: {
-      title: 'Test Case Generator',
+      title: 'Objective Generator',
       intro: 'Turn sparse manual test cases into refined, reviewable cases.',
       cards: [{ title: 'Generator', description: 'Create a structured test narrative and validation plan.', accent: 'blue' }]
     },
@@ -128,11 +132,19 @@
   <main class="content-panel">
     <div class="content-inner">
       {#if activePage === 'home'}
-        <HomePage />
+        <HomePage onNavigate={selectPage} />
       {:else if activePage === 'help'}
         <HelpPage />
       {:else if activePage === 'settings'}
         <SettingsPage />
+      {:else if activePage === 'generator'}
+        <CaseGeneratorPage />
+      {:else if activePage === 'pytest'}
+        <PyTestPage />
+      {:else if activePage === 'composer'}
+        <TestComposerPage />
+      {:else if activePage === 'zephyr'}
+        <ZephyrPage />
       {:else}
         <ToolPage page={toolPages[activePage] || toolPages.generator} />
       {/if}
