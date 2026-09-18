@@ -3,7 +3,7 @@ name: editing-backend-restarts-production
 description: ask-ck.service runs uvicorn --reload against the working tree, so ANY save to CK_server/*.py bounces the live server — and a reload can wedge on the agent long-polls
 metadata:
   type: project
-verified: 2026-09-17
+  verified: 2026-09-18
 ---
 
 The hosted server (`systemd --user` unit `ask-ck.service`, LAN on :8000) runs:

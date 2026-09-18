@@ -4271,3 +4271,22 @@ The "one more thing": rewind every case and re-run the improved pipeline from sc
 - Memories: +frame-binds-two-roles-only, +configured-vs-current-show-interface,
   +editing-backend-restarts-production; re-verified art-suite-shape, topology-profiles-contract,
   askck-lan-hosting.
+
+## Session Close / Handoff (2026-09-18) — T33234 repaired, reviewed via UI, saved; units left unassembled
+
+- Content: T33234 sequence steps 5/6/7/9/10 rewritten for auto-partner physics + partner-forced
+  negatives ("Do A and B"); `generated/Port/test-9000.33234.py` repaired inline, three Review
+  rounds judged in-context, final round 1 real (TC14) + 4 library-blind false positives; saved and
+  Save & Confirm'd through the UI. Commit 2a1be33.
+- Left deliberately: 19 fresh units from an accidental Generate sit unassembled in the T33234
+  session. Terrence declined a same-day backend change (production restart). **Do NOT click
+  Assemble on T33234.** First task next session: `POST /reset_generate/{key}` — see memory
+  `frame-binds-two-roles-only` ("FIRST TASK").
+- Deferred designs recorded in that memory: §A hash-bound gating, §B review↔code hash, §C sequence
+  sanity in Extract Sequence, §D library into the review/fix prompts.
+- Gate after the content commit: 1586 passed / 2 red (corpus floor; preflight test asserts a
+  pre-reset script name — re-aim). No backend code changed this session segment.
+- Memories re-verified: editing-backend-restarts-production, terrence-prefers-session-model-as-judge,
+  askck-lan-hosting, pt-step-numbering-divergence, ckdb-wal-and-test-isolation,
+  configured-vs-current-show-interface. check_memory_refs: one pre-existing hit in the xrdp seat
+  memory (`reconnectwm.sh`), not touched.

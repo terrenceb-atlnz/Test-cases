@@ -259,6 +259,23 @@ instruction "5. Generate → Summary" read as a button), which produced 19 FRESH
 `step6.chunks` that were never assembled — the two truths now diverge maximally on this case,
 which is exactly what section A's hash-bound gating is for.
 
+## FIRST TASK next session (Terrence, 2026-09-18: "leave it" for now)
+
+**T33234's session still holds 19 fresh, unassembled units** beside the saved script. Nothing in
+the current server can drop them: every session write goes through the PT endpoints and none
+resets the Generate step (`clear_session` wipes steps 2–4 too; rebuilding steps 3–4 needs their
+LLM searches again). Terrence declined a same-day backend change because saving any
+`CK_server/*.py` bounces production while another seat was connected
+([[editing-backend-restarts-production]]). **Until this lands, do NOT click Assemble on
+T33234** — it would splice the fresh units into the frame and discard the repair (the file is
+committed in 2a1be33, so it is recoverable, but that is not "no accidents").
+
+Build first: `POST /reset_generate/{key}` — lock-gated; steps 1–4 untouched; step6 becomes
+`{files, lint, naming}` only (no chunks/review/assembly/settle/fix_units/lint_history),
+`confirmed=False`, `_invalidate_from(sess, 5)`. Every splice path then 409s "missing units"
+until Generate is run deliberately. ~25 lines + a test; it is the first slice of section A.
+Then run it against T33234 and Terrence re-confirms Generate by hand.
+
 ## D. Review is blind to the suite library (found 2026-09-18, DEFERRED)
 
 `review_script` renders `pt_review_script.jinja` with `code`, `sequence` and `lint_findings`

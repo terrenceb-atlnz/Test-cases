@@ -3,7 +3,7 @@ name: configured-vs-current-show-interface
 description: DEFERRED prompt rule — AW+ `show interface` prints BOTH `configured <attr>` and `current <attr>`; models assert on the configured line when the step wants the operational one, which passes lint and proves nothing
 metadata:
   type: project
-  verified: 2026-09-17
+  verified: 2026-09-18
 ---
 
 **Deferred work, agreed with Terrence 2026-09-17: add a prompt rule for this in a later
