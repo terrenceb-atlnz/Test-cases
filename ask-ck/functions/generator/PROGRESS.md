@@ -2,12 +2,12 @@
 
 **Purpose**: This file exists so future sessions can quickly understand exactly where we are, what has been built, what the priorities are, and how to continue seamlessly.
 
-**Last Updated**: 2026-09-17 (by Claude, with Terrence for every decision)
+**Last Updated**: 2026-09-18 (by Claude, with Terrence for every decision)
 
-## Latest session (2026-09-17) — Port family (T33233–36): objectives, steps, script identity; T33234 repair IN FLIGHT
+## Latest session (2026-09-17/18) — Port family (T33233–36): objectives, steps, script identity; T33234 repaired and saved
 
 Wrapped mid-task at Terrence's request (usage cap); the wrap commit landed 2026-09-18 when the
-same session resumed. **Resume = the "IN FLIGHT" block below, inline, no agents.**
+same session resumed and finished the T33234 repair on 2026-09-18 (block below).
 
 **Shipped (code, all tested):**
 - **Load Case & New Session** (`POST /load_case/{key}?fresh=true`): a plain reload short-circuits on
@@ -42,32 +42,22 @@ whole script** rewrote 19/19 classes and fixed all 6 highs (role contract, tc4 d
 configured-vs-current) → Review 7 findings, of which `expect_value=True` (real kwarg) and the TC9
 link-down branch (consistent given link state) are false positives. Held fixes were DISCARDED.
 
-**IN FLIGHT — finish the T33234 repair (inline Edits only, then one save, one review):**
-- Already applied: `_ck_bind_link(..., assert_media=False)` + new `TestSet.assert_role_media_now()`;
-  `init` binds `fibre`/`cusfp` by port reference in try/except (`fibre_supported`, `cusfp_supported`);
-  `'copper'` restored to `NOT_APPLICABLE_MARKERS` with a DELIBERATE comment.
-- To do: (a) None-guard `portFibre`/`fibre_peer`/`portCuSfp` derefs in `TestSet.configure`/`tear_down`
-  (fallout of the try/except); (b) step-1 verify: `TestSet.configure` stashes its CLI responses,
-  `TestCase_1` adjudicates no-parser-error + partner running-config has no `polarity` line (Terrence
-  rejected "a new TestCase"); (c) `TestCase_7`: branch the step-8 verdict on the recorded
-  `before_state` (link is likely ALREADY down — "poll until it leaves connected" would stall);
-  (d) `TestCase_15`/`_16`: skip path → `self.supported = False` + log + return; TC15 calls
-  `self.testSet.assert_role_media_now(self, dut, dut.portCuSfp, 'cusfp')` after the operator
-  confirms; (e) `TestCase_17`/`_18`: gate on `fibre_supported` the same way; TC17 calls it with
-  `'fibre'`; (f) judge the F1–F6 findings from the stopped workflow's journal
-  (`~/.claude/projects/<slug>/subagents/workflows/wf_089adf01-afb/journal.jsonl`): TC6 asserts
-  current-mdix unconditionally on an expected-down link; TC14 pair 2 unadjudicated; TC10 no settle;
-  TC11 post-reset target; TC3 no pre-unplug `connected` check.
-- **Do NOT change:** the `'copper'` marker (copper-only test; fibre has no MDI/MDI-X);
-  `expect_value=True`; TC9's branch logic; TC4's semantics (decision below).
-- Then: `py_compile` → `POST /api/pytest-create/save_script/AWPTCM-T33234 {"code": ...}` (updates
-  session + disk + lint; no lock check) → `POST /review_script/AWPTCM-T33234` with an `X-CK-LLM`
-  header (headless = site default otherwise) → judge findings in-context → fix the real ones → save →
-  ONE re-review → stop. "Save the script" = `save_script`; do NOT confirm step 5.
-- **NEVER post/press `assemble_script`, `assemble_and_settle`, `fix_units`, `apply_held`,
-  `generate_units`** on this case: `fix_script` leaves `step6.chunks` STALE and each of those
-  re-splices the pre-repair units, silently destroying the repair (memory
-  `frame-binds-two-roles-only`, adjacent bug).
+**DONE 2026-09-18 — T33234 repair finished, reviewed through the UI, saved.** All of the
+in-flight items landed as inline edits (None-guards; step 1 adjudicated inside `TestCase_1` from
+`TestSet.configure`'s stashed responses; `TestCase_7` branches on `before_state`; TC15/16/17/18 use
+`self.supported = False` and the module-level `assert_role_media_now()`; the journal's F1–F6 judged,
+real ones fixed). Then the sequence itself was corrected — Terrence's ruling "Do A and B": steps
+5/6/7/9/10 rewritten for auto-partner physics (an auto partner adapts to ANY forced DUT role over
+either cable, so "forced DUT vs auto partner" can never be a negative) and real negatives made by
+forcing the PARTNER role (`force_partner_polarity()`, two-phase TestCase_6/9). Three Review rounds
+judged in-context (no agents, no vLLM judges): the recurring false positives are `expect_value=True`,
+`waitForLinkState(..., 'down')`, `checkCurrentPort(..., 'auto')` — all because **Review never sees
+`library_awptcm_t33234.py`** (memory `frame-binds-two-roles-only` §D). Final round: 5 findings,
+1 real (TestCase_14 pairs 1–2 down-link allowance, removed), 4 library-blind. Lint 0 errors.
+Deferred designs recorded in that memory: §A hash-bound units-vs-script gating (Terrence clicked
+Generate by mistake on 2026-09-18 — 19 fresh units now sit unassembled beside the repaired script,
+the exact hazard §A closes), §B review findings bound to a code hash, §C sequence sanity inside
+Extract Sequence with a domain-facts block and a claims table, §D library into the review prompt.
 
 **DECISION FOR TERRENCE — step 5's verify vs physics.** A crossover cable does the crossing, so
 for the link to come up both ports must resolve to the SAME role: exactly ONE end flips relative

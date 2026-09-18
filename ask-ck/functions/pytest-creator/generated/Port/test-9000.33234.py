@@ -104,6 +104,25 @@ def cli_refused_for_media(response):
     return any(marker in low for marker in NOT_APPLICABLE_MARKERS)
 
 
+def force_partner_polarity(testCase, peer, portDut, value):
+    """Apply 'polarity <value>' on the PARTNER port and adjudicate CLI acceptance.
+
+    Steps 7 and 10 make the partner take a fixed role so the mismatched pairing can be
+    observed going DOWN - a test that cannot go negative while the partner stays on auto.
+    Returns the response text, or None after recording failed() when the parser rejected it.
+    """
+    peer.mode(')#')
+    peer.cmd('interface {}'.format(portDut.name))
+    response = peer.cmd('polarity {}'.format(value))
+    peer.mode('#')
+    testCase.log("OBSERVED: partner {} 'polarity {}' response: {}".format(portDut.name, value, response))
+    if cli_rejected(response):
+        testCase.failed("partner {} rejected 'polarity {}': {}".format(portDut.name, value, response.strip()))
+        return None
+    testCase.passed("partner {} accepted 'polarity {}' with no CLI parser error".format(portDut.name, value))
+    return response
+
+
 def assert_role_media_now(testCase, dut, port, role):
     """Deferred half of `TestSet._ck_bind_link`: assert the media of a PLUGGABLE role AFTER the
     operator-insertion case has confirmed the module is fitted.
@@ -607,14 +626,18 @@ class TestCase_2(ATTestCase.TestCase):
         dut.mode('#')
         running_output = dut.cmd('show running-config interface {}'.format(portA.name))
         self.log('OBSERVED: {}'.format(running_output))
-        if 'polarity' not in running_output:
+        # Anchored: a FORCED override is a 'polarity mdi|mdix' line of its own; an explicit
+        # 'polarity auto' line is still the default (step 13's verify says so), and a bare
+        # substring test would trip on any unrelated line containing the word.
+        forced_line = re.search(r'^\s*polarity\s+(mdi|mdix)\s*$', running_output, re.M)
+        if forced_line is None:
             self.passed(
-                "show running-config interface {} contains no 'polarity' line, proving auto is the default".format(
-                    portA.name))
+                "show running-config interface {} contains no forced 'polarity mdi|mdix' line, proving auto "
+                "is the default".format(portA.name))
         else:
             self.failed(
-                "show running-config interface {} unexpectedly contains a 'polarity' line: {}".format(
-                    portA.name, running_output))
+                "show running-config interface {} unexpectedly contains a forced polarity line {!r}: {}".format(
+                    portA.name, forced_line.group(0).strip(), running_output))
             return
 
         if checkConfiguredPort(self, dut, portA, 'auto', 'auto', 'auto'):
@@ -784,7 +807,7 @@ class TestCase_4(ATTestCase.TestCase):
     testCaseDesc = "With the crossover cable in place and both ends still on automatic polarity, read 'show interface <port>' on the DUT and on the partner."
     testCaseRef = 'AWPTCM-T33234'
     testCaseMethod = "With the crossover cable in place and both ends still on automatic polarity, read 'show interface <port>' on the DUT and on the partner.\n"
-    testCaseMethod += 'Verify: Link is up at both ends; each end reports a current polarity of mdi or mdix. Compare against the values recorded with the straight-through cable in step 2 — the auto resolution must have produced the inverse assignment at each end relative to the straight-through result, and the two ends must still be complementary (one mdi, one mdix).\n'
+    testCaseMethod += 'Verify: Link is up at both ends; each end reports a current polarity of mdi or mdix. With a crossover cable the two ends must resolve to the SAME role (both mdi or both mdix) - the cable supplies the crossover - and compared with the roles recorded with the straight-through cable in step 2, exactly ONE end has inverted its role.\n'
 
     def configure(self):
         tb = self.testSet.tb
@@ -836,12 +859,14 @@ class TestCase_4(ATTestCase.TestCase):
                         'or mdix at each end'.format(portA.name, dut_polarity, portDut.name, peer_polarity))
             return
 
-        if dut_polarity != peer_polarity:
-            self.passed('DUT and peer report complementary polarity assignments ({} / {})'.format(
-                dut_polarity, peer_polarity))
+        # A CROSSOVER cable supplies the crossover itself, so a working link needs the SAME
+        # role at both ends (both mdi or both mdix) - the opposite of the straight-through case.
+        if dut_polarity == peer_polarity:
+            self.passed('DUT and peer resolved the SAME role over the crossover cable ({} / {}) - the pairing '
+                        'that links through a crossover'.format(dut_polarity, peer_polarity))
         else:
-            self.failed('DUT and peer both report polarity {}; expected a complementary mdi/mdix '
-                        'assignment'.format(dut_polarity))
+            self.failed('DUT {} / peer {} resolved opposite roles over the crossover cable; a crossover link '
+                        'needs the same role at both ends'.format(dut_polarity, peer_polarity))
             return
 
         # The inverse-of-step-2 comparison is MANDATORY in this step's verify, so a
@@ -857,17 +882,19 @@ class TestCase_4(ATTestCase.TestCase):
                 'and pass before this step.'.format(straight_dut_polarity, straight_peer_polarity))
             return
 
-        expected_dut = complement_of(straight_dut_polarity)
-        expected_peer = complement_of(straight_peer_polarity)
-        if dut_polarity == expected_dut and peer_polarity == expected_peer:
-            self.passed('Crossover cable resolution ({} / {}) is the inverse of the straight-through '
-                        'result recorded in step 2 ({} / {})'.format(
-                            dut_polarity, peer_polarity, straight_dut_polarity, straight_peer_polarity))
+        # Relative to the straight-through record exactly ONE end inverts: complementary
+        # roles (step 2) become identical roles (here), which is a single flip.
+        dut_flipped = (dut_polarity == complement_of(straight_dut_polarity))
+        peer_flipped = (peer_polarity == complement_of(straight_peer_polarity))
+        if dut_flipped != peer_flipped:
+            self.passed('Exactly one end inverted its role relative to step 2 (DUT {} -> {}, peer {} -> {}), '
+                        'as a crossover cable requires'.format(
+                            straight_dut_polarity, dut_polarity, straight_peer_polarity, peer_polarity))
         else:
-            self.failed('Crossover cable resolution ({} / {}) is not the inverse of the straight-through '
-                        'result recorded in step 2 ({} / {}); expected ({} / {})'.format(
-                            dut_polarity, peer_polarity, straight_dut_polarity, straight_peer_polarity,
-                            expected_dut, expected_peer))
+            self.failed('Expected exactly one end to invert relative to step 2, but DUT {} -> {} and peer '
+                        '{} -> {} ({} flipped)'.format(
+                            straight_dut_polarity, dut_polarity, straight_peer_polarity, peer_polarity,
+                            'both' if dut_flipped else 'neither'))
 
     def tear_down(self):
         tb = self.testSet.tb
@@ -882,10 +909,10 @@ class TestCase_4(ATTestCase.TestCase):
 
 
 class TestCase_5(ATTestCase.TestCase):
-    testCaseDesc = "With the CROSSOVER cable still in place, force the DUT copper test port to MDI: 'interface <port>' then 'polarity mdi'. Allow the link to settle, then read 'show running-config interface <port>' and 'show interface <port>'."
+    testCaseDesc = "With the CROSSOVER cable still in place, force the DUT copper test port to MDI: 'interface <port>' then 'polarity mdi'. Allow the link to settle, then read 'show running-config interface <port>', 'show interface <port>', 'show interface <port> status' and 'show interface <partner port>' on the partner."
     testCaseRef = 'AWPTCM-T33234'
-    testCaseMethod = "With the CROSSOVER cable still in place, force the DUT copper test port to MDI: 'interface <port>' then 'polarity mdi'. Allow the link to settle, then read 'show running-config interface <port>' and 'show interface <port>'.\n"
-    testCaseMethod += "Verify: Command accepted with no error; 'show running-config interface <port>' shows 'polarity mdi'; 'show interface <port>' reports current polarity mdi. Record whether the link comes up — with a crossover cable and the partner on auto this combination is the matched pair, so the link is expected to establish and 'show interface <port> status' to read 'connected'.\n"
+    testCaseMethod = "With the CROSSOVER cable still in place, force the DUT copper test port to MDI: 'interface <port>' then 'polarity mdi'. Allow the link to settle, then read 'show running-config interface <port>', 'show interface <port>', 'show interface <port> status' and 'show interface <partner port>' on the partner.\n"
+    testCaseMethod += "Verify: Command accepted with no error; 'show running-config interface <port>' shows 'polarity mdi'; 'show interface <port>' reports current polarity mdi. The partner on automatic polarity adapts to the forced role: over a crossover cable it must resolve to the SAME role, so 'show interface <partner port>' reports current polarity mdi and 'show interface <port> status' reads 'connected'.\n"
 
     def configure(self):
         tb = self.testSet.tb
@@ -908,7 +935,7 @@ class TestCase_5(ATTestCase.TestCase):
         portA = dut.portA
         peer = self.testSet.peer
         portDut = peer.portDut
-        self.log("STEP 6: With the CROSSOVER cable still in place, force the DUT copper test port to MDI: 'interface <port>' then 'polarity mdi'. Allow the link to settle, then read 'show running-config interface <port>' and 'show interface <port>'.")
+        self.log("STEP 6: With the CROSSOVER cable still in place, force the DUT copper test port to MDI: 'interface <port>' then 'polarity mdi'. Allow the link to settle, then read 'show running-config interface <port>', 'show interface <port>', 'show interface <port> status' and 'show interface <partner port>' on the partner.")
 
         dut.mode(')#')
         dut.cmd('interface {}'.format(portA.name))
@@ -960,6 +987,20 @@ class TestCase_5(ATTestCase.TestCase):
                 portA.name, resolved, interface_output))
             return
 
+        # The partner on automatic polarity ADAPTS to the forced role: over a crossover cable it
+        # must resolve to the SAME role as the DUT's forced MDI.
+        peer.mode('#')
+        peer_output = peer.cmd('show interface {}'.format(portDut.name))
+        self.log('OBSERVED: partner show interface {}: {}'.format(portDut.name, peer_output))
+        peer_resolved = current_polarity(peer_output)
+        if peer_resolved == 'mdi':
+            self.passed('partner {} on automatic polarity resolved to mdi - the same role as the forced DUT, '
+                        'the pairing over a crossover cable'.format(portDut.name))
+        else:
+            self.failed('partner {} reports current polarity {!r}; expected mdi (the same role as the DUT '
+                        'forced to MDI over a crossover cable): {}'.format(portDut.name, peer_resolved, peer_output))
+            return
+
         self.log('OBSERVED: link reached connected within the settle wait: {}'.format(link_up))
         status_output = dut.cmd('show interface {} status'.format(portA.name))
         self.log('OBSERVED: show interface {} status: {}'.format(portA.name, status_output))
@@ -969,14 +1010,12 @@ class TestCase_5(ATTestCase.TestCase):
             return
         if state == 'connected':
             self.passed(
-                '{} show interface status reads connected - with a crossover cable and the partner on '
-                'auto this combination is the matched pair and establishes as expected: {}'.format(
-                    portA.name, status_line.strip()))
+                '{} show interface status reads connected - the partner adapted to the forced MDI over the '
+                'crossover cable: {}'.format(portA.name, status_line.strip()))
         else:
             self.failed(
-                '{} link did not come up (status {!r}); expected the crossover-plus-partner-auto '
-                'combination to establish as the matched MDI/MDI-X pair: {}'.format(
-                    portA.name, state, status_line.strip()))
+                '{} link did not come up (status {!r}) although the partner resolved the pairing role: '
+                '{}'.format(portA.name, state, status_line.strip()))
 
     def tear_down(self):
         tb = self.testSet.tb
@@ -988,10 +1027,10 @@ class TestCase_5(ATTestCase.TestCase):
 
 
 class TestCase_6(ATTestCase.TestCase):
-    testCaseDesc = "With the crossover cable still in place, force the DUT copper test port to MDI-X: 'interface <port>' then 'polarity mdix'. Allow the link to settle, then read 'show running-config interface <port>', 'show interface <port>' and 'show interface <port> status'."
+    testCaseDesc = "With the crossover cable still in place, force the DUT copper test port to MDI-X ('interface <port>' then 'polarity mdix'). Then force the PARTNER port to MDI ('interface <partner port>', 'polarity mdi') - the role that does NOT pair with MDI-X over a crossover cable - allow the link to settle and read 'show interface <port> status' on the DUT. Then force the partner port to MDI-X ('polarity mdix'), allow the link to settle, and read 'show running-config interface <port>', 'show interface <port>' and 'show interface <port> status' on the DUT. Finally return the partner port to 'polarity auto'."
     testCaseRef = 'AWPTCM-T33234'
-    testCaseMethod = "With the crossover cable still in place, force the DUT copper test port to MDI-X: 'interface <port>' then 'polarity mdix'. Allow the link to settle, then read 'show running-config interface <port>', 'show interface <port>' and 'show interface <port> status'.\n"
-    testCaseMethod += "Verify: Command accepted with no error; running-config shows 'polarity mdix' and 'show interface <port>' reports current polarity mdix, proving the forced setting is reflected in the operational role. Report the resulting link state from 'show interface <port> status' — with a crossover cable this is the mismatched combination against a partner that also resolves/forces the same role, so the link is not expected to come up unless the partner's auto resolution compensates.\n"
+    testCaseMethod = "With the crossover cable still in place, force the DUT copper test port to MDI-X ('interface <port>' then 'polarity mdix'). Then force the PARTNER port to MDI ('interface <partner port>', 'polarity mdi') - the role that does NOT pair with MDI-X over a crossover cable - allow the link to settle and read 'show interface <port> status' on the DUT. Then force the partner port to MDI-X ('polarity mdix'), allow the link to settle, and read 'show running-config interface <port>', 'show interface <port>' and 'show interface <port> status' on the DUT. Finally return the partner port to 'polarity auto'.\n"
+    testCaseMethod += "Verify: All commands accepted with no CLI error; DUT running-config shows 'polarity mdix'. With the partner forced to MDI the link is DOWN - 'show interface <port> status' does not read 'connected' - the mismatched MDI-X/MDI pairing over a crossover cable. With the partner forced to MDI-X the link returns to 'connected' and 'show interface <port>' reports current polarity mdix, proving the forced setting is the operational role.\n"
 
     def configure(self):
         tb = self.testSet.tb
@@ -1012,81 +1051,96 @@ class TestCase_6(ATTestCase.TestCase):
         portA = dut.portA
         peer = self.testSet.peer
         portDut = peer.portDut
-        self.log("STEP 7: With the crossover cable still in place, force the DUT copper test port to MDI-X: 'interface <port>' then 'polarity mdix'. Allow the link to settle, then read 'show running-config interface <port>', 'show interface <port>' and 'show interface <port> status'.")
+        self.log("STEP 7: With the crossover cable still in place, force the DUT copper test port to MDI-X ('interface <port>' then 'polarity mdix'). Then force the PARTNER port to MDI ('interface <partner port>', 'polarity mdi') - the role that does NOT pair with MDI-X over a crossover cable - allow the link to settle and read 'show interface <port> status' on the DUT. Then force the partner port to MDI-X ('polarity mdix'), allow the link to settle, and read 'show running-config interface <port>', 'show interface <port>' and 'show interface <port> status' on the DUT. Finally return the partner port to 'polarity auto'.")
 
         dut.mode(')#')
         dut.cmd('interface {}'.format(portA.name))
         response = dut.cmd('polarity mdix')
         dut.mode('#')
         self.log('OBSERVED: polarity mdix response on {}: {}'.format(portA.name, response))
-
         if cli_rejected(response):
-            self.failed('polarity mdix command on {} was rejected by the CLI parser: {}'.format(
-                portA.name, response.strip()))
+            self.failed("{} did not accept 'polarity mdix': {}".format(portA.name, response.strip()))
             return
-        self.passed('polarity mdix command accepted with no CLI parser error on {}'.format(portA.name))
+        self.passed("{} accepted 'polarity mdix' with no CLI parser error".format(portA.name))
 
-        # Settle: the forced role change re-starts auto-negotiation on the link.
-        time.sleep(8)
-
-        dut.mode('#')
         running_output = dut.cmd('show running-config interface {}'.format(portA.name))
-        interface_output = dut.cmd('show interface {}'.format(portA.name))
-        status_output = dut.cmd('show interface {} status'.format(portA.name))
-        self.log('OBSERVED: running-config: {}\nshow interface: {}\nshow interface status: {}'.format(
-            running_output, interface_output, status_output))
-
+        self.log('OBSERVED: running-config: {}'.format(running_output))
         if re.search(r'^\s*polarity\s+mdix\s*$', running_output, re.M):
-            self.passed('show running-config interface {} confirms polarity mdix'.format(portA.name))
+            self.passed("show running-config interface {} shows 'polarity mdix'".format(portA.name))
         else:
-            self.failed('show running-config interface {} does not show polarity mdix: {}'.format(
+            self.failed("show running-config interface {} does not show 'polarity mdix': {}".format(
                 portA.name, running_output))
             return
-
         if checkConfiguredPort(self, dut, portA, 'auto', 'auto', 'mdix'):
             self.passed('{} configured duplex/speed/polarity confirmed auto/auto/mdix'.format(portA.name))
         else:
             self.failed('{} configured duplex/speed/polarity did not match auto/auto/mdix'.format(portA.name))
             return
 
+        # Phase 1 - NEGATIVE: force the PARTNER to MDI, the role that does NOT pair with MDI-X over a crossover cable. The link must go DOWN.
+        if force_partner_polarity(self, peer, portDut, 'mdi') is None:
+            return
+        link_down = waitForLinkState(self, dut, portA, 'down', 45)
+        status_output = dut.cmd('show interface {} status'.format(portA.name))
+        self.log('OBSERVED (partner forced mdi): {}'.format(status_output))
         state, row = link_state_token(status_output, portA.name)
         if row is None:
-            self.failed('port {} missing from show interface {} status output'.format(portA.name, portA.name))
+            self.failed('port {} missing from show interface status output'.format(portA.name))
             return
-        link_up = (state == 'connected')
+        if link_down and state != 'connected':
+            self.passed('{} link is DOWN ({!r}) with the DUT forced to mdix and the partner forced to mdi over '
+                        'the crossover cable - the mismatched pairing: {}'.format(portA.name, state, row.strip()))
+        else:
+            self.failed('{} link still reads {!r} with the DUT forced to mdix and the partner forced to mdi '
+                        'over the crossover cable; the mismatched pairing should not link: {}'.format(
+                            portA.name, state, row.strip()))
+            return
 
-        # The operational-role clause is adjudicated in BOTH link states, the same way
-        # TestCase_9 does for the mirror combination: a conflicting resolved role fails
-        # whether or not the link is up; the field's absence is acceptable ONLY while the
-        # link is down (the verify itself expects this pairing may not link).
+        # Phase 2 - POSITIVE: force the partner to MDI-X, the pairing role over a crossover cable. The link must
+        # return and the DUT's operational role must be mdix.
+        if force_partner_polarity(self, peer, portDut, 'mdix') is None:
+            return
+        link_up = waitForLinkState(self, dut, portA, 'connected', 60)
+        status_output = dut.cmd('show interface {} status'.format(portA.name))
+        interface_output = dut.cmd('show interface {}'.format(portA.name))
+        self.log('OBSERVED (partner forced mdix): {}\n{}'.format(status_output, interface_output))
+        state, row = link_state_token(status_output, portA.name)
+        if row is None:
+            self.failed('port {} missing from show interface status output'.format(portA.name))
+            return
+        if link_up and state == 'connected':
+            self.passed('{} link returned to connected with the partner forced to mdix - the pairing role over '
+                        'the crossover cable: {}'.format(portA.name, row.strip()))
+        else:
+            self.failed('{} did not return to connected ({!r}) with the partner forced to mdix over the crossover '
+                        'cable: {}'.format(portA.name, state, row.strip()))
+            return
         resolved = current_polarity(interface_output)
         if resolved == 'mdix':
-            self.passed('show interface {} reports current polarity mdix, forced role reflected '
-                        'operationally (link state {!r})'.format(portA.name, state))
+            self.passed("show interface {} reports current polarity mdix: the forced setting is the "
+                        "operational role".format(portA.name))
         elif resolved == 'mdi':
-            self.failed('{} was forced to polarity mdix but show interface reports current polarity '
-                        '{!r}: {}'.format(portA.name, resolved, interface_output))
+            self.failed("{} was forced to polarity mdix but show interface reports current polarity "
+                        "{!r}: {}".format(portA.name, resolved, interface_output))
             return
-        elif resolved is None and not link_up:
-            self.passed("{} link is down and show interface presents no 'current polarity' field; the "
-                        "forced setting is evidenced by 'configured polarity mdix' and the running-config "
-                        "line, consistent with the mismatched crossover/MDI-X combination".format(
-                            portA.name))
         else:
-            self.failed('{} link is {!r} but show interface does not report a usable current polarity '
-                        '(got {!r}): {}'.format(portA.name, state, resolved, interface_output))
+            self.failed("{} link is up but show interface does not report a usable current polarity "
+                        "(got {!r}): {}".format(portA.name, resolved, interface_output))
             return
-        # The verify only asks that the resulting link state be REPORTED here; both
-        # outcomes are legitimate for this pairing, so the verdict is on the report.
-        self.passed('{} link state after forcing MDI-X over the crossover cable is {!r}: {}'.format(
-            portA.name, state, row.strip()))
+
+        # Finally: the partner back to automatic polarity, as the action requires.
+        force_partner_polarity(self, peer, portDut, 'auto')
 
     def tear_down(self):
         tb = self.testSet.tb
         dut = self.testSet.dut
         portA = dut.portA
-        # Undo the forced polarity mdix, restoring the port to auto/auto/auto defaults.
+        peer = self.testSet.peer
+        portDut = peer.portDut
+        # Mirror configure()/main(): both ends back to default auto/auto/auto, undoing the
+        # forced DUT polarity and the two forced partner roles.
         configureDefaultPort(self, dut, portA)
+        configureDefaultPort(self, peer, portDut)
 
 
 class TestCase_7(ATTestCase.TestCase):
@@ -1156,9 +1210,9 @@ class TestCase_7(ATTestCase.TestCase):
             prompt = ('Now fit the STRAIGHT-THROUGH cable between DUT port {} and partner port {}. '
                       'Confirm when the cable is FITTED'.format(portA.name, portDut.name))
         else:
-            # Link already DOWN before the swap (forced MDI-X over the crossover cable is the
-            # mismatched pairing, so this is the expected starting state): the observable
-            # state change is down -> connected once the straight-through cable is fitted.
+            # Link already DOWN before the swap (configure() returned both ends to auto, so a
+            # down link here is unexpected but possible): the observable state change is
+            # down -> connected once the straight-through cable is fitted.
             self.log('Link was {!r} before the swap: the state change to observe is a return to '
                      'connected'.format(before_state))
             observed_from = before_state
@@ -1215,10 +1269,10 @@ class TestCase_7(ATTestCase.TestCase):
 
 
 class TestCase_8(ATTestCase.TestCase):
-    testCaseDesc = "With the STRAIGHT-THROUGH cable in place, force the DUT copper test port to MDI-X ('interface <port>', 'polarity mdix'), allow the link to settle, then read 'show running-config interface <port>', 'show interface <port>' and 'show interface <port> status'."
+    testCaseDesc = "With the STRAIGHT-THROUGH cable in place, force the DUT copper test port to MDI-X ('interface <port>', 'polarity mdix'), allow the link to settle, then read 'show running-config interface <port>', 'show interface <port>', 'show interface <port> status' and 'show interface <partner port>' on the partner."
     testCaseRef = 'AWPTCM-T33234'
-    testCaseMethod = "With the STRAIGHT-THROUGH cable in place, force the DUT copper test port to MDI-X ('interface <port>', 'polarity mdix'), allow the link to settle, then read 'show running-config interface <port>', 'show interface <port>' and 'show interface <port> status'.\n"
-    testCaseMethod += "Verify: Running-config shows 'polarity mdix' and 'show interface <port>' reports current polarity mdix; with a straight-through cable against a partner on automatic polarity this is the matched pair, so the port is expected to read 'connected' in 'show interface <port> status'.\n"
+    testCaseMethod = "With the STRAIGHT-THROUGH cable in place, force the DUT copper test port to MDI-X ('interface <port>', 'polarity mdix'), allow the link to settle, then read 'show running-config interface <port>', 'show interface <port>', 'show interface <port> status' and 'show interface <partner port>' on the partner.\n"
+    testCaseMethod += "Verify: Running-config shows 'polarity mdix' and 'show interface <port>' reports current polarity mdix. The partner on automatic polarity adapts: over a straight-through cable it must resolve to the COMPLEMENTARY role, so 'show interface <partner port>' reports current polarity mdi and 'show interface <port> status' reads 'connected'.\n"
 
     def configure(self):
         tb = self.testSet.tb
@@ -1249,7 +1303,7 @@ class TestCase_8(ATTestCase.TestCase):
         portA = dut.portA
         peer = self.testSet.peer
         portDut = peer.portDut
-        self.log("STEP 9: With the STRAIGHT-THROUGH cable in place, force the DUT copper test port to MDI-X ('interface <port>', 'polarity mdix'), allow the link to settle, then read 'show running-config interface <port>', 'show interface <port>' and 'show interface <port> status'.")
+        self.log("STEP 9: With the STRAIGHT-THROUGH cable in place, force the DUT copper test port to MDI-X ('interface <port>', 'polarity mdix'), allow the link to settle, then read 'show running-config interface <port>', 'show interface <port>', 'show interface <port> status' and 'show interface <partner port>' on the partner.")
 
         if not getattr(self, 'cable_confirmed', False):
             self.failed('Operator did not confirm the STRAIGHT-THROUGH cable between DUT port {} and '
@@ -1304,6 +1358,23 @@ class TestCase_8(ATTestCase.TestCase):
                 portA.name, resolved, show_int))
             return
 
+        # The partner on automatic polarity ADAPTS to the forced role: over a straight-through
+        # cable it must resolve to the COMPLEMENTARY role (mdi) of the DUT's forced MDI-X.
+        peer = self.testSet.peer
+        portDut = peer.portDut
+        peer.mode('#')
+        peer_output = peer.cmd('show interface {}'.format(portDut.name))
+        self.log('OBSERVED: partner show interface {}: {}'.format(portDut.name, peer_output))
+        peer_resolved = current_polarity(peer_output)
+        if peer_resolved == 'mdi':
+            self.passed('partner {} on automatic polarity resolved to mdi - the complement of the forced DUT '
+                        'MDI-X, the pairing over a straight-through cable'.format(portDut.name))
+        else:
+            self.failed('partner {} reports current polarity {!r}; expected mdi (the complement of the DUT '
+                        'forced to MDI-X over a straight-through cable): {}'.format(
+                            portDut.name, peer_resolved, peer_output))
+            return
+
         self.log('OBSERVED: link reached connected within the 60 s settle wait: {}'.format(link_up))
         state, status_line = link_state_token(show_status, portA.name)
         if status_line is None:
@@ -1328,10 +1399,10 @@ class TestCase_8(ATTestCase.TestCase):
 
 
 class TestCase_9(ATTestCase.TestCase):
-    testCaseDesc = "With the straight-through cable still in place, force the DUT copper test port to MDI ('interface <port>', 'polarity mdi'), allow the link to settle, then read 'show running-config interface <port>', 'show interface <port>' and 'show interface <port> status'."
+    testCaseDesc = "With the straight-through cable still in place, force the DUT copper test port to MDI ('interface <port>', 'polarity mdi'). Then force the PARTNER port to MDI ('interface <partner port>', 'polarity mdi') - the role that does NOT pair with MDI over a straight-through cable - allow the link to settle and read 'show interface <port> status' on the DUT. Then force the partner port to MDI-X ('polarity mdix'), allow the link to settle, and read 'show running-config interface <port>', 'show interface <port>' and 'show interface <port> status' on the DUT. Finally return the partner port to 'polarity auto'."
     testCaseRef = 'AWPTCM-T33234'
-    testCaseMethod = "With the straight-through cable still in place, force the DUT copper test port to MDI ('interface <port>', 'polarity mdi'), allow the link to settle, then read 'show running-config interface <port>', 'show interface <port>' and 'show interface <port> status'.\n"
-    testCaseMethod += "Verify: Running-config shows 'polarity mdi' and 'show interface <port>' reports current polarity mdi, proving the forced setting took effect. Report the link state from 'show interface <port> status' — with a straight-through cable this is the unmatched combination, so the link is not expected to come up unless the partner's automatic crossover resolves to the complementary role.\n"
+    testCaseMethod = "With the straight-through cable still in place, force the DUT copper test port to MDI ('interface <port>', 'polarity mdi'). Then force the PARTNER port to MDI ('interface <partner port>', 'polarity mdi') - the role that does NOT pair with MDI over a straight-through cable - allow the link to settle and read 'show interface <port> status' on the DUT. Then force the partner port to MDI-X ('polarity mdix'), allow the link to settle, and read 'show running-config interface <port>', 'show interface <port>' and 'show interface <port> status' on the DUT. Finally return the partner port to 'polarity auto'.\n"
+    testCaseMethod += "Verify: All commands accepted with no CLI error; DUT running-config shows 'polarity mdi'. With the partner forced to MDI the link is DOWN - 'show interface <port> status' does not read 'connected' - the mismatched MDI/MDI pairing over a straight-through cable. With the partner forced to MDI-X the link returns to 'connected' and 'show interface <port>' reports current polarity mdi, proving the forced setting is the operational role.\n"
 
     def configure(self):
         tb = self.testSet.tb
@@ -1353,98 +1424,96 @@ class TestCase_9(ATTestCase.TestCase):
         portA = dut.portA
         peer = self.testSet.peer
         portDut = peer.portDut
-        self.log("STEP 10: With the straight-through cable still in place, force the DUT copper test port "
-                 "to MDI ('interface <port>', 'polarity mdi'), allow the link to settle, then read "
-                 "'show running-config interface <port>', 'show interface <port>' and 'show interface "
-                 "<port> status'.")
+        self.log("STEP 10: With the straight-through cable still in place, force the DUT copper test port to MDI ('interface <port>', 'polarity mdi'). Then force the PARTNER port to MDI ('interface <partner port>', 'polarity mdi') - the role that does NOT pair with MDI over a straight-through cable - allow the link to settle and read 'show interface <port> status' on the DUT. Then force the partner port to MDI-X ('polarity mdix'), allow the link to settle, and read 'show running-config interface <port>', 'show interface <port>' and 'show interface <port> status' on the DUT. Finally return the partner port to 'polarity auto'.")
 
         dut.mode(')#')
         dut.cmd('interface {}'.format(portA.name))
         response = dut.cmd('polarity mdi')
         dut.mode('#')
-        self.log('OBSERVED: polarity mdi response: {}'.format(response))
+        self.log('OBSERVED: polarity mdi response on {}: {}'.format(portA.name, response))
         if cli_rejected(response):
             self.failed("{} did not accept 'polarity mdi': {}".format(portA.name, response.strip()))
             return
-        self.passed("{} accepted the 'polarity mdi' command without a CLI parser error".format(portA.name))
+        self.passed("{} accepted 'polarity mdi' with no CLI parser error".format(portA.name))
 
-        # Allow the link to settle; it may or may not come up depending on how the
-        # partner's automatic crossover resolves.
-        settle_deadline = time.time() + 45
-        state = None
-        row = None
-        while time.time() < settle_deadline:
-            state, row = link_state_token(
-                dut.cmd('show interface {} status'.format(portA.name), log=False), portA.name)
-            if state == 'connected':
-                break
-            time.sleep(3)
-
-        dut.mode('#')
-        running_config = dut.cmd('show running-config interface {}'.format(portA.name))
-        self.log('OBSERVED running-config: {}'.format(running_config))
-
-        if re.search(r'^\s*polarity\s+mdi\s*$', running_config, re.M):
-            self.passed("{} running-config shows 'polarity mdi'".format(portA.name))
+        running_output = dut.cmd('show running-config interface {}'.format(portA.name))
+        self.log('OBSERVED: running-config: {}'.format(running_output))
+        if re.search(r'^\s*polarity\s+mdi\s*$', running_output, re.M):
+            self.passed("show running-config interface {} shows 'polarity mdi'".format(portA.name))
         else:
-            self.failed("{} running-config does not show 'polarity mdi': {}".format(
-                portA.name, running_config))
+            self.failed("show running-config interface {} does not show 'polarity mdi': {}".format(
+                portA.name, running_output))
+            return
+        if checkConfiguredPort(self, dut, portA, 'auto', 'auto', 'mdi'):
+            self.passed('{} configured duplex/speed/polarity confirmed auto/auto/mdi'.format(portA.name))
+        else:
+            self.failed('{} configured duplex/speed/polarity did not match auto/auto/mdi'.format(portA.name))
             return
 
+        # Phase 1 - NEGATIVE: force the PARTNER to MDI, the role that does NOT pair with MDI over a straight-through cable. The link must go DOWN.
+        if force_partner_polarity(self, peer, portDut, 'mdi') is None:
+            return
+        link_down = waitForLinkState(self, dut, portA, 'down', 45)
         status_output = dut.cmd('show interface {} status'.format(portA.name))
-        self.log('OBSERVED show interface status: {}'.format(status_output))
+        self.log('OBSERVED (partner forced mdi): {}'.format(status_output))
         state, row = link_state_token(status_output, portA.name)
         if row is None:
-            self.failed('{} missing from show interface status output'.format(portA.name))
+            self.failed('port {} missing from show interface status output'.format(portA.name))
             return
-        link_up = (state == 'connected')
-        # Both outcomes are legitimate for this unmatched pairing, so the verdict is on the
-        # REPORT of the observed state (same shape as TestCase_6).
-        self.passed('{} link state with forced MDI over the straight-through cable is {!r} (reported; '
-                    'not expected up unless the partner resolves the complementary role): {}'.format(
-                        portA.name, state, row.strip()))
-
-        show_int_output = dut.cmd('show interface {}'.format(portA.name))
-        self.log('OBSERVED show interface: {}'.format(show_int_output))
-
-        if not checkConfiguredPort(self, dut, portA, 'auto', 'auto', 'mdi', expect_value=True):
-            self.failed("{} show interface does not report 'configured polarity mdi': {}".format(
-                portA.name, show_int_output))
-            return
-        self.passed("{} show interface reports 'configured polarity mdi', the forced setting took "
-                    "effect".format(portA.name))
-
-        # The verify's operational-role clause is adjudicated in BOTH branches
-        # (holistic review, TestCase_9): where the field is presented it must read
-        # exactly mdi; a conflicting resolved role is a failure whether or not the
-        # link is up, and the absence of the field while the link is up is a failure.
-        resolved = current_polarity(show_int_output)
-        if resolved == 'mdi':
-            self.passed("{} show interface reports 'current polarity mdi', the forced role is the "
-                        "operational role (link state {!r})".format(portA.name, state))
-        elif resolved in ('mdix',):
-            self.failed("{} was forced to polarity mdi but show interface reports current polarity "
-                        "{!r}: {}".format(portA.name, resolved, show_int_output))
-        elif resolved is None and not link_up:
-            # Field genuinely not presented while the link is down: the operational
-            # role cannot exist. The forced setting is then evidenced by the
-            # configured-polarity assertion above, which has already passed, and the
-            # link-down state is the documented unmatched outcome.
-            self.passed("{} link is down and show interface presents no 'current polarity' field; the "
-                        "forced setting is evidenced by 'configured polarity mdi' and the running-config "
-                        "line, consistent with the unmatched straight-through/MDI combination".format(
-                            portA.name))
+        if link_down and state != 'connected':
+            self.passed('{} link is DOWN ({!r}) with the DUT forced to mdi and the partner forced to mdi over '
+                        'the straight-through cable - the mismatched pairing: {}'.format(portA.name, state, row.strip()))
         else:
-            self.failed("{} link is {!r} but show interface does not report a usable current polarity "
-                        "(got {!r}): {}".format(portA.name, state, resolved, show_int_output))
+            self.failed('{} link still reads {!r} with the DUT forced to mdi and the partner forced to mdi '
+                        'over the straight-through cable; the mismatched pairing should not link: {}'.format(
+                            portA.name, state, row.strip()))
+            return
+
+        # Phase 2 - POSITIVE: force the partner to MDI-X, the pairing role over a straight-through cable. The link must
+        # return and the DUT's operational role must be mdi.
+        if force_partner_polarity(self, peer, portDut, 'mdix') is None:
+            return
+        link_up = waitForLinkState(self, dut, portA, 'connected', 60)
+        status_output = dut.cmd('show interface {} status'.format(portA.name))
+        interface_output = dut.cmd('show interface {}'.format(portA.name))
+        self.log('OBSERVED (partner forced mdix): {}\n{}'.format(status_output, interface_output))
+        state, row = link_state_token(status_output, portA.name)
+        if row is None:
+            self.failed('port {} missing from show interface status output'.format(portA.name))
+            return
+        if link_up and state == 'connected':
+            self.passed('{} link returned to connected with the partner forced to mdix - the pairing role over '
+                        'the straight-through cable: {}'.format(portA.name, row.strip()))
+        else:
+            self.failed('{} did not return to connected ({!r}) with the partner forced to mdix over the straight-through '
+                        'cable: {}'.format(portA.name, state, row.strip()))
+            return
+        resolved = current_polarity(interface_output)
+        if resolved == 'mdi':
+            self.passed("show interface {} reports current polarity mdi: the forced setting is the "
+                        "operational role".format(portA.name))
+        elif resolved == 'mdix':
+            self.failed("{} was forced to polarity mdi but show interface reports current polarity "
+                        "{!r}: {}".format(portA.name, resolved, interface_output))
+            return
+        else:
+            self.failed("{} link is up but show interface does not report a usable current polarity "
+                        "(got {!r}): {}".format(portA.name, resolved, interface_output))
+            return
+
+        # Finally: the partner back to automatic polarity, as the action requires.
+        force_partner_polarity(self, peer, portDut, 'auto')
 
     def tear_down(self):
         tb = self.testSet.tb
         dut = self.testSet.dut
         portA = dut.portA
-        # Mirror configure(): return the DUT test port to its default
-        # speed/duplex/polarity (auto/auto/auto), undoing the forced 'polarity mdi'.
+        peer = self.testSet.peer
+        portDut = peer.portDut
+        # Mirror configure()/main(): both ends back to default auto/auto/auto, undoing the
+        # forced DUT polarity and the two forced partner roles.
         configureDefaultPort(self, dut, portA)
+        configureDefaultPort(self, peer, portDut)
 
 
 class TestCase_10(ATTestCase.TestCase):
@@ -1468,20 +1537,22 @@ class TestCase_10(ATTestCase.TestCase):
         # 'unchanged' against a port that was never forced (holistic review, TestCase_10).
         configureDefaultPort(self, dut, portA)
         configureDefaultPort(self, peer, portDut)
-        applied = configurePort(self, dut, portA, 'polarity', 'mdi', 0)
+        # Force a definite role (MDI-X, as TestCase_11/12 use for the same cable state). The
+        # partner is on auto and adapts to either forced role, so the recorded baseline is a
+        # LIVE link and the 'link state unchanged' verdict has real discriminating power.
+        applied = configurePort(self, dut, portA, 'polarity', 'mdix', 0)
         dut.mode('#')
         running = dut.cmd('show running-config interface {}'.format(portA.name))
-        if not applied or not re.search(r'^\s*polarity\s+mdi\s*$', running, re.M):
+        if not applied or not re.search(r'^\s*polarity\s+mdix\s*$', running, re.M):
             raise RuntimeError(
-                "PRECONDITION FAILED for TestCase_10: 'polarity mdi' could not be applied to %s "
+                "PRECONDITION FAILED for TestCase_10: 'polarity mdix' could not be applied to %s "
                 "(configurePort returned %r, running-config:\n%s). This step can only adjudicate "
                 "'the previously applied polarity value unchanged' against a port that really is "
                 "forced." % (portA.name, applied, running))
-        self.forced_polarity = 'mdi'
+        self.forced_polarity = 'mdix'
         # Let the link settle after the polarity change so main() records a STABLE baseline
-        # state, not a mid-renegotiation transient. Forced MDI over the straight-through cable
-        # may legitimately settle DOWN, so the return value is deliberately not adjudicated.
-        waitForLinkState(self, dut, portA, 'connected', 30)
+        # state, not a mid-renegotiation transient (config-only: no verdict here).
+        waitForLinkState(self, dut, portA, 'connected', 60)
 
     def main(self):
         # SVT 3009_pluggable_qualifications/libPluggableAutomateConfig.py lines 99-108
@@ -1629,7 +1700,7 @@ class TestCase_11(ATTestCase.TestCase):
         pre_resolved = current_polarity(pre_reset_output)
         self.log('OBSERVED pre-reset: {}\nstatus row: {}'.format(pre_reset_output, pre_row))
 
-        if checkConfiguredPort(self, dut, portA, duplex, speed, polarity, True):
+        if checkConfiguredPort(self, dut, portA, duplex, speed, polarity, expect_value=True):
             self.passed(
                 'Before reset, {} configured polarity is {} (recorded)'.format(portA.name, polarity))
         else:
@@ -2053,14 +2124,11 @@ class TestCase_14(ATTestCase.TestCase):
             self.passed(
                 'show interface reports current duplex full and current polarity mdi, matching the forced '
                 'configuration')
-        elif not link_up and cur_duplex is None and role is None:
-            # Forced MDI over the straight-through cable is the unmatched pairing (step 10), so
-            # the link may legitimately be down and present no current values; the forced
-            # configuration is then evidenced by the running-config and configured checks above.
-            self.passed('link is down after duplex full / polarity mdi (the unmatched pairing over a '
-                        'straight-through cable); no current values presented, forced configuration '
-                        'evidenced by running-config and the configured fields')
         else:
+            # The partner is on automatic polarity (configure() defaulted it), and an auto
+            # partner adapts to whichever role the DUT forces (steps 9 and 10 prove it), so
+            # forced MDI MUST link here. No down-link allowance: absent current values mean
+            # the forced setting never reached the operational state.
             self.failed('show interface does not report current duplex full/current polarity mdi '
                         '(link {!r}, current duplex {!r}, current polarity {!r}): {}'.format(
                             'connected' if link_up else 'not connected', cur_duplex, role, interfaceOut))
@@ -2119,11 +2187,9 @@ class TestCase_14(ATTestCase.TestCase):
         if cur_duplex == 'full' and role == 'mdi':
             self.passed('show interface reports current duplex full and current polarity mdi after the '
                         'shutdown/no shutdown cycle, consistent with the retained configuration')
-        elif not link_up and cur_duplex is None and role is None:
-            self.passed('link is down after the shutdown/no shutdown cycle (forced MDI over the '
-                        'straight-through cable is the unmatched pairing); no current values presented, '
-                        'configuration evidenced by running-config and the configured fields')
         else:
+            # Same rule as pair 1: the auto partner adapts, so the link must be back up with
+            # the forced role operational after no shutdown.
             self.failed('show interface current values after the shutdown/no shutdown cycle are not '
                         'consistent with duplex full/polarity mdi (link {!r}, current duplex {!r}, '
                         'current polarity {!r}): {}'.format(
@@ -2211,12 +2277,10 @@ class TestCase_14(ATTestCase.TestCase):
             self.passed(
                 'show interface reports current duplex full and current polarity mdix, matching the forced '
                 'configuration')
-        elif not link_up and cur_duplex is None and role is None:
-            # A forced duplex against an auto-negotiating partner may leave the link down; the
-            # forced configuration is then evidenced by running-config and the configured fields.
-            self.passed('link is down after polarity mdix / duplex full; no current values presented, '
-                        'forced configuration evidenced by running-config and the configured fields')
         else:
+            # As in pairs 1-2: the auto partner adapts to the forced role, so there is no
+            # down-link allowance; absent current values mean the forced setting never reached
+            # the operational state.
             self.failed('show interface does not report current duplex full/current polarity mdix '
                         '(link {!r}, current duplex {!r}, current polarity {!r}): {}'.format(
                             'connected' if link_up else 'not connected', cur_duplex, role, interfaceOut))
@@ -2363,7 +2427,18 @@ class TestCase_15(ATTestCase.TestCase):
         self.log('OBSERVED: show system pluggable {}:\n{}\nshow interface {} status:\n{}'.format(
             port.name, pluggable_output, port.name, status_output))
 
-        copper_match = COPPER_TYPE_RE.search(pluggable_output)
+        # Attribute the module type to the port's OWN row (same shape as TestCase_17), so a
+        # type string printed for another port or in a header cannot satisfy this step.
+        plug_row = status_row(pluggable_output, port.name)
+        if plug_row is None:
+            self.failed("{} missing from 'show system pluggable' output: {}".format(
+                port.name, pluggable_output))
+            return
+        copper_match = COPPER_TYPE_RE.search(plug_row)
+        if copper_match and FIBRE_TYPE_RE.search(plug_row):
+            self.failed("'show system pluggable' row for {} matches BOTH a copper and a fibre type; "
+                        "cannot attribute the module: {}".format(port.name, plug_row.strip()))
+            return
         if copper_match:
             self.passed(
                 "'show system pluggable' identifies the module in {} as a copper transceiver: "
@@ -2452,15 +2527,27 @@ class TestCase_16(ATTestCase.TestCase):
         self.passed('DUT copper-SFP port {} link is UP'.format(portCuSfp.name))
 
         dut_polarity = current_polarity(dutOutput)
+        peer_polarity = current_polarity(peerOutput)
+        self.log('RECORDED resolved roles: DUT copper-SFP {} = {!r}, partner {} = {!r}'.format(
+            portCuSfp.name, dut_polarity, far_port.name, peer_polarity))
+
+        # The partner end is a FIXED copper switch port that step 2 already proved reports a
+        # current polarity, so a missing field THERE is an observation failure - the verify's
+        # 'not presented' allowance is granted to the DUT's pluggable copper port only.
+        if peer_polarity not in ('mdi', 'mdix'):
+            self.failed('Partner port {} did not report a current polarity of mdi or mdix (got {!r}): '
+                        '{}'.format(far_port.name, peer_polarity, peerOutput))
+            return
+        self.passed('Partner port {} resolved current polarity is {}'.format(far_port.name, peer_polarity))
 
         if dut_polarity is None:
             # Documented alternative outcome: the field is genuinely not presented for a
-            # pluggable copper port on this platform. Record it, do not assert a value.
-            self.log('INFO: DUT does not present a current polarity field for pluggable copper '
-                     'port {}; recording as not presented rather than asserting a value'.format(
-                         portCuSfp.name))
-            self.passed('DUT port {} current polarity field is not presented on this platform, '
-                        'recorded as not applicable'.format(portCuSfp.name))
+            # pluggable copper port on this platform. Both ends were read and recorded above;
+            # the complementary comparison cannot run without a DUT role, so it is recorded as
+            # not adjudicated rather than asserted.
+            self.passed('DUT port {} current polarity field is not presented on this platform for the '
+                        'pluggable copper port; recorded as not presented (partner reports {}), the '
+                        'complementary comparison is not adjudicated'.format(portCuSfp.name, peer_polarity))
             return
 
         if dut_polarity not in ('mdi', 'mdix'):
@@ -2469,15 +2556,6 @@ class TestCase_16(ATTestCase.TestCase):
             return
         self.passed('DUT copper-SFP port {} resolved current polarity is {}'.format(
             portCuSfp.name, dut_polarity))
-
-        peer_polarity = current_polarity(peerOutput)
-
-        if peer_polarity is None:
-            self.log('INFO: partner does not present a current polarity field for port {}; '
-                     'recording as not presented rather than asserting a value'.format(far_port.name))
-            self.passed('Partner port {} current polarity field is not presented on this platform, '
-                        'recorded as not applicable'.format(far_port.name))
-            return
 
         expected = complement_of(dut_polarity)
         if peer_polarity == expected:
@@ -2686,6 +2764,18 @@ class TestCase_18(ATTestCase.TestCase):
             else:
                 self.passed('fibre port {} running-config shows no forced polarity applied, as '
                             'expected'.format(portFibre.name))
+            # The refusal claim is backed by OBSERVED state, not by the wording alone (the
+            # marker list deliberately includes the bare media noun): fibre must present no
+            # resolved mdi/mdix role either way.
+            show_int = dut.cmd('show interface {}'.format(portFibre.name))
+            self.log('OBSERVED: {}'.format(show_int))
+            resolved = current_polarity(show_int)
+            if resolved in ('mdi', 'mdix'):
+                self.failed('fibre port {} presents a resolved current polarity {!r} despite the refusal '
+                            'message: {}'.format(portFibre.name, resolved, show_int))
+                return
+            self.passed('fibre port {} presents no resolved mdi/mdix role (current polarity {!r}), '
+                        'consistent with the refusal'.format(portFibre.name, resolved))
         else:
             # Documented alternative: the platform accepts the command but ignores it for
             # fibre media. Then the port must present NO resolved mdi/mdix role. Parse the
