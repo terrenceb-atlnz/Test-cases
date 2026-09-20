@@ -22,6 +22,17 @@ correspond to it.
 {{ code }}
 ```
 
+{% if library_code %}
+## Helpers this script imports (authoritative — `from {{ library_name | replace('.py', '') }} import *`)
+This module ships beside the script. Every symbol it defines is IN SCOPE, and the behaviour its
+docstrings describe is authoritative: a call that matches a signature, keyword argument or
+documented value-handling defined here is CORRECT. Do not report such a call as an unbound or
+mis-used symbol, and do not re-derive what an argument means when the docstring says.
+```python
+{{ library_code }}
+```
+{% endif %}
+
 {% if lint_findings %}
 ## Static checks already performed (FYI — do not re-report)
 {% for f in lint_findings %}
@@ -58,6 +69,9 @@ correspond to it.
   `ts.add_testCase(...)` runner, or the `testCaseDesc`/`testCaseRef`/`testCaseMethod` attributes.
 - Do not propose removing reused code that carries an `# ART/SVT/legacy` provenance tag; that
   chain is deliberate.
+- **The helpers module above is part of the script.** A symbol, keyword argument or documented
+  behaviour defined there is in scope and correct; a finding that contradicts its docstring is a
+  false positive, not a defect.
 - **A sound script is a legitimate result.** If you find nothing that meets the bar, return an
   empty `findings` list. Do not manufacture findings to appear thorough.
 

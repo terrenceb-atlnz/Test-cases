@@ -6781,6 +6781,21 @@ async def generate_step(key: str, unit_id: str, request: Request, body: dict = B
 # Pass C — the holistic review (PLAN-pytest-creator.md §9.6)
 # ---------------------------------------------------------------------------
 
+def _library_prompt_context(step6: dict) -> Dict[str, str]:
+    """The companion library (`from <stem> import *`) as prompt context for Review and Fix.
+
+    WHY (2026-09-18, AWPTCM-T33234): the reviewer saw only the script, never the module it
+    imports every helper from, so 4 of the final 5 findings were false — `waitForLinkState(...,
+    'down')` (the helper handles 'down' explicitly), `checkCurrentPort(..., 'auto', ...)` ('auto'
+    means "a negotiated value is present"), `expect_value=True` (declared in the def). A Fix that
+    cannot see the library "fixes" a correct call the same way. Empty strings when the suite has
+    no library, so the templates' `{% if library_code %}` blocks simply do not render.
+    """
+    lib = ((step6 or {}).get("files") or {}).get("library") or {}
+    return {"library_name": str(lib.get("name") or ""),
+            "library_code": str(lib.get("code") or "")}
+
+
 def _review_lint_findings(sess: PtSession) -> List[str]:
     """The static checks ALREADY performed, as flat lines for the review prompt.
 
@@ -7457,6 +7472,7 @@ async def review_script(key: str, request: Request):
         "code": step6["files"]["test"]["code"],
         "sequence": sequence,
         "lint_findings": _review_lint_findings(sess),
+        **_library_prompt_context(step6),
     }, llm_config=_llm_cfg(sess), timeout=600, dry_run=dry_run,
        # Findings, not a script: the reply is a small JSON object, so the default
        # completion cap is ample and the default JSON system steer is the right one.
@@ -7540,6 +7556,7 @@ async def fix_script(key: str, request: Request):
         "review_findings": review_findings,
         "results": parsed.get("cases", []),
         "log_excerpts": excerpts,
+        **_library_prompt_context(step6),
     }, llm_config=_llm_cfg(sess), timeout=600, dry_run=dry_run,
        system=_CODE_SYSTEM_PROMPT,   # fenced python out, not JSON — see generate_script
        max_tokens=32000)  # emits a whole revised script — same size profile as generate

@@ -11,6 +11,17 @@ Key: {{ case_key }} | Script: {{ file_name }} | Iteration: {{ iteration }}
 {{ code }}
 ```
 
+{% if library_code %}
+## Helpers this script imports (authoritative — `from {{ library_name | replace('.py', '') }} import *`)
+This module ships beside the script. Every symbol it defines is IN SCOPE, and the behaviour its
+docstrings describe is authoritative: a call that matches a signature, keyword argument or
+documented value-handling defined here is CORRECT. Do not report such a call as an unbound or
+mis-used symbol, and do not re-derive what an argument means when the docstring says.
+```python
+{{ library_code }}
+```
+{% endif %}
+
 {% if lint_errors %}
 ## Static check errors (fix all of these first)
 {{ lint_errors }}
@@ -47,6 +58,9 @@ Fix the CONDITION, never by weakening or deleting an assertion.
 
 ## Rules
 - Diagnose from the log: wrong prompt mode, wrong CLI syntax for this platform, insufficient wait/settle time, wrong expected string, topology handle misuse (`self.testSet.<name>`), missing configure step.
+- The helpers module above is part of the script: a call that matches a signature or documented
+  behaviour defined there is correct and must not be "fixed"; change the library only when a
+  finding or a log excerpt shows the helper itself is wrong (return it as the second block).
 - Keep passing test cases untouched unless a shared fix requires edits.
 - The full corrected file(s) must be returned — not a diff.
 - Output format: the complete revised script in ONE fenced python block. If a library file was
