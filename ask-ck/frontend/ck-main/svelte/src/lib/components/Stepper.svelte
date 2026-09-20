@@ -7,7 +7,10 @@
   /** @type {number} Index of the current step */
   export let currentStep = 0;
 
-  /** @type {((index: number) => void) | null} Called when a completed step's node is clicked */
+  /** @type {number} Furthest step index reached so far (stays put when navigating back) */
+  export let maxStepReached = 0;
+
+  /** @type {((index: number) => void) | null} Called when a visited step's node is clicked */
   export let onStepClick = null;
 </script>
 
@@ -15,17 +18,17 @@
   {#each steps as step, i}
     <div
       class="stepper-step"
-      class:completed={i < currentStep}
+      class:completed={i !== currentStep && i <= maxStepReached}
       class:current={i === currentStep}
     >
       <button
         type="button"
         class="stepper-node"
-        class:completed={i < currentStep}
+        class:completed={i !== currentStep && i <= maxStepReached}
         class:current={i === currentStep}
-        class:pending={i > currentStep}
-        disabled={!(onStepClick && i < currentStep)}
-        on:click={() => onStepClick && i < currentStep && onStepClick(i)}
+        class:pending={i > maxStepReached}
+        disabled={!(onStepClick && i !== currentStep && i <= maxStepReached)}
+        on:click={() => onStepClick && i !== currentStep && i <= maxStepReached && onStepClick(i)}
         aria-current={i === currentStep ? 'step' : undefined}
         aria-label={step.label}
       >
@@ -65,7 +68,7 @@
     left: calc(-50% + var(--stepper-node-radius) + var(--stepper-line-gap));
     width: calc(100% - (2 * (var(--stepper-node-radius) + var(--stepper-line-gap))));
     height: 4px;
-    background: var(--color-border-surface);
+    background: var(--color-stepper-outline);
     z-index: 0;
   }
 
@@ -93,7 +96,7 @@
     width: 4rem;
     height: 4rem;
     border-radius: 50%;
-    border: 4px solid var(--color-border-surface);
+    border: 4px solid var(--color-stepper-outline);
     background: var(--color-bg-content);
     display: flex;
     align-items: center;
@@ -135,7 +138,7 @@
 
   .stepper-label {
     font-size: 0.9rem;
-    color: var(--color-text-muted);
+    color: var(--color-stepper-outline);
     font-weight: 600;
     text-align: center;
   }
