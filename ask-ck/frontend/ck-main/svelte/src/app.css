@@ -39,6 +39,7 @@
 
   --color-accent: #00538f;
   --color-success: #16a34a;
+  --color-error: #dc2626;
 
   --icon-filter-arrow: invert(100%) opacity(12%);
   --icon-filter-arrow-hover: invert(0%) opacity(50%);
@@ -46,7 +47,12 @@
   --icon-filter-accent: invert(19%) sepia(99%) saturate(1915%) hue-rotate(188deg) brightness(93%) contrast(102%);
   --icon-filter-heading: invert(19%) sepia(15%) saturate(600%) hue-rotate(160deg) brightness(90%) contrast(90%);
   --icon-filter-node-current: brightness(0);
-  --icon-filter-node-completed: brightness(0) invert(1);
+  --icon-filter-node-completed: brightness(0) invert(0.8);
+
+  --color-table-header-bg: #fff;
+  --color-table-row-bg: #d7dee4;
+
+  --color-stepper-outline: #cacaca;
 
   color: var(--color-text);
   background: var(--color-bg-page);
@@ -54,9 +60,9 @@
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --color-text: #dbe4ec;
+  --color-text: #dbe4ec;
   --color-text-heading: #f2f5f7;
-  --color-text-body: #cdd8e3;
+  --color-text-body: #e2e2e2;
   --color-text-muted: #9db0c2;
 
   --color-bg-page: #1c1e1f;
@@ -94,6 +100,9 @@
   --icon-filter-heading: invert(90%) sepia(8%) saturate(350%) hue-rotate(175deg) brightness(103%) contrast(95%);
   --icon-filter-node-current: brightness(0) invert(1);
   --icon-filter-node-completed: brightness(0) invert(0);
+
+  --color-table-header-bg: #131313;
+  --color-table-row-bg: #1c1e1f;
   }
 }
 
@@ -138,6 +147,12 @@
   --icon-filter-heading: invert(90%) sepia(8%) saturate(350%) hue-rotate(175deg) brightness(103%) contrast(95%);
   --icon-filter-node-current: brightness(0) invert(1);
   --icon-filter-node-completed: brightness(0) invert(0);
+
+  --color-table-header-bg: #131313;
+  --color-table-row-bg: #1c1e1f;
+
+  --color-stepper-outline: #454545;
+
 }
 
 * {

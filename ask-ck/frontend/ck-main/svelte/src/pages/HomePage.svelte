@@ -5,7 +5,7 @@
   import { resolvedTheme } from '../lib/theme.js';
   import askCKLogoDark from '../assets/askck-logo.png';
   import askCKLogoLight from '../assets/askck-logo-light.png';
-  import askCKAdmin from '../assets/askck-admin2.png';
+  import askCKAdmin from '../assets/askck-admin.png';
   import testCaseIcon from '../assets/icons/clipboard-list.svg';
   import pytestIcon from '../assets/icons/pytest.svg';
   import testComposerIcon from '../assets/icons/list-check.svg';
