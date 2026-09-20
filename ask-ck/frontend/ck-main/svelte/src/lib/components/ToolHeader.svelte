@@ -1,17 +1,25 @@
 <script>
   export let title = '';
   export let tool = '';
+  export let icon = '';
 </script>
 
 <div class="page-header">
-  <p>{tool}</p>
-  <h1>{title}</h1>
+  {#if icon}
+    <img src={icon} alt="Tool Icon" class="tool-icon" />
+  {/if}
+  <div class="tool-header">
+    <p>{tool}</p>
+    <h1>{title}</h1>
+  </div>
 </div>
 <hr class="page-header-rule" />
 
 <style>
   .page-header {
     text-align: left;
+    display: flex;
+    align-items: center;
   }
 
   .page-header h1 {
@@ -35,5 +43,20 @@
     border: none;
     border-top: 1px solid var(--color-border-surface);
     margin: 16px 0 16px;
+  }
+
+  .tool-header {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .tool-icon {
+    width: 40px;
+    height: 40px;
+    margin-right: 20px;
+    vertical-align: middle;
+    filter: var(--icon-filter-node-current);
+
   }
 </style>

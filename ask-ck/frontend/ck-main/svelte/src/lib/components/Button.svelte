@@ -1,5 +1,5 @@
 <script>
-  export let variant = 'primary'; // 'primary' | 'outline'
+  export let variant = 'primary'; // 'primary' | 'outline' | 'success'
   export let type = 'button';
   export let disabled = false;
 
@@ -22,7 +22,7 @@
     align-items: center;
     justify-content: center;
     padding: 6px 16px;
-    border-radius: 999px;
+    border-radius: 10px;
     font: inherit;
     font-weight: 600;
     font-size: 0.85rem;
@@ -48,10 +48,20 @@
   .btn-outline {
     border: 1px solid var(--color-accent);
     background: transparent;
-    color: var(--color-accent);
+    color: var(--color-text);
   }
 
   .btn-outline:hover:not(:disabled) {
     background: color-mix(in srgb, var(--color-accent) 10%, transparent);
+  }
+
+  .btn-success {
+    border: none;
+    background: var(--color-success);
+    color: #fff;
+  }
+
+  .btn-success:hover:not(:disabled) {
+    filter: brightness(1.1);
   }
 </style>
