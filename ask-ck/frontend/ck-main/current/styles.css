@@ -417,6 +417,18 @@ body {
   border-color: var(--status-medium);
 }
 .pt-pill-row button.pt-pill-current { outline: 2px solid var(--text-primary); outline-offset: 1px; }
+/* Slice A: the units ⇄ script state pill (a span, not a button — it is a verdict, not a target). */
+.pt-pill-row .pt-state {
+  font-size: 11px; font-weight: 700; padding: 2px 9px; border-radius: 9999px;
+  border: 1px solid transparent; font-family: var(--font-mono, monospace); line-height: 1.6;
+  margin-left: 6px;
+}
+.pt-pill-row .pt-state-ok { background: var(--status-success-muted); color: var(--status-success); border-color: var(--status-success); }
+.pt-pill-row .pt-state-stale { background: var(--status-high-muted, #fde2e2); color: var(--status-high, #b00020); border-color: var(--status-high, #b00020); }
+button.pt-gated { opacity: 0.45; cursor: not-allowed; }
+/* Slice B: a stale review's findings whose quoted evidence is no longer in the script. */
+.pt-review-finding.pt-review-gone { opacity: 0.55; }
+.pt-review-finding.pt-review-gone > div:nth-child(2) { text-decoration: line-through; }
 .pt-pill-row button.pt-pill:hover { filter: brightness(1.08); }
 .pt-match-table .cell-id { white-space: normal; }
 .pt-match-table .btn-compact { width: 100%; padding: 4px 4px; }

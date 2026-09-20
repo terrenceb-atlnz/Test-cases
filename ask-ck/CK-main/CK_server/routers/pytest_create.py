@@ -4054,13 +4054,15 @@ async def load_case(key: str, request: Request, fresh: bool = False):
         "llm_applied_from_workspace": changed,
         "lock": lock,
         "read_only": False,
+        "gen_state": _gen_state(sess.step6 or {}),
     }
 
 
 @router.get("/session/{key}")
 async def get_session(key: str):
     sess = _pt_get(key)
-    return {"session": safe_session_dict(sess)}   # redacts llm_config secrets
+    return {"session": safe_session_dict(sess),   # redacts llm_config secrets
+            "gen_state": _gen_state(sess.step6 or {})}
 
 
 @router.post("/clear_session/{key}")
@@ -5161,7 +5163,8 @@ async def save_script(key: str, body: dict = Body(...)):
     lint = _lint_generated(sess)
     written = _persist_generated_files(sess)
     _pt_persist(sess)
-    return {"written": written, "lint": lint, "naming": step6["naming"]}
+    return {"written": written, "lint": lint, "naming": step6["naming"],
+            "gen_state": _gen_state(step6)}
 
 
 @router.post("/save_naming/{key}")
@@ -5440,6 +5443,14 @@ def _pt_generation_context(key: str, data: dict, sess: PtSession) -> dict:
     skeleton = _render_skeleton(key, _case_title(data, key), sequence,
                                 extra_import_lines, fragments,
                                 _case_payload_fields(sess)["objective"], library)
+    # Slice A: once the units have been re-chunked from an assembled script, THAT script is the
+    # frame — module-level helpers a whole-script Fix or a hand edit added are part of it, and
+    # the server's fresh render would silently drop them. The snapshot is trusted only while
+    # the sequence it was cut against is still the sequence (same shape); after a re-extract
+    # or renumbering the rendered skeleton is the only frame that fits the new steps.
+    frame = (sess.step6 or {}).get("frame") or {}
+    if frame.get("code") and frame.get("sequence_shape") == _sequence_shape(sequence):
+        skeleton = frame["code"]
     setup_steps, tc_steps = _split_sequence(sequence)
     bound_devs, _stk, _pl = _detect_topology(sequence, fragments)
     return {
@@ -5924,6 +5935,109 @@ def _reindent_setup_pair(code: str, def_indent: int, body_indent: int) -> str:
     return "\n".join(out)
 
 
+# ---------------------------------------------------------------------------
+# Generate-state gating (PLAN-generate-state-and-sequence-sanity, slice A, 2026-09-21)
+# ---------------------------------------------------------------------------
+# step6 holds TWO copies of the script: the per-unit `chunks` and the assembled
+# `files.test.code`. Only the splice paths write both; `save_script`, `fix_script` and
+# `generate_script` write the assembled code alone, so afterwards the chunks are STALE and any
+# re-splice (Assemble, Fix units, Apply held) silently discards the repair — measured on
+# AWPTCM-T33234, 2026-09-17/18, where a hand-repaired script sat one click from being reverted
+# with every pill green. The hash of the script at its last assembly is the join between the
+# two copies; when the script's current hash differs, every splice path refuses (409) until
+# `rechunk` re-reads the units AND the surrounding frame from the current script.
+
+def _code_hash(code: str) -> str:
+    import hashlib
+    return hashlib.sha1((code or "").encode("utf-8")).hexdigest()[:16]
+
+
+_GEN_DIVERGED_REASON = (
+    "The assembled script and the generated units are out of step: the script on screen was "
+    "written by Fix whole script / Save / Generate Script after the last unit assembly (or no "
+    "assembly has been recorded for it). Use 'Re-chunk from script' first — it re-reads the "
+    "units and the surrounding frame from the current script — or Assemble / Fix units / Apply "
+    "would splice stale units over the current script and discard those edits.")
+
+
+def _gen_state(step6: dict) -> dict:
+    """Where the two copies of the script stand, for the UI's pill and the 409 gate.
+
+    `diverged` is True whenever an assembled script exists whose hash is not the hash recorded
+    at the last assembly (or re-chunk). A whole-script Generate/Fix/Save therefore ALWAYS reads
+    as diverged until the user re-chunks — deliberately: those paths never wrote the chunks.
+    `review_stale` is True when the stored review was not made against this exact code
+    (slice B); a review with no recorded hash is treated as stale, since it cannot be proved
+    to match."""
+    step6 = step6 or {}
+    code = ((step6.get("files") or {}).get("test") or {}).get("code") or ""
+    chunks = step6.get("chunks") or {}
+    script_hash = _code_hash(code) if code else ""
+    assembled_hash = str(step6.get("assembled_hash") or "")
+    diverged = bool(code) and assembled_hash != script_hash
+    review = step6.get("review") or {}
+    review_stale = bool(review) and (str(review.get("code_hash") or "") != script_hash)
+    frame = step6.get("frame") or {}
+    return {
+        "script_hash": script_hash,
+        "assembled_hash": assembled_hash,
+        "units": sum(1 for c in chunks.values() if (c or {}).get("status") == "ok"),
+        "frame_snapshot": bool(frame.get("code")),
+        "diverged": diverged,
+        "reason": _GEN_DIVERGED_REASON if diverged else "",
+        "review_stale": review_stale,
+    }
+
+
+def _require_units_current(step6: dict) -> None:
+    """The gate every splice / unit-generation path passes first: 409 while diverged."""
+    if _gen_state(step6)["diverged"]:
+        raise HTTPException(409, _GEN_DIVERGED_REASON)
+
+
+def _rechunk_from_script(step6: dict, sequence: List[dict]) -> Tuple[List[str], List[str]]:
+    """Make the chunks AND the frame agree with the assembled script, in place.
+
+    Re-reads every unit off the current `files.test.code` (`_chunks_from_code` — the same AST
+    split that cut the frame) and stores the WHOLE current script as `step6["frame"]`, so a
+    later assembly splices into the real frame — module-level helpers a whole-script Fix added
+    survive, and an Assemble with unchanged units reproduces the script byte-for-byte. The
+    frame carries the sequence shape it was cut against; `_pt_generation_context` ignores a
+    snapshot whose shape no longer matches (a re-extracted or renumbered sequence).
+    Returns (changed unit ids, dropped unit ids). Raises 409 when the script has no units."""
+    code = ((step6.get("files") or {}).get("test") or {}).get("code") or ""
+    if not code:
+        raise HTTPException(409, "No assembled script to re-chunk. Generate a script first.")
+    units = _skeleton_units(code)
+    if not units:
+        raise HTTPException(409, "The script cannot be split into units: it does not parse, "
+                                 "or it has no TestCase_<n> classes and no TestSet.configure. "
+                                 "Fix the syntax first (Re-lint shows where).")
+    synced = _chunks_from_code(code, None)
+    chunks, changed = _resync_chunks(step6.get("chunks") or {}, synced)
+    dropped = sorted(k for k in chunks if k not in synced)
+    for k in dropped:
+        chunks.pop(k, None)
+    h = _code_hash(code)
+    step6["chunks"] = chunks
+    step6["frame"] = {"code": code, "hash": h, "at": utc_now().isoformat(),
+                      "units": [u["id"] for u in units],
+                      "sequence_shape": _sequence_shape(sequence or [])}
+    step6["assembled_hash"] = h
+    return changed, dropped
+
+
+def _try_rechunk(step6: dict, sequence: List[dict]) -> bool:
+    """`_rechunk_from_script` for the paths that have just written a whole script (fix_script):
+    keep the two copies in step when the new script splits cleanly, and leave the state
+    honestly DIVERGED — pill on, splice paths closed — when it does not."""
+    try:
+        _rechunk_from_script(step6, sequence)
+        return True
+    except HTTPException:
+        return False
+
+
 def _assemble_units(ctx: dict, chunks: dict) -> Tuple[str, List[str]]:
     """Splice the generated units into the rendered frame. Returns (code, missing_ids).
 
@@ -5966,9 +6080,15 @@ def _assemble_and_store(key: str, sess: PtSession, ctx: dict, group: str, name: 
     _validate_naming(group, name)
     file_name = f"{name}.py"
 
-    stamped = _restamp_provenance(code, ctx["fragments"],
-                                  (_llm_cfg_for(sess, "unit_fill").get("model") or ""),
-                                  ctx["sequence"])
+    frame = step6.get("frame") or {}
+    if frame.get("code") and code == frame["code"]:
+        # Nothing changed since the re-chunk: the assembly IS the snapshot, byte for byte.
+        # Re-stamping would only move the `# AI <model> <date>` dates and break that proof.
+        stamped = code
+    else:
+        stamped = _restamp_provenance(code, ctx["fragments"],
+                                      (_llm_cfg_for(sess, "unit_fill").get("model") or ""),
+                                      ctx["sequence"])
     report = gen_assembly.manifest_check(stamped)
 
     def _apply(fresh: PtSession) -> None:
@@ -5981,6 +6101,7 @@ def _assemble_and_store(key: str, sess: PtSession, ctx: dict, group: str, name: 
             step6_f["files"]["library"] = {"name": ctx["library"]["name"],
                                            "code": ctx["library"]["code"]}
         step6_f["assembled_at"] = utc_now().isoformat()
+        step6_f["assembled_hash"] = _code_hash(stamped)     # slice A: the join to the chunks
         step6_f["assembly"] = {"units": len(ctx["units"]), "manifest": report,
                                "source": "per-unit"}
         # A fresh assembly supersedes any earlier review: the findings were about a
@@ -6001,11 +6122,48 @@ def _assemble_and_store(key: str, sess: PtSession, ctx: dict, group: str, name: 
         step6_f["lint_history"] = history[-50:]           # a rolling window, per session
         fresh.step6 = step6_f
 
-    _pt_persist_fresh(key, _apply_lint)
+    sess = _pt_persist_fresh(key, _apply_lint)
     files_out = {"test": {"name": file_name, "code": stamped}}
     if (ctx.get("library") or {}).get("members"):
         files_out["library"] = {"name": ctx["library"]["name"], "code": ctx["library"]["code"]}
-    return {"files": files_out, "lint": lint, "manifest": report, "units": len(ctx["units"])}
+    return {"files": files_out, "lint": lint, "manifest": report, "units": len(ctx["units"]),
+            "gen_state": _gen_state(sess.step6 or {})}
+
+
+@router.post("/rechunk/{key}")
+async def rechunk(key: str):
+    """Slice A: make the units and the frame agree with the assembled script (local, no LLM).
+
+    The explicit, visible user action that clears the DIVERGED state. Lock-gated by
+    `_pt_persist`."""
+    sess = _pt_get(key)
+    step6 = dict(sess.step6 or {})
+    changed, dropped = _rechunk_from_script(step6, (sess.step2 or {}).get("sequence") or [])
+    sess.step6 = step6
+    _pt_persist(sess)
+    return {"changed": changed, "dropped": dropped, "units": step6["frame"]["units"],
+            "gen_state": _gen_state(step6)}
+
+
+@router.post("/reset_generate/{key}")
+async def reset_generate(key: str):
+    """Drop the generated units and every derived artefact of the Generate step, keeping steps
+    1-4 and the saved script + its lint + naming (Terrence, 2026-09-18: "keep the step history
+    up to Generate, and dump all the code after that"). Every splice path then 409s on missing
+    units until Generate is run deliberately. Lock-gated by `_pt_persist`."""
+    sess = _pt_get(key)
+    step6 = sess.step6 or {}
+    if not (step6.get("files") or {}).get("test"):
+        raise HTTPException(409, "Nothing to reset: no script has been generated for this case.")
+    dropped = sorted((step6.get("chunks") or {}).keys())
+    kept = {k: step6[k] for k in ("files", "lint", "naming") if k in step6}
+    kept["confirmed"] = False
+    kept["reset_at"] = utc_now().isoformat()
+    kept["reset_dropped"] = dropped
+    sess.step6 = kept
+    _invalidate_from(sess, 5)
+    _pt_persist(sess)
+    return {"dropped_units": dropped, "kept": sorted(kept), "gen_state": _gen_state(kept)}
 
 
 @router.post("/assemble_script/{key}")
@@ -6020,6 +6178,7 @@ async def assemble_script(key: str, request: Request, body: dict = Body(default=
     """
     data = _data(request)
     sess = _pt_get(key)
+    _require_units_current(sess.step6 or {})   # slice A gate
     step6 = sess.step6 or {}
     chunks = step6.get("chunks") or {}
     ctx = _pt_generation_context(key, data, sess)
@@ -6096,6 +6255,7 @@ async def assemble_and_settle(key: str, request: Request, body: dict = Body(defa
     background; poll /units_status and read step6.settle for the rounds."""
     data = _data(request)
     sess = _pt_get(key)
+    _require_units_current(sess.step6 or {})   # slice A gate
     step6 = sess.step6 or {}
     ctx = _pt_generation_context(key, data, sess)
     if not ctx["units"]:
@@ -6452,6 +6612,7 @@ async def generate_units(key: str, request: Request, body: dict = Body(default={
     """
     data = _data(request)
     sess = _pt_get(key)
+    _require_units_current(sess.step6 or {})   # slice A gate
     # Off the event loop (2026-09-08): the context alone is seconds of CPU and every
     # unedited unit is rendered below — inline, that froze the whole server (see
     # step_prompts). The trade is that this handler now yields mid-flight, which is why
@@ -6753,6 +6914,7 @@ async def generate_step(key: str, unit_id: str, request: Request, body: dict = B
     """
     data = _data(request)
     sess = _pt_get(key)
+    _require_units_current(sess.step6 or {})   # slice A gate
     dry_run = await _dry_run(request)
     ctx = await run_in_threadpool(_pt_generation_context, key, data, sess)   # off the loop
     unit = next((u for u in ctx["units"] if u["id"] == unit_id), None)
@@ -7234,6 +7396,7 @@ async def fix_units(key: str, request: Request, body: dict = Body(default={})):
     last unit lands for what happened (assembled / lint / failed / unmapped)."""
     data = _data(request)
     sess = _pt_get(key)
+    _require_units_current(sess.step6 or {})   # slice A gate
     step6 = sess.step6 or {}
     test = (step6.get("files") or {}).get("test") or {}
     code = test.get("code") or ""
@@ -7391,6 +7554,7 @@ async def apply_held(key: str, request: Request, body: dict = Body(default={})):
     unit was regenerated) has nothing held and is skipped."""
     data = _data(request)
     sess = _pt_get(key)
+    _require_units_current(sess.step6 or {})   # slice A gate
     step6 = sess.step6 or {}
     want = body.get("units")
     ids = [str(u) for u in want] if isinstance(want, list) else None
@@ -7496,6 +7660,7 @@ async def review_script(key: str, request: Request):
         "at": utc_now().isoformat(),
         "findings": findings,
         "reviewed_lint": _review_lint_findings(sess),
+        "code_hash": _code_hash(step6["files"]["test"]["code"]),   # slice B: bound to this code
         "provenance": {
             "llm": {k: meta.get(k) for k in ("provider", "model", "auth_method")},
             "prompt": meta.get("prompt", ""),
@@ -7636,6 +7801,10 @@ async def fix_script(key: str, request: Request):
         lint_now = _lint_generated(fresh)
         step6_l = dict(fresh.step6)
         step6_l["lint"] = lint_now
+        # Slice A: a whole-script fix wrote the script alone; re-chunk so the units and the
+        # frame follow it. If the new script does not split, the state stays DIVERGED (pill
+        # on, splice paths closed) rather than pretending.
+        _try_rechunk(step6_l, (fresh.step2 or {}).get("sequence") or [])
         fresh.step6 = step6_l
         _fixed["lint"] = lint_now
         _fixed["files"] = fresh.step6["files"]

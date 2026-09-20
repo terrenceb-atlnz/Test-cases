@@ -39,6 +39,10 @@ function mountPtProvenance(mountId, panelId, endpoint, stepProv, bodyFn) {
 }
 
 export let ptSession = null;          // server session for S.ptCase.key
+// Slice A (PLAN-generate-state-and-sequence-sanity, 2026-09-21): the server's verdict on whether
+// the generated units and the assembled script agree. Rendered as a pill; while `diverged`,
+// every button that would re-splice the units is disabled with the reason as its tooltip.
+export let ptGenState = null;
 let ptCaseInfo = null;         // {title, group_display, objective, steps} from load_case
 let ptRunPoll = null;          // setInterval handle while a run is active
 
@@ -150,6 +154,7 @@ async function _ptLoadCase({ fresh = false } = {}) {
   const d = await ptApi(`/load_case/${S.ptCase.key}${fresh ? '?fresh=true' : ''}`, { method: 'POST' }, st);
   if (!d) return;
   ptSession = d.session;
+  ptGenState = d.gen_state || null;
   ptCaseInfo = { title: d.case_title, group_display: d.group_display,
                  objective: d.objective, steps: d.steps };
   // Per-unit state belongs to ONE case. Without this, loading a second case leaves the
@@ -172,7 +177,7 @@ async function _ptLoadCase({ fresh = false } = {}) {
 async function ptRefreshSession() {
   if (!S.ptCase.key) return;
   const d = await ptApi(`/session/${S.ptCase.key}`);
-  if (d) { ptSession = d.session; updatePtBadges(); }
+  if (d) { ptSession = d.session; if (d.gen_state) ptGenState = d.gen_state; updatePtBadges(); }
 }
 
 function updatePtBadges() {
@@ -1112,7 +1117,8 @@ function ptRenderUnitPills() {
   const sumCur = (_ptUnitIdx === _PT_SUMMARY) ? ' pt-pill-current' : '';
   el.innerHTML = pills
     + `<button class="pt-pill ${sumCls}${sumCur}" data-action="ptGoSummary" `
-    + `title="Assemble the units into the frame, lint, review">${sumGlyph} Summary</button>`;
+    + `title="Assemble the units into the frame, lint, review">${sumGlyph} Summary</button>`
+    + _ptStatePill();
   const st = document.getElementById('pt-units-status');
   if (st && !st.dataset.busy) {
     const n = _ptUnits.filter(u => ['ok', 'held'].includes(_ptUnitState(u))).length;
@@ -1296,7 +1302,85 @@ async function _ptFetchUnitCode(id) {
   }
 }
 
-function ptRenderUnits() { ptRenderUnitPills(); ptRenderUnitErrors(); ptRenderUnitPage(); }
+function ptRenderUnits() { ptRenderUnitPills(); ptRenderUnitErrors(); ptRenderUnitPage(); _ptApplyGenGate(); }
+
+// --- Slice A: units ⇄ script state --------------------------------------------------------
+// The server keeps TWO copies of the script (per-unit chunks and the assembled file) and only
+// the splice paths write both. After Fix whole script / Save / Generate Script the chunks are
+// stale, and until 2026-09-21 nothing on this panel said so — every pill green, Assemble one
+// click from discarding a hand repair (AWPTCM-T33234). The server now refuses (409) while
+// `diverged`; this is the visible half: a pill with the reason, and the offending buttons
+// disabled with that reason as their tooltip. "Re-chunk from script" is the way out.
+const _PT_GATED_BUTTONS = ['pt-assemble-btn', 'pt-assemble-only-btn', 'pt-fix-units-btn',
+                           'pt-apply-held-btn', 'pt-units-all-btn', 'pt-unit-btn'];
+
+function _ptStatePill() {
+  const g = ptGenState;
+  if (!g || !g.script_hash) return '';        // no assembled script yet: nothing to be out of step
+  if (g.diverged) {
+    return ` <span class="pt-pill pt-state pt-state-stale" id="pt-gen-state-pill" `
+      + `title="${escapeHtml(g.reason || '')}">⚠ units stale — Re-chunk</span>`;
+  }
+  return ` <span class="pt-pill pt-state pt-state-ok" id="pt-gen-state-pill" `
+    + `title="The generated units and the assembled script agree (hash ${escapeHtml(g.script_hash)})`
+    + `${g.frame_snapshot ? '; the frame is a snapshot of the script' : ''}.">units ⇄ script</span>`;
+}
+
+function _ptApplyGenGate() {
+  const diverged = !!(ptGenState && ptGenState.script_hash && ptGenState.diverged);
+  _PT_GATED_BUTTONS.forEach((id) => {
+    const b = document.getElementById(id);
+    if (!b) return;
+    if (diverged) {
+      if (!b.dataset.gateTitle) b.dataset.gateTitle = b.title || '';
+      b.disabled = true;
+      b.title = ptGenState.reason || 'Units and script are out of step — Re-chunk first.';
+      b.classList.add('pt-gated');
+    } else if (b.classList.contains('pt-gated')) {
+      b.disabled = false;
+      b.title = b.dataset.gateTitle || '';
+      delete b.dataset.gateTitle;
+      b.classList.remove('pt-gated');
+    }
+  });
+  const rc = document.getElementById('pt-rechunk-btn');
+  if (rc) rc.classList.toggle('btn-primary', diverged);
+}
+
+async function ptRechunk() {
+  if (!ptRequireCase()) return;
+  const btn = document.getElementById('pt-rechunk-btn');
+  const st = ptStatusEl('pt-gen-status');
+  // LOCAL: re-reads the units and the frame off the script on the server. No LLM.
+  const d = await ptApi(`/rechunk/${S.ptCase.key}`, { method: 'POST', btn, busyLabel: 'Re-chunking…' }, st);
+  if (!d) return;
+  if (d.gen_state) ptGenState = d.gen_state;
+  await ptRefreshSession();
+  await ptLoadUnits();                        // the unit pages now show the script's own classes
+  renderPtGenPanel();
+  st.textContent = `Re-chunked from the script: ${(d.changed || []).length} unit(s) updated`
+    + ((d.dropped || []).length ? `, ${d.dropped.length} dropped` : '')
+    + `; frame snapshotted. Assemble now reproduces this script exactly.`;
+}
+
+async function ptResetGenerate() {
+  if (!ptRequireCase()) return;
+  if (!confirm(
+    `Reset the Generate step for ${S.ptCase.key}?\n\n`
+    + `This drops every generated unit, the review and the assembly history. Steps 1–4 and the `
+    + `saved script (with its lint) are kept. You will need to Confirm step 5 again.`
+  )) return;
+  const btn = document.getElementById('pt-reset-gen-btn');
+  const st = ptStatusEl('pt-gen-status');
+  const d = await ptApi(`/reset_generate/${S.ptCase.key}`, { method: 'POST', btn, busyLabel: 'Resetting…' }, st);
+  if (!d) return;
+  if (d.gen_state) ptGenState = d.gen_state;
+  await ptRefreshSession();
+  await ptLoadUnits();
+  renderPtGenPanel();
+  st.textContent = `Generate step reset: ${(d.dropped_units || []).length} unit(s) dropped; `
+    + `the saved script and steps 1–4 are untouched.`;
+}
 
 function ptGoUnit(i) { _ptUnitIdx = i; ptRenderUnits(); }
 function ptGoSummary() { _ptUnitIdx = _PT_SUMMARY; ptRenderUnits(); renderPtGenPanel(); }
@@ -1596,7 +1680,8 @@ export function renderPtGenPanel() {
   ptRenderLint(s6.lint);
   // Re-seed the review from the session, or a reload silently discards findings the
   // reviewer paid an LLM call for — and an empty panel reads as "no findings".
-  ptRenderReview(s6.review);
+  ptRenderReview(s6.review, (files.test || {}).code || '');
+  _ptApplyGenGate();
   if (s6.iterations) ptStatusEl('pt-gen-status').textContent = `Iteration ${s6.iterations}.`;
   // Generate + Fix both write step6; the provenance block covers generate_script.
   // Fix reuses the same block via its own endpoint on Refresh from the Gen panel.
@@ -1634,10 +1719,22 @@ function ptRenderLint(lint) {
 // where it is recorded and reviewable.
 const _PT_SEV = { high: '✗', medium: '△', low: '·' };
 
-function ptRenderReview(review) {
+// Slice B (2026-09-21): a review describes ONE version of the script. When the code has moved on
+// (a Save / hand edit — a Fix already drops the review server-side), the findings are shown
+// collapsed under a "stale" badge rather than as if they were about the code on screen, and each
+// finding says whether its quoted evidence is still present in the current code.
+function _ptNormWs(t) { return String(t || '').replace(/\s+/g, ''); }   // presence check: ignore ALL whitespace
+function _ptEvidencePresent(code, evidence) {
+  const ev = _ptNormWs(evidence);
+  if (!ev) return null;                                  // nothing quoted: nothing to check
+  return _ptNormWs(code).includes(ev);
+}
+
+function ptRenderReview(review, code = '') {
   const el = document.getElementById('pt-review-result');
   if (!el) return;
   if (!review || !review.at) { el.innerHTML = ''; return; }
+  const stale = !!(ptGenState && ptGenState.review_stale);
   const findings = review.findings || [];
   if (!findings.length) {
     // "No findings" is a real result, not an empty state — say so, or a reviewer cannot
@@ -1649,17 +1746,32 @@ function ptRenderReview(review) {
   const counts = ['high', 'medium', 'low']
     .map(sv => ({ sv, n: findings.filter(f => f.severity === sv).length }))
     .filter(c => c.n).map(c => `${c.n} ${c.sv}`).join(' · ');
-  el.innerHTML = `<span class="badge">review: ${findings.length} finding(s)</span> `
-    + `<span class="justification-note">${escapeHtml(counts)} — feed to the Fix button (here, or on step 7 Validate).</span>`
-    + '<div class="mt-1">' + findings.map(f => `
-      <div class="pt-review-finding pt-review-${escapeHtml(f.severity)}">
+  const evTag = (f) => {
+    if (!stale || !f.evidence) return '';
+    const present = _ptEvidencePresent(code, f.evidence);
+    return present
+      ? ' <span class="badge badge-medium pt-ev-present" title="The quoted lines are still in the current script">evidence still present</span>'
+      : ' <span class="badge pt-ev-gone" title="The quoted lines are no longer in the current script">evidence gone</span>';
+  };
+  const list = '<div class="mt-1">' + findings.map(f => `
+      <div class="pt-review-finding pt-review-${escapeHtml(f.severity)}${stale && _ptEvidencePresent(code, f.evidence) === false ? ' pt-review-gone' : ''}">
         <div><b>${_PT_SEV[f.severity] || '·'} ${escapeHtml(f.where || '(script)')}</b>`
         + (f.step ? ` <span class="justification-note">step ${escapeHtml(f.step)}</span>` : '')
-        + ` <span class="justification-note">${escapeHtml(f.kind)}</span></div>
+        + ` <span class="justification-note">${escapeHtml(f.kind)}</span>${evTag(f)}</div>
         <div>${escapeHtml(f.what)}</div>`
         + (f.evidence ? `<pre class="session-pre pt-review-ev">${escapeHtml(f.evidence)}</pre>` : '')
         + (f.suggestion ? `<div class="justification-note">suggested: ${escapeHtml(f.suggestion)}</div>` : '')
         + '</div>').join('') + '</div>';
+  if (stale) {
+    el.innerHTML = `<span class="badge badge-medium" id="pt-review-stale">review is for an earlier version of the script</span> `
+      + `<span class="justification-note">${findings.length} finding(s) from ${escapeHtml(review.at)} — the code has changed since. `
+      + `Re-run Review for findings about what is on screen.</span>`
+      + `<details class="mt-1"><summary class="justification-note">show the ${findings.length} stale finding(s) — ${escapeHtml(counts)}</summary>${list}</details>`;
+    return;
+  }
+  el.innerHTML = `<span class="badge">review: ${findings.length} finding(s)</span> `
+    + `<span class="justification-note">${escapeHtml(counts)} — feed to the Fix button (here, or on step 7 Validate).</span>`
+    + list;
 }
 
 // Fix from the SUMMARY step (2026-09-04, "Both"). Same fix_script endpoint as the step-7
@@ -2229,6 +2341,7 @@ registerActions({
   ptFragGoStep, ptFragPrevStep, ptFragNextStep, ptFragToggle, ptPreviewFragments,
   ptLintScript, ptReviewScript, ptFixScript, ptFixFromSummary, ptFixUnits, ptFixUnitsFromValidate, ptSaveScript,
   ptLoadUnits, ptGenerateUnit, ptGenerateAllUnits, ptAssembleScript, ptAssembleAndSettle,
+  ptRechunk, ptResetGenerate,
   ptGoUnit, ptGoSummary, ptUnitPrev, ptUnitNext, ptClearUnitErrors,
   ptViewSource, ptRun, ptValidate,
   ptEditProfile, ptSaveProfile, ptCheckProfile, ptResetProfileForm,

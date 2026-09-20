@@ -755,6 +755,18 @@
           <button data-action="ptApplyAllHeld" class="btn btn-compact" id="pt-apply-held-btn"
                   title="Splice in every held fix, re-assemble and re-lint (local)">Apply all held fixes</button>
         </div>
+        <!-- Slice A (2026-09-21). The units and the assembled script are two copies; Fix whole
+             script / Save / Generate Script write only the script, so the units go stale and any
+             re-splice would discard the edit. The pill in the row above says when; these two are
+             the local ways out: Re-chunk re-reads units + frame from the script, Reset drops the
+             Generate step's artefacts (units, review, assembly) and keeps steps 1-4 + the script. -->
+        <div class="compact-flex mb-2">
+          <span class="justification-note">Units ⇄ script:</span>
+          <button data-action="ptRechunk" class="btn btn-compact" id="pt-rechunk-btn"
+                  title="Re-read the units AND the surrounding frame from the current script (local). Clears the 'units stale' state; Assemble then reproduces this script exactly.">Re-chunk from script</button>
+          <button data-action="ptResetGenerate" class="btn btn-compact" id="pt-reset-gen-btn"
+                  title="Drop every generated unit, the review and the assembly history. Keeps steps 1-4 and the saved script.">Reset Generate (drop units)</button>
+        </div>
         <div id="pt-gen-status" class="justification-note mb-2"></div>
         <div id="pt-lint-result" class="mb-2"></div>
         <div id="pt-review-result" class="mb-2"></div>
