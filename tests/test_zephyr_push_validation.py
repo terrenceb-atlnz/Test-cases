@@ -207,17 +207,34 @@ def test_parser_accepts_both_step_numbers_the_corpus_actually_contains(tmp_path)
 
 
 def test_the_real_bundles_now_yield_their_links():
-    """Regression floor measured on the committed corpus: 12 bundles, 86 links.
+    """The parser reads the spelling of EVERY bundle actually on disk.
 
-    Before the fix this was 1 bundle and 2 links — the single hand-written bundle that
-    happened to use the parser's spelling.
+    Before the Phase −1 fix this found 1 bundle and 2 links — the single hand-written bundle
+    that happened to use the parser's spelling; the rest of the corpus was invisible to it.
+    That is the regression guarded here.
+
+    It used to assert a floor of 80 links, calibrated on the 12 bundles committed at the time.
+    `e35bbb2` (2026-09-16) then rewound case progress to square one and removed the drop-ins,
+    so the floor began failing against a corpus that no longer exists by design — a red that
+    stopped the gate before vitest ever ran. The guard below was cited by `4d9001a` as the
+    model for decoupling five sibling tests from user-generated data, but it is the one that
+    does not hold: `refined-cases/` still EXISTS after a reset, just thin, so a corpus of one
+    bundle sails past an is_dir() check straight into a 12-bundle threshold.
+
+    Re-aimed per bundle (2026-09-22): every bundle present must yield at least one link, and
+    an empty corpus skips. No number is pinned to user-generated data, the parser-regression
+    intent is kept whole, and the first case re-drafted re-arms it — 4d9001a's shape.
     """
     base = _REPO / "ask-ck" / "functions" / "generator" / "refined-cases"
     if not base.is_dir():
         pytest.skip("refined-cases/ not present in this checkout")
-    total = sum(len(ur.parse_zephyr_links(str(md)))
-                for md in sorted(base.glob("*/*/traceability.md")))
-    assert total >= 80, f"Zephyr web links regressed to {total} (was 86 at the Phase −1 fix)"
+    bundles = sorted(base.glob("*/*/traceability.md"))
+    if not bundles:
+        pytest.skip("no refined-cases bundle on disk yet — draft one to arm this test")
+    barren = [str(md.relative_to(base)) for md in bundles if not ur.parse_zephyr_links(str(md))]
+    assert not barren, (
+        "these traceability bundles yielded NO Zephyr web links — the parser no longer reads "
+        f"their heading spelling: {barren}")
 
 
 # --- −1.4  audit every real push -----------------------------------------------
