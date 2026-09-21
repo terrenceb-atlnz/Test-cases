@@ -97,7 +97,6 @@ ck_cap_swi_b   = polarity                   ; VERIFIED on the device — never f
 |---|---|---|
 | `base` | `ck_role_dut`; `ck_link_copper`; the far end must have verified `polarity` | The floor for physical-layer port tests. They need a partner to negotiate against, and partner-side polarity control is what makes a crossover case **automatable** instead of a manual cable swap. |
 | `fibre` | `ck_link_fibre` | Fibre has **no MDI/MDIX concept at all**, so a fibre link can never satisfy a copper requirement — and the framework's type filter cannot tell them apart. |
-| `cusfp` | `ck_link_cusfp` | A copper-SFP link (1000BASE-T module in an SFP cage). Twisted pair like `base`, but a **pluggable** the operator inserts during a test, so insertion tests bind it as its own role; a bench without it reports those steps UNSUPPORTED rather than aborting (2026-09-21). |
 | `tblink` | `ck_link_tb` | A testbox↔DUT data path is independent of switch↔switch cabling: a bench can have partners but no testbox link, or the reverse. |
 | `stack` | `ck_role_dut` naming a `[stack]` of ≥ 2 members | **Not `base` plus a device.** Stacking renames every port (`1.0.x` → `N.0.x`), which leaks into portlinks, fragments and every port literal — so stacked and unstacked benches are different topologies, not sub/supersets. Demonstrated live on 2026-07-30: u5's ports read `2.0.x` while stacked and `1.0.x` after. |
 
@@ -105,28 +104,13 @@ ck_cap_swi_b   = polarity                   ; VERIFIED on the device — never f
 
 `TestSet.init()` binds through one helper, `_ck_bind_link(setup, dut, misc, '<role>')`,
 which reads `ck_link_<role>`, refuses a `(None, None)` portlink, asserts the media, and
-returns `(near_port, far_port, far_device)`. **Any subset of four roles** is rendered, each
-only when the case's wording (or a step's slice-C `claim`) needs it (`_detect_links` in
-`routers/pytest_create.py` returns `{tb, copper, fibre, cusfp}` — until 2026-09-21 it returned
-two booleans and `copper`/`fibre` shared one handle set, so a case needing a copper link AND a
-pluggable at once (AWPTCM-T33234) forced the setup UNIT to invent the missing bindings):
+returns `(near_port, far_port, far_device)`. Two roles are rendered, each only when the
+case's wording needs it (`_detect_links` in `routers/pytest_create.py`):
 
 | Role | Binding in `init()` | Handles the units use |
 |---|---|---|
 | `tb` (profile `tblink`) | `(dutA.portA, tb.ethA, _tb) = self._ck_bind_link(setup, dutA, misc, 'tb')` — the far end is the testbox itself, so the helper calls `init_portlink(dut, self.tb, type1='port')` and never `init_swi` | `tb`, `ethA`, `portA` — capture / inject on `ethA.name`, the DUT port under test is `portA` |
-| `copper` (profile `base`) | `(dutA.portPeer, peer_port, peer) = self._ck_bind_link(..., 'copper')`, then `peer.portDut = peer_port`, `self.peer = peer` — **required**: a bench without it aborts the suite | `peer`, `portPeer`, `peer.portDut` — the neighbour switch, never the DUT |
-| `fibre` (profile `fibre`) | `(dutA.portFibre, fibre_port, fibre_peer) = self._ck_bind_link(..., 'fibre', assert_media=False)` inside `try/except RuntimeError` → `self.fibre_supported`; a bench without it sets the flag False and the handles None instead of aborting | `fibre_peer`, `portFibre`, `fibre_peer.portDut`, `self.testSet.fibre_supported` |
-| `cusfp` (profile `cusfp`) | `(dutA.portCuSfp, cusfp_port, cusfp_peer) = self._ck_bind_link(..., 'cusfp', assert_media=False)` in the same optional shape → `self.cusfp_supported` | `cusfp_peer`, `portCuSfp`, `cusfp_peer.portDut`, `self.testSet.cusfp_supported` |
-
-**Pluggable roles are optional-with-UNSUPPORTED** (Terrence, 2026-09-21, generalising the
-T33234 ruling of 2026-09-17): `fibre` and `cusfp` are bound by port reference only — their
-media is asserted by the insertion case, through the frame's module-level
-`assert_role_media_now(testCase, dut, port, role)`, after the operator has fitted the module —
-and a case whose role is not on this bench reports UNSUPPORTED (`self.supported = False`)
-rather than failing. `tb` and `copper` stay hard requirements. The far end of every peer
-device is always `.portDut`, whatever the role; two roles that resolve to the same partner
-switch share one device object (the helper caches far devices by key, so `init_swi` runs once
-per partner).
+| `copper` / `fibre` (profile `base` / `fibre`) | `(dutA.portPeer, peer_port, peer) = self._ck_bind_link(...)`, then `peer.portDut = peer_port`, `self.peer = peer` | `peer`, `portPeer`, `peer.portDut` — the neighbour switch, never the DUT |
 
 This is the corpus's own topology: 111 of 188 ART tests bind `(dut.portA, tb.ethA)` and
 capture on the testbox; a second switch is named by role (`swiSrc`, `dutZ`), never `dut`.

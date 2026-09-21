@@ -418,10 +418,7 @@ def test_every_generated_script_parses_and_is_checkable():
     for path in REAL_SCRIPTS:
         demands = parse_script(path.read_text(encoding="utf-8", errors="replace"), path)
         assert demands.roles, f"{path.name}: no devices detected"
-        # A legacy skeleton demands links via init_portlink; the ART frame (2026-09-07) via
-        # `_ck_bind_link(..., '<role>')`. Either shape must be SEEN, or a script with no demands
-        # reads as trivially runnable.
-        assert demands.links or demands.role_links, f"{path.name}: no link demands detected"
+        assert demands.links, f"{path.name}: no portlink demands detected"
 
 
 # The three Port scripts as generated on 2026-07-30, reduced to the ONLY thing the preflight
@@ -503,81 +500,3 @@ def test_every_current_script_gets_a_verdict_without_crashing():
                     Bench.from_text(TB470_2026_07_30))
         assert isinstance(rep["runnable"], bool), p.name
         assert isinstance(rep["problems"], list), p.name
-
-
-# ----------------------------------------------------------- the ART frame's role contract
-
-ART_FRAME = """
-class TestSet:
-    def _ck_bind_link(self, setup, dut, misc, role, assert_media=True):
-        ref = misc.get('ck_link_' + role)
-        far = setup.init_swi('whatever')
-        (near_port, far_port) = setup.init_portlink(dut, far, type1='port', type2='port')
-        return near_port, far_port, far
-
-    def init(self, setup):
-        tb = setup.init_tb()
-        misc = setup.get_all_misc()
-        dutA = setup.init_swi(misc.get('ck_role_dut', 'swi_a'))
-        (dutA.portA, tb.ethA, _tb) = self._ck_bind_link(setup, dutA, misc, 'tb')
-        (dutA.portPeer, peer_port, peer) = self._ck_bind_link(setup, dutA, misc, 'copper')
-        try:
-            (dutA.portFibre, fibre_port, fibre_peer) = self._ck_bind_link(
-                setup, dutA, misc, 'fibre', assert_media=False)
-        except RuntimeError:
-            self.fibre_supported = False
-"""
-
-BENCH_WITH_ROLES = TB470_2026_07_30 + """
-[misc]
-ck_role_dut    = swi_a
-ck_link_tb     = tb-swi_a:eth3
-ck_link_copper = swi_a-swi_b:port1.0.1
-ck_link_fibre  = swi_a-swi_b:port1.0.7
-"""
-
-
-def test_the_art_frame_is_read_by_role_not_by_its_helpers_inner_portlink():
-    """Until 2026-09-21 the only thing the preflight saw of an ART-frame script was the
-    helper's `init_portlink(dut, far, ...)`, `far` unresolvable, so every such script read
-    as un-runnable ("cannot resolve 'far'") — a confident NO that was really "cannot tell"."""
-    d = parse_script(ART_FRAME)
-    assert [r.role for r in d.role_links] == ["tb", "copper", "fibre"]
-    assert [r.optional for r in d.role_links] == [False, False, True]
-    assert d.links == [], "the helper's own init_portlink is the mechanism, not a demand"
-    assert not any("cannot resolve" in w for w in d.warnings)
-
-
-def test_an_art_frame_script_is_runnable_on_a_bench_that_declares_its_roles():
-    rep = check(parse_script(ART_FRAME), Bench.from_text(BENCH_WITH_ROLES))
-    assert rep["runnable"], rep["problems"]
-    assert rep["links_demanded"] == 3
-    roles = {d["role"]: d for d in rep["devices"] if d["kind"] == "link-role"}
-    assert roles["ck_link_copper"]["detail"].startswith("swi_a<->swi_b via port1.0.1")
-    assert "(optional)" in roles["ck_link_fibre"]["detail"]
-
-
-def test_a_missing_role_is_named_and_a_missing_optional_role_says_unsupported():
-    bench = BENCH_WITH_ROLES.replace("ck_link_copper = swi_a-swi_b:port1.0.1\n", "") \
-                            .replace("ck_link_fibre  = swi_a-swi_b:port1.0.7\n", "")
-    rep = check(parse_script(ART_FRAME), Bench.from_text(bench))
-    assert not rep["runnable"]
-    by_role = {p["role"]: p for p in rep["problems"]}
-    assert "ck_link_copper" in by_role and "suite aborts" in by_role["ck_link_copper"]["consequence"]
-    assert "ck_link_fibre" in by_role and "UNSUPPORTED" in by_role["ck_link_fibre"]["consequence"]
-
-
-def test_two_roles_cannot_consume_the_same_declared_link():
-    """Two roles pointing at the one swi_a<->swi_b cable: the second must fail, exactly as
-    the second init_portlink would return (None, None) on the bench."""
-    bench = BENCH_WITH_ROLES.replace("port1.0.1-port1.0.1, port1.0.7-port1.0.7", "port1.0.1-port1.0.1") \
-                            .replace("ck_link_fibre  = swi_a-swi_b:port1.0.7", "ck_link_fibre  = swi_a-swi_b:port1.0.1")
-    rep = check(parse_script(ART_FRAME), Bench.from_text(bench))
-    assert not rep["runnable"]
-    assert any(p["role"] == "ck_link_fibre" and "no unused [portlink]" in p["message"]
-               for p in rep["problems"]), rep["problems"]
-
-
-def test_a_bench_without_any_misc_names_every_role_it_lacks():
-    rep = check(parse_script(ART_FRAME), Bench.from_text(TB470_2026_07_30))
-    assert {p["role"] for p in rep["problems"]} == {"ck_link_tb", "ck_link_copper", "ck_link_fibre"}

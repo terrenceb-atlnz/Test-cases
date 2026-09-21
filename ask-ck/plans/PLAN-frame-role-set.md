@@ -1,5 +1,14 @@
 # PLAN — The frame binds a ROLE SET (tb / copper / fibre / cusfp), not two booleans
 
+> ## ⚠ SUPERSEDED 2026-09-21 (same day) — REVERTED, do not build from this plan
+>
+> Terrence's ruling, 2026-09-21 afternoon: **the `[misc]` section is not a lookup layer.** The
+> framework already names the slots (`swi_a`/`stk_a` = DUT, any `[switch]` with a `[portlink]` to the
+> DUT = a link partner, `TestBox` = the testbox) and the device already reports media
+> (`show system pluggable`, `show interface status`). Pre-loading `ck_link_<role>`, `ck_role_dut`
+> and `ck_profile` duplicated both. Commits `e022e1c` and `6ada916` were reverted; the
+> replacement is `PLAN-frame-framework-discovery.md`. The body below is kept as history only.
+>
 > ## Status (read first)
 >
 > **BUILT 2026-09-21** (step 1 `e022e1c`, step 2 `6ada916`, docs in the wrap commit). Rendered for T33234's real sequence the frame emits exactly the four bindings the hand repair added. Found on the way: the hand-repaired script's `assert_role_media(..., 'cusfp')` would have been refused (role unknown) — fixed by the `cusfp` media role.

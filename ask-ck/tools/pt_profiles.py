@@ -121,15 +121,6 @@ PROFILES: Dict[str, Profile] = {
         links=("fibre",),
         media={"fibre": "port"},
     ),
-    "cusfp": Profile(
-        name="cusfp",
-        summary="A copper-SFP link from the DUT to a partner: a 1000BASE-T module in an SFP "
-                "cage. Electrically twisted pair like `base`, but a PLUGGABLE the operator "
-                "inserts, so pluggable-insertion tests bind it as its own role and a bench "
-                "without it reports those steps UNSUPPORTED instead of aborting.",
-        links=("cusfp",),
-        media={"cusfp": "port"},
-    ),
     "tblink": Profile(
         name="tblink",
         summary="A data link from the testbox itself to the DUT, for tests that source or "
