@@ -75,12 +75,12 @@ Key: {{ case_key }} | Title: {{ case_title }}
 ## Handles and ports `init()` has already bound — the ONLY names that exist (do not rebind, do not invent others)
 Devices, reached from a TestCase as `self.testSet.<name>`:
 {% for d in devices %}
-- `self.testSet.{{ d }}`{% if loop.first %} — the DUT (a Switch: `.mode()`, `.cmd()`){% elif d == 'tb' %} — the testbox (a TestBox: `.start_tcpdump()`, `.stop_tcpdump()`, `.cmd()` runs a shell command ON THE TESTBOX, never a switch CLI){% elif d == 'peer' %} — the neighbour switch at the far end of the peer link (a Switch, NOT the DUT){% endif %}
+- `self.testSet.{{ d }}`{% if loop.first %} — the DUT (a Switch: `.mode()`, `.cmd()`){% elif d == 'tb' %} — the testbox (a TestBox: `.start_tcpdump()`, `.stop_tcpdump()`, `.cmd()` runs a shell command ON THE TESTBOX, never a switch CLI){% elif d == 'peer' %} — the neighbour switch at the far end of the copper link (a Switch, NOT the DUT){% elif d == 'fibre_peer' %} — the neighbour at the far end of the FIBRE link (a Switch, NOT the DUT); **None when `self.testSet.fibre_supported` is False** — check the flag first and report UNSUPPORTED (`self.supported = False`; log; return) when it is off{% elif d == 'cusfp_peer' %} — the neighbour at the far end of the COPPER-SFP link (a Switch, NOT the DUT); **None when `self.testSet.cusfp_supported` is False** — check the flag first and report UNSUPPORTED when it is off{% endif %}
 {%- endfor %}
 {% if bound_ports %}
 Links (each `.name` is the CLI text of that port; a port object is never a string):
 {% for l in bound_ports %}
-- `{{ l.near }}` <-> `{{ l.far }}`{% if l.role == 'tb' %} — the testbox data link: capture and inject on `{{ l.far }}` (`{{ l.far }}.name` is the tcpdump/scapy interface); `{{ l.near }}` is the DUT port under test{% else %} — the neighbour link ({{ l.role }}); `{{ l.near }}` is the DUT-side port, `{{ l.far }}` the neighbour's{% endif %}
+- `{{ l.near }}` <-> `{{ l.far }}`{% if l.role == 'tb' %} — the testbox data link: capture and inject on `{{ l.far }}` (`{{ l.far }}.name` is the tcpdump/scapy interface); `{{ l.near }}` is the DUT port under test{% elif l.role in ('fibre', 'cusfp') %} — the {{ 'fibre' if l.role == 'fibre' else 'copper-SFP' }} link, a PLUGGABLE bound by reference only: `{{ l.near }}` is the DUT-side cage, `{{ l.far }}` the neighbour's; both are None when `self.testSet.{{ l.role }}_supported` is False. The media is NOT yet asserted — the step that has the operator insert the module calls `assert_role_media_now(self, <dut>, {{ l.near.split('.')[-1] }}, '{{ l.role }}')` afterwards{% else %} — the neighbour link ({{ l.role }}); `{{ l.near }}` is the DUT-side port, `{{ l.far }}` the neighbour's{% endif %}
 {%- endfor %}
 {% endif %}
 Every method in the block you fill OPENS with the frame's shortcut lines (`tb = self.testSet.tb`,

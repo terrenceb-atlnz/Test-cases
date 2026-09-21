@@ -68,7 +68,7 @@ CONFORMANT = (
 
 def test_skeleton_defines_and_calls_the_binding_helper():
     sk = render()
-    assert "def _ck_bind_link(self, setup, dut, misc, role):" in sk
+    assert "def _ck_bind_link(self, setup, dut, misc, role, assert_media=True):" in sk
     assert "self._ck_bind_link(" in sk, "helper defined but never called"
 
 
@@ -114,9 +114,12 @@ def test_the_emitted_role_defaults_to_copper_and_follows_fibre_wording():
 
 
 def test_link_role_detection():
-    assert pc._detect_link_role(SEQ, "") == "copper"
-    assert pc._detect_link_role([], "verify optical fibre negotiation") == "fibre"
-    assert pc._detect_link_role([{"action": "fit a 1000BASE-LX SFP", "verify": ""}]) == "fibre"
+    # The role SET (2026-09-21): a speed case binds the copper neighbour; fibre wording binds
+    # the fibre link and, with nothing copper-specific said, NOT copper.
+    assert pc._detect_links(SEQ, [], "")["copper"] is True
+    d = pc._detect_links([], [], "verify optical fibre negotiation")
+    assert d["fibre"] is True and d["copper"] is False
+    assert pc._detect_links([{"action": "fit a 1000BASE-LX SFP", "verify": ""}], [])["fibre"] is True
 
 
 # ------------------------------------------------------------------------ 2. SHIPPED

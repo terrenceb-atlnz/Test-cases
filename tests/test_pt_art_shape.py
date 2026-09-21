@@ -53,20 +53,29 @@ def init_body(code):
 
 # ----------------------------------------------------------------- 1. which links the frame binds
 
+# `_detect_links` returns a ROLE SET since 2026-09-21 (tb / copper / fibre / cusfp, plus the
+# derived `peer` = any neighbour). These four pin the two original links in the new shape.
+def _roles(d):
+    return {k for k in pc.LINK_ROLES if d[k]}
+
+
 def test_capture_wording_binds_the_testbox_link():
-    assert pc._detect_links(CAPTURE_SEQ, []) == {"tb": True, "peer": False}
+    d = pc._detect_links(CAPTURE_SEQ, [])
+    assert _roles(d) == {"tb"} and d["peer"] is False
 
 
-def test_neighbour_wording_binds_the_peer_link():
-    assert pc._detect_links(PEER_SEQ, []) == {"tb": False, "peer": True}
+def test_neighbour_wording_binds_the_copper_peer_link():
+    d = pc._detect_links(PEER_SEQ, [])
+    assert _roles(d) == {"copper"} and d["peer"] is True
 
 
 def test_a_case_can_need_both_links():
-    assert pc._detect_links(BOTH_SEQ, []) == {"tb": True, "peer": True}
+    assert _roles(pc._detect_links(BOTH_SEQ, [])) == {"tb", "copper"}
 
 
 def test_no_link_wording_binds_nothing():
-    assert pc._detect_links(NONE_SEQ, []) == {"tb": False, "peer": False}
+    d = pc._detect_links(NONE_SEQ, [])
+    assert _roles(d) == set() and d["peer"] is False
 
 
 def test_a_physical_step_binds_the_testbox_link():
@@ -80,7 +89,8 @@ def test_fragment_code_using_tb_eth_binds_the_testbox_link():
 
 def test_legacy_portlink_wording_alone_means_the_peer_link():
     seq = [{"n": 1, "action": "bring up the port link", "verify": "link up", "kind": "verify"}]
-    assert pc._detect_links(seq, []) == {"tb": False, "peer": True}
+    d = pc._detect_links(seq, [])
+    assert d["peer"] is True and _roles(d) == {"copper"}
 
 
 # ----------------------------------------------------------------- 2. the frame's init()
