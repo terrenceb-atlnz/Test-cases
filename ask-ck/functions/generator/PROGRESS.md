@@ -35,9 +35,21 @@ not guessed, and he picked **R5's two JS surfaces**, then the zephyr gate red.
   `ptSuggestStep` handler (unreachable once the button went — suggest-all drives the endpoint
   directly in its own loop) and the dispatcher entry are gone. Per-step KEYWORD search and the
   shared per-step status line are untouched, and the `/suggest_scripts_step` endpoint stays.
-- **Open, Terrence's:** R6's 4th bar still needs his ~$20 scratch-server Opus run; R1(b) needs the
-  suite naming convention; t44297 #6 is medium with D6 still only a recommendation. No small
-  unblocked code item remains that I can see.
+- **R1(b) — group libraries BUILT** (new plan `ask-ck/plans/PLAN-group-libraries.md`, written
+  first and approved with three decisions). The blocker was the naming convention; settled as
+  `library_<group>` from the mother folder. ART's `library_<suite>` does not transfer — every
+  script we generate is on suite 9000, so it would be one library for everything. Persist now
+  MERGES by provenance tag (every script in a folder writes the same path); a present tag is kept
+  byte for byte, new tags append, imports union, nothing is removed. PRUNE deferred to its own
+  pass — the only part that can delete a reviewer's code. `Port/library_awptcm_t33234.py`
+  migrated explicitly with its importer. **A green suite meant nothing at first:** the tests
+  passed a case key positionally where the group now goes, and the fold produced the same string,
+  so all 1670 stayed green with the semantics wrong — they were re-aimed at a real group. Five
+  mutations run; one gap they exposed was a REAL BUG (imports appended after the code that needed
+  them in an untagged file), found by a test written to cover the branch a mutation had survived.
+- **Open, Terrence's:** R6's 4th bar still needs his ~$20 scratch-server Opus run; t44297 #6 is
+  medium with D6 still only a recommendation; R1(b)'s PRUNE pass. No small unblocked code item
+  remains that I can see.
 - **Noticed, not acted on:** R5's prompt-defect alarm fires on `frac >= 0.10` with **no
   minimum-runs guard**, while the sibling lint-text branch guards with `attempts >= 3`. On a thin
   window one 2-unit blip raises a "change the generate prompt" alarm — which the new surfaces now

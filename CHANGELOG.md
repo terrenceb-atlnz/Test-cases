@@ -57,6 +57,23 @@ Plan `ask-ck/plans/PLAN-self-healing-generation.md` §6.4 (R5) and
   per-step status line, and the `/suggest_scripts_step` server endpoint, which suggest-all drives
   and which is still valid headless.
 
+- **The generated helper library is now ONE PER GROUP, merged by provenance tag** (R1(b);
+  `ask-ck/plans/PLAN-group-libraries.md`). *Why:* it was `library_<case>.py`, so two scripts in
+  the same folder each carried their own copy of a shared helper — duplication that R1(a)'s
+  dependency closure makes more likely, since it now auto-ships a fragment's dependencies into
+  whatever library the case happens to own. `Port/` → `library_port.py`. *Why not ART's
+  `library_<suite>`:* ART keys that on the numeric suite, but every script we generate sits on
+  our one assigned suite **9000**, so a faithful reading would be a single `library_9000.py` for
+  the entire output; the mother folder is the grouping that carries meaning. A deliberate
+  departure, recorded so it is not "corrected" back. *Consequence handled:* every script in a
+  folder now writes the SAME path, so `_persist_generated_files` **merges** — a tag already
+  present is left byte for byte (a reviewer's hand edit survives the next save), a new tag is
+  appended, imports are unioned, and **nothing is ever removed**. Pruning auto-added members is
+  deliberately a separate later pass: it is the only part of R1(b) that can delete working code.
+  The existing `Port/library_awptcm_t33234.py` was migrated explicitly rather than by a silent
+  rewrite. Known trade-off, asserted in the tests so it stays known: groups differing only in
+  punctuation (`Port A` / `Port-A`) fold to one library name.
+
 ## 2026-09-21 (later) — The frame discovers its topology through the framework; the `[misc]` role contract is retired
 
 Plan `ask-ck/plans/PLAN-frame-framework-discovery.md`; commits `b96255c` + `f354f14` (reverts of the

@@ -121,7 +121,7 @@ from framework.ATPackets import *   # scapy (Ether, sendp, sniff) + the AT layer
 {{ imp }}
 {%- endfor %}
 {%- if lib_stem %}
-from {{ lib_stem }} import *        # this suite's own helpers, shipped beside the script
+from {{ lib_stem }} import *        # this GROUP's shared helpers, beside the script
 {%- endif %}
 
 {% if has_manual %}

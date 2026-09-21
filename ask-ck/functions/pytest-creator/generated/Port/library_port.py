@@ -1,5 +1,10 @@
 #!/usr/bin/python3
-# Helper library for AWPTCM-T33234 — Port - Auto MDI/MDI-X
+# Helper library for the Port group.
+#
+# Renamed from library_awptcm_t33234.py on 2026-09-22: libraries are now one per mother
+# folder, not one per case (R1(b), PLAN-group-libraries.md), so EVERY script in Port/
+# imports this module and the generator MERGES into it by provenance tag rather than
+# overwriting. Members below predate that and carry no tags; they are preserved whole.
 #
 # Shipped beside test-9000.33234.py. Every helper here is a thin, well-behaved
 # wrapper around the ART device handle: it drives the CLI, parses the output and

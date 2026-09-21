@@ -2,9 +2,10 @@
 
 > ## Status (read first)
 >
-> **BUILT 2026-09-15 — R1–R5 shipped and live on the hosted tree (see each section); R1(b) group
-> libraries deferred, **R5's two JS surfaces BUILT 2026-09-22**, R6's 4th bar awaits the D6
-> re-measurement (Terrence's scratch-server Opus run).** Every decision made (D1–D6, §5); the §6.4 thresholds
+> **BUILT 2026-09-15 — R1–R5 shipped and live on the hosted tree (see each section);
+> **R1(b) group libraries BUILT 2026-09-22** (merge + mark; PRUNE deferred — its own plan at
+> `PLAN-group-libraries.md`), **R5's two JS surfaces BUILT 2026-09-22**, R6's 4th bar awaits the
+> D6 re-measurement (Terrence's scratch-server Opus run).** Every decision made (D1–D6, §5); the §6.4 thresholds
 > accepted. Each step gated. **Refinement 2026-09-15 (the proof run's tc25):** a generation
 > refusal now KEEPS its parsed draft as `code` (`_fail(keep_code=True)`) — the refused-fix "keep
 > the unit" fix (PLAN-fix-units-guardrails) generalized to generation, so a refused unit is
@@ -86,7 +87,10 @@ persistence) and Terrence framed it as future ("until we solidify a naming conve
 pass in the future anyway"). Best done deliberately when the suite structure settles; the closure
 above delivers the class-1 prevention now, into whatever library the case ships.
 
-**R1(b) — one library per group (Terrence, D4).** We are re-structuring ART's features into our
+**R1(b) — one library per group (Terrence, D4). ✅ BUILT 2026-09-22 — see
+`ask-ck/plans/PLAN-group-libraries.md`, which owns it from here** (naming settled as
+`library_<group>`; the existing T33234 library migrated explicitly; merge + mark shipped, PRUNE
+deferred to its own pass because it is the only part that can delete a reviewer's code).** We are re-structuring ART's features into our
 own suites, so the library is OURS, not ART's: named after the script's mother folder
 (`library_management.py` for `Management/…`, `library_port.py`, …) until a suite naming
 convention is settled — today it is `library_<case>` (`_library_stem`). Consequences:

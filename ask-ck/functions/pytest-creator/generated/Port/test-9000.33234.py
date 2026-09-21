@@ -29,7 +29,7 @@ from framework.ATPackets import *   # scapy (Ether, sendp, sniff) + the AT layer
 from framework import ATDrivers
 from framework.ATLibrary import ATLimits
 from framework.ATLibrary import ATTools
-from library_awptcm_t33234 import *        # this suite's own helpers, shipped beside the script
+from library_port import *        # this GROUP's shared helpers, beside the script
 
 
 # ---------------------------------------------------------------------------

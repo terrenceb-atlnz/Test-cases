@@ -356,8 +356,8 @@ CONST = {"source_id": "art/1332_lldp_med/library_1332.py", "symbol": "LLDP_PHONE
 
 
 def test_library_holds_standalone_helpers_and_constants_not_methods():
-    lib = pc._build_library("AWPTCM-T44297", [HELPER, METHOD, CONST], DATA)
-    assert lib["name"] == "library_awptcm_t44297.py" and lib["stem"] == "library_awptcm_t44297"
+    lib = pc._build_library("Port", [HELPER, METHOD, CONST], DATA)
+    assert lib["name"] == "library_port.py" and lib["stem"] == "library_port"
     assert [m["symbol"] for m in lib["members"]] == ["check_lldp_lag", "LLDP_PHONE_PKT"]
     assert "from framework.ATPackets import *" in lib["code"] and "import time" in lib["code"]
     assert "import sys" not in lib["code"]
@@ -386,7 +386,7 @@ def test_an_art_helper_taking_self_at_module_level_is_a_library_member(monkeypat
     T44297 units died with NameError on a lint-clean script. Column 0 in the SOURCE decides."""
     monkeypatch.setattr(pc, "_fragment_source_text",
                         lambda sid: _LIB_SRC if sid.endswith("library_1332.py") else _TEST_SRC)
-    lib = pc._build_library("AWPTCM-T1", [SELF_HELPER, SELF_METHOD, HELPER], DATA)
+    lib = pc._build_library("Port", [SELF_HELPER, SELF_METHOD, HELPER], DATA)
     assert [m["symbol"] for m in lib["members"]] == ["analyse_lldp_packets", "check_lldp_lag"]
     assert "def analyse_lldp_packets(self, recPktList):" in lib["code"]
     compile(lib["code"], lib["name"], "exec")
@@ -394,25 +394,25 @@ def test_an_art_helper_taking_self_at_module_level_is_a_library_member(monkeypat
 
 def test_a_self_first_def_stays_out_when_the_source_shows_it_indented(monkeypatch):
     monkeypatch.setattr(pc, "_fragment_source_text", lambda sid: _TEST_SRC)
-    assert pc._build_library("AWPTCM-T1", [SELF_METHOD], DATA) is None
+    assert pc._build_library("Port", [SELF_METHOD], DATA) is None
 
 
 def test_without_source_text_a_self_first_def_is_still_read_as_a_method(monkeypatch):
     """The conservative reading when the corpus cannot say — the pre-2026-09-08 rule."""
     monkeypatch.setattr(pc, "_fragment_source_text", lambda sid: "")
-    assert pc._build_library("AWPTCM-T1", [SELF_HELPER], DATA) is None
+    assert pc._build_library("Port", [SELF_HELPER], DATA) is None
 
 
 def test_no_library_when_nothing_qualifies():
-    assert pc._build_library("AWPTCM-T1", [METHOD], DATA) is None
-    assert pc._build_library("AWPTCM-T1", [], DATA) is None
+    assert pc._build_library("Port", [METHOD], DATA) is None
+    assert pc._build_library("Port", [], DATA) is None
 
 
 def test_the_frame_imports_the_library_when_one_exists():
-    lib = pc._build_library("AWPTCM-T1", [HELPER], DATA)
+    lib = pc._build_library("Port", [HELPER], DATA)
     sk = render(CAPTURE_SEQ, library=lib)
-    assert "from library_awptcm_t1 import *" in sk
-    assert "from library_awptcm_t1" not in render(CAPTURE_SEQ)
+    assert "from library_port import *" in sk
+    assert "from library_port" not in render(CAPTURE_SEQ)
 
 
 # ----------------------------------------------------------------- 8. ATPackets layers in the surface
@@ -497,10 +497,10 @@ def test_the_unit_prompt_names_the_bound_ports_and_the_layers():
 
 
 def test_the_unit_prompt_presents_the_library_as_callable_not_pastable():
-    lib = pc._build_library("AWPTCM-T1", [HELPER], DATA)
+    lib = pc._build_library("Port", [HELPER], DATA)
     p = render_prompt("pt_generate_step.jinja", {**PROMPT_CTX, "library": lib,
                                                  "library_tags_for_unit": [HELPER and pc._fragment_tag(HELPER["source_id"], HELPER["loc"])]})
-    assert "Suite library `library_awptcm_t1.py`" in p and "CALL these, never paste them" in p
+    assert "Suite library `library_port.py`" in p and "CALL these, never paste them" in p
     assert "def check_lldp_lag(testCase, eth, tb):" in p
     assert "Library helpers the reviewer mapped to THIS unit" in p
     shared, unit = pc._split_unit_prompt(p)
@@ -523,7 +523,7 @@ DATA2 = {"scripts_index_by_id": {**DATA["scripts_index_by_id"],
 
 
 def test_a_fragment_that_copies_a_framework_layer_is_not_shipped_but_is_named():
-    lib = pc._build_library("AWPTCM-T1", [HELPER, LAYER_COPY], DATA2, surface=SURFACE)
+    lib = pc._build_library("Port", [HELPER, LAYER_COPY], DATA2, surface=SURFACE)
     assert [m["symbol"] for m in lib["members"]] == ["check_lldp_lag"]
     assert lib["framework_dupes"] == ["lldp_cap_tlv"]
     assert "class lldp_cap_tlv" not in lib["code"]
@@ -531,7 +531,7 @@ def test_a_fragment_that_copies_a_framework_layer_is_not_shipped_but_is_named():
 
 
 def test_only_dupes_means_no_library_file_but_the_prompt_still_hears_about_them():
-    lib = pc._build_library("AWPTCM-T1", [LAYER_COPY], DATA2, surface=SURFACE)
+    lib = pc._build_library("Port", [LAYER_COPY], DATA2, surface=SURFACE)
     assert lib["members"] == [] and lib["stem"] == "" and lib["framework_dupes"] == ["lldp_cap_tlv"]
     assert "from library_" not in render(CAPTURE_SEQ, library=lib)
     p = render_prompt("pt_generate_step.jinja", {**PROMPT_CTX, "library": lib})
@@ -541,7 +541,7 @@ def test_only_dupes_means_no_library_file_but_the_prompt_still_hears_about_them(
 
 def test_a_default_argument_the_library_cannot_resolve_excludes_the_member(monkeypatch):
     monkeypatch.setattr(pc, "_fragment_source_text", lambda sid: "")
-    lib = pc._build_library("AWPTCM-T1", [HELPER, BAD_DEFAULT, STAR_CONST], DATA2, surface=SURFACE)
+    lib = pc._build_library("Port", [HELPER, BAD_DEFAULT, STAR_CONST], DATA2, surface=SURFACE)
     assert [m["symbol"] for m in lib["members"]] == ["check_lldp_lag", "LLDP_PHONE_PKT"]
     assert lib["skipped"] == ["checkPortCoErrors: needs defaultCsvName at import time"]
     # the star-imported source makes `Ether` / `lldp_end_tlv` resolvable, so the constant stays
@@ -555,7 +555,7 @@ def test_a_source_module_global_in_a_default_is_skipped_even_when_the_source_sta
     monkeypatch.setattr(pc, "_fragment_source_text",
                         lambda sid: "from framework.ATTools import *\ndefaultCsvName = 'x.csv'\n")
     data = {"scripts_index_by_id": {"svt/libSvt/portCoToCsv.py": {"imports": ["framework.ATLibrary.ATTools", "csv"]}}}
-    lib = pc._build_library("AWPTCM-T1", [BAD_DEFAULT], data, surface=SURFACE)
+    lib = pc._build_library("Port", [BAD_DEFAULT], data, surface=SURFACE)
     # The MEMBER with the unresolvable default is still not shipped verbatim.
     assert lib is None or not any(
         m["symbol"] not in ("defaultCsvName",) and not m.get("auto") for m in lib["members"])
@@ -572,4 +572,4 @@ def test_frame_class_fragments_are_neither_members_nor_framework_dupes():
     tc = {"source_id": "art/1332_lldp_med/test-1332.1001.py", "symbol": "TestCase_1", "loc": [44, 114],
           "why": "", "code": "class TestCase_1(ATTestCase.TestCase):\n    pass\n"}
     surface = {"ATTestSet": {"classes": {"TestSet": {}, "TestCase_0": {}}}, "ATTestCase": {"classes": {"TestCase": {}}}}
-    assert pc._build_library("AWPTCM-T1", [ts, tc], DATA, surface=surface) is None
+    assert pc._build_library("Port", [ts, tc], DATA, surface=surface) is None

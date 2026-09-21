@@ -1221,10 +1221,20 @@ and Terrence asked for all eight closed in one pass. What changed, and why each:
 6. **Class attributes:** `testCaseMethod` is the ART `=` / `+=` multi-line form; no
    `testCaseExcl` / `testCaseIncl` are generated (platform lists are hardware-verified, never
    inferred — rule 3d), and the run-time gate is the ART idiom `self.supported = False`.
-7. **A suite library** `library_<case>.py` (`_build_library`) holds every selected fragment
-   that is a stand-alone function, class or constant, verbatim under its provenance tag, with
-   its source's imports; the frame imports it with `*`; it is stored as `files.library`, so
-   `_persist_generated_files` writes it and the run ships it, and the lint compiles it. Units
+7. **A group library** `library_<group>.py` (`_build_library`, keyed by `_group_library_stem`)
+   holds every selected fragment that is a stand-alone function, class or constant, verbatim
+   under its provenance tag, with its source's imports; the frame imports it with `*`; it is
+   stored as `files.library`, so `_persist_generated_files` writes it and the run ships it, and
+   the lint compiles it. **One per mother folder since 2026-09-22** (`Port/` → `library_port.py`;
+   R1(b), `ask-ck/plans/PLAN-group-libraries.md`) — it was `library_<case>.py` until then, which
+   gave every case its own copy of a shared helper. Deliberately NOT ART's `library_<suite>`:
+   every script we generate sits on our one suite 9000, so that would be a single library for
+   the whole output. Because every script in a folder writes the SAME path,
+   `_persist_generated_files` **merges by provenance tag** instead of overwriting — a tag already
+   present is left byte for byte (so a hand edit survives), a new tag is appended, imports are
+   unioned, and nothing is ever removed. Pruning auto-added members is a separate, later pass.
+   Both generation paths pass the group into `_build_library` explicitly (`_effective_group`),
+   because a divergent stem would change the frame and make slice A's assembly gating 409. Units
    are told to CALL these, and they leave the per-unit and hoisted fragment sections. Two
    exclusions, both found on the real T44297 selection: a fragment that DEFINES a class the
    framework surface already has (the legacy `lldp_class.py` copies of the ATPackets layers)

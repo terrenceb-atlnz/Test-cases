@@ -4358,6 +4358,9 @@ The "one more thing": rewind every case and re-run the improved pipeline from sc
 - **Per-step Suggest button REMOVED** (his 2026-08-26 decision; the gating condition had been met
   that same afternoon). Handler + dispatcher entry went with it; keyword search and the
   `/suggest_scripts_step` endpoint stay.
-- **Open (Terrence):** R6's 4th bar (his ~$20 scratch Opus run); R1(b) (suite naming convention); t44297 #6 (medium,
+- **R1(b) group libraries BUILT** — `library_<group>` (naming was the blocker; settled), merge-by-
+  provenance-tag on persist, T33234's library migrated explicitly. PRUNE deferred to its own pass.
+  Plan written first: `ask-ck/plans/PLAN-group-libraries.md`.
+- **Open (Terrence):** R1(b)'s PRUNE pass; R6's 4th bar (his ~$20 scratch Opus run); R1(b) (suite naming convention); t44297 #6 (medium,
   D6 still a recommendation). **Flagged, untouched:** R5's prompt-defect alarm has no
   minimum-runs guard, so a thin window turns one 2-unit blip into a prompt alarm.
