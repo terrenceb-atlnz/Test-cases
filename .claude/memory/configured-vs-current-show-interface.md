@@ -1,13 +1,20 @@
 ---
 name: configured-vs-current-show-interface
-description: DEFERRED prompt rule — AW+ `show interface` prints BOTH `configured <attr>` and `current <attr>`; models assert on the configured line when the step wants the operational one, which passes lint and proves nothing
+description: SHIPPED 2026-09-21 — AW+ `show interface` prints BOTH `configured <attr>` and `current <attr>`; models assert on the configured line when the step wants the operational one, which passes lint and proves nothing
 metadata:
   type: project
-  verified: 2026-09-18
+  verified: 2026-09-22
 ---
 
-**Deferred work, agreed with Terrence 2026-09-17: add a prompt rule for this in a later
-session.** The evidence is already collected — do not re-derive it.
+**SHIPPED 2026-09-21** (`f75581b`, sequence-sanity slice C). Agreed as deferred work with
+Terrence on 2026-09-17; the rule landed in `_pt_domain_facts.jinja` (the domain-facts include
+read by extraction and review) and a companion rule sits in `pt_fill_rules.jinja`. Verified
+2026-09-22 by reading both in full: they agree — `configured` = what you SET, `current` = what
+the port NEGOTIATED, and each says to match the assertion to what the STEP is asking about.
+They differ only in which half they lead with, which is not a contradiction.
+
+**Nothing is pending here.** The evidence below is kept as the grounding for the rule — do not
+re-derive it, and do not re-open this as deferred work.
 
 ## The fact (verified against `ck.db`, `int_cmd/show_interface.html`)
 

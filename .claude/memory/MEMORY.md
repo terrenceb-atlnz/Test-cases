@@ -8,7 +8,7 @@
 - [Auth + case-locking plan](auth-and-case-locking-plan.md) — multi-user is the end-use; Phase 1 locking SHIPPED 2026-07-29 as an IN-MEMORY registry — do NOT add a case_locks table
 - [Shared tree — status has a short shelf life](shared-tree-status-has-short-shelf-life.md) — a concurrent stream edits this repo; re-run gate + git status before stating either; stage explicit paths
 - [Gate does not start the server](gate-does-not-start-the-server.md) — after layout/anchor changes smoke-test on the SCRATCH server (run_scratch_server.sh --bg, port 8123); grep slash-prefixed old paths too; `npm install` + a .py name trips the hook
-- [3-layer test suite](testing-suite-3-layer.md) — pytest + Vitest/jsdom run by ./ask-ck/tools/run_tests.sh; Playwright E2E is sparingly-run, NOT in the gate
+- [3-layer test suite](testing-suite-3-layer.md) — pytest + Vitest/jsdom run by ./ask-ck/tools/run_tests.sh; it is `set -euo pipefail` so a pytest red means vitest NEVER RUNS; Playwright E2E sparingly-run, NOT in the gate
 
 - [AW+ speed/duplex constraint](awplus-speed-duplex-constraint.md) — half duplex impossible ≥1 Gig; NOT documented, so a docs harvest alone can't capture cross-command physical rules
 - [AW+ ecofriendly + port naming](awplus-ecofriendly-and-port-naming.md) — `ecofriendly` not "ecomode"; `lpi` deprecated but TestLink says LPI; port1.1.x = chassis/slot — never hardcode a port
@@ -24,7 +24,7 @@
 - [Opus for per-unit Fix](opus-for-per-unit-fix.md) — Terrence 2026-09-09: Fix units on Opus (unit dropdown drives generate+fix); a wrong Sonnet fix costs a re-review; verify fixes at attribute level
 - [CLI fabrication starts at step 2](cli-fabrication-originates-step2.md) — `speed=1000` originates in Sequence Extraction, not Generate; the skeleton repeats it and step6 amplifies it
 - [Generator CLI hallucination](generator-cli-hallucination.md) — ALL 5 models fabricate CLI output formats; a resourcing gap (no sample output in the prompt), not model quality
-- [configured vs current in show interface](configured-vs-current-show-interface.md) — DEFERRED prompt rule (agreed 2026-09-17): AW+ prints BOTH lines; asserting on `configured` when the step wants `current` passes lint and proves nothing — evidence from T33234 already collected
+- [configured vs current in show interface](configured-vs-current-show-interface.md) — SHIPPED 2026-09-21 (`f75581b`, `_pt_domain_facts.jinja`): AW+ prints BOTH lines; asserting on `configured` when the step wants `current` passes lint and proves nothing — NOT pending work
 - [PyTest step numbering divergence](pt-step-numbering-divergence.md) — internal step5 = UI "4. Fragments", step6 = "5. Generate"; never show raw stepN to users
 - [Stale session connection bug](stale-session-connection-bug.md) — a 200 outside readers never see: CAUSE (FIXED 2026-09-10) = two SQLite libs in one process stripped server locks; .nfs* orphans
 - [Site-default LLM gotcha (per-seat since 2026-09-10)](workspace-llm-default-gotcha.md) — headless curl with no X-CK-LLM header gets the SITE DEFAULT, which ANY seat's Apply rewrites (D17); send the header or POST set_site_default_llm

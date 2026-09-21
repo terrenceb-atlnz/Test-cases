@@ -258,6 +258,16 @@ drop to a terminal. Actions (`/api/admin/*`, all confirmation-gated):
   clears working session state only; corpora are never touched.
 - **Restart server** — touches a watched `.py` file so uvicorn's `--reload`
   reloads the app; the page reconnects after ~2s.
+- **Lint trends** (read-only card, 2026-09-22) — the R5 measurement over the trailing
+  window of assembly runs: runs, units, lint errors by class, the repair return rate and
+  the generate-prompt version, from `GET /api/pytest-create/lint_trends`. The card renders
+  its numbers whether or not a threshold is crossed, and turns **red** on an alarm, so
+  "nothing is wrong" and "nothing was ever recorded" can never look the same. The same
+  aggregation reaches `/health.pt_lint_alarms`, a `[pt] LINT-TREND ALARM` log line, the
+  step-5 Summary banner and `ask-ck/tools/pt_lint_report.py`. Thresholds are server
+  constants in `routers/pytest_create.py` (`_PT_TREND_WINDOW`,
+  `_PT_PROMPT_DEFECT_UNIT_FRACTION`, `_PT_PROMPT_DEFECT_CONSECUTIVE`,
+  `_PT_LINT_TEXT_RETURN_RATE`) — not yet editable from the panel.
 
 > **No DB rebuild here.** `ck.db` is the permanent, committed source of truth
 > (built once; source couriers retired), so the panel intentionally has no

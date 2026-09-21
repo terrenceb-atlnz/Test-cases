@@ -35,8 +35,8 @@ for that bench.
 containing `swi_a`. REQUIRED roles are matched before optional ones (offline every partner cable
 looks alike; source order let an optional pluggable eat the copper cable → a confident wrong
 UN-RUNNABLE on tb470). Media is declared unknowable offline in every note. An optional role with
-no link is a note (UNSUPPORTED), not a problem. `[misc]` is not parsed and `--profile` is GONE
-with `pt_profiles.py` — see [[topology-profiles-contract]].
+no link is a note (UNSUPPORTED), not a problem. `[misc]` is not parsed, and `--profile` went with
+`pt_profiles.py`, which was removed 2026-09-21 (`3116625`) — see [[topology-profiles-contract]].
 
 **Testing discipline that made it worth anything:** a checker that returned "unsatisfiable"
 unconditionally would have produced the correct 0/3 verdict for the real scripts and been

@@ -2,7 +2,41 @@
 
 **Purpose**: This file exists so future sessions can quickly understand exactly where we are, what has been built, what the priorities are, and how to continue seamlessly.
 
-**Last Updated**: 2026-09-21 (by Claude, with Terrence for every decision)
+**Last Updated**: 2026-09-22 (by Claude, with Terrence for every decision)
+
+## Latest session (2026-09-22) — R5's two lint-trend surfaces SHIPPED; the gate reaches vitest again
+
+Terrence: *"ok, lets continue some plans. whats easiest?"* → the easiest was ranked from the code,
+not guessed, and he picked **R5's two JS surfaces**, then the zephyr gate red.
+
+- **R5's JS surfaces (PLAN-self-healing-generation §6.4) — BUILT.** The backend shipped
+  2026-09-15; both surfaces were deferred that day with a *stated precondition* — they would
+  render empty until trend data accrued. `/lint_trends` now answers with real runs (1 run,
+  19 units, prompt `c35474bbbe`, one standing `pep8` prompt_defect alarm), so the precondition
+  lifted. Three decisions were Terrence's: the banner sits **beside the lint result** (not at the
+  top of Summary); the admin card shows **neutral numbers when quiet**, red on alarm; §6.4's
+  admin-editable thresholds are **out of scope** (backend route → not a JS-only slice).
+  Frontend-only, so production did not bounce. 19 tests, **six mutations checked, all caught** —
+  including two wiring mutations that left every pure test green, which is why the admin half got
+  its own wiring tests after the first pass.
+- **The zephyr red — the gate had not run vitest since 2026-09-16.** `run_tests.sh` is
+  `set -euo pipefail`, so the one red aborted the run before the frontend layer. Cause: a floor of
+  80 links calibrated on 12 bundles; `e35bbb2` rewound case progress to one bundle / 9 links, and
+  the skip guard only fires when `refined-cases/` is **absent** — a reset leaves it present but
+  thin. Re-aimed **per bundle** (every bundle yields ≥1 link, empty corpus skips), which is
+  `4d9001a`'s own shape; its rationale had cited this test's guard as the model without noticing
+  it was the one that did not hold. Verified by re-introducing the original `(Step 3)` parser bug
+  (the test failed and named the four barren bundles) and by probing both skip branches.
+- **Gate at close: `EXIT=0` — 1670 pytest / 1 skipped, vitest 335 in 29 files, both guards OK,
+  `ck.db` untouched.** First fully green end-to-end gate since 2026-09-16.
+- **Open, Terrence's:** the per-step Suggest button removal (deferred at his direction, UI-only,
+  endpoint stays) is the only small unblocked code item left. R6's 4th bar still needs his ~$20
+  scratch-server Opus run; R1(b) needs the suite naming convention; t44297 #6 is medium with D6
+  still only a recommendation.
+- **Noticed, not acted on:** R5's prompt-defect alarm fires on `frac >= 0.10` with **no
+  minimum-runs guard**, while the sibling lint-text branch guards with `attempts >= 3`. On a thin
+  window one 2-unit blip raises a "change the generate prompt" alarm — which the new surfaces now
+  display prominently on every case. Backend design call, untouched.
 
 ## Latest session (2026-09-21, afternoon) — `[misc]` role contract RETIRED; the frame discovers its topology through the framework
 

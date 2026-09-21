@@ -11,6 +11,42 @@ current working thread see
 [`ask-ck/functions/generator/PROGRESS.md`](ask-ck/functions/generator/PROGRESS.md).
 
 
+## 2026-09-22 — R5's two lint-trend surfaces; the gate reaches vitest again
+
+Plan `ask-ck/plans/PLAN-self-healing-generation.md` §6.4 (R5) and
+`ask-ck/plans/PLAN-pipeline-end-to-end.md` Phase −1.4.
+
+- **The lint-trend measurement is now VISIBLE, in two places with deliberately different
+  rules.** *Why now:* R5's backend shipped 2026-09-15 and both JS surfaces were deferred that
+  day with a stated precondition — "no trend data exists until the tool is used across runs, so
+  they would render empty". `/lint_trends` now answers with real runs, so the precondition
+  lifted. The **step-5 Summary banner** renders only while a threshold is crossed (§6.4's "on
+  every case while the alarm stands") and is **amber, not red**, because it sits directly above
+  lint output where red ✗ means *blocking* and a trend alarm blocks nothing. The **admin
+  "Lint trends" card** renders its numbers either way and turns red only on alarm — Terrence's
+  call, because a card that appeared only on alarm would make "nothing is wrong" and "nothing was
+  ever recorded" look the same. Alarm text is the server's `detail` rendered verbatim, so the two
+  surfaces, the `[pt] LINT-TREND ALARM` log line, `/health.pt_lint_alarms` and
+  `pt_lint_report.py` cannot drift into four spellings of one alarm. Not built, deliberately:
+  §6.4's "thresholds editable from the admin panel" — that needs a backend route and would take
+  this out of a JS-only slice.
+
+- **The gate runs end to end again — vitest had not executed inside it since 2026-09-16.**
+  *Why it broke:* `tests/test_zephyr_push_validation.py` asserted a floor of 80 Zephyr links,
+  calibrated on the 12 refined-case bundles committed at the time. `e35bbb2` (2026-09-16)
+  deliberately rewound case progress and removed the drop-ins, leaving one bundle and 9 links.
+  Its skip guard only fires when `refined-cases/` is **absent**, and a reset leaves the directory
+  present but thin — so a corpus of one bundle sailed past the guard into a 12-bundle threshold.
+  Because `run_tests.sh` is `set -euo pipefail`, that single red aborted the run **before the
+  frontend layer**, which therefore went unexercised by the gate for six days while looking
+  green to anyone who only read the summary line. *The fix:* re-aimed **per bundle** — every
+  bundle on disk must yield ≥1 link, empty corpus skips. That is `4d9001a`'s own shape (Terrence,
+  2026-09-16: "run against whatever bundle IS on disk and SKIP when the corpus is empty"), whose
+  rationale cited this very test's guard as the model without noticing it was the one that did
+  not hold. The parser-regression intent is unchanged and the failure message now names the
+  barren bundles instead of reporting a number.
+
+
 ## 2026-09-21 (later) — The frame discovers its topology through the framework; the `[misc]` role contract is retired
 
 Plan `ask-ck/plans/PLAN-frame-framework-discovery.md`; commits `b96255c` + `f354f14` (reverts of the

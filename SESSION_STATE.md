@@ -4336,3 +4336,26 @@ The "one more thing": rewind every case and re-run the improved pipeline from sc
 - Preflight on `tb470.setup.current`: discovery frame for T33234 RUNNABLE (fibre UNSUPPORTED); saved
   legacy T33234 RUNNABLE (cusfp UNSUPPORTED). Media is read on the bench, not from the file.
 - Open (Terrence): LAG member links as partner ports; regenerate the saved T33234 on the new frame.
+
+## Session Close / Handoff (2026-09-22) — R5's two lint-trend surfaces; the gate reaches vitest again
+
+- **R5's JS surfaces BUILT** (PLAN-self-healing-generation §6.4): the step-5 Summary banner
+  (amber, only while an alarm stands, above the lint result) and the admin "Lint trends" card
+  (always shows its numbers, red on alarm). Backend was already live since 2026-09-15; the
+  deferral's stated precondition — no trend data — had lifted. Frontend-only, no production
+  bounce. Decisions were Terrence's: banner placement, neutral-when-quiet card, and
+  admin-editable thresholds left OUT of scope (needs a backend route).
+- **Zephyr link-floor test re-aimed** (PLAN-pipeline-end-to-end Phase −1.4). The gate had not
+  executed vitest since 2026-09-16: `run_tests.sh` is `set -euo pipefail` and the floor of 80
+  links — calibrated on 12 bundles, rewound to 1 by `e35bbb2` — aborted the run before the
+  frontend layer. The skip guard only fires when `refined-cases/` is absent, and a reset leaves
+  it present but thin. Now asserts per bundle (≥1 link each), skips on an empty corpus;
+  `4d9001a`'s shape.
+- **Gate at close: EXIT=0 — 1670 pytest / 1 skipped; vitest 335 in 29 files; both guards OK;
+  `ck.db` untouched.** First fully green end-to-end gate since 2026-09-16.
+- Verified with six mutations across both pieces, all caught, including two wiring mutations that
+  left every pure test green.
+- **Open (Terrence):** per-step Suggest button removal (deferred at his direction; UI-only);
+  R6's 4th bar (his ~$20 scratch Opus run); R1(b) (suite naming convention); t44297 #6 (medium,
+  D6 still a recommendation). **Flagged, untouched:** R5's prompt-defect alarm has no
+  minimum-runs guard, so a thin window turns one 2-unit blip into a prompt alarm.

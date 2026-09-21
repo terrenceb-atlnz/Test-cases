@@ -4,7 +4,7 @@ description: Ask-CK has a 3-layer test suite + one gate — pytest (backend) + V
 metadata: 
   node_type: memory
   type: project
-  verified: 2026-09-11
+  verified: 2026-09-22
   originSessionId: 5da34e66-6995-49af-8d5e-491007959772
   modified: 2026-07-27T00:32:32.933Z
 ---
@@ -26,6 +26,15 @@ automated-test layers:
   Node deps aren't installed.
 - `npm test` / `npm run test:watch` — frontend units only.
 - `npm run e2e` — Playwright E2E (sparingly; starts/reuses the server via run.sh).
+
+**⚠ The gate is `set -euo pipefail`, so it STOPS AT THE FIRST FAILING LAYER** (verified
+2026-09-22). A single red in pytest means `npm test` never runs at all — the frontend layer is
+not skipped-with-a-warning, it is simply never reached, and the run still *looks* like "the gate"
+to anyone reading the summary. That happened for real: one stale test (a Zephyr link floor
+calibrated on a corpus that `e35bbb2` deliberately rewound) hid the whole Vitest layer from
+2026-09-16 to 2026-09-22. **How to apply:** while any known red stands, run `npm test`
+SEPARATELY before believing the frontend is green, and treat a long-lived "known red" as
+actively dangerous rather than cosmetic — it is masking every layer behind it.
 
 **Why:** the user wanted regression protection after big changes; chose Vitest over Jasmine for
 readable failure output, and E2E-first as a known-good reference the unit layer derives from.

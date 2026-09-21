@@ -3,8 +3,8 @@
 > ## Status (read first)
 >
 > **BUILT 2026-09-15 — R1–R5 shipped and live on the hosted tree (see each section); R1(b) group
-> libraries deferred, R5's two JS surfaces deferred, R6's 4th bar awaits the D6 re-measurement
-> (Terrence's scratch-server Opus run).** Every decision made (D1–D6, §5); the §6.4 thresholds
+> libraries deferred, **R5's two JS surfaces BUILT 2026-09-22**, R6's 4th bar awaits the D6
+> re-measurement (Terrence's scratch-server Opus run).** Every decision made (D1–D6, §5); the §6.4 thresholds
 > accepted. Each step gated. **Refinement 2026-09-15 (the proof run's tc25):** a generation
 > refusal now KEEPS its parsed draft as `code` (`_fail(keep_code=True)`) — the refused-fix "keep
 > the unit" fix (PLAN-fix-units-guardrails) generalized to generation, so a refused unit is
@@ -169,7 +169,7 @@ without a request, the step-5 Summary. **Test:** a script whose only errors are 
 in one round; one with review findings assembles, lints, and stops with the findings intact; the
 loop never exceeds its round budget.
 
-### R5 — Measurement  ✅ BUILT 2026-09-15 (backend; two JS surfaces deferred)  *(so the next prompt change is judged by data)*
+### R5 — Measurement  ✅ BUILT 2026-09-15 (backend) · ✅ both JS surfaces 2026-09-22  *(so the next prompt change is judged by data)*
 
 **Change:** every lint result is appended to `step6.lint_history` as
 `{at, round, source: generate|assemble|settle|fix|repair, counts: {blocking, policy, warning},
@@ -191,6 +191,33 @@ share it; `/health.pt_lint_alarms` and a `[pt] LINT-TREND ALARM` log line notify
 `_effective_repair_turns` raises D1's budget to 2 below a 50% return rate. **Deferred** (no trend
 data exists until the tool is used across runs, so they would render empty): the step-5 Summary
 banner and the admin-panel "Lint trends" card — a small JS follow-up once real data accrues.
+
+**Both BUILT 2026-09-22**, once `/lint_trends` began answering with real runs (1 run, 19 units,
+prompt `c35474bbbe`, one standing `pep8` prompt_defect alarm) — the stated precondition for the
+deferral, and the reason it lifted. The two surfaces have deliberately DIFFERENT rules, decided
+with Terrence:
+
+- **Step-5 Summary banner** (`pt-lint-trends`, above the lint result) — §6.4's "on every case
+  while the alarm stands", so it renders ONLY while a threshold is crossed. **Amber, not red**:
+  it sits directly above lint output where red ✗ means BLOCKING, and a trend alarm blocks
+  nothing. Alarm text is the server's `alarms[].detail` verbatim, so the banner, the log line,
+  `/health` and `pt_lint_report.py` cannot drift into three spellings of one alarm.
+- **Admin "Lint trends" card** — renders its numbers whether or not a threshold is crossed, red
+  only on alarm (Terrence's call): a card that appeared only on alarm would make "nothing is
+  wrong" and "nothing was ever recorded" identical.
+
+Both read passively and fail differently on purpose: the banner stays empty if `/lint_trends` is
+down (it must never interrupt the assemble flow), while the card says "unavailable" rather than
+leaving stale numbers up. All three payload shapes are handled — the error shape drops `window`,
+`by_class` and `prompt_version` entirely. 19 tests (`tests/js/pt-lint-trends.spec.js`), six
+mutations checked, all caught.
+
+**Left open, deliberately (Terrence, 2026-09-22):** §6.4's "thresholds … editable from the admin
+panel" is NOT built — the constants remain server-side. It needs a backend route, which takes it
+out of a JS-only slice. **Noticed, not acted on:** the prompt-defect branch fires on
+`frac >= 0.10` with no minimum-runs guard, while its sibling lint-text branch guards with
+`attempts >= 3` — so on a thin window one 2-unit blip raises a "change the generate prompt"
+alarm, which these surfaces now display prominently. A backend design call, untouched.
 
 ### R6 — Cost comparison for the higher-ups  ⏳ SCAFFOLDED 2026-09-15 (awaits the D6 run)  *(D6)*
 

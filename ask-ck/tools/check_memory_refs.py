@@ -64,7 +64,7 @@ PREFIXES = [
 # hatch: state that the thing is gone and the check stops asking about it.
 GONE_MARKERS = re.compile(
     r"no longer exist|does not exist|doesn't exist|\bdelet|retired|removed|"
-    r"\bgone\b|never shipped|never existed|reverted|supersed|was renamed|"
+    r"\bgone\b|\babsent\b|never shipped|never existed|reverted|supersed|was renamed|"
     r"became the|is now the|used to |formerly|line number is dead|as-of |"
     r"scaffolding|pre-migration|frozen",
     re.I,
@@ -104,6 +104,7 @@ ALLOW = {
     "svt/3007_ixnetwork/ixNetworkTestBase.py": "legacy corpus script, lives in ck.db",
     "svt/3009_pluggable_qualifications/libPluggableAutomate.py": "legacy corpus script, lives in ck.db",
     "0009_..._Master_reboot.py": "legacy corpus script (elided name), lives in ck.db",
+    "3_Port_Fixed_port_test.py": "testbox-side generated script (a STRING fixture in tests/test_pt_preflight.py), not a repo file",
     "library_5700.py": "testbox-side 5700 suite, outside this repo",
     "test-5700.200x.py": "testbox-side 5700 suite, outside this repo",
     "library_NNNN.py": "placeholder for a corpus suite's library module (ART house shape), lives in ck.db",

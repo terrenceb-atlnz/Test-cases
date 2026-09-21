@@ -3,7 +3,7 @@ name: editing-backend-restarts-production
 description: ask-ck.service runs uvicorn --reload against the working tree, so ANY save to CK_server/*.py bounces the live server — and a reload can wedge on the agent long-polls
 metadata:
   type: project
-  verified: 2026-09-21
+  verified: 2026-09-22
 ---
 
 The hosted server (`systemd --user` unit `ask-ck.service`, LAN on :8000) runs:
@@ -39,3 +39,11 @@ for now. if it happens often we will fix it."* So do not propose removing it aga
 it (batch the edits, mutate on a copy, restart when it wedges). Revisit only if wedging
 becomes a recurring cost — and then it is a change to the systemd unit, which lives outside
 this repo at `~/.config/systemd/user/ask-ck.service`.
+
+**2026-09-22 — the converse confirmed, and it is the useful half in practice.** A session that
+edited only `ask-ck/frontend/**` and `tests/**` did NOT bounce the server: it kept answering
+`/health` and serving `/static/**` throughout, and the edited modules were served immediately
+with `cache-control: no-cache` + an etag, so open tabs pick them up on reload with no version
+bump needed. **How to apply:** front-end-only work needs no idle window and no restart planning —
+that constraint belongs to `CK-main/**/*.py` alone. (Not re-checked today: that a `.py` save
+under `CK-main` still bounces it, or the long-poll wedge. Those remain as verified 2026-09-21.)

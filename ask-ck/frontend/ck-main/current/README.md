@@ -36,7 +36,7 @@ graph evaluates.
 | `generator/` | `db-search.js` | merge + manual-search + LLM-suggest for TestLink/Zephyr/ATP |
 | `shared/` | `llm-progress.js` | Live LLM-button state: elapsed / ~typical / streamed counters polled from `/api/llm/inflight/{id}`, the 2px fill bar, and click-to-STOP (true server-side cancel via `/api/llm/cancel/{id}` — routed in actions.js before data-action so a busy button can't re-fire itself) |
 | `shared/` | `llm-debug.js` | LLM observability: per-panel "last LLM request" footer + token badges (`/api/llm/recent`) |
-| `admin/` | `admin.js` | Hidden admin panel (double-click CK's face): reset sessions, restart server (`/api/admin/*`). (DB/embeddings rebuild was removed once `ck.db` became the permanent committed source of truth.) |
+| `admin/` | `admin.js` | Hidden admin panel (double-click CK's face): reset sessions, restart server (`/api/admin/*`), and the read-only **Lint trends** card (R5; `GET /api/pytest-create/lint_trends`). (DB/embeddings rebuild was removed once `ck.db` became the permanent committed source of truth.) |
 | `shared/` | `theme.js` | Light/dark toggle (side-effect) |
 
 ## Conventions

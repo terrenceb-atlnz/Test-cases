@@ -9,7 +9,7 @@
 >
 > | | |
 > |---|---|
-> | **Phase −1.1 – −1.4** | ✅ **DONE** 2026-08-03 (`949004f`, `0743889`). 28 tests, 9 mutations all caught. |
+> | **Phase −1.1 – −1.4** | ✅ **DONE** 2026-08-03 (`949004f`, `0743889`). 28 tests, 9 mutations all caught. **2026-09-22:** the −1.4 link-floor test was re-aimed. Its `total >= 80` was calibrated on the 12 bundles committed at the time; `e35bbb2` (2026-09-16) rewound case progress and removed the drop-ins, so the floor began failing against a corpus that no longer exists by design — and because `run_tests.sh` is `set -euo pipefail`, that red aborted the gate before vitest, hiding the whole frontend layer for six days. It now asserts PER BUNDLE (every bundle on disk yields ≥1 link) and skips on an empty corpus, which is `4d9001a`'s shape; the parser-regression intent is unchanged. |
 > | **Phase −1.5, −1.6** | Deferred with reasons recorded in Phase −1. |
 > | **Phase −1.7** (43 live cases) | Decided: re-push, stay at v2.0. Executes after Phases 1–4. |
 > | **Parser fix** (the recommended deviation) | ✅ **DONE** 2026-08-03c (`f0a94af`). `CK_server/gen_assembly.py`; all five stored replies recover COMPLETELY. |
