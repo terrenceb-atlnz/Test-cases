@@ -526,8 +526,9 @@ function _ptSeedFromSession() {
   }
 }
 
-// The per-step suggest URL for the step currently on screen — same call ptSuggestStep
-// makes, so the previewed prompt is 1-for-1 with a real send (provenance.js's contract).
+// The per-step suggest URL for the step currently on screen — the same call "Suggest all steps"
+// makes for this step, so the previewed prompt is 1-for-1 with a real send (provenance.js's
+// contract). Was ptSuggestStep's call until that button was removed 2026-09-22.
 function ptStepSuggestEndpoint() {
   const seq = _ptSeq();
   const n = (seq[_ptCurStep] || seq[0] || {}).n || 1;
@@ -648,7 +649,6 @@ function ptRenderSteps() {
       <div class="justification-note pt-step-verify">verify: ${escapeHtml(s.verify || '')}</div>
 
       <div class="compact-flex mt-1 mb-2">
-        <button class="btn btn-primary btn-compact" data-action="ptSuggestStep" data-args='[${n}]' id="pt-suggest-step-${n}">Suggest for sequence step ${n} (LLM)</button>
         <input type="text" class="form-input form-input-search pt-step-q" data-step="${n}" placeholder="keyword search this step…">
         <button class="btn btn-compact" data-action="ptSearchStep" data-args='[${n}]'>Search</button>
         <span class="justification-note" id="pt-step-status-${n}"></span>
@@ -750,23 +750,14 @@ async function ptSuggestAllSteps() {
   }
 }
 
-// Per-step LLM suggest — links every result to this step.
-async function ptSuggestStep(stepN) {
-  if (!ptRequireCase()) return;
-  const btn = document.getElementById(`pt-suggest-step-${stepN}`);
-  const st = document.getElementById(`pt-step-status-${stepN}`);
-  const d = await ptApi(`/suggest_scripts_step/${S.ptCase.key}/${stepN}`, {
-    method: 'POST',
-    body: JSON.stringify({ user_inputs: '' }),
-    btn, busyLabel: 'Suggesting…', llm: true,
-  }, st);
-  recordLLMDebug(btn);
-  if (!d) return;
-  _ptAddCands(stepN, d.matches || []);
-  ptRenderSteps();
-  const el = document.getElementById(`pt-step-status-${stepN}`);
-  if (el) el.textContent = `${(d.matches || []).length} match(es) for sequence step ${stepN}.`;
-}
+// The per-step "Suggest for sequence step N (LLM)" button and its ptSuggestStep handler were
+// REMOVED 2026-09-22 (Terrence, decided 2026-08-26: "we can remove the button later", gated on
+// seeing suggest-all work on a real case — confirmed that same afternoon). It would return
+// nothing new: "Suggest all steps (LLM)" in the coverage bar runs the identical per-step call
+// for every step and persists as it goes, so the per-step button only re-fired one of them.
+// Per-step KEYWORD search stays (ptSearchStep, below) — that is a different affordance.
+// The SERVER endpoint /suggest_scripts_step stays: suggest-all drives it directly, in its own
+// loop, and it is still valid headless.
 
 // Per-step keyword search — links every result to this step.
 async function ptSearchStep(stepN) {
@@ -2427,7 +2418,7 @@ registerActions({
   ptApplyHeld, ptDiscardHeld, ptApplyAllHeld,
   ptLoadCase, ptLoadCaseFresh, ptRefreshCases, ptExtractSequence,
   ptAddSeqRow, ptRemoveSeqRow, ptSaveSequence,
-  ptConfirm, ptSuggestStep, ptSuggestAllSteps, ptSearchStep,
+  ptConfirm, ptSuggestAllSteps, ptSearchStep,
   ptChooseMatches, ptClearChosen,
   ptGoStep, ptPrevStep, ptNextStep,
   ptSaveMatches,

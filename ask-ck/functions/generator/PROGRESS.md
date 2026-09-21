@@ -29,10 +29,15 @@ not guessed, and he picked **R5's two JS surfaces**, then the zephyr gate red.
   (the test failed and named the four barren bundles) and by probing both skip branches.
 - **Gate at close: `EXIT=0` — 1670 pytest / 1 skipped, vitest 335 in 29 files, both guards OK,
   `ck.db` untouched.** First fully green end-to-end gate since 2026-09-16.
-- **Open, Terrence's:** the per-step Suggest button removal (deferred at his direction, UI-only,
-  endpoint stays) is the only small unblocked code item left. R6's 4th bar still needs his ~$20
-  scratch-server Opus run; R1(b) needs the suite naming convention; t44297 #6 is medium with D6
-  still only a recommendation.
+- **Per-step "Suggest for sequence step N (LLM)" button REMOVED** — Terrence's own decision of
+  2026-08-26 ("we can remove the button later"), gated on seeing suggest-all work on a real case,
+  which was confirmed that same afternoon; only the sequencing was ever open. Button, the
+  `ptSuggestStep` handler (unreachable once the button went — suggest-all drives the endpoint
+  directly in its own loop) and the dispatcher entry are gone. Per-step KEYWORD search and the
+  shared per-step status line are untouched, and the `/suggest_scripts_step` endpoint stays.
+- **Open, Terrence's:** R6's 4th bar still needs his ~$20 scratch-server Opus run; R1(b) needs the
+  suite naming convention; t44297 #6 is medium with D6 still only a recommendation. No small
+  unblocked code item remains that I can see.
 - **Noticed, not acted on:** R5's prompt-defect alarm fires on `frac >= 0.10` with **no
   minimum-runs guard**, while the sibling lint-text branch guards with `attempts >= 3`. On a thin
   window one 2-unit blip raises a "change the generate prompt" alarm — which the new surfaces now
@@ -1685,7 +1690,7 @@ matching tests confirmed failing.
 - **The pilot trio is STILL unchanged**: T33234 + T33235 need PyTest Creator generation
   (`clear_session` each first), then hardware Run. IE520 remains the standing priority.
 - Open by choice (unchanged): removing the per-step "Suggest for sequence step N" button
-  (Terrence's sequencing; UI-only, endpoint stays), the now-frontend-unreferenced whole-case
+  (Terrence's sequencing; UI-only, endpoint stays) — **DONE 2026-09-22**, the now-frontend-unreferenced whole-case
   `suggest_scripts` endpoint (still valid headless — deliberately not deleted), plan §5 of
   PLAN-llm-mode-selection, `.REVIEW.py` ratify-or-revert, requirements upper bounds.
 

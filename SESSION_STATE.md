@@ -4355,7 +4355,9 @@ The "one more thing": rewind every case and re-run the improved pipeline from sc
   `ck.db` untouched.** First fully green end-to-end gate since 2026-09-16.
 - Verified with six mutations across both pieces, all caught, including two wiring mutations that
   left every pure test green.
-- **Open (Terrence):** per-step Suggest button removal (deferred at his direction; UI-only);
-  R6's 4th bar (his ~$20 scratch Opus run); R1(b) (suite naming convention); t44297 #6 (medium,
+- **Per-step Suggest button REMOVED** (his 2026-08-26 decision; the gating condition had been met
+  that same afternoon). Handler + dispatcher entry went with it; keyword search and the
+  `/suggest_scripts_step` endpoint stay.
+- **Open (Terrence):** R6's 4th bar (his ~$20 scratch Opus run); R1(b) (suite naming convention); t44297 #6 (medium,
   D6 still a recommendation). **Flagged, untouched:** R5's prompt-defect alarm has no
   minimum-runs guard, so a thin window turns one 2-unit blip into a prompt alarm.

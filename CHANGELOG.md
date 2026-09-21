@@ -47,6 +47,16 @@ Plan `ask-ck/plans/PLAN-self-healing-generation.md` §6.4 (R5) and
   barren bundles instead of reporting a number.
 
 
+- **The per-step "Suggest for sequence step N (LLM)" button is gone from step 3.** *Why:* it
+  returned nothing new. "Suggest all steps (LLM)" in the coverage bar runs the identical
+  per-step call for every step, sequentially, persisting as it goes, so the per-step button
+  only re-fired one of them. Terrence's decision of 2026-08-26 ("we can remove the button
+  later"), gated on seeing suggest-all work on a real case — confirmed that same afternoon, so
+  only the sequencing remained. Its `ptSuggestStep` handler went with it (unreachable: suggest-all
+  drives the endpoint itself, in its own loop). **Unchanged:** per-step keyword search, the shared
+  per-step status line, and the `/suggest_scripts_step` server endpoint, which suggest-all drives
+  and which is still valid headless.
+
 ## 2026-09-21 (later) — The frame discovers its topology through the framework; the `[misc]` role contract is retired
 
 Plan `ask-ck/plans/PLAN-frame-framework-discovery.md`; commits `b96255c` + `f354f14` (reverts of the
