@@ -49,21 +49,14 @@
     contract, not a guess here. -#}
 {%- set bound_switches = switches[:2] -%}
 {%- set dropped_switches = switches[2:] -%}
-{#- LINKS (ART shape, 2026-09-07; role SET 2026-09-21). The corpus binds `(dut.portA, tb.ethA)`
-    in 111 of 188 ART tests: the TESTBOX is the traffic partner (tcpdump / scapy on `tb.ethA`),
-    and a second switch appears only when the test needs a neighbour, named by ROLE (swiSrc,
-    dutZ), never `dut`. The frame binds ANY SUBSET of four roles, each from the bench's role
-    contract (`_detect_links` in routers/pytest_create.py; TOPOLOGY-PROFILES.md):
-      links.tb      `dut.portA <-> tb.ethA`             profile `tblink`  capture / inject here
-      links.copper  `dut.portPeer <-> peer.portDut`     profile `base`    the RJ-45 neighbour (REQUIRED)
-      links.fibre   `dut.portFibre <-> fibre_peer.portDut`  profile `fibre`  a pluggable (OPTIONAL)
-      links.cusfp   `dut.portCuSfp <-> cusfp_peer.portDut`  profile `cusfp`  a pluggable (OPTIONAL)
-    Until 2026-09-21 only two could be bound and copper/fibre shared one handle set, so a case
-    needing a copper link AND a pluggable (AWPTCM-T33234) forced the setup UNIT to invent the
-    rest. `links.peer` = any neighbour at all. `needs_portlink` alone (legacy callers) means
-    the copper link. -#}
-{%- set links = links if links is defined and links else {'tb': false, 'copper': needs_portlink, 'fibre': false, 'cusfp': false, 'peer': needs_portlink} -%}
-{%- set pluggable = links.fibre or links.cusfp -%}
+{#- LINKS (ART shape, 2026-09-07). The corpus binds `(dut.portA, tb.ethA)` in 111 of 188 ART
+    tests: the TESTBOX is the traffic partner (tcpdump / scapy on `tb.ethA`), and a second
+    switch appears only when the test needs a neighbour, named by ROLE (swiSrc, dutZ), never
+    `dut`. So the frame can bind two links, each from the bench's role contract:
+      links.tb    `dut.portA <-> tb.ethA`        profile `tblink`   capture / inject here
+      links.peer  `dut.portPeer <-> peer.portDut` profile `base`/`fibre`  a neighbour switch
+    `needs_portlink` alone (legacy callers) means the peer link. -#}
+{%- set links = links if links is defined and links else {'tb': false, 'peer': needs_portlink} -%}
 {%- set dut = switches[0] -%}
 {%- set all_devs = bound_switches + (stacks or []) -%}
 {%- set dev0 = all_devs[0] -%}
@@ -72,7 +65,7 @@
 {%- set has_manual = steps | selectattr('kind', 'equalto', 'manual') | list | length > 0 -%}
 {#- The port a PHYSICAL step acts on: the testbox link when there is one (the testbox can
     also observe or simulate the event from its end), else the peer link. -#}
-{%- set phys_port = 'portA' if links.tb else ('portPeer' if links.copper else ('portFibre' if links.fibre else ('portCuSfp' if links.cusfp else 'portA'))) -%}
+{%- set phys_port = 'portA' if links.tb else 'portPeer' -%}
 {#- ART opens EVERY method with the same shortcut block (158 of 188 tests), so the handles
     and bound ports are named once, in code, where the model and the reader both see them.
     Emitted by the frame — the fill keeps these lines and uses these names. -#}
@@ -83,18 +76,10 @@
         ethA = tb.ethA
         portA = {{ dut }}.portA
 {%- endif %}
-{%- if links.copper %}
+{%- if links.peer %}
         peer = {{ via }}.peer
         portPeer = {{ dut }}.portPeer
         portDut = peer.portDut
-{%- endif %}
-{%- if links.fibre %}
-        fibre_peer = {{ via }}.fibre_peer          # None when self.fibre_supported is False
-        portFibre = {{ dut }}.portFibre
-{%- endif %}
-{%- if links.cusfp %}
-        cusfp_peer = {{ via }}.cusfp_peer          # None when self.cusfp_supported is False
-        portCuSfp = {{ dut }}.portCuSfp
 {%- endif %}
 {%- for st in (stacks or []) %}
         {{ st }} = {{ via }}.{{ st }}
@@ -129,28 +114,7 @@ from framework.ATPackets import *   # scapy (Ether, sendp, sniff) + the AT layer
 from {{ lib_stem }} import *        # this suite's own helpers, shipped beside the script
 {%- endif %}
 
-{% if pluggable %}
-def assert_role_media_now(testCase, dut, port, role):
-    """The deferred media check for a PLUGGABLE role (fibre / copper-SFP) — called by the
-    insertion case AFTER the operator has fitted the module, not at suite init where the cage
-    may still be empty. Records a verdict on `testCase` and returns the boolean, so the case
-    can stop when the bench fitted the wrong module (a cabling error, not a product defect).
-    Fixed frame — do not edit."""
-    import ck_media
-    if port is None:
-        testCase.failed('BENCH PROBLEM, not a product defect: no %s link is bound on this bench' % role)
-        return False
-    status = dut.cmd('show interface %s status' % port.name)
-    ok, why = ck_media.assert_role_media(status, port.name, role)
-    if ok:
-        testCase.passed('%s media confirmed on %s (%s)' % (role, port.name, why))
-    else:
-        testCase.failed(why)
-    return ok
-
-
-{% endif %}
-{%- if has_manual %}
+{% if has_manual %}
 # How long a MANUAL step waits for the operator before failing that step. Must stay well
 # under the runner's own timeout so the suite still reports the cases that did run.
 OPERATOR_TIMEOUT_S = 120
@@ -194,12 +158,8 @@ class TestSet(ATTestSet.TestSet):
 
     FEATURES = ['ALL']
 
-    def _ck_bind_link(self, setup, dut, misc, role, assert_media=True):
+    def _ck_bind_link(self, setup, dut, misc, role):
         """Resolve `[misc] ck_link_<role>` on THIS bench, bind it, and assert its media.
-
-        `assert_media=False` binds a PLUGGABLE role (fibre / copper-SFP) by port REFERENCE
-        only: at suite init the cage may be empty or hold the module a later step swaps out,
-        so the media check belongs to the insertion case (`assert_role_media_now()`).
 
         Fixed frame — do not edit or delete. Three failures it converts from silent to loud:
           1. an undeclared role: the bench has not agreed to host this test;
@@ -230,24 +190,12 @@ class TestSet(ATTestSet.TestSet):
             far = self.tb
             (near_port, far_port) = setup.init_portlink(dut, far, type1='port')
         else:
-            # Two roles may resolve to the SAME partner switch (a copper link and a fibre
-            # link to one neighbour): bind that device once and reuse it, never init_swi()
-            # it twice.
-            cache = getattr(self, '_ck_far_devices', None)
-            if cache is None:
-                cache = self._ck_far_devices = {}
-            far = cache.get(far_key)
-            if far is None:
-                far = cache[far_key] = setup.init_swi(far_key)
+            far = setup.init_swi(far_key)
             (near_port, far_port) = setup.init_portlink(dut, far, type1='port', type2='port')
         if near_port is None or far_port is None:
             raise RuntimeError(
                 "BENCH PROBLEM, not a product defect: ck_link_%s = %r but no unused "
                 "matching [portlink] exists between %s and %s." % (role, ref, dut_key, far_key))
-        if not assert_media:
-            self.log('topology: role %r -> %s %s <-> %s %s (media check DEFERRED to the '
-                     'insertion case)' % (role, dut_key, near_port.name, far_key, far_port.name))
-            return near_port, far_port, far
         status = dut.cmd('show interface %s status' % near_port.name)
         ok, why = ck_media.assert_role_media(status, near_port.name, role)
         if not ok:
@@ -281,53 +229,17 @@ class TestSet(ATTestSet.TestSet):
         # DUT port under test at the other end of that cable.
         ({{ dut }}.portA, tb.ethA, _tb) = self._ck_bind_link(setup, {{ dut }}, misc, 'tb')
         {%- endif %}
-        {%- if links.copper %}
-        # The copper NEIGHBOUR switch (profile `base`): the far end of the fixed RJ-45 link —
-        # the partner that negotiates, whose polarity is forced, whose neighbour table is read.
-        # Deterministic on purpose: this used to be a FILL slot and the model declared links
-        # the test never used (T33235 bound 4 devices and 2 links while referencing 1 of
-        # each). Named `peer`, never `dut`: in ART `dut` is the DUT's own stack handle, and a
-        # partner called `dut` made every model read `dut.portA` as the DUT's port (T44297).
-        # REQUIRED: a bench without ck_link_copper aborts the suite here.
+        {%- if links.peer %}
+        # The NEIGHBOUR switch (profile `{{ link_role }}`), taken from the far end of the one
+        # link the case needs — no second lookup, and deterministic on purpose: this used to
+        # be a FILL slot and the model declared links the test never used (T33235 bound 4
+        # devices and 2 links while referencing 1 of each). Named `peer`, never `dut`: in
+        # ART `dut` is the DUT's own stack handle, and a partner called `dut` made every
+        # model read `dut.portA` as the DUT's port (T44297, 2026-09-07).
         ({{ dut }}.portPeer, peer_port, peer) = self._ck_bind_link(
-            setup, {{ dut }}, misc, 'copper')
+            setup, {{ dut }}, misc, '{{ link_role }}')
         peer.portDut = peer_port
         self.peer = peer
-        {%- endif %}
-        {%- if links.fibre %}
-        # The FIBRE link (profile `fibre`) — a PLUGGABLE, so OPTIONAL: bound by port reference
-        # only (the media is asserted by the insertion case via assert_role_media_now(), once
-        # the operator has fitted the module), and a bench without the link does not abort
-        # the suite — the copper steps still run and the fibre steps report UNSUPPORTED via
-        # `self.fibre_supported`. Cases must check the flag before touching these handles.
-        self.fibre_supported = True
-        try:
-            ({{ dut }}.portFibre, fibre_port, fibre_peer) = self._ck_bind_link(
-                setup, {{ dut }}, misc, 'fibre', assert_media=False)
-            fibre_peer.portDut = fibre_port
-            self.fibre_peer = fibre_peer
-        except RuntimeError as exc:
-            self.log('topology: fibre link NOT available on this bench — fibre steps will '
-                     'report UNSUPPORTED (%s)' % exc)
-            self.fibre_supported = False
-            {{ dut }}.portFibre = None
-            self.fibre_peer = None
-        {%- endif %}
-        {%- if links.cusfp %}
-        # The COPPER-SFP link (profile `cusfp`) — a 1000BASE-T module in an SFP cage: the same
-        # optional, deferred-media shape as the fibre link. `self.cusfp_supported` gates it.
-        self.cusfp_supported = True
-        try:
-            ({{ dut }}.portCuSfp, cusfp_port, cusfp_peer) = self._ck_bind_link(
-                setup, {{ dut }}, misc, 'cusfp', assert_media=False)
-            cusfp_peer.portDut = cusfp_port
-            self.cusfp_peer = cusfp_peer
-        except RuntimeError as exc:
-            self.log('topology: copper-SFP link NOT available on this bench — those steps '
-                     'will report UNSUPPORTED (%s)' % exc)
-            self.cusfp_supported = False
-            {{ dut }}.portCuSfp = None
-            self.cusfp_peer = None
         {%- endif %}
         {%- if not links.tb and not links.peer and switches | length > 1 %}
         # No data link in this case, so the partner is reachable over its CONSOLE only —

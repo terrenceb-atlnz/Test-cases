@@ -1503,8 +1503,7 @@ def _setup_keys_for(switches: List[str]) -> List[str]:
 
 # Bound in init() but not a DEVICE the model reaches with `self.testSet.<name>.cmd(...)`.
 # `ck_far_port` is the far end of the bound link — a SwitchPort, not a switch.
-_NON_DEVICE_BOUND_ATTRS = frozenset({"ck_far_port", "fibre_supported", "cusfp_supported",
-                                     "_ck_far_devices"})
+_NON_DEVICE_BOUND_ATTRS = frozenset({"ck_far_port"})
 
 
 def _skeleton_bound_devices(skeleton: str, dut: str = "") -> List[str]:
@@ -1568,18 +1567,19 @@ _FIBRE_HINT_RX = re.compile(
     r"\d+base-(?:sx|lx|lh|sr|lr|er|zx|bx|fx))\b", re.I)
 
 
-# Copper-specific vocabulary: when a case mentions fibre AND any of these, it needs BOTH links
-# (T33234: crossover/straight-through polarity on copper, plus fibre and copper-SFP insertion).
-_COPPER_HINT_RX = re.compile(
-    r"\b(copper|twisted[- ]pair|rj-?45|polarity|mdi-?x?|crossover|straight-?through|"
-    r"\d+base-t[a-z0-9]*)\b", re.I)
-# A copper SFP: a 1000BASE-T (or similar) MODULE in an SFP cage — a pluggable the operator
-# inserts, so it is its own role (profile `cusfp`) rather than the fixed RJ-45 copper link.
-_CUSFP_HINT_RX = re.compile(
-    r"\b(copper[- ]sfp|sfp[- ]?t\b|cu[- ]?sfp|"
-    r"\d+base-t[a-z0-9]*\s+(?:sfp|module|pluggable|transceiver)|"
-    r"copper\s+(?:sfp\s+)?(?:module|pluggable|transceiver)|"
-    r"rj-?45\s+(?:sfp|module|pluggable|transceiver))\b", re.I)
+def _detect_link_role(sequence: List[dict], objective: str = "") -> str:
+    """Which MEDIA role this case's link must be — `'copper'` or `'fibre'`.
+
+    Defaults to copper, and that default is SAFE rather than a guess: MDI/MDIX and the
+    10/100 speed range exist only on twisted pair, which is what the great majority of port
+    cases exercise. Crucially, a wrong choice cannot produce a wrong verdict — the run-time
+    media assertion (`_ck_bind_link` -> `ck_media`) refuses to proceed when the bound port's
+    pluggable disagrees, and says the BENCH is at fault. So the failure mode is a loud stop,
+    never a silent false pass.
+    """
+    blob = " ".join([objective or ""] + [
+        (s.get("action", "") or "") + " " + (s.get("verify", "") or "") for s in (sequence or [])])
+    return "fibre" if _FIBRE_HINT_RX.search(blob) else "copper"
 
 
 # ---- ART shape (2026-09-07): which LINKS the frame binds, the suite LIBRARY, the bound ports ----
@@ -1601,57 +1601,32 @@ _PEER_RX = re.compile(
     r"negotiat\w*|show lldp neighbo\w*)\b", re.I)
 
 
-LINK_ROLES = ("tb", "copper", "fibre", "cusfp")
-
-
 def _detect_links(sequence: List[dict], fragments: List[dict], objective: str = "") -> dict:
-    """Which of the frame's four link ROLES this case needs:
-    `{"tb": bool, "copper": bool, "fibre": bool, "cusfp": bool, "peer": bool}` — `peer` is the
-    derived alias "any neighbour switch" (copper or fibre or cusfp), for the template branches
-    that only care whether a partner exists.
+    """Which of the frame's two links this case needs: `{"tb": bool, "peer": bool}`.
 
-    Until 2026-09-21 this returned two booleans and the frame bound at most two links, with
-    `copper`/`fibre` sharing ONE handle set; AWPTCM-T33234 needs all four at once, so its setup
-    UNIT invented the missing bindings and bound the copper test port from the testbox role —
-    4 of the first review's 6 highs (memory `frame-binds-two-roles-only`).
+    Text-driven and deliberately over-inclusive: a link bound but unused costs one
+    `ck_link_*` line in the bench file, while a link needed but unbound costs a bench run
+    that dies on `interface None` (the whole 2026-09-07 finding). A wrong choice can never
+    produce a wrong VERDICT — `_ck_bind_link` refuses to start when the bench lacks the
+    role, and says the bench is the cause.
 
-    Text-driven and deliberately over-inclusive: a role bound but unused costs one
-    `ck_link_*` line in the bench file (or, for the optional pluggable roles, nothing at all),
-    while a role needed but unbound costs a bench run that dies on `interface None`. A wrong
-    choice can never produce a wrong VERDICT — `_ck_bind_link` refuses to start when the
-    bench lacks a required role and says the bench is the cause.
-
-      tb      the case captures / injects / measures traffic (the ART `tb.ethA` idiom), or
-              has a PHYSICAL step (the testbox observes the event from its own end).
-      copper  a neighbour switch on the fixed RJ-45 link: a partner to negotiate against, a
-              polarity to force, an LLDP neighbour table to read, a remote port to act on.
-              Suppressed only when the case is fibre-flavoured and mentions nothing
-              copper-specific (then the neighbour is the fibre link).
-      fibre   the case mentions fibre / optical / a fibre pluggable, or a step's slice-C
-              `claim.cable` says so.
-      cusfp   the case mentions a copper SFP / 1000BASE-T module — a pluggable the operator
-              inserts, its own role so a bench without one reports UNSUPPORTED.
+      tb    the case captures / injects / measures traffic (the ART `tb.ethA` idiom), or
+            has a PHYSICAL step (the testbox observes the event from its own end).
+      peer  the case needs a neighbour switch: a partner to negotiate against, an LLDP
+            neighbour table to read, a remote port to act on.
     Legacy fallback: a case that reads like it needs *a* port link but names neither side
-    gets the copper link, which is what the frame bound before this function existed.
+    gets the peer link, which is what the frame bound before this function existed.
     """
-    seq = sequence or []
     blob = " ".join([objective or ""] + [
-        (s.get("action", "") or "") + " " + (s.get("verify", "") or "") for s in seq])
+        (s.get("action", "") or "") + " " + (s.get("verify", "") or "") for s in (sequence or [])])
     code = " ".join((f.get("code") or "") for f in (fragments or []))
-    has_physical = any(_step_kind(s) == "physical" for s in seq)
-    claims = [str(((s.get("claim") or {}) if isinstance(s.get("claim"), dict) else {}).get("cable") or "").lower()
-              for s in seq]
+    has_physical = any(_step_kind(s) == "physical" for s in (sequence or []))
     tb = bool(_TBLINK_RX.search(blob)) or bool(re.search(r"\btb\.eth|start_tcpdump|sendp\(", code)) \
         or has_physical
-    neighbour = bool(_PEER_RX.search(blob)) or bool(re.search(r"\b(lp|peer|remote|swi_[b-z])\.(cmd|mode|port)", code))
-    fibre = bool(_FIBRE_HINT_RX.search(blob)) or any(c.startswith("fib") or c.startswith("fiber") for c in claims)
-    cusfp = bool(_CUSFP_HINT_RX.search(blob)) or any(c in ("cusfp", "copper-sfp", "copper sfp") for c in claims)
-    copper_hint = bool(_COPPER_HINT_RX.search(blob)) or any(c in ("straight", "crossover", "copper") for c in claims)
-    copper = neighbour and (not fibre or copper_hint)
-    if not (tb or copper or fibre or cusfp) and _PORTLINK_RX.search(blob + " " + code):
-        copper = True
-    return {"tb": tb, "copper": copper, "fibre": fibre, "cusfp": cusfp,
-            "peer": copper or fibre or cusfp}
+    peer = bool(_PEER_RX.search(blob)) or bool(re.search(r"\b(lp|peer|remote|swi_[b-z])\.(cmd|mode|port)", code))
+    if not tb and not peer and (_PORTLINK_RX.search(blob + " " + code)):
+        peer = True
+    return {"tb": tb, "peer": peer}
 
 
 def _library_stem(case_key: str) -> str:
@@ -2107,6 +2082,7 @@ def _render_skeleton(case_key: str, case_title: str, sequence: List[dict],
                       setup_steps=setup_steps, steps=verify_steps,
                       switches=switches, stacks=stacks, needs_portlink=needs_portlink,
                       setup_keys=_setup_keys_for(switches),
+                      link_role=_detect_link_role(sequence, objective),
                       links=_detect_links(sequence, fragments or [], objective),
                       lib_stem=(library or {}).get("stem") or "",
                       objective_lines=_objective_comment_lines(objective))
