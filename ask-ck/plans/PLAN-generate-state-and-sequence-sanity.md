@@ -2,14 +2,16 @@
 
 > ## Status (read first)
 >
-> **APPROVED 2026-09-21, IN PROGRESS.** Terrence: "Please build them." The four designs (A–D) were
+> **BUILT 2026-09-21 — every slice shipped the same day** (D `56c7022`; A + B + reset_generate `fc8348b`; C `f75581b`; docs in the wrap commit). Gate 1634 passed / 2 known reds. One deviation from the order below: A, B and reset_generate landed in ONE backend save and ONE commit, to bounce production once instead of three times. Found and fixed on the way: `save_sequence` dropped `kind` on every Save Edits.
+>
+> **Originally:** APPROVED 2026-09-21, IN PROGRESS. Terrence: "Please build them." The four designs (A–D) were
 > agreed during the T33234 repair (2026-09-17/18) and recorded in memory `frame-binds-two-roles-only`;
 > this file is the executable plan. Decisions taken 2026-09-21: edit the working tree directly
 > (production reloads accepted); Re-chunk snapshots the FRAME too; domain facts live in a prompt
 > include template; sanity flags WARN, never block Confirm. Slices land as separate commits in the
 > order below; each slice's section is marked SHIPPED with its commit hash as it lands.
 >
-> Progress: D ☐ · reset_generate ☐ · A ☐ · B ☐ · C ☐ · docs/wrap ☐
+> Progress: D ☑ 56c7022 · reset_generate ☑ fc8348b · A ☑ fc8348b · B ☑ fc8348b · C ☑ f75581b · docs/wrap ☑
 
 
 ## Context

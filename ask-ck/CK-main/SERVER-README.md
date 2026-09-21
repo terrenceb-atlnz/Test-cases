@@ -1052,6 +1052,68 @@ Seven of the eight decisions in `docs/TOKEN-EFFICIENCY-REPORT-2026-09-04.md` §6
   `_ck_bind_link` partner → either); (3) a capture started and stopped with nothing between.
   1 and 2 are errors, 3 a warning.
 
+### Generate-state gating, Re-chunk, stale reviews, sequence sanity, library-aware review (2026-09-21)
+
+Plan: `ask-ck/plans/PLAN-generate-state-and-sequence-sanity.md` (slices D, reset, A, B, C; all
+BUILT 2026-09-21). Motivation: the AWPTCM-T33234 repair (2026-09-17/18), where a hand-repaired
+script sat one Assemble click from being reverted with every pill green, four of five review
+findings were false because the reviewer never saw the suite library, and two physics errors
+born at Extract Sequence were only caught at the third review round.
+
+- **Two copies, one hash (slice A).** `step6.chunks` (units) and `step6.files.test.code`
+  (assembled script) are both written only by the splice paths; `save_script`, `fix_script`
+  and `generate_script` write the script alone. Every assembly now records
+  `step6.assembled_hash = _code_hash(code)`; `_gen_state(step6)` reports `diverged` whenever the
+  script's current hash differs (so a whole-script Generate/Fix/Save always reads as diverged
+  until re-chunked — deliberately), plus `units`, `frame_snapshot`, `review_stale` and a
+  plain-language `reason`. `_require_units_current()` raises 409 first in `assemble_script`,
+  `assemble_and_settle`, `generate_units`, `generate_step`, `fix_units` and `apply_held`.
+  `gen_state` rides on `load_case`, `GET /session`, `save_script`, the assembly reply and the
+  two new endpoints.
+- **`POST /rechunk/{key}`** (local, lock-gated): `_rechunk_from_script` re-reads every unit off
+  the current script (`_chunks_from_code` + `_resync_chunks`), drops units the script no longer
+  has, and stores the WHOLE script as `step6.frame` `{code, hash, at, units, sequence_shape}`.
+  `_pt_generation_context` uses the frame as the skeleton while its `sequence_shape` still matches
+  the sequence, so a later assembly splices into the real frame (module-level helpers a Fix added
+  survive) and an assembly of unchanged units returns the snapshot byte for byte (re-stamping is
+  skipped when `code == frame.code`). `fix_script` re-chunks itself (`_try_rechunk`; a script that
+  does not split leaves the state honestly diverged). `save_script` does NOT auto-rechunk: the
+  identical push before Review leaves the hash unchanged, a real hand edit shows the pill.
+- **`POST /reset_generate/{key}`** (lock-gated): keeps steps 1–4 and `{files, lint, naming}`,
+  drops chunks, review, assembly history, settle, fix_units, iterations, lint_history, frame;
+  `confirmed=False`; `_invalidate_from(sess, 5)`. Every splice path then 409s on missing units
+  until Generate is run deliberately.
+- **UI (5. Generate).** A `units ⇄ script` / `⚠ units stale — Re-chunk` pill at the end of the
+  unit row (tooltip = the reason); Assemble, Assemble only, Fix units, Apply all held, Generate
+  all units and the unit page's Generate are disabled with that reason while diverged, and
+  restored with their own tooltips when in sync; "Re-chunk from script" and "Reset Generate
+  (drop units)" in a `Units ⇄ script:` row under the recovery utilities.
+- **Stale reviews (slice B).** `review_script` stores `review.code_hash`; a review whose hash
+  is not the current script's (or has none — legacy) is `review_stale`. The panel folds it under
+  a "review is for an earlier version of the script" badge and tags each finding "evidence still
+  present" / "evidence gone" (whitespace-insensitive). `fix_script` still drops the review (the
+  2026-09-04 decision stands); staleness covers hand edits and Saves.
+- **Sequence sanity (slice C).** `templates/prompts/_pt_domain_facts.jinja` holds the hardware
+  facts no CLI page states (cable pairing; an auto-MDI partner adapts to any forced role, so a
+  forced DUT vs auto partner is never a negative; fibre has no MDI/MDI-X; `configured` vs
+  `current`; status is columnar — assert the absence of `connected`; half duplex impossible
+  ≥ 1 Gig; `auto` is never a current value; one-sided forcing). `pt_extract_sequence.jinja` and
+  `pt_review_script.jinja` include it. The extraction prompt's "Sanity pass" makes every
+  state-changing step carry `claim {cable, dut, partner, expect}`, checks claims against each
+  other, the facts and the source step's intent, and returns unresolved contradictions as
+  `sanity: [{steps, issue}]`. `extract_sequence` stores normalised claims on the steps and
+  `step2.sanity`; `save_sequence` carries `kind`/`claim`/`zephyr_step_idx` over from the stored
+  row at the same position when its action text matches (the Sequence table never sent `kind`,
+  so a setup step came back as a TestCase on every Save Edits) and drops the flags when the
+  shape changes. UI: a Claim column, flagged rows (issue as tooltip), a flags box above the
+  table; **Confirm Step 2 is never blocked** (Terrence: warn, don't block).
+- **Library-aware Review and Fix (slice D).** `_library_prompt_context(step6)` hands the
+  companion library's name and code to `pt_review_script.jinja` and `pt_fix_script.jinja`, which
+  render it as an AUTHORITATIVE helpers block with a rule that a call matching it is correct.
+- Tests: `test_pt_gen_state.py` (25), `test_pt_sequence_sanity.py` (15),
+  `test_pt_prompt_library_context.py` (8); `pt-gen-state.spec.js`, `pt-review-stale.spec.js`,
+  `pt-seq-claims.spec.js` (14).
+
 ### ART suite shape — frame, prompt, verdicts, library (2026-09-07)
 
 Six ART scripts read whole plus a census over all 188 (2,085 TestCase classes) showed eight

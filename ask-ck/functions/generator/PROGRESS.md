@@ -2,9 +2,33 @@
 
 **Purpose**: This file exists so future sessions can quickly understand exactly where we are, what has been built, what the priorities are, and how to continue seamlessly.
 
-**Last Updated**: 2026-09-18 (by Claude, with Terrence for every decision)
+**Last Updated**: 2026-09-21 (by Claude, with Terrence for every decision)
 
-## Latest session (2026-09-17/18) — Port family (T33233–36): objectives, steps, script identity; T33234 repaired and saved
+## Latest session (2026-09-21) — The four deferred PyTest Creator designs BUILT (A–D + reset_generate)
+
+Terrence: "Please build them." Plan written first (`ask-ck/plans/PLAN-generate-state-and-sequence-sanity.md`,
+approved with four decisions: in-place edits with production reloads accepted; Re-chunk snapshots the
+FRAME; facts live in a prompt include; sanity flags warn, never block). Three feature commits, gate
+green apart from the two known reds (preflight name test; zephyr corpus floor): 1634 passed.
+
+- **D** `56c7022` — Review and Fix prompts carry `library_awptcm_<case>.py` as an authoritative block.
+- **A + B + reset** `fc8348b` — `assembled_hash` / `_gen_state` / `_require_units_current` (409 in all six
+  splice + unit-generation paths); `POST /rechunk` with the whole-script frame snapshot (assembly of
+  unchanged units is byte-identical, tested); `fix_script` re-chunks itself; `POST /reset_generate`;
+  `review.code_hash` + folded stale reviews with evidence tags; UI pill, greyed buttons, two buttons.
+- **C** `f75581b` — `_pt_domain_facts.jinja` (included by extraction + review), the extraction prompt's
+  Sanity pass (`claim` per step, `sanity` flags), stored on step2, Claim column + flags on the Sequence
+  page; `save_sequence` preserves `kind`/`claim` (found: every Save Edits turned a setup step into a
+  TestCase).
+- **Live effect on T33234:** the server already reports it `diverged` (19 fresh units beside the
+  repaired script, no assembly hash) — Assemble now 409s there. Terrence's checklist: Load Case &
+  Continue → 5. Generate → pill reads `⚠ units stale` → **Re-chunk from script** → pill green →
+  Assemble → code box unchanged (`# DELIBERATE` at line 74); Review panel shows the 2026-09-18
+  findings folded as stale.
+- **Still deferred:** the frame binding only two roles (`_detect_links` → `{tb, peer}`; memory
+  `frame-binds-two-roles-only`, now the only open item there); re-aim `test_pt_preflight`.
+
+## Earlier session (2026-09-17/18) — Port family (T33233–36): objectives, steps, script identity; T33234 repaired and saved
 
 Wrapped mid-task at Terrence's request (usage cap); the wrap commit landed 2026-09-18 when the
 same session resumed and finished the T33234 repair on 2026-09-18 (block below).

@@ -1,10 +1,17 @@
 ---
 name: frame-binds-two-roles-only
-description: DEFERRED repair (agreed 2026-09-17) — the generated frame can bind only {tb, peer} and TOPOLOGY-PROFILES collapses copper+fibre onto ONE handle, so a multi-role case forces the setup UNIT to invent the role contract; that was the single cause of 4 of 6 high findings on T33234
+description: DEFERRED repair — the generated frame binds only {tb, peer} and TOPOLOGY-PROFILES collapses copper+fibre onto ONE handle, so a multi-role case forces the setup UNIT to invent the role contract (4 of 6 highs on T33234). The state/UI gating, review-hash, sequence-sanity and library designs recorded here (A–D) SHIPPED 2026-09-21 — see PLAN-generate-state-and-sequence-sanity.md
 metadata:
   type: project
-  verified: 2026-09-18
+  verified: 2026-09-21
 ---
+
+> **UPDATE 2026-09-21 — sections A, B, C, D and the FIRST TASK below are BUILT** (commits 56c7022,
+> fc8348b, f75581b; plan `ask-ck/plans/PLAN-generate-state-and-sequence-sanity.md`; the *why*s are in
+> CHANGELOG 2026-09-21). They stay here as the record of what was agreed and why. **The one part of
+> this memory still open is the frame itself** — `_detect_links` returning `{tb, peer}` and the
+> profiles spec collapsing copper+fibre onto one handle. T33234's live session reads `diverged`
+> until Terrence clicks Re-chunk; nothing can revert the repair meanwhile.
 
 **Terrence, 2026-09-17: "I want to repair it in the next session."** The evidence below is
 already collected and verified against the code — do not re-derive it.

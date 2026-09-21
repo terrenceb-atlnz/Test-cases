@@ -4290,3 +4290,18 @@ The "one more thing": rewind every case and re-run the improved pipeline from sc
   askck-lan-hosting, pt-step-numbering-divergence, ckdb-wal-and-test-isolation,
   configured-vs-current-show-interface. check_memory_refs: one pre-existing hit in the xrdp seat
   memory (`reconnectwm.sh`), not touched.
+
+## Session Close / Handoff (2026-09-21) — Deferred designs A–D + reset_generate BUILT
+
+- Built and committed (Terrence: "Please build them"): D `56c7022`, A+B+reset `fc8348b`, C `f75581b`,
+  docs/memory in the wrap commit. Plan: `ask-ck/plans/PLAN-generate-state-and-sequence-sanity.md`
+  (status header marks every slice BUILT). CHANGELOG 2026-09-21 entry carries the *why*s.
+- Decisions taken with Terrence before coding: edit the working tree directly (each backend save
+  reloaded production; four reloads, all back within 10 s, no wedge); Re-chunk snapshots the frame;
+  domain facts in a prompt include; sanity flags warn, never block.
+- Gate at close: guards OK; backend 1634 passed / 2 known reds (preflight name test, zephyr corpus
+  floor); vitest 316. `ck.db` dirtied only by live traffic.
+- T33234 on the live server now reads `diverged` — Assemble refuses. Manual checklist for Terrence is
+  in PROGRESS.md's top entry (Re-chunk → pill green → Assemble reproduces the saved script).
+- Found while building C: `save_sequence` lost `kind` on every Save Edits (setup → TestCase). Fixed.
+- Remaining deferred: frame binds two roles only; re-aim `test_pt_preflight`.

@@ -11,6 +11,44 @@ current working thread see
 [`ask-ck/functions/generator/PROGRESS.md`](ask-ck/functions/generator/PROGRESS.md).
 
 
+## 2026-09-21 — Generate-state gating + Re-chunk; Reset Generate; stale reviews; sequence sanity in Extract Sequence; library-aware Review/Fix
+
+Plan `ask-ck/plans/PLAN-generate-state-and-sequence-sanity.md`; commits 56c7022 (D), fc8348b (A, B,
+reset), f75581b (C). All four designs came out of the AWPTCM-T33234 repair (2026-09-17/18).
+
+- **Every splice path refuses (409) while the units and the assembled script are out of step; the
+  UI shows a `units stale` pill and greys the buttons.** *Why:* step6 holds two copies of the
+  script and only Assemble/Fix units/Apply held write both. Fix whole script, Save and Generate
+  Script write the assembled file alone, so afterwards ANY re-splice silently reverted the repair
+  — with every pill green. Terrence, on the screenshot: "There are ZERO UI indications that
+  anything will break." The join is the hash of the script at its last assembly.
+- **`POST /rechunk` re-reads the units AND snapshots the whole script as the frame.** *Why:*
+  re-syncing units alone would still splice them into the server's fresh render, dropping the
+  module-level helpers a whole-script Fix adds (T33234's `force_partner_polarity`). With the
+  snapshot, an Assemble of unchanged units reproduces the script byte for byte — provable, and
+  tested. `fix_script` re-chunks itself; `save_script` does not (an identical push before Review
+  must not hide a real edit).
+- **`POST /reset_generate` drops the Generate step's artefacts, keeps steps 1–4 and the saved
+  script.** *Why:* Terrence's 2026-09-18 ask ("keep the step history up to Generate, dump all the
+  code after that") had no server path; `clear_session` wipes steps 2–4 too.
+- **A review is bound to the code hash it judged; a stale one folds under a badge with per-finding
+  "evidence still present / gone".** *Why:* "if we fire a Fix after a Review, remove the findings
+  visually because they shouldn't still be relevant" — a Fix already dropped them (2026-09-04);
+  hand edits and Saves did not, and findings read as if about the code on screen.
+- **Extract Sequence checks its own sequence against a domain-facts block, every state-changing
+  step carries a claim, contradictions come back as flags on the Sequence page. Warn, never block.**
+  *Why:* T33234's step-5 physics error and step 6-vs-7 contradiction were born at extraction and
+  treated as axioms downstream; "How is it that we are *this* far into review and we are only just
+  now finding the step 5 mis-wording?" The facts live in a prompt include (versioned, testable),
+  not in `ck.db` — a facts table would need a write path into the permanent database. A Review-side
+  `sequence_defect` finding was considered and rejected: the check belongs where the text is born.
+- **Review and Fix see the suite library.** *Why:* 4 of the final 5 T33234 findings were false —
+  `waitForLinkState(..., 'down')`, `checkCurrentPort(..., 'auto', ...)`, `expect_value=True` were all
+  defined in `library_awptcm_t33234.py`, which the prompts never carried.
+- **`save_sequence` now preserves `kind`/`claim` from the stored row.** *Why (found building C):* the
+  Sequence table round-tripped only n/action/verify/from, so every Save Edits turned a `setup` step
+  into a TestCase.
+
 ## 2026-09-17 — Load Case & New Session; ART script identity (`test-9000.<case>`); objectives prompt scope guardrails; framework-log resolution
 
 - **Load Case & New Session** (`load_case?fresh=true`). *Why:* Load Case & Continue reuses the
