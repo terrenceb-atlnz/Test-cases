@@ -85,6 +85,9 @@ POLICY = [
     "contract: TestCase_1.main() has 2 empty self.passed()/self.failed() (empty reason emits no log marker)",
     "contract: TestCase_1.main() missing a leading # ART/SVT/legacy/AI provenance tag (PLAN §1.5)",
     "line 273: calls setup.init_portlink() directly, which skips the run-time MEDIA assertion",
+    # 2026-09-21 (framework discovery): a UNIT binding its own device with init_swi()/init_stk()
+    # — the T33234 setup-unit failure. The script still runs; a reviewer may have a reason.
+    "line 40: calls setup.init_swi() outside `TestSet.init()` — binding devices is the frame's job",
     # ART shape (2026-09-07): a verdict inside a TestCase's own configure()/tear_down() runs
     # and is counted, but sits outside main()'s STEP/OBSERVED evidence — a house rule.
     "contract: TestCase_1.configure() line 40 calls self.failed() — configure()/tear_down() are config only; the verdict belongs in main()",

@@ -49,14 +49,24 @@
    end of the link is `portDut` (`peer.portDut`); `portPeer` is the DUT's end and is
    configured on the DUT only. `peer.cmd('interface {}'.format(portPeer.name))` addresses
    a port that switch does not have — on the neighbour it is `portDut.name`.
+   `fibre_peer` / `portFibre` and `cusfp_peer` / `portCuSfp`, when bound, are PLUGGABLE links
+   (a fitted fibre module, a fitted copper SFP): the frame leaves them None on a bench that
+   has no such link, with `self.testSet.fibre_supported` / `cusfp_supported` saying which. A
+   case that needs one checks the flag FIRST and, when it is False, logs why, sets
+   `self.supported = False` and returns — UNSUPPORTED, not a failure. Their far ports are
+   `fibre_peer.portFibre` and `cusfp_peer.portCuSfp` (role-specific, because both often land
+   on the same partner switch). After the operator removes and re-fits a module, re-check its
+   media with the frame's `assert_role_media_now(self, <dut>, <port>, '<role>')`.
    **`TestSet.init()` IS FIXED FRAME — DO NOT ADD BINDINGS TO IT, and do not call
-   `setup.init_portlink()` or `setup.init_swi()` yourself.** The frame already resolves the
-   topology from the bench's role contract and binds every device and port this script is
-   entitled to, through its own `_ck_bind_link()` helper, which additionally asserts the
-   bound port's MEDIA. Binding a port any other way skips that assertion, and a port that is
-   the wrong media produces a failure that reads as a product defect rather than a cabling
-   error. Use only the names listed above; if you believe you need a device the frame did not
-   bind, the sequence is wrong — say so in a comment rather than binding it.
+   `setup.init_portlink()`, `setup.init_swi()` or `setup.init_stk()` yourself.** The frame
+   DISCOVERS the topology through the framework — the bench's `[portlink]`s via
+   `get_all_port_links()`, and which link is copper / fibre / copper-SFP from the DUT's own
+   `show interface status` and `show system pluggable` — and binds every device and port this
+   script is entitled to, through its own `_ck_bind_link()` helper. Nothing is pre-declared to
+   the script and nothing may be. Binding a port any other way skips the media check, and a
+   port that is the wrong media produces a failure that reads as a product defect rather than
+   a cabling error. Use only the names listed above; if you believe you need a device the
+   frame did not bind, the sequence is wrong — say so in a comment rather than binding it.
 3b. **HOUSE IDIOMS — use these, they are what the 830-script corpus does.** The counts are
    why; do not substitute your own equivalents.
    - **Enter config mode with `dev.mode(')#')`** (4,812 uses), NOT `dev.cmd('conf t')`
@@ -153,8 +163,8 @@
    string (`dut.cmd('interface {}'.format(port))`); writing it as an attribute —
    `self.dut.port1.0.1` — is a SyntaxError.
    **NEVER HARDCODE A PORT NAME.** Take it from the attribute the fixed `TestSet.init()`
-   frame already bound for you (`port = dut.portA` — see rule 3; the frame resolves it from
-   the bench role contract and asserts its media, so never call `init_portlink()`
+   frame already bound for you (`port = dut.portA` — see rule 3; the frame discovers it from
+   the bench's [portlink]s and the DUT's own show output, so never call `init_portlink()`
    yourself), the way the corpus does
    (10,578 bound-attribute uses vs 350 literals, and most of those are
    deliberately-invalid inputs to negative tests). In `portA.B.C`: **A is the STACK MEMBER**

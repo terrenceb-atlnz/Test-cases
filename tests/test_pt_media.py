@@ -13,6 +13,7 @@ prevent, so UNKNOWN must stay unsatisfiable.
 
 Pure unit tests — no DB, no network, no hardware, no LLM.
 """
+import re
 import sys
 from pathlib import Path
 
@@ -183,12 +184,56 @@ def test_the_message_carries_the_raw_type_for_diagnosis():
     assert "1000BASE-SX" in why and "port1.0.7" in why
 
 
-def test_roles_here_match_the_profile_link_roles():
-    """pt_media's role names must line up with the ck_link_* roles pt_profiles defines,
-    or a profile could require a media rule this module cannot evaluate."""
-    pt_profiles = pytest.importorskip("pt_profiles")
-    profile_links = {l for p in pt_profiles.PROFILES.values() for l in p.links}
-    # Every media role must correspond to a real profile link role.
-    assert set(pt_media.ROLE_REQUIRES) <= profile_links, (
-        f"media roles {sorted(pt_media.ROLE_REQUIRES)} not all in profile links "
-        f"{sorted(profile_links)}")
+def test_roles_here_are_exactly_the_frames_link_roles():
+    """The frame's `_ck_bind_link(..., '<role>')` literals and this module's roles must agree,
+    or the frame could ask for a media rule this module cannot evaluate (the T33234 latent bug:
+    the saved script asserted `'cusfp'`, which was unknown here)."""
+    tpl = (REPO / "ask-ck" / "CK-main" / "CK_server" / "templates"
+           / "pt_script_template.py.jinja").read_text(encoding="utf-8")
+    frame_roles = set(re.findall(r"setup, \{\{ dut \}\}, '(\w+)'", tpl))
+    assert frame_roles == {"tb", "copper", "fibre", "cusfp"}, frame_roles
+    assert set(pt_media.ROLE_REQUIRES) == frame_roles
+
+
+# ------------------------------------------------------------ show system pluggable (cusfp)
+
+# Both first-column spellings AW+ prints, with an empty cage (1.0.26) simply absent.
+PLUGGABLE_BARE = """
+System Pluggable Information
+
+Port     Vendor           Device           Serial Number    Datecode   Type
+--------------------------------------------------------------------------------
+1.0.25   AGILENT          HFBR-5710L       AGV0312S6M1      050110     1000BASE-SX
+1.0.27   Allied Telesis   AT-SPTX          A03421H0742A     070518     1000BASE-T
+--------------------------------------------------------------------------------
+"""
+PLUGGABLE_PREFIXED = """
+Port          Vendor           Device           Serial Number    Datecode   Type
+---------------------------------------------------------------------------------
+port2.0.25    Allied Telesis   AT-SPTX          A03421H0742A     070518     1000BASE-T
+"""
+
+
+def test_pluggable_ports_reads_both_first_column_spellings():
+    assert pt_media.pluggable_ports(PLUGGABLE_BARE) == frozenset({"1.0.25", "1.0.27"})
+    assert pt_media.pluggable_ports(PLUGGABLE_PREFIXED) == frozenset({"2.0.25"})
+    assert pt_media.pluggable_ports("") == frozenset()
+
+
+def test_is_pluggable_matches_across_spellings_and_an_empty_cage_is_not_listed():
+    cages = pt_media.pluggable_ports(PLUGGABLE_BARE)
+    assert pt_media.is_pluggable("port1.0.27", cages) and pt_media.is_pluggable("1.0.25", cages)
+    assert not pt_media.is_pluggable("port1.0.26", cages), "an empty cage holds nothing"
+    assert not pt_media.is_pluggable("port1.0.1", cages), "a fixed port is not a pluggable"
+
+
+def test_cusfp_role_is_twisted_pair_and_rejects_fibre():
+    """The role the hand-repaired T33234 asserts. Unknown here until 2026-09-21."""
+    assert pt_media.satisfies("cusfp", pt_media.TWISTED_PAIR)[0]
+    ok, why = pt_media.satisfies("cusfp", pt_media.FIBRE)
+    assert not ok and "BENCH PROBLEM" in why
+
+
+def test_failure_message_no_longer_points_at_a_misc_declaration():
+    _ok, why = pt_media.satisfies("fibre", pt_media.TWISTED_PAIR)
+    assert "ck_link" not in why and "misc" not in why.lower()

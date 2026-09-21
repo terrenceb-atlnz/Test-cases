@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
-"""Run-time MEDIA assertion for a bound port — the guard no offline checker can provide.
+"""Run-time MEDIA identification for a bound port — the fact no file can hold.
 
-WHY THIS EXISTS. `TOPOLOGY-PROFILES.md` lets a bench say `ck_link_copper =
-swi_a-swi_b:port1.0.1`, which removes the old accident where a test bound whichever link
-happened to be listed first. But that declaration is **intent, not a guarantee**: media is a
-property of the *pluggable*, swappable in seconds with no file change. On tb470 the same port
-number already differs between units — u4 `port1.0.1` is a 1000BASE-T, u5 `port1.0.1` is a
-10GBASE-TM. No file, and no static checker, can survive that.
+WHY THIS EXISTS. Media is a property of the *pluggable*, swappable in seconds with no file
+change. On tb470 the same port number already differs between units — u4 `port1.0.1` is a
+1000BASE-T, u5 `port1.0.1` is a 10GBASE-TM. No `.setup` declaration and no static checker can
+survive that, which is why (Terrence, 2026-09-21) the generated frame DISCOVERS media from the
+device instead of reading a pre-loaded `[misc]` variable: "we have a suite of 'show' commands
+that identify whatever we need to".
 
 And the CLI will not save you. Measured on an IE520, 2026-07-30: on the **1000BASE-SX fibre**
 port, `speed ?` still offers `10 … 400000` and `duplex ?` still offers `half`, identically to
@@ -15,20 +15,23 @@ is 1000 Mbps-only — records "DUT failed to set speed 100", a **false failure b
 product**; and `polarity` on fibre is a silent no-op, because MDI/MDI-X is a twisted-pair
 crossover concept with no fibre equivalent. Both look like defects. Neither is.
 
-So a media-specific test must ASK THE DEVICE what is in the port it just bound, and fail
-loudly if it is the wrong thing. That is all this module does.
+So a media-specific test must ASK THE DEVICE what is in the port it binds, pick the port whose
+answer matches, and fail loudly if none does. That is all this module does.
 
-WHAT A GENERATED SCRIPT DOES WITH IT:
+WHAT A GENERATED SCRIPT DOES WITH IT (the frame's `_ck_discover` / `_ck_bind_link`):
 
-    out  = dut.cmd('show interface {} status'.format(port.name))
-    kind = classify(media_type(out, port.name))          # 'twisted_pair' | 'fibre' | ...
+    status  = dut.cmd('show interface {} status'.format(port.name))
+    kind    = classify(media_type(status, port.name))     # 'twisted_pair' | 'fibre' | ...
+    in_cage = pluggable_ports(dut.cmd('show system pluggable'))
+    cusfp   = kind == TWISTED_PAIR and is_pluggable(port.name, in_cage)
     ok, why = satisfies('copper', kind)
     if not ok:
         self.failed(why)          # loud, and names the real cause
 
 DESIGN RULE: never guess. An unrecognised media string returns 'unknown' and `satisfies()`
 refuses it, rather than assuming copper because copper is common. A wrong guess here produces
-exactly the false verdict the module exists to prevent.
+exactly the false verdict the module exists to prevent. An EMPTY cage is `absent`: it is not a
+role, because nothing is in it.
 """
 from __future__ import annotations
 
@@ -45,14 +48,17 @@ DIRECT_ATTACH = "direct_attach"
 ABSENT = "absent"
 UNKNOWN = "unknown"
 
-# What each PROFILE role name demands of the port it binds. Role names stay in the vocabulary
-# people actually use ('copper'); the categories stay precise.
+# What each LINK ROLE demands of the port it binds. Role names stay in the vocabulary people
+# actually use ('copper'); the categories stay precise.
 ROLE_REQUIRES = {
     "copper": (TWISTED_PAIR,),
+    # A copper SFP: a 1000BASE-T module in an SFP cage. Twisted pair like `copper` — the frame
+    # tells them apart by whether `show system pluggable` lists the port (`is_pluggable`).
+    "cusfp": (TWISTED_PAIR,),
     "fibre": (FIBRE,),
-    # The testbox data link (profile `tblink`, `ck_link_tb = tb-<dut>:<eth>`): a capture /
-    # injection path, not a media-under-test, so ANY fitted media satisfies it. An empty
-    # tuple means "no media requirement" -- distinct from an UNKNOWN role, which is refused.
+    # The testbox data link: a capture / injection path, not a media-under-test, so ANY fitted
+    # media satisfies it. An empty tuple means "no media requirement" -- distinct from an
+    # UNKNOWN role, which is refused.
     "tb": (),
 }
 
@@ -67,26 +73,41 @@ _DA_RX = re.compile(r"BASE-(?:C|K)[A-Z0-9]*$", re.I)
 _ABSENT_STRINGS = frozenset({"", "-", "not present", "notpresent", "none", "unknown"})
 
 
-def parse_link_ref(value: str) -> Tuple[Optional[str], Optional[str], Optional[str]]:
-    """`'swi_a-swi_b:port1.0.1'` -> `('swi_a', 'swi_b', 'port1.0.1')`.
+def _bare_port(name: str) -> str:
+    """`port1.0.25` and `1.0.25` name the same port: `show system pluggable` prints the bare form
+    on some releases and the prefixed form on others."""
+    n = (name or "").strip().lower()
+    return n[4:] if n.startswith("port") else n
 
-    The `[misc] ck_link_<role>` format. Lives here rather than in `pt_profiles` because THIS
-    module is the one shipped to the testbox and executed by the generated script; the
-    contract checker imports it from here so there is exactly one definition.
 
-    Splits the port suffix FIRST, so a ':' can never be confused with the '-' separating the
-    two device names.
+def pluggable_ports(pluggable_output: str) -> frozenset:
+    """The ports `show system pluggable` lists — i.e. the cages that currently HOLD a module.
+
+    Reads the first column of every data row after the header. An empty cage is not listed,
+    so absence here means "fixed port or empty cage", never "copper". Returned in the bare
+    form (`1.0.25`); compare through `is_pluggable`.
     """
-    if not value:
-        return None, None, None
-    pair, _, port = value.partition(":")
-    idx = pair.find("-")
-    while idx != -1:
-        left, right = pair[:idx].strip(), pair[idx + 1:].strip()
-        if left and right:
-            return left, right, (port.strip() or None)
-        idx = pair.find("-", idx + 1)
-    return None, None, (port.strip() or None)
+    out = set()
+    seen_header = False
+    for line in (pluggable_output or "").splitlines():
+        stripped = line.strip()
+        if not stripped:
+            continue
+        if not seen_header:
+            if stripped.split()[0].lower() == "port":
+                seen_header = True
+            continue
+        if set(stripped) <= {"-"}:
+            continue
+        first = stripped.split()[0]
+        if re.match(r"^(port)?\d+\.\d+\.\d+$", first, re.I):
+            out.add(_bare_port(first))
+    return frozenset(out)
+
+
+def is_pluggable(port: str, in_cage) -> bool:
+    """Is `port` one of the ports `pluggable_ports()` found a module in?"""
+    return _bare_port(port) in {_bare_port(x) for x in (in_cage or ())}
 
 
 def media_type(status_output: str, port: str) -> Optional[str]:
@@ -164,7 +185,7 @@ def satisfies(role: str, category: str) -> Tuple[bool, str]:
         + ("MDI/MDIX and the 10/100 speed range do not exist on this media, and the CLI "
            "accepts those commands anyway -- so continuing would report a product failure "
            "that is really a cabling error." if role == "copper" else
-           "Re-point the ck_link_* role in the bench .setup at a port of the right media.")
+           "Fit a module of the right media, or cable the role's partner to another port.")
     )
 
 

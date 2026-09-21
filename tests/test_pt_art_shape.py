@@ -51,22 +51,31 @@ def init_body(code):
     return re.search(r"def init\(self, setup\):.*?\n    def configure", code, re.S).group(0)
 
 
+def roles(d):
+    """The role SET a detection result binds (2026-09-21: {tb, copper, fibre, cusfp}; `peer`
+    is the derived alias for any neighbour)."""
+    return {k for k in pc.LINK_ROLES if d[k]}
+
+
 # ----------------------------------------------------------------- 1. which links the frame binds
 
 def test_capture_wording_binds_the_testbox_link():
-    assert pc._detect_links(CAPTURE_SEQ, []) == {"tb": True, "peer": False}
+    d = pc._detect_links(CAPTURE_SEQ, [])
+    assert roles(d) == {"tb"} and d["peer"] is False
 
 
 def test_neighbour_wording_binds_the_peer_link():
-    assert pc._detect_links(PEER_SEQ, []) == {"tb": False, "peer": True}
+    d = pc._detect_links(PEER_SEQ, [])
+    assert roles(d) == {"copper"} and d["peer"] is True
 
 
 def test_a_case_can_need_both_links():
-    assert pc._detect_links(BOTH_SEQ, []) == {"tb": True, "peer": True}
+    assert roles(pc._detect_links(BOTH_SEQ, [])) == {"tb", "copper"}
 
 
 def test_no_link_wording_binds_nothing():
-    assert pc._detect_links(NONE_SEQ, []) == {"tb": False, "peer": False}
+    d = pc._detect_links(NONE_SEQ, [])
+    assert roles(d) == set() and d["peer"] is False
 
 
 def test_a_physical_step_binds_the_testbox_link():
@@ -80,20 +89,20 @@ def test_fragment_code_using_tb_eth_binds_the_testbox_link():
 
 def test_legacy_portlink_wording_alone_means_the_peer_link():
     seq = [{"n": 1, "action": "bring up the port link", "verify": "link up", "kind": "verify"}]
-    assert pc._detect_links(seq, []) == {"tb": False, "peer": True}
+    assert roles(pc._detect_links(seq, [])) == {"copper"}
 
 
 # ----------------------------------------------------------------- 2. the frame's init()
 
 def test_testbox_link_is_bound_in_the_art_shape():
     body = init_body(render(CAPTURE_SEQ))
-    assert "(dutA.portA, tb.ethA, _tb) = self._ck_bind_link(setup, dutA, misc, 'tb')" in body
+    assert "(dutA.portA, tb.ethA, _tb) = self._ck_bind_link(setup, dutA, 'tb')" in body
     assert "portPeer" not in body and "ck_far_port" not in body
 
 
 def test_peer_link_is_bound_by_role_and_never_called_dut():
     body = init_body(render(PEER_SEQ))
-    assert "(dutA.portPeer, peer_port, peer) = self._ck_bind_link(" in body
+    assert "(dutA.portPeer, peer_port, peer) = self._ck_bind_link(setup, dutA, 'copper')" in body
     assert "peer.portDut = peer_port" in body and "self.peer = peer" in body
     assert "tb.ethA" not in body
     assert not re.search(r"\bdut\b\s*=", body), "the partner must not be named `dut`"
@@ -105,11 +114,14 @@ def test_both_links_bind_two_distinct_dut_ports():
 
 
 def test_bind_helper_takes_the_testbox_end_without_init_swi():
+    """The far end of the testbox link is the TestBox object the framework already handed
+    over in `get_all_port_links()`; only a far SWITCH is `init_swi()`-ed, once per partner."""
     sk = render(CAPTURE_SEQ)
     helper = re.search(r"def _ck_bind_link.*?\n    def init", sk, re.S).group(0)
-    assert "if far_key == 'tb':" in helper
-    assert "far = self.tb" in helper
-    assert "setup.init_portlink(dut, far, type1='port')\n" in helper     # no type2 for an Eth
+    assert "if isinstance(far, ATTestBox.TestBox):" in helper
+    assert "if far.name not in self._ck_far:" in helper
+    assert "setup.init_swi(far.name)" in helper
+    assert "init_portlink" not in helper
 
 
 def test_atpackets_is_imported_only_when_the_testbox_link_exists():
@@ -245,17 +257,16 @@ def test_lint_still_requires_a_verdict_but_accepts_several():
 FRAME_HEAD = (
     "import sys\nfrom framework import ATTestSet, ATTestCase\n"
     "class TestSet(ATTestSet.TestSet):\n"
-    "    def _ck_bind_link(self, setup, dut, misc, role):\n"
+    "    def _ck_bind_link(self, setup, dut, role, optional=False):\n"
     "        import ck_media\n"
-    "        (a, b) = setup.init_portlink(dut, dut, type1='port')\n"
-    "        return a, b, dut\n"
+    "        near, far_port, far = self._ck_topo[role].pop(0)\n"
+    "        return near, far_port, far\n"
     "    def init(self, setup):\n"
     "        tb = setup.init_tb()\n"
-    "        misc = setup.get_all_misc()\n"
-    "        dutA = setup.init_swi(misc.get('ck_role_dut', 'swi_a'))\n"
+    "        dutA = setup.init_swi('swi_a')\n"
     "        self.tb = tb\n        self.dutA = dutA\n"
-    "        (dutA.portA, tb.ethA, _tb) = self._ck_bind_link(setup, dutA, misc, 'tb')\n"
-    "        (dutA.portPeer, peer_port, peer) = self._ck_bind_link(setup, dutA, misc, 'copper')\n"
+    "        (dutA.portA, tb.ethA, _tb) = self._ck_bind_link(setup, dutA, 'tb')\n"
+    "        (dutA.portPeer, peer_port, peer) = self._ck_bind_link(setup, dutA, 'copper')\n"
     "        peer.portDut = peer_port\n        self.peer = peer\n"
     "    def configure(self):\n        pass\n"
     "    def tear_down(self):\n        pass\n"

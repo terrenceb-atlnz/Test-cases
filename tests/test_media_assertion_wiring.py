@@ -3,8 +3,9 @@
 `ask-ck/tools/pt_media.py` being correct is worthless if no generated script calls it. Three links in
 that chain, each with its own way of silently breaking:
 
-  1. EMITTED  — the skeleton must bind its link through `_ck_bind_link`, not a FILL slot the
-                model can fill with anything (or omit).
+  1. EMITTED  — the skeleton must bind its links through `_ck_discover` / `_ck_bind_link`
+                (framework discovery, 2026-09-21), not a FILL slot the model can fill with
+                anything (or omit), and never from a `[misc]` declaration.
   2. SHIPPED  — `ck_media.py` must reach the run workdir, or every script dies on `import
                 ck_media`. The filename in `files` and the name the template imports are two
                 separate strings that must agree.
@@ -49,6 +50,9 @@ def lint_errors(code: str):
     return pc._lint_generated(sess)["errors"]
 
 
+# The LEGACY hand-repaired shape (test-9000.33234.py, saved 2026-09-21 before the discovery
+# frame): its own `_ck_bind_link` still calls init_portlink INSIDE the helper. Saved scripts
+# must keep linting clean, so the helper's own call stays sanctioned.
 CONFORMANT = (
     "class TestSet(ATTestSet.TestSet):\n"
     "    def _ck_bind_link(self, setup, dut, misc, role):\n"
@@ -68,7 +72,8 @@ CONFORMANT = (
 
 def test_skeleton_defines_and_calls_the_binding_helper():
     sk = render()
-    assert "def _ck_bind_link(self, setup, dut, misc, role):" in sk
+    assert "def _ck_discover(self, dut):" in sk
+    assert "def _ck_bind_link(self, setup, dut, role, optional=False):" in sk
     assert "self._ck_bind_link(" in sk, "helper defined but never called"
 
 
@@ -86,24 +91,35 @@ def test_the_binding_replaced_the_fill_slot():
     assert "_ck_bind_link" in init
 
 
-def test_the_dut_key_comes_from_the_role_contract_not_a_literal():
+def test_the_dut_is_the_frameworks_swi_a_slot_and_its_stack_when_it_is_in_one():
+    """Terrence 2026-09-21: `swi_a` IS the framework's portable DUT slot (297 corpus lookups;
+    a role-named key appears 0 times), so nothing is read from `[misc]` to find it. On a
+    stacked bench the ports belong to members and commands go to the master, so the stack
+    handle is bound when `get_stack()` reports one."""
     sk = render()
-    assert "misc.get('ck_role_dut', 'swi_a')" in sk
-    assert "setup.get_all_misc()" in sk
+    assert "setup.init_swi('swi_a')" in sk
+    assert ".get_stack()" in sk and "setup.init_stk(_stk.name)" in sk
+    assert "get_all_misc" not in sk and "ck_link" not in sk and "ck_role_dut" not in sk
 
 
-def test_the_helper_asserts_media_and_refuses_a_none_port():
-    """Both silent failures it exists to convert: (None, None) from init_portlink, and the
-    wrong media. If either check is dropped the mechanism is decorative."""
+def test_discovery_reads_media_from_the_device_and_a_required_role_aborts():
+    """The two facts the frame must get from the DEVICE, never a file: what is in each port
+    (`show interface <port> status` Type column) and which cages hold a module (`show
+    system pluggable`). A required role with no matching link is a bench problem and aborts."""
     sk = render()
+    disc = re.search(r"def _ck_discover.*?\n    def _ck_bind_link", sk, re.S).group(0)
+    assert "get_all_port_links()" in disc
+    assert "show interface %s status" in disc and "show system pluggable" in disc
+    assert "ck_media.classify" in disc and "is_pluggable" in disc
+    assert "isinstance(far, ATTestBox.TestBox)" in disc
     helper = re.search(r"def _ck_bind_link.*?\n    def init", sk, re.S).group(0)
-    assert "assert_role_media" in helper
-    assert "is None" in helper and "RuntimeError" in helper
+    assert "RuntimeError" in helper and "optional" in helper
+    assert "init_portlink" not in sk, "the frame must not fall back to first-unused matching"
 
 
 def test_helper_failures_blame_the_bench_not_the_product():
     helper = re.search(r"def _ck_bind_link.*?\n    def init", render(), re.S).group(0)
-    assert helper.count("BENCH PROBLEM, not a product defect") >= 2
+    assert helper.count("BENCH PROBLEM, not a product defect") >= 1
 
 
 def test_the_emitted_role_defaults_to_copper_and_follows_fibre_wording():
@@ -114,9 +130,10 @@ def test_the_emitted_role_defaults_to_copper_and_follows_fibre_wording():
 
 
 def test_link_role_detection():
-    assert pc._detect_link_role(SEQ, "") == "copper"
-    assert pc._detect_link_role([], "verify optical fibre negotiation") == "fibre"
-    assert pc._detect_link_role([{"action": "fit a 1000BASE-LX SFP", "verify": ""}]) == "fibre"
+    d = pc._detect_links(SEQ, [], "")
+    assert d["copper"] and not d["fibre"]
+    assert pc._detect_links([], [], "verify optical fibre negotiation")["fibre"]
+    assert pc._detect_links([{"action": "fit a 1000BASE-LX SFP", "verify": ""}], [])["fibre"]
 
 
 # ------------------------------------------------------------------------ 2. SHIPPED
@@ -198,10 +215,24 @@ def test_lint_REJECTS_reading_a_port_attribute_with_no_binding_at_all():
 
 
 def test_the_helpers_own_init_portlink_call_is_not_flagged():
-    """The sanctioned call lives inside `_ck_bind_link`. Flagging it would make every
-    conformant script un-generatable — the check must be scoped to the helper's line range."""
+    """The LEGACY helper's own call (test-9000.33234.py) stays sanctioned. Flagging it would
+    fail every saved script — the check is scoped to the helper's line range."""
     assert not [e for e in lint_errors(CONFORMANT)
                 if "skips the run-time MEDIA assertion" in e]
+
+
+def test_lint_REJECTS_a_unit_binding_its_own_device():
+    """The T33234 setup-unit failure: a unit calling `setup.init_swi()` invents a binding the
+    frame did not make. Binding is the frame's job; units reach `self.testSet.<name>`."""
+    sk = render()
+    mut = sk.replace("        self.log('STEP 1",
+                     "        swi_b = self.testSet.setup.init_swi('swi_b')\n        self.log('STEP 1", 1)
+    hits = [e for e in lint_errors(mut) if "outside `TestSet.init()`" in e]
+    assert hits and "init_swi" in hits[0], lint_errors(mut)
+
+
+def test_the_frames_own_init_swi_calls_are_not_flagged():
+    assert not [e for e in lint_errors(render()) if "outside `TestSet.init()`" in e]
 
 
 def test_a_commented_port_attribute_does_not_trip_the_no_binding_check():
@@ -241,7 +272,7 @@ def test_only_the_dut_and_one_partner_are_bound():
 def test_the_dropped_devices_are_named_in_a_comment_not_silently_discarded():
     body = init_body(render3())
     assert "# NOT BOUND: linkP." in body
-    assert "second link role" in body, "the comment must say how to legitimately get another"
+    assert "link role" in body, "the comment must say how to legitimately get another"
 
 
 def test_the_partner_is_the_far_end_of_the_bound_link():

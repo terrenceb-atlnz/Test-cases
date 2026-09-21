@@ -1501,9 +1501,10 @@ def _setup_keys_for(switches: List[str]) -> List[str]:
     return keys
 
 
-# Bound in init() but not a DEVICE the model reaches with `self.testSet.<name>.cmd(...)`.
-# `ck_far_port` is the far end of the bound link — a SwitchPort, not a switch.
-_NON_DEVICE_BOUND_ATTRS = frozenset({"ck_far_port"})
+# Bound in init() but not a DEVICE the model reaches with `self.testSet.<name>.cmd(...)`:
+# the pluggable-role flags and the frame's own discovery state (2026-09-21).
+_NON_DEVICE_BOUND_ATTRS = frozenset({"ck_far_port", "fibre_supported", "cusfp_supported",
+                                     "_ck_far", "_ck_topo"})
 
 
 def _skeleton_bound_devices(skeleton: str, dut: str = "") -> List[str]:
@@ -1567,19 +1568,18 @@ _FIBRE_HINT_RX = re.compile(
     r"\d+base-(?:sx|lx|lh|sr|lr|er|zx|bx|fx))\b", re.I)
 
 
-def _detect_link_role(sequence: List[dict], objective: str = "") -> str:
-    """Which MEDIA role this case's link must be — `'copper'` or `'fibre'`.
-
-    Defaults to copper, and that default is SAFE rather than a guess: MDI/MDIX and the
-    10/100 speed range exist only on twisted pair, which is what the great majority of port
-    cases exercise. Crucially, a wrong choice cannot produce a wrong verdict — the run-time
-    media assertion (`_ck_bind_link` -> `ck_media`) refuses to proceed when the bound port's
-    pluggable disagrees, and says the BENCH is at fault. So the failure mode is a loud stop,
-    never a silent false pass.
-    """
-    blob = " ".join([objective or ""] + [
-        (s.get("action", "") or "") + " " + (s.get("verify", "") or "") for s in (sequence or [])])
-    return "fibre" if _FIBRE_HINT_RX.search(blob) else "copper"
+# Copper-specific vocabulary: when a case mentions fibre AND any of these, it needs BOTH links
+# (T33234: crossover/straight-through polarity on copper, plus fibre and copper-SFP insertion).
+_COPPER_HINT_RX = re.compile(
+    r"\b(copper|twisted[- ]pair|rj-?45|polarity|mdi-?x?|crossover|straight-?through|"
+    r"\d+base-t[a-z0-9]*)\b", re.I)
+# A copper SFP: a 1000BASE-T (or similar) MODULE in an SFP cage — a pluggable the operator
+# inserts, so it is its own role rather than the fixed RJ-45 copper link.
+_CUSFP_HINT_RX = re.compile(
+    r"\b(copper[- ]sfp|sfp[- ]?t\b|cu[- ]?sfp|"
+    r"\d+base-t[a-z0-9]*\s+(?:sfp|module|pluggable|transceiver)|"
+    r"copper\s+(?:sfp\s+)?(?:module|pluggable|transceiver)|"
+    r"rj-?45\s+(?:sfp|module|pluggable|transceiver))\b", re.I)
 
 
 # ---- ART shape (2026-09-07): which LINKS the frame binds, the suite LIBRARY, the bound ports ----
@@ -1601,32 +1601,56 @@ _PEER_RX = re.compile(
     r"negotiat\w*|show lldp neighbo\w*)\b", re.I)
 
 
+LINK_ROLES = ("tb", "copper", "fibre", "cusfp")
+
+
 def _detect_links(sequence: List[dict], fragments: List[dict], objective: str = "") -> dict:
-    """Which of the frame's two links this case needs: `{"tb": bool, "peer": bool}`.
+    """Which of the frame's four link ROLES this case needs:
+    `{"tb": bool, "copper": bool, "fibre": bool, "cusfp": bool, "peer": bool}` — `peer` is the
+    derived alias "any neighbour switch" (copper or fibre or cusfp), for callers that only care
+    whether a partner exists.
 
-    Text-driven and deliberately over-inclusive: a link bound but unused costs one
-    `ck_link_*` line in the bench file, while a link needed but unbound costs a bench run
-    that dies on `interface None` (the whole 2026-09-07 finding). A wrong choice can never
-    produce a wrong VERDICT — `_ck_bind_link` refuses to start when the bench lacks the
-    role, and says the bench is the cause.
+    The frame binds one link per role and finds each through the framework at run time
+    (`get_all_port_links()` + the DUT's own show output — 2026-09-21, no `[misc]` declaration),
+    so this function decides only HOW MANY partner links the case needs and of which media.
 
-      tb    the case captures / injects / measures traffic (the ART `tb.ethA` idiom), or
-            has a PHYSICAL step (the testbox observes the event from its own end).
-      peer  the case needs a neighbour switch: a partner to negotiate against, an LLDP
-            neighbour table to read, a remote port to act on.
+    Text-driven and deliberately over-inclusive: a role bound but unused costs one discovered
+    link (or, for the optional pluggable roles, nothing at all), while a role needed but
+    unbound costs a bench run that dies on `interface None`. A wrong choice can never produce
+    a wrong VERDICT — a required role the bench cannot supply aborts at init() and says the
+    bench is the cause.
+
+      tb      the case captures / injects / measures traffic (the ART `tb.ethA` idiom), or
+              has a PHYSICAL step (the testbox observes the event from its own end).
+      copper  a neighbour switch on a fixed twisted-pair link: a partner to negotiate against,
+              a polarity to force, an LLDP neighbour table to read, a remote port to act on.
+              Suppressed only when the case is fibre-flavoured and mentions nothing
+              copper-specific (then the neighbour is the fibre link).
+      fibre   the case mentions fibre / optical / a fibre pluggable, or a step's slice-C
+              `claim.cable` says so.
+      cusfp   the case mentions a copper SFP / 1000BASE-T module — a pluggable the operator
+              inserts, its own role so a bench without one reports UNSUPPORTED.
     Legacy fallback: a case that reads like it needs *a* port link but names neither side
-    gets the peer link, which is what the frame bound before this function existed.
+    gets the copper link, which is what the frame bound before this function existed.
     """
+    seq = sequence or []
     blob = " ".join([objective or ""] + [
-        (s.get("action", "") or "") + " " + (s.get("verify", "") or "") for s in (sequence or [])])
+        (s.get("action", "") or "") + " " + (s.get("verify", "") or "") for s in seq])
     code = " ".join((f.get("code") or "") for f in (fragments or []))
-    has_physical = any(_step_kind(s) == "physical" for s in (sequence or []))
+    has_physical = any(_step_kind(s) == "physical" for s in seq)
+    claims = [str(((s.get("claim") or {}) if isinstance(s.get("claim"), dict) else {}).get("cable") or "").lower()
+              for s in seq]
     tb = bool(_TBLINK_RX.search(blob)) or bool(re.search(r"\btb\.eth|start_tcpdump|sendp\(", code)) \
         or has_physical
-    peer = bool(_PEER_RX.search(blob)) or bool(re.search(r"\b(lp|peer|remote|swi_[b-z])\.(cmd|mode|port)", code))
-    if not tb and not peer and (_PORTLINK_RX.search(blob + " " + code)):
-        peer = True
-    return {"tb": tb, "peer": peer}
+    neighbour = bool(_PEER_RX.search(blob)) or bool(re.search(r"\b(lp|peer|remote|swi_[b-z])\.(cmd|mode|port)", code))
+    fibre = bool(_FIBRE_HINT_RX.search(blob)) or any(c.startswith("fib") for c in claims)
+    cusfp = bool(_CUSFP_HINT_RX.search(blob)) or any(c in ("cusfp", "copper-sfp", "copper sfp") for c in claims)
+    copper_hint = bool(_COPPER_HINT_RX.search(blob)) or any(c in ("straight", "crossover", "copper") for c in claims)
+    copper = neighbour and (not fibre or copper_hint)
+    if not (tb or copper or fibre or cusfp) and _PORTLINK_RX.search(blob + " " + code):
+        copper = True
+    return {"tb": tb, "copper": copper, "fibre": fibre, "cusfp": cusfp,
+            "peer": copper or fibre or cusfp}
 
 
 def _library_stem(case_key: str) -> str:
@@ -1939,8 +1963,9 @@ def textwrap_dedent(code: str) -> str:
 def _skeleton_bound_ports(skeleton: str) -> List[dict]:
     """The LINKS `TestSet.init()` binds, read off the rendered frame's `_ck_bind_link` calls:
     `[{"role": "tb", "near": "dutA.portA", "far": "tb.ethA"}, {"role": "copper",
-    "near": "dutA.portPeer", "far": "peer.portDut"}]`. The prompt's handle section and rule 3
-    render from this, so the names the model is told are the names the frame really bound."""
+    "near": "dutA.portPeer", "far": "peer.portDut"}, {"role": "fibre", "near": "dutA.portFibre",
+    "far": "fibre_peer.portFibre"}]`. The prompt's handle section and rule 3 render from this,
+    so the names the model is told are the names the frame really bound."""
     import ast as ast_mod
     try:
         tree = ast_mod.parse(skeleton)
@@ -2082,7 +2107,6 @@ def _render_skeleton(case_key: str, case_title: str, sequence: List[dict],
                       setup_steps=setup_steps, steps=verify_steps,
                       switches=switches, stacks=stacks, needs_portlink=needs_portlink,
                       setup_keys=_setup_keys_for(switches),
-                      link_role=_detect_link_role(sequence, objective),
                       links=_detect_links(sequence, fragments or [], objective),
                       lib_stem=(library or {}).get("stem") or "",
                       objective_lines=_objective_comment_lines(objective))
@@ -2427,6 +2451,7 @@ _POLICY_LINT_MARKERS = (
     "self.passed()/self.failed() (empty reason",   # ...empty verdict reason
     "missing a leading",                       # ...provenance tag
     "calls setup.init_portlink() directly",    # house binding idiom; script still runs
+    "binding devices is the frame's job",      # a unit init_swi()/init_stk()-ing its own device (2026-09-21)
     "are config only; the verdict belongs in main()",   # a verdict in configure()/tear_down()
     "'s port, on ",                            # a port selected on the switch it does not belong to
     "the suite owns it",                       # G8(b): a case re-issues / undoes a TestSet.configure() command
@@ -2545,7 +2570,8 @@ _CAPTURE_START = {"start_tcpdump", "start_capture", "startCapture"}
 _CAPTURE_STOP = {"stop_tcpdump", "stop_capture", "stopCapture"}
 _WAIT_NAMES = {"sleep", "wait", "waitFor", "wait_for", "poll", "mode", "settle"}
 # init() binder -> the surface class whose methods a handle of that kind may call. A partner
-# bound through _ck_bind_link may be a switch OR the testbox, so it gets the union.
+# bound through _ck_bind_link (discovered, 2026-09-21) may be a switch OR the testbox, so it
+# gets the union.
 _BINDER_KINDS = {"init_swi": ("ATDrivers.ATSwitch", "Switch"),
                  "init_stk": ("ATDrivers.ATSwitch", "Stack"),
                  "init_tb": ("ATDrivers.ATTestBox", "TestBox")}
@@ -3478,43 +3504,53 @@ def _lint_generated(sess: PtSession) -> dict:
         # 2b. Imports the TESTBOX's python3 will not have. The script runs there, not here.
         errors.extend(_removed_stdlib_imports(tree))
 
-        # 2b-0. The MEDIA ASSERTION must be on the only path to a bound port.
+        # 2b-0. BINDING IS THE FRAME'S. `TestSet.init()` discovers the topology through the
+        # framework (`get_all_port_links()`) and picks each link by the MEDIA the DUT reports
+        # (`_ck_discover` / `_ck_bind_link`, 2026-09-21). That cannot be checked offline —
+        # media belongs to the pluggable — so a port bound any other way carries no media
+        # guarantee, and a run bound to the wrong media reports a PRODUCT failure that is
+        # really a cabling error (TOPOLOGY-PROFILES.md).
         #
-        # `_ck_bind_link()` (fixed frame) resolves the bench's `[misc] ck_link_<role>`,
-        # binds it, and asserts the bound port's media before the test uses it. That last
-        # part cannot be checked offline — media belongs to the pluggable, and the CLI
-        # accepts `polarity`/`speed 100` on a fibre port where they are meaningless, so a
-        # run bound to the wrong media reports a PRODUCT failure that is really a cabling
-        # error (TOPOLOGY-PROFILES.md). A script that calls `init_portlink()` directly
-        # therefore gets a port with no media guarantee, which defeats the whole mechanism.
-        #
-        # Two errors, both about the same invariant:
-        #   (a) a direct init_portlink() OUTSIDE the helper — bypasses the assertion;
-        #   (b) reading a bound port attribute while never calling the helper — the port is
+        # Three errors, all about the same invariant:
+        #   (a) `setup.init_portlink()` anywhere but inside a legacy `_ck_bind_link` body —
+        #       the frame never calls it (first-unused matching is exactly what cannot tell
+        #       copper from fibre), so any call is a bypass;
+        #   (b) `setup.init_swi()` / `init_stk()` outside `TestSet.init()` and the frame's
+        #       helpers — a UNIT binding its own device (the T33234 setup-unit failure);
+        #   (c) reading a bound port attribute while never calling the helper — the port is
         #       unbound, so this dies with AttributeError on first use (seen 2026-07-28).
         _helper = "_ck_bind_link"
-        _helper_def = next((n for n in ast_mod.walk(tree)
-                            if isinstance(n, ast_mod.FunctionDef) and n.name == _helper), None)
-        _helper_lines = (set(range(_helper_def.lineno, (_helper_def.end_lineno or
-                                                        _helper_def.lineno) + 1))
-                         if _helper_def else set())
+        _frame_fns = {"init", _helper, "_ck_discover"}
+        _fn_lines = {}
+        for _fd in ast_mod.walk(tree):
+            if isinstance(_fd, ast_mod.FunctionDef) and _fd.name in _frame_fns:
+                _fn_lines.setdefault(_fd.name, set()).update(
+                    range(_fd.lineno, (_fd.end_lineno or _fd.lineno) + 1))
+        _helper_lines = _fn_lines.get(_helper, set())
+        _frame_lines = set().union(*_fn_lines.values()) if _fn_lines else set()
         _calls_helper = any(
             isinstance(n, ast_mod.Call) and (
                 (isinstance(n.func, ast_mod.Attribute) and n.func.attr == _helper)
                 or (isinstance(n.func, ast_mod.Name) and n.func.id == _helper))
             for n in ast_mod.walk(tree))
         for _n in ast_mod.walk(tree):
-            if not (isinstance(_n, ast_mod.Call) and isinstance(_n.func, ast_mod.Attribute)
-                    and _n.func.attr == "init_portlink"):
+            if not (isinstance(_n, ast_mod.Call) and isinstance(_n.func, ast_mod.Attribute)):
                 continue
-            if _n.lineno in _helper_lines:
-                continue                      # the helper's own, sanctioned, call
-            errors.append(
-                f"line {_n.lineno}: calls setup.init_portlink() directly, which skips the "
-                f"run-time MEDIA assertion. Bind through `self.{_helper}(setup, <dut>, misc, "
-                f"'<role>')` instead — a port bound without that check can be the wrong media, "
-                f"and the resulting failure reads as a product defect rather than a cabling "
-                f"error. See ask-ck/functions/pytest-creator/TOPOLOGY-PROFILES.md")
+            if _n.func.attr == "init_portlink" and _n.lineno not in _helper_lines:
+                errors.append(
+                    f"line {_n.lineno}: calls setup.init_portlink() directly, which skips the "
+                    f"run-time MEDIA assertion. The frame binds every link in `TestSet.init()` "
+                    f"through `self.{_helper}(setup, <dut>, '<role>')`, choosing the link by "
+                    f"the media the DUT reports — a port bound without that check can be the "
+                    f"wrong media, and the resulting failure reads as a product defect rather "
+                    f"than a cabling error. See ask-ck/functions/pytest-creator/TOPOLOGY-PROFILES.md")
+            elif (_n.func.attr in ("init_swi", "init_stk") and _frame_lines
+                  and _n.lineno not in _frame_lines):
+                errors.append(
+                    f"line {_n.lineno}: calls setup.{_n.func.attr}() outside `TestSet.init()` — "
+                    f"binding devices is the frame's job. Units reach the devices init() bound "
+                    f"through `self.testSet.<name>`; if the case needs another device, the "
+                    f"sequence is wrong — say so in a comment rather than binding it here")
         if not _calls_helper:
             _port_attr_rx = re.compile(r"\.port[A-Z]\w*\b")
             for _i, _line in enumerate(code.splitlines(), 1):
@@ -3550,7 +3586,8 @@ def _lint_generated(sess: PtSession) -> dict:
                                     and _el.value.id == "self"):
                                 _bound.add(_el.attr)
         _DEV_VERBS = {"cmd", "mode", "reboot", "portReset", "configurePort", "link",
-                      "portA", "portB", "portPeer", "portDut", "ethA", "name"}
+                      "portA", "portB", "portPeer", "portDut", "portFibre", "portCuSfp",
+                      "ethA", "name"}
         _unbound_seen = set()
         for _n in ast_mod.walk(tree):
             if not isinstance(_n, ast_mod.Attribute):
@@ -5346,8 +5383,8 @@ async def run_script(key: str, body: dict = Body(...)):
     lib = (step6.get("files") or {}).get("library")
     if lib and lib.get("code"):
         files[lib["name"]] = lib["code"]
-    # Every generated script does `import ck_media` inside _ck_bind_link (fixed frame), so
-    # the helper ships with EVERY run — not only when the reviewer supplied a library.
+    # Every generated script does `import ck_media` inside _ck_discover / _ck_bind_link (fixed
+    # frame), so the helper ships with EVERY run — not only when the reviewer supplied a library.
     files[MEDIA_HELPER_NAME] = _media_helper_source()
 
     naming = step6.get("naming") or {}

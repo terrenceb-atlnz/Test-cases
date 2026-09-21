@@ -41,13 +41,12 @@ from framework import ATTestSet, ATTestCase
 class TestSet(ATTestSet.TestSet):
     def init(self, setup):
         tb = setup.init_tb()
-        misc = setup.get_all_misc()
-        dutA = setup.init_swi(misc.get('ck_role_dut', 'swi_a'))
+        dutA = setup.init_swi('swi_a')
         self.tb = tb
         self.dutA = dutA
-        (dutA.portA, self.ck_far_port, dut) = self._ck_bind_link(setup, dutA, misc, 'copper')
+        (dutA.portA, self.ck_far_port, dut) = self._ck_bind_link(setup, dutA, 'copper')
         self.dut = dut
-        (dutA.portB, self.ck_far_port_b, _far_b) = self._ck_bind_link(setup, dutA, misc, 'copper')
+        (dutA.portB, self.ck_far_port_b, _far_b) = self._ck_bind_link(setup, dutA, 'copper')
         self.dut.portB = self.ck_far_port_b
 
     def configure(self):
