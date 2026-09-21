@@ -11,6 +11,45 @@ current working thread see
 [`ask-ck/functions/generator/PROGRESS.md`](ask-ck/functions/generator/PROGRESS.md).
 
 
+## 2026-09-21 (later) — The frame discovers its topology through the framework; the `[misc]` role contract is retired
+
+Plan `ask-ck/plans/PLAN-frame-framework-discovery.md`; commits `b96255c` + `f354f14` (reverts of the
+same-day role-set commits `6ada916` / `e022e1c`), `3116625` (frame, detection, media, lint, prompts,
+`pt_profiles` retired), `248e0c0` (preflight).
+
+- **Nothing about the bench is pre-declared to a generated script any more.** *Why:* Terrence,
+  reading the plan for the role set: *"init_swi('swi_b') is literally the naming convention, it's
+  NOT bench-specific"* and *"it's literally `show sys pluggable` … we don't need more variables to
+  do that"*, then the ruling: *"I dont want the [misc] section to be callable as a workaround for
+  not using the existing framework commands."* Checked against the corpus, both held: `swi_a` /
+  `swi_b` / `stk_a` are the framework's portable slots (297 / 168 / 192 lookups, a role-named key
+  0 times), and the framework's own transceiver suite finds the testbox by walking
+  `get_all_port_links()` and reads media with `show system pluggable`. `ck_role_dut`,
+  `ck_link_<role>` and `ck_profile` — built 2026-07-30 and deepened that very morning — duplicated
+  a convention the framework already had, and a media declaration goes stale on a module swap.
+- **The frame binds `swi_a` (its stack when in one), discovers every cable through the framework,
+  and classifies each by what the DUT reports.** *Why one link per role by media:* the one gap the
+  old layer really covered — two cables of different media between the same pair, where
+  `init_portlink` hands out the first unused — is closed by asking the device, not by tagging the
+  file. Pluggable roles are taken before copper so a copper SFP is never consumed as the copper
+  test port. **An empty cage is `absent`, never a role** ("cages themselves aren't fibre or copper
+  cause they're empty"), so a pluggable role needs its module fitted at `init()` or its cases
+  report UNSUPPORTED.
+- **Far ports are role-specific** (`peer.portDut`, `fibre_peer.portFibre`, `cusfp_peer.portCuSfp`).
+  *Why:* on tb470 every partner link lands on ONE switch; the shared `.portDut` the role-set design
+  chose would have been overwritten by the next binding. The hand-repaired T33234 already used
+  these names.
+- **The preflight matches required roles before optional ones and says media is unknowable
+  offline.** *Why:* every partner link looks alike in a `.setup`; matching in source order let an
+  optional pluggable eat the cable a required copper role needed and printed a confident wrong
+  UN-RUNNABLE for T33234 on tb470. A confident wrong negative is the one thing this tool must not
+  produce.
+- **Retired:** `pt_profiles.py`, `--profile`, `parse_link_ref`, the `[misc]` parsing in the
+  preflight, the profile table in `TOPOLOGY-PROFILES.md` (rewritten around discovery). tb470's
+  `[misc] ck_*` lines are inert — Terrence's file, his edit.
+- Reverted rather than reworked forward (Terrence's choice), so `main` never carries the extended
+  `[misc]` contract as a live state. Preflight fixture fix `31a7ba7` stands.
+
 ## 2026-09-21 — Generate-state gating + Re-chunk; Reset Generate; stale reviews; sequence sanity in Extract Sequence; library-aware Review/Fix
 
 Plan `ask-ck/plans/PLAN-generate-state-and-sequence-sanity.md`; commits 56c7022 (D), fc8348b (A, B,

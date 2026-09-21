@@ -2,12 +2,15 @@
 
 > ## Status (read first)
 >
-> **APPROVED 2026-09-21 (Terrence), IN PROGRESS.** Replaces `PLAN-frame-role-set.md` (reverted
-> the same day: `b96255c`, `f354f14`) and retires the `[misc]` role contract of
-> `TOPOLOGY-PROFILES.md` (2026-07-30) and `pt_profiles.py`.
->
-> Progress: step 1 frame + detection + prompts + lint ☐ · step 2 preflight + retire profiles ☐ ·
-> step 3 spec + docs + memory ☐
+> **BUILT 2026-09-21** — step 1 `3116625` (frame, detection, media, lint, prompts; `pt_profiles`
+> retired here because it imported the deleted `parse_link_ref`) · step 2 `248e0c0` (preflight) ·
+> step 3 docs/memory in the wrap commit. Replaces `PLAN-frame-role-set.md` (reverted the same day:
+> `b96255c`, `f354f14`) and retires the `[misc]` role contract of `TOPOLOGY-PROFILES.md`
+> (2026-07-30). Two departures from the body below, on evidence: the helper keeps the name
+> `_ck_bind_link` (lint, read-back and saved scripts key on it — `_ck_take` was never needed), and
+> far ports are ROLE-SPECIFIC (`fibre_peer.portFibre`, `cusfp_peer.portCuSfp`) because a shared
+> `.portDut` is overwritten when two pluggable links land on one partner switch, which is tb470's
+> shape. Offline the preflight matches REQUIRED roles before optional ones (found on tb470).
 
 ## Terrence's ruling (2026-09-21)
 

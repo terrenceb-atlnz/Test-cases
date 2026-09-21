@@ -4319,3 +4319,20 @@ The "one more thing": rewind every case and re-run the improved pipeline from sc
 - Open: tb470 declares no ck_link_* (Terrence's bench decision). Manual check for Terrence: on a
   scratch Port case, Extract → Generate → the setup unit's prompt lists the bound handles; the
   rendered init() needs no hand edit.
+
+## Session Close / Handoff (2026-09-21, afternoon) — `[misc]` role contract retired; frame discovers via the framework
+
+- Supersedes the "later" entry above: `e022e1c` + `6ada916` were REVERTED (`b96255c`, `f354f14`) on
+  Terrence's ruling that `[misc]` is not a lookup layer. Rebuilt on framework discovery: `3116625`
+  (frame + detection + media + lint + prompts; `pt_profiles` retired), `248e0c0` (preflight). Docs in
+  the wrap commit. Plan `ask-ck/plans/PLAN-frame-framework-discovery.md`.
+- Decisions (Terrence): discover media from the device; revert then rebuild; leave tb470's `[misc]`
+  to him; empty cages are no role (modules fitted at init, else UNSUPPORTED). Claude's calls, flagged:
+  DUT = the stack containing `swi_a`; role-specific far ports (`fibre_peer.portFibre`,
+  `cusfp_peer.portCuSfp`) because a shared `.portDut` collides on a one-partner bench; helper name
+  `_ck_bind_link` kept so lint, read-back and saved scripts stay valid.
+- Gate at close: 1669 passed / 1 known red (zephyr corpus floor); vitest 316. `ck.db` untouched by
+  tests.
+- Preflight on `tb470.setup.current`: discovery frame for T33234 RUNNABLE (fibre UNSUPPORTED); saved
+  legacy T33234 RUNNABLE (cusfp UNSUPPORTED). Media is read on the bench, not from the file.
+- Open (Terrence): LAG member links as partner ports; regenerate the saved T33234 on the new frame.

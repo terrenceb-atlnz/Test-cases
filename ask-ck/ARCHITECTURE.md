@@ -186,12 +186,13 @@ lies about itself**:
   `install` and `cp -t` into it are all blocked, not just `rm`.
 - SSH host keys are pinned trust-on-first-use; the run command is `shlex`-quoted and
   metacharacter-validated.
-- A generated script **names no device and no port**. It resolves its topology from the bench's
-  own declaration at run time, so the same file runs on a chassis, a stack, or a standalone
-  switch unchanged.
-- Before a run, `ask-ck/tools/pt_preflight.py` answers *offline* whether a bench can host a script at
-  all; `ask-ck/tools/pt_profiles.py` answers whether a bench implements the topology contract; and at
-  run time `ask-ck/tools/pt_media.py` asserts the bound port's physical media.
+- A generated script **names no port and no partner**. It binds the framework's `swi_a` slot,
+  discovers its cables through `get_all_port_links()` and reads each port's media from the DUT
+  at run time (2026-09-21 — nothing is pre-declared in `[misc]`), so the same file runs on a
+  chassis, a stack, or a standalone switch unchanged.
+- Before a run, `ask-ck/tools/pt_preflight.py` answers *offline* whether a bench has the cables a
+  script needs (media it declares unknowable); at run time `ask-ck/tools/pt_media.py` classifies
+  each bound port's physical media.
 
 That last set exists because of a specific, expensive failure class: the framework returns
 `(None, None)` for a link the bench never declared, and the CLI accepts nonsensical settings

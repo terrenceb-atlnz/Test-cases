@@ -33,8 +33,10 @@ and called the partner `dut`: 59 / 63 unbound-port lint errors, all frame-caused
 **How to apply (what the frame/prompt now do; keep them this way):**
 - `_detect_links` → `tb` link `(dutA.portA, tb.ethA)` for capture/inject/physical wording,
   `peer` link `(dutA.portPeer, peer.portDut)` for neighbour/negotiation wording; both allowed;
-  over-inclusive on purpose (an unneeded link costs one `ck_link_*` bench line, a missing one
-  dies on `interface None`). Media role `tb` requires any fitted pluggable.
+  over-inclusive on purpose (an unneeded link costs one discovered cable, a missing one dies
+  on `interface None`). Media role `tb` requires any fitted pluggable. Since 2026-09-21 the
+  links are DISCOVERED (`get_all_port_links()` + the DUT's show output), never read from
+  `[misc]` — see [[topology-profiles-contract]].
 - Every TestCase renders `configure()`/`main()`/`tear_down()`, each opening with the frame's
   shortcut block; a verdict in configure/tear_down is a policy lint error.
 - Fill rule 1: ≥ 1 non-empty verdict per path, checkpoints welcome; LOGGING-CONTRACT §3 and
@@ -53,8 +55,9 @@ and called the partner `dut`: 59 / 63 unbound-port lint errors, all frame-caused
 - Tests: `tests/test_pt_art_shape.py`. Topology side: [[topology-profiles-contract]].
 
 **Still open:** the DUT handle name comes from the fragments' vocabulary (`dutA` on T44297);
-tb470's `[misc]` has no `ck_link_tb` yet, so a capture case cannot run there until the bench
-declares it (bench decision). First model pass on the new shape not yet run.
+(2026-09-21: the `ck_link_tb` declaration this line used to want no longer exists — the frame
+finds the testbox link as the `TestBox` far end of a `[portlink]`; tb470 declares three such.)
+First model pass on the new shape not yet run.
 
 **Addendum 2026-09-08 — first real pass, judged.** ART library helpers take the TestCase as a
 `self` FIRST PARAMETER at module level (`def analyse_lldp_packets(self, recPktList)` in

@@ -1,6 +1,6 @@
 ---
 name: frame-binds-two-roles-only
-description: RECORD (all SHIPPED 2026-09-21) — why the generated frame used to bind only {tb, peer} with copper+fibre on ONE handle (4 of 6 highs on T33234), and the four process designs A–D agreed during that repair; the frame now binds a ROLE SET (tb/copper/fibre/cusfp, pluggables optional) — see PLAN-frame-role-set.md and PLAN-generate-state-and-sequence-sanity.md
+description: RECORD (all SHIPPED 2026-09-21) — why the generated frame used to bind only {tb, peer} with copper+fibre on ONE handle (4 of 6 highs on T33234), and the four process designs A–D agreed during that repair; the frame now binds a ROLE SET (tb/copper/fibre/cusfp, pluggables optional) by FRAMEWORK DISCOVERY, never [misc] — see PLAN-frame-framework-discovery.md and PLAN-generate-state-and-sequence-sanity.md
 metadata:
   type: project
   verified: 2026-09-21
@@ -8,14 +8,20 @@ metadata:
 
 > **UPDATE 2026-09-21 — EVERYTHING in this memory is BUILT.** Sections A–D and the FIRST TASK:
 > commits 56c7022, fc8348b, f75581b (plan `PLAN-generate-state-and-sequence-sanity.md`). The frame
-> itself: `e022e1c` + `6ada916` (plan `PLAN-frame-role-set.md`) — `_detect_links` returns the role SET
-> `{tb, copper, fibre, cusfp}`, the frame binds one `_ck_bind_link` block per role with fixed handles
-> (`portPeer`/`peer.portDut`, `portFibre`/`fibre_peer.portDut`, `portCuSfp`/`cusfp_peer.portDut`),
-> pluggable roles are OPTIONAL-with-UNSUPPORTED (`<role>_supported`, media asserted by the insertion
-> case via `assert_role_media_now`), `cusfp` is a profile + media role, and the preflight reads the
-> role contract. The *why*s are in CHANGELOG 2026-09-21. This file stays as the record of the
-> diagnosis and the agreements; nothing here is pending. T33234's live session reads `diverged`
-> until Terrence clicks Re-chunk; nothing can revert the repair meanwhile.
+> itself was built TWICE that day: first as `e022e1c` + `6ada916` on the `[misc]` role contract
+> (REVERTED in `b96255c` / `f354f14` — Terrence: *"[misc] is not callable as a workaround for not
+> using the existing framework commands"*), then as `3116625` + `248e0c0` on FRAMEWORK DISCOVERY
+> (plan `PLAN-frame-framework-discovery.md`, memory [[topology-profiles-contract]]): `_detect_links`
+> returns the role SET `{tb, copper, fibre, cusfp}`; `init()` binds `swi_a` (its stack when in one),
+> discovers every cable with `get_all_port_links()`, classifies each from `show interface status` /
+> `show system pluggable`, and binds one `_ck_bind_link` block per role with fixed handles
+> (`portPeer`/`peer.portDut`, `portFibre`/`fibre_peer.portFibre`, `portCuSfp`/`cusfp_peer.portCuSfp` —
+> role-specific far ports, a shared `.portDut` collides on a one-partner bench); pluggable roles are
+> OPTIONAL-with-UNSUPPORTED (`<role>_supported`; an EMPTY cage is no role, the module must be fitted
+> at init; re-check after a re-fit via `assert_role_media_now`); `cusfp` is a media role; the
+> preflight reads the role demands and matches required before optional. The "How to apply" list
+> below item 2 (a `cusfp` PROFILE in a `[misc]` table) is therefore HISTORY — profiles are gone.
+> This file stays as the record of the diagnosis and the agreements; nothing here is pending.
 
 **Terrence, 2026-09-17: "I want to repair it in the next session."** The evidence below is
 already collected and verified against the code — do not re-derive it.

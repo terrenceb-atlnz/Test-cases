@@ -4,7 +4,43 @@
 
 **Last Updated**: 2026-09-21 (by Claude, with Terrence for every decision)
 
-## Latest session (2026-09-21) — The four deferred PyTest Creator designs BUILT (A–D + reset_generate)
+## Latest session (2026-09-21, afternoon) — `[misc]` role contract RETIRED; the frame discovers its topology through the framework
+
+Terrence, on the closing report of the role-set work: *"Why are these variables created when we
+identify these things in other ways using the existing framework?"* Then two corrections, both
+verified against the 827-script corpus in `ck.db` (read-only): `init_swi('swi_b')` IS the
+framework's portable convention (168 uses; a role-named key 0), and media is `show system
+pluggable`, not a declaration. Ruling: *"I dont want the [misc] section to be callable as a
+workaround for not using the existing framework commands."* Decisions: discover media from the
+device; revert `e022e1c` + `6ada916` then rebuild; leave tb470's `[misc]` lines to Terrence; an
+empty cage is not a role. Plan written first: `ask-ck/plans/PLAN-frame-framework-discovery.md`
+(`PLAN-frame-role-set.md` bannered SUPERSEDED).
+
+- `b96255c`, `f354f14` — reverts. `3116625` — frame: `dut = init_swi('swi_a')` (+ `init_stk` of its
+  stack), `_ck_discover` over `get_all_port_links()` classified by `show interface status` +
+  `show system pluggable`, `_ck_bind_link(setup, dut, role, optional=False)` one link per role
+  (cusfp/fibre before copper), role-specific far ports, no `init_portlink`, no `get_all_misc`;
+  `_detect_links` role set kept; `cusfp` media role + `pluggable_ports()`; lint: init_swi/init_stk
+  outside `TestSet.init()` is a (policy) error; prompts; `pt_profiles.py` retired. `248e0c0` —
+  preflight reads `RoleDemand`s, required before optional, media declared unknowable offline,
+  `[misc]`/`--profile` gone.
+- **Verified offline:** T33234's real sequence → four bind blocks, compiles, lint-clean frame;
+  `pt_preflight.py --setup tb470.setup.current` → the discovery frame RUNNABLE (tb via `tb-swi_c`,
+  copper + cusfp via the two stack↔`swi_e` links, fibre UNSUPPORTED); the saved legacy T33234
+  RUNNABLE with cusfp UNSUPPORTED (was "role None" un-runnable this morning).
+- Gate at close: 1669 passed / 1 known red (zephyr corpus floor); vitest 316. Production reloaded
+  on each router save (build unchanged, `/api/version` answered every time).
+- **Manual checks for Terrence** (no bench change needed): (1) scratch Port case → Extract →
+  Generate → the setup unit's prompt lists `tb`/`peer` handles and `init()` has no `misc`; (2) when
+  bench time allows, run the T33234 discovery frame's `init()` on tb470 and read the
+  `topology discovered on stk_a:` log line — it says which of the two `swi_e` links the DUT calls
+  copper, and whether `show system pluggable` lists either. That is the run-time half the preflight
+  cannot see.
+- **Open, Terrence's:** whether the two stack↔`swi_e` LAG member links may serve as plain partner
+  ports for a physical-layer test; the saved `test-9000.33234.py` still carries the legacy
+  `misc` helper — regenerating it against the new frame is a separate ask.
+
+## Earlier session (2026-09-21, morning) — The four deferred PyTest Creator designs BUILT (A–D + reset_generate)
 
 Terrence: "Please build them." Plan written first (`ask-ck/plans/PLAN-generate-state-and-sequence-sanity.md`,
 approved with four decisions: in-place edits with production reloads accepted; Re-chunk snapshots the

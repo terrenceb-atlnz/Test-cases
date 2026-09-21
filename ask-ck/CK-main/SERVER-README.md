@@ -827,16 +827,17 @@ a clean sweep to every count-based check. Expected-case count comes from the scr
    `TestCase_<n>` **per verification step** (each with the three `testCase*` attrs, a
    `main()` carrying the mandatory **logging contract**, and a per-case `tear_down()`),
    and the `__main__` footer.
-   **Topology contract + minimality (2026-07-30).** `init` no longer names devices or leaves
-   the port link to a FILL slot. It resolves the DUT from the bench's own role contract
+   **Topology contract + minimality (2026-07-30) — the `[misc]` contract described here was
+   RETIRED 2026-09-21; see "The frame DISCOVERS its topology" below. Minimality stands.**
+   `init` no longer names devices or leaves the port link to a FILL slot. It resolves the DUT from the bench's own role contract
    (`misc.get('ck_role_dut', 'swi_a')`, read from the `.setup`'s `[misc]` at run time) and
    binds its single link through the fixed-frame `self._ck_bind_link(setup, dut, misc,
    '<role>')`, which resolves `ck_link_<role>` on that bench, refuses a `(None, None)`
    portlink, and **asserts the bound port's media** via a shipped `ck_media.py`. Generation
    itself still reads **no** bench file — it targets the contract, because a bench-reading
    generator would silently weaken a test to fit the hardware present. Spec:
-   `ask-ck/functions/pytest-creator/TOPOLOGY-PROFILES.md`; checker `ask-ck/tools/pt_profiles.py`; script-level
-   check `ask-ck/tools/pt_preflight.py`. **`tests/test_pt_preflight.py` asserts over the real
+   `ask-ck/functions/pytest-creator/TOPOLOGY-PROFILES.md` (rewritten 2026-09-21); script-level
+   check `ask-ck/tools/pt_preflight.py` (the profile checker `pt_profiles.py` is gone). **`tests/test_pt_preflight.py` asserts over the real
    `generated/` tree, so what counts as a generated TEST SCRIPT matters (2026-08-31):** it
    globbed every `*.py` under `generated/`, which swept in both the `library` companion the
    generator writes beside a script (a helper module binds no devices, so it read as "no
@@ -1114,42 +1115,69 @@ born at Extract Sequence were only caught at the third review round.
   `test_pt_prompt_library_context.py` (8); `pt-gen-state.spec.js`, `pt-review-stale.spec.js`,
   `pt-seq-claims.spec.js` (14).
 
-### The frame binds a ROLE SET — tb / copper / fibre / cusfp (2026-09-21)
+### The frame DISCOVERS its topology through the framework — no `[misc]` (2026-09-21)
 
-Plan: `ask-ck/plans/PLAN-frame-role-set.md` (BUILT; commits e022e1c, 6ada916). The last
-T33234 repair: `_detect_links` returned `{tb, peer}` and the frame bound at most two links,
-copper and fibre sharing one handle set, so a case needing four links made the setup UNIT
-invent the rest (4 of the first review's 6 highs).
+Plan: `ask-ck/plans/PLAN-frame-framework-discovery.md` (BUILT; commits `3116625` frame,
+`248e0c0` preflight). Supersedes both the 2026-07-30 `[misc]` role contract and the same-day
+role-set commits `e022e1c` / `6ada916` (reverted in `b96255c` / `f354f14`).
 
-- **Detection** (`_detect_links` → `{tb, copper, fibre, cusfp, peer}`; `LINK_ROLES`):
-  `copper` is the neighbour predicate unless the case is fibre-flavoured and says nothing
-  copper-specific (`_COPPER_HINT_RX`: copper, twisted pair, RJ-45, polarity, MDI, crossover,
-  straight-through, `<n>BASE-T`); `fibre` from `_FIBRE_HINT_RX` OR any step's slice-C
-  `claim.cable`; `cusfp` from `_CUSFP_HINT_RX` (copper SFP, SFP-T, 1000BASE-T module …);
-  `peer` = any neighbour. Over-inclusive on purpose; a wrong choice cannot produce a wrong
-  verdict because the frame refuses a bench that lacks a required role.
-- **Frame** (`pt_script_template.py.jinja`): one `_ck_bind_link` block per role. `tb` and
-  `copper` are REQUIRED (abort as before). `fibre` and `cusfp` are OPTIONAL: bound by reference
-  (`assert_media=False`) inside `try/except RuntimeError`, `self.<role>_supported` flags, handles
-  `None` on a bench without the link, the media asserted by the insertion case through the
-  frame's module-level `assert_role_media_now(testCase, dut, port, role)`. Far devices are
-  cached per key (`self._ck_far_devices`) so two links to one partner never `init_swi()` it
-  twice. Fixed handles: `portA`/`tb.ethA`, `portPeer`/`peer.portDut`,
-  `portFibre`/`fibre_peer.portDut`, `portCuSfp`/`cusfp_peer.portDut`; the shortcut block carries
-  them all. `_skeleton_bound_ports` / `_skeleton_bound_devices` read any number back.
-- **Vocabulary**: `pt_profiles.PROFILES["cusfp"]`, `pt_media.ROLE_REQUIRES["cusfp"]`
-  (twisted pair — without it the hand-repaired T33234's `assert_role_media(..., 'cusfp')` was
-  refused as an unknown role), the spec table rows in TOPOLOGY-PROFILES.md.
-- **Preflight** (`pt_preflight.py`): `self._ck_bind_link(setup, dut, misc, '<role>')` call
-  sites are `RoleLinkDemand`s resolved against `[misc] ck_link_<role>` → a declared, unused
-  `[portlink]` (preferring the named port); the helper's inner `init_portlink`/`init_swi` are
-  its mechanism, not demands; `assert_media=False` marks the demand optional and the verdict
-  says UNSUPPORTED. Until now every ART-frame script read "cannot resolve 'far'".
-- **Prompts**: `pt_generate_step.jinja` and `pt_fill_rules.jinja` describe the pluggable
-  handles, the `<role>_supported` check and the UNSUPPORTED idiom (`self.supported = False`).
-- Tests: `test_pt_role_set.py` (16 incl. every role subset compiles), `test_pt_preflight.py`
-  (+5), `test_pt_media.py` (+1); `test_pt_art_shape.py` / `test_media_assertion_wiring.py`
-  re-aimed at the set. The whole-script prompt snapshot regenerated (rule 3's new paragraph).
+**Why.** Terrence, 2026-09-21: *"I dont want the [misc] section to be callable as a workaround
+for not using the existing framework commands. We have a suite of 'show' commands that identify
+whatever we need to, the information shouldnt require pre-loading variables to know it."*
+Verified against the corpus: `swi_a` / `swi_b` / `stk_a` **are** the framework's portable slots
+(297 / 168 / 192 `init_*` lookups; a role-named key such as `init_swi('dutA')` appears 0 times —
+`dutA`, `swiSrc`, `tb` are script-local variables); `get_all_port_links()` already returns every
+cable with its far device (`isinstance(far, ATTestBox.TestBox)` tells the testbox apart, as
+`library_5712` does); and `show interface status` / `show system pluggable` already say what is
+in a port. `ck_role_dut`, `ck_link_<role>` and `ck_profile` duplicated all three, and a media
+declaration goes stale the moment a module is swapped.
+
+- **Frame** (`pt_script_template.py.jinja`). `init()` binds `dut = setup.init_swi('swi_a')`,
+  then `dut = setup.init_stk(_stk.name)` when `dut.get_stack()` reports one (ports belong to
+  members and `[portlink]` declares them per member; commands go to the master). `_ck_discover`
+  walks `dut.get_all_port_links()` once, skips the DUT's own stack members, takes the `TestBox`
+  far end as the `tb` link, and classifies every partner link by the DUT's own output: twisted
+  pair listed by `show system pluggable` → `cusfp`, twisted pair fixed → `copper`, `fibre`,
+  `not present` → `absent` — **an empty cage is no role** ("cages themselves aren't fibre or
+  copper cause they're empty"). `_ck_bind_link(setup, dut, role, optional=False)` hands out one
+  discovered link per role — `tb`, then `cusfp`, `fibre`, `copper`, so copper cannot consume a
+  copper SFP — never the same link twice, partner switch initialised once; a required role with
+  no link raises `BENCH PROBLEM` and aborts, an optional one returns None and sets
+  `self.<role>_supported = False` (cases report UNSUPPORTED). **No `init_portlink()`, no
+  `get_all_misc()`.** Far ports are role-specific — `peer.portDut`, `fibre_peer.portFibre`,
+  `cusfp_peer.portCuSfp` — because two pluggables usually land on one partner switch and a
+  shared `.portDut` would be overwritten. `assert_role_media_now()` (module level) ships with a
+  pluggable role for the re-fit check.
+- **Detection** unchanged in shape from the role-set design: `_detect_links` →
+  `{tb, copper, fibre, cusfp, peer}` from wording + slice-C claims; `LINK_ROLES`.
+- **Media** (`pt_media.py` → `ck_media.py`): `cusfp` role (twisted pair; the saved T33234's
+  `assert_role_media(..., 'cusfp')` was refused as unknown until now), `pluggable_ports()` /
+  `is_pluggable()` read `show system pluggable` in both first-column spellings;
+  `parse_link_ref` gone with the `[misc]` format.
+- **Lint**: `init_portlink()` anywhere outside a legacy `_ck_bind_link` body, and
+  `init_swi()` / `init_stk()` outside `TestSet.init()` (a unit binding its own device — the
+  T33234 setup-unit failure) are errors, policy class.
+- **Preflight** (`pt_preflight.py`): `_ck_bind_link(setup, dut, '<role>'[, optional=True])`
+  call sites are `RoleDemand`s. `tb` needs a testbox↔DUT `port` link; a partner role needs an
+  unused DUT↔partner `port` link (partner = any switch that is not the testbox and not a DUT
+  stack member; the DUT expands to the stack containing `swi_a`). **Required roles are matched
+  before optional ones** — offline every partner link looks alike, and letting an optional
+  pluggable eat the cable a required copper role needs printed a confident wrong UN-RUNNABLE
+  on tb470. Every satisfied partner role carries the note that its media is read from the DUT
+  at run time; an optional role with no link is a note (UNSUPPORTED), not a problem. `[misc]`
+  is not parsed; `--profile` and `pt_profiles.py` are gone.
+- **Prompts**: rule 3 and the unit prompt describe discovery, the pluggable handles, the
+  `<role>_supported` check and the UNSUPPORTED idiom.
+- **Retired**: `ask-ck/tools/pt_profiles.py` + `tests/test_pt_profiles.py`; the `[misc]` block,
+  profile table and "Adding a profile" in `TOPOLOGY-PROFILES.md` (rewritten). tb470's
+  `[misc] ck_*` lines are inert; Terrence edits his bench file.
+- **Verified**: rendered for T33234's real 19-step sequence → `tb`/`cusfp`/`fibre`/`copper`,
+  compiles, lints clean of frame errors; `pt_preflight.py --setup tb470.setup.current` on that
+  frame → RUNNABLE (tb via `tb-swi_c`, copper + cusfp via the two stack↔`swi_e` links, fibre
+  UNSUPPORTED); on the saved legacy T33234 → RUNNABLE, cusfp UNSUPPORTED. Tests:
+  `test_pt_role_set.py` (33 incl. every role subset), `test_pt_preflight.py` (+11),
+  `test_pt_media.py` (+4), `test_media_assertion_wiring.py` / `test_pt_art_shape.py` /
+  `test_pt_lint_integration.py` / `test_cli_feature_grounding.py` re-aimed.
 
 ### ART suite shape — frame, prompt, verdicts, library (2026-09-07)
 
