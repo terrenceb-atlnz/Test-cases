@@ -4,7 +4,7 @@ description: Generated test scripts must run on ALL platforms interchangeably �
 metadata: 
   node_type: memory
   type: feedback
-  verified: 2026-09-14
+  verified: 2026-09-21
   originSessionId: 14818525-5627-4f16-882d-6bbbef6aed41
   modified: 2026-07-27T19:51:39.974Z
 ---
@@ -34,7 +34,10 @@ missing platform data.
       dutA   = setup.init_swi('swi_a')     # swi_a/swi_b/... = 621 of ~650 corpus calls
       swiSrc = setup.init_swi('swi_c')     # stk_a for stacks (191/191)
       (swiSrc.portTB, tb.ethSrc) = setup.init_portlink(swiSrc, tb, type1='port')
-  Emitting `init_swi('dut')` from a role name fails against any real `.setup`.
+  Emitting `init_swi('dut')` from a role name fails against any real `.setup`. Since
+  2026-09-21 the frame binds ONLY `swi_a` (its stack when in one) and finds every partner as
+  the far end of a `[portlink]` via `get_all_port_links()` — no `[misc]` declaration, ever
+  (Terrence's ruling; see [[topology-profiles-contract]]).
 - In `init()`, use the LOCAL variables for `init_portlink` — `self.<dev>` is not assigned
   until the block below, so `self.` there is an AttributeError at runtime (lint error now).
 - `.setup` notes: `[stack]` takes a member list (`stk_a = swi_a, swi_b`); non-default

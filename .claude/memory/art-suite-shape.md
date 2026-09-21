@@ -3,7 +3,7 @@ name: art-suite-shape
 description: "The generated frame and prompt emulate the ART house shape (2026-09-07): DUT<->testbox link on tb.ethA, neighbour named peer, per-case configure/main/tear_down with the shortcut block, checkpoint verdicts, self.supported gating, a suite library, ATPackets layers"
 metadata:
   type: project
-  verified: 2026-09-17
+  verified: 2026-09-21
 ---
 
 Terrence, 2026-09-07: *"they have a definite way they structure ART test cases, and i want to
