@@ -220,6 +220,7 @@ export function renderPtSeqPanel() {
     + (ptCaseInfo && ptCaseInfo.title ? ` — ${escapeHtml(ptCaseInfo.title)}` : '')
     + (ptCaseInfo && ptCaseInfo.steps ? ` <span class="justification-note">(${ptCaseInfo.steps.length} refined steps)</span>` : '');
   ptRenderRefinedSteps((ptCaseInfo && ptCaseInfo.steps) || []);
+  _ptSeqSanity = ((ptSession.step2 || {}).sanity) || [];
   ptRenderSequenceCached(((ptSession.step2 || {}).sequence) || []);
   const notes = (ptSession.step2 || {}).notes;
   if (notes) ptStatusEl('pt-seq-status').textContent = 'LLM notes: ' + notes;
@@ -249,8 +250,43 @@ function ptRenderRefinedSteps(steps) {
   el.innerHTML = html;
 }
 
+// Slice C (PLAN-generate-state-and-sequence-sanity, 2026-09-21): the extractor checks its own
+// sequence. Each state-changing step carries a `claim` (cable / DUT / partner / expected link),
+// shown as a compact column so "step 6 — crossover, DUT mdi, partner auto → down" is visibly
+// wrong where two paragraphs of prose are not; contradictions it could not resolve arrive as
+// `sanity` flags, listed above the table and marked on the rows they name. WARN, never block:
+// Confirm Step 2 stays a human judgement (Terrence, 2026-09-21).
+let _ptSeqSanity = [];      // [{steps:[n], issue}] from the last extraction / the session
+
+function _ptClaimText(c) {
+  if (!c || typeof c !== 'object') return '';
+  const parts = [];
+  if (c.cable) parts.push(c.cable);
+  if (c.dut) parts.push('DUT ' + c.dut);
+  if (c.partner) parts.push('partner ' + c.partner);
+  const lhs = parts.join(' · ');
+  return c.expect ? `${lhs}${lhs ? ' ' : ''}→ ${c.expect}` : lhs;
+}
+
+function _ptSanityFor(n) {
+  return (_ptSeqSanity || []).filter(f => Array.isArray(f.steps) && f.steps.includes(n));
+}
+
+function ptRenderSeqSanity() {
+  const el = document.getElementById('pt-seq-sanity');
+  if (!el) return;
+  const flags = _ptSeqSanity || [];
+  if (!flags.length) { el.innerHTML = ''; return; }
+  el.innerHTML = `<div class="pt-seq-sanity-box"><b>⚠ ${flags.length} sanity flag(s) from the extraction</b> `
+    + '<span class="justification-note">— the extractor found claims it could not reconcile. Read them before you confirm; '
+    + 'edit the steps or accept them knowingly. Confirm is not blocked.</span><ul class="mt-1">'
+    + flags.map(f => `<li><span class="badge badge-high">steps ${escapeHtml((f.steps || []).join(', ') || '?')}</span> ${escapeHtml(f.issue || '')}</li>`).join('')
+    + '</ul></div>';
+}
+
 function ptRenderSequence(seq) {
   const el = document.getElementById('pt-seq-list');
+  ptRenderSeqSanity();
   if (!seq.length) {
     el.innerHTML = '<em class="review-empty">No sequence yet — run Extract Sequence (LLM).</em>';
     return;
@@ -264,15 +300,22 @@ function ptRenderSequence(seq) {
         : '<span class="badge badge-success">same order as manual steps</span>')
     + ' — the <b>from</b> column shows which refined step above each row came from:</div>';
   html += ' <span class="justification-note">Drag ⠿ to reorder.</span>';
-  html += '<table class="table"><thead><tr><th style="width:20px"></th><th style="width:24px">#</th><th style="width:44px">from</th><th>Action</th><th>Verify</th><th style="width:30px"></th></tr></thead><tbody id="pt-seq-tbody">';
+  const anyClaim = seq.some(s => s.claim && typeof s.claim === 'object');
+  html += '<table class="table"><thead><tr><th style="width:20px"></th><th style="width:24px">#</th><th style="width:44px">from</th><th>Action</th><th>Verify</th>'
+    + (anyClaim ? '<th style="width:150px" title="The physical situation the step asserts: cable · DUT setting · partner setting → expected link">Claim</th>' : '')
+    + '<th style="width:30px"></th></tr></thead><tbody id="pt-seq-tbody">';
   seq.forEach((s, i) => {
     const from = (typeof s.zephyr_step_idx === 'number') ? s.zephyr_step_idx : '—';
-    html += `<tr class="pt-seq-row" draggable="true" data-i="${i}">
+    const flags = _ptSanityFor(i + 1);
+    const flagged = flags.length > 0;
+    const flagTitle = flags.map(f => f.issue).join(' | ');
+    html += `<tr class="pt-seq-row${flagged ? ' pt-seq-flagged' : ''}" draggable="true" data-i="${i}"${flagged ? ` title="${escapeHtml(flagTitle)}"` : ''}>
       <td class="pt-seq-handle" title="Drag to reorder" style="cursor:grab;text-align:center;color:var(--text-muted)">⠿</td>
-      <td>${i + 1}</td>
+      <td>${i + 1}${flagged ? ' <span class="pt-seq-flag" title="' + escapeHtml(flagTitle) + '">⚠</span>' : ''}</td>
       <td style="text-align:center;font-size:11px" title="source refined step #">${from}</td>
       <td><textarea class="form-input pt-seq-action" data-i="${i}" style="width:100%;height:44px;font-size:11px">${escapeHtml(s.action || '')}</textarea></td>
       <td><textarea class="form-input pt-seq-verify" data-i="${i}" style="width:100%;height:44px;font-size:11px">${escapeHtml(s.verify || '')}</textarea></td>
+      ${anyClaim ? `<td class="pt-seq-claim" style="font-size:11px">${escapeHtml(_ptClaimText(s.claim)) || '<span class="justification-note">—</span>'}</td>` : ''}
       <td><button class="btn btn-compact" data-action="ptRemoveSeqRow" data-args='[${i}]'>✕</button></td>
     </tr>`;
   });
@@ -287,8 +330,12 @@ function ptRenderSequence(seq) {
 let _ptSeqCache = [];   // parallel to render order: [{zephyr_step_idx?}]
 
 function ptRenderSequenceCached(seq) {
+  // Display-only fields ride in the cache so a Save Edits round-trip keeps them: `kind` (a
+  // setup step came back as a TestCase when it was dropped) and the slice-C `claim`.
   _ptSeqCache = seq.map(s => ({
     zephyr_step_idx: (typeof s.zephyr_step_idx === 'number') ? s.zephyr_step_idx : undefined,
+    kind: s.kind || undefined,
+    claim: (s.claim && typeof s.claim === 'object') ? s.claim : undefined,
   }));
   ptRenderSequence(seq);
 }
@@ -309,6 +356,8 @@ function _ptReadSeqRows() {
       verify: v && v.value ? v.value.trim() : '',
     };
     if (typeof from.zephyr_step_idx === 'number') out.zephyr_step_idx = from.zephyr_step_idx;
+    if (from.kind) out.kind = from.kind;
+    if (from.claim) out.claim = from.claim;
     return out;
   });
 }
@@ -376,6 +425,7 @@ async function ptExtractSequence() {
   recordLLMDebug(btn);
   if (!d) return;
   await ptRefreshSession();
+  _ptSeqSanity = d.sanity || [];
   ptRenderSequenceCached(d.sequence || []);
   if (d.notes) ptStatusEl('pt-seq-status').textContent = 'LLM notes: ' + d.notes;
 }

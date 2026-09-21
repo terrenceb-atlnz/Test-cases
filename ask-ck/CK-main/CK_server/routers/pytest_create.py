@@ -592,6 +592,39 @@ def _collapse_step_text(step: dict) -> dict:
     return step
 
 
+# Slice C (PLAN-generate-state-and-sequence-sanity, 2026-09-21): the extractor now checks its
+# own sequence — every state-changing step carries a `claim` (cable / DUT / partner / expected
+# link) and contradictions it could not resolve come back as `sanity` flags. Both are advisory:
+# rendered on the Sequence page beside Confirm Step 2, never a gate (Terrence: warn, don't block).
+_CLAIM_KEYS = ("cable", "dut", "partner", "expect")
+
+
+def _normalize_claim(raw: Any) -> Optional[dict]:
+    """A step's physical claim as short strings, or None when the model gave nothing usable."""
+    if not isinstance(raw, dict):
+        return None
+    out = {k: " ".join(str(raw[k]).split()) for k in _CLAIM_KEYS
+           if raw.get(k) is not None and str(raw[k]).strip()}
+    return out or None
+
+
+def _sanity_flags(raw: Any, n_steps: int) -> List[dict]:
+    """[{steps: [ints within 1..n], issue: str}] — anything else is dropped, not stored."""
+    out: List[dict] = []
+    for f in (raw if isinstance(raw, list) else []):
+        if not isinstance(f, dict):
+            continue
+        issue = " ".join(str(f.get("issue") or "").split())
+        steps = f.get("steps")
+        if not isinstance(steps, list):
+            steps = [steps] if steps is not None else []
+        nums = sorted({int(x) for x in steps
+                       if str(x).strip().lstrip("-").isdigit() and 1 <= int(x) <= n_steps})
+        if issue:
+            out.append({"steps": nums, "issue": issue})
+    return out
+
+
 def _require_confirmed(sess: PtSession, step_key: str, what: str) -> None:
     if not (getattr(sess, step_key) or {}).get("confirmed"):
         raise HTTPException(
@@ -4242,6 +4275,12 @@ async def extract_sequence(key: str, request: Request):
     for i, s in enumerate(sequence):
         s["n"] = i + 1
         _collapse_step_text(s)
+        claim = _normalize_claim(s.get("claim"))
+        if claim:
+            s["claim"] = claim
+        else:
+            s.pop("claim", None)
+    sanity = _sanity_flags(_parsed_list(parsed, "sanity"), len(sequence))
     # Every Zephyr step must map to >=1 sequence step, or that slice of the objective is
     # untested. Surfaced to the reviewer rather than enforced silently.
     coverage = _coverage_report(sequence, fields["steps"])
@@ -4251,7 +4290,7 @@ async def extract_sequence(key: str, request: Request):
     # call — see _pt_persist_fresh. This endpoint owns step2 (and the invalidation it
     # implies); anything a concurrent click changed elsewhere is preserved.
     _step2 = {"sequence": sequence, "notes": notes,
-              "coverage": coverage,
+              "coverage": coverage, "sanity": sanity,
               "confirmed": False,
               "provenance": {"llm": {k: meta.get(k) for k in ("provider", "model", "auth_method")},
                              "prompt": meta.get("prompt", ""),
@@ -4285,7 +4324,7 @@ async def extract_sequence(key: str, request: Request):
             fresh.step5 = {}
 
     _pt_persist_fresh(key, _apply)
-    return {"sequence": sequence, "notes": notes, "coverage": coverage}
+    return {"sequence": sequence, "notes": notes, "coverage": coverage, "sanity": sanity}
 
 
 @router.post("/save_sequence/{key}")
@@ -4295,17 +4334,39 @@ async def save_sequence(key: str, body: dict = Body(...)):
     sequence = body.get("sequence")
     if not isinstance(sequence, list) or not sequence:
         raise HTTPException(400, "Body must include a non-empty 'sequence' list.")
+    prev_seq = (sess.step2 or {}).get("sequence") or []
+    prev_by_n = {str(p.get("n")): p for p in prev_seq}
     for i, s in enumerate(sequence):
         s["n"] = i + 1
         _collapse_step_text(s)
+        # The Sequence table round-trips only n/action/verify/from; `kind` and `claim` were
+        # silently lost on every Save (a setup step came back as a TestCase). Carry them over
+        # from the stored row at the same position — but only when its action text is the
+        # same row, so a drag-reorder never pins another step's kind or claim onto this one.
+        old = prev_by_n.get(str(s["n"]))
+        if old and " ".join(str(old.get("action") or "").split()) == (s.get("action") or ""):
+            for fld in ("kind", "claim", "zephyr_step_idx"):
+                if s.get(fld) in (None, "") and old.get(fld) not in (None, ""):
+                    s[fld] = old[fld]
+        else:
+            claim = _normalize_claim(s.get("claim"))
+            if claim:
+                s["claim"] = claim
+            else:
+                s.pop("claim", None)
     # Re-check coverage on manual edits too — deleting a row in the UI can drop the last
     # entry covering a Zephyr step just as easily as the LLM can.
     coverage = _coverage_report(sequence, _case_payload_fields(sess)["steps"])
+    # The sanity flags name step NUMBERS; once the steps are re-shaped they point at the
+    # wrong rows, so they are kept only while the shape is unchanged.
+    sanity = (sess.step2 or {}).get("sanity") or []
+    if _sequence_shape(prev_seq) != _sequence_shape(sequence):
+        sanity = []
     sess.step2 = {**(sess.step2 or {}), "sequence": sequence,
-                  "coverage": coverage, "confirmed": False}
+                  "coverage": coverage, "sanity": sanity, "confirmed": False}
     _invalidate_from(sess, 2)
     _pt_persist(sess)
-    return {"sequence": sequence, "coverage": coverage}
+    return {"sequence": sequence, "coverage": coverage, "sanity": sanity}
 
 
 # ---------------------------------------------------------------------------

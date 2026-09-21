@@ -1,0 +1,47 @@
+{#-
+  LAYER: PyTest Creator — shared INCLUDE (step 2 sequence extraction, Pass C review).
+  SPEC:  ask-ck/plans/PLAN-generate-state-and-sequence-sanity.md (slice C).
+  Physical and CLI facts that decide whether a step's expected outcome is even possible.
+  None of them is documented on a CLI reference page — they are hardware behaviour — so a
+  docs harvest cannot supply them, and a model without them writes a verify that fails on
+  correct hardware (a FALSE RED) or passes on broken hardware (a FALSE GREEN). Every fact
+  here was paid for on a real script; keep the source next to each one. Facts, not rules:
+  the including prompt says what to DO with them.
+  This block is a Jinja comment: it never renders and is never sent to the model.
+-#}
+## Domain facts (hardware behaviour — no CLI page states these; treat as authoritative)
+- **Copper MDI/MDI-X pairing.** A copper link needs opposite roles at the two ends over a
+  STRAIGHT-THROUGH cable (MDI ↔ MDI-X) and the SAME role at both ends over a CROSSOVER cable
+  (the cable does the crossing). Same roles over straight-through, or opposite roles over
+  crossover, is the MISMATCHED pairing and the link stays DOWN.
+- **An auto-MDI/MDI-X port adapts to whatever the far end presents**, over either cable. So a
+  DUT FORCED to any role against a partner left on AUTO always links — that combination can
+  never be a negative test. A real negative needs BOTH ends forced into the mismatched pairing
+  for the cable in use (force the PARTNER too), and the positive counterpart forces the partner
+  into the matched role. (AWPTCM-T33234, 2026-09-18: two steps written as negatives against an
+  auto partner would have failed on correct hardware.)
+- **Fibre has no MDI/MDI-X.** Polarity is a copper-only concept; on an SFP/fibre port the
+  `polarity` command is refused or ignored and `show interface` presents no current polarity
+  role. A step forcing polarity on a fibre port is testing the refusal, nothing else.
+- **`show interface <port>` prints BOTH a `configured` line and a `current` line** for
+  duplex/speed/polarity. `configured` echoes the command you applied (it changes the moment the
+  command is accepted); `current` is the negotiated / operational value and is ABSENT while the
+  link is down. "The setting took" is proved by `configured` (or running-config); "the port is
+  operating that way" is proved ONLY by `current`. Asserting `configured` when the step wants the
+  operational state proves nothing. (T33234, 2026-09-17.)
+- **`show interface <port> status` is columnar**: an UP link reads `connected`; a link that is
+  not up does NOT read `connected` (the exact down-state token varies by release — assert the
+  ABSENCE of `connected` on the port's row, never a specific down token). Auto-negotiated
+  duplex/speed carry an `a-` prefix (`a-full`, `a-1000`), forced values are bare. Match the row
+  whose FIRST token is the port name, never a substring across the table.
+- **Half duplex is impossible at 1 Gigabit and above** (physical: 1000BASE-T and faster are
+  full-duplex only). `speed 1000` + `duplex half` cannot link at half duplex; pair `half` only
+  with 10 or 100. The `duplex` page lists `{auto|full|half}` unconditionally, so the reference
+  will not warn you.
+- **A negotiated port never reports the literal `auto` as its current value.** After `speed
+  auto` / `duplex auto` the current line shows the negotiated figures (`1000`, `full`); assert a
+  concrete value or "a value is present", never the string `auto`.
+- **Forcing speed/duplex on ONE end only** (partner on auto) links only when the partner can
+  negotiate down to it; a forced 100/full DUT against an auto partner typically links at 100 but
+  the partner may fall to HALF duplex (parallel detection) — a duplex mismatch that passes link
+  checks and fails traffic. State the expected duplex at BOTH ends when the step forces one.

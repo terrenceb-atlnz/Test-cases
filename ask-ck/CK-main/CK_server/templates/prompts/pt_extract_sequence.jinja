@@ -23,6 +23,8 @@ Convert this manual test case into a prescriptive sequence of automatable test s
 {% if cli_reference %}
 ## {{ cli_reference }}
 {% endif %}
+{% include '_pt_domain_facts.jinja' %}
+
 ## Rules
 - **COVERAGE IS MANDATORY: every numbered Zephyr step above MUST be covered by at least
   one sequence entry.** The objective is only tested if every source step it rests on is
@@ -124,5 +126,28 @@ Convert this manual test case into a prescriptive sequence of automatable test s
   - `manual` — a visual/physical check the DEVICE CANNOT self-report (LED colour, physical seating), needing operator Y/N confirmation (`yesNo("Press Y when …")`).
 - For `physical`/`manual` steps, still write the action (the human instruction) and verify (the state change / confirmation to check) — they become real test cases with the interactive pattern, not skips.
 - If the execution order differs from the manual step order (reordering, splitting, or merging), state briefly in "notes" what you changed and why.
+
+## Sanity pass — do this BEFORE you output (it is part of the job, not a review afterwards)
+Every step that forces a role, speed or duplex, changes a cable, or expects a link state change
+must carry a `claim`: the physical situation it asserts, as short tokens —
+`{"cable": "straight|crossover|fibre|none", "dut": "auto|mdi|mdix|<speed/duplex>", "partner":
+"auto|mdi|mdix|<speed/duplex>", "expect": "up|down|either|n/a"}`. Steps that only read state
+or issue a show command carry no claim. Then check the claims:
+1. **Against each other.** Two steps with the same cable, the same DUT setting and the same
+   partner setting MUST expect the same outcome. If two steps disagree, one of them is wrong.
+2. **Against the domain facts above.** A forced DUT against an AUTO partner cannot expect
+   `down`; opposite roles over crossover (or same roles over straight) cannot expect `up`;
+   half duplex cannot pair with 1000; fibre cannot carry a polarity role; a `current` value
+   cannot be asserted on a link expected `down`.
+3. **Against the source step's intent.** If a Zephyr step asks for a negative ("link should
+   NOT come up") and the only way to produce it is to force the PARTNER as well, write the
+   action that way — do not keep an impossible expectation to stay close to the wording.
+Fix what you can in the steps themselves. Report what you could NOT resolve, or what you
+changed that a reviewer must know about, as `sanity` entries naming the step numbers and the
+contradiction in one sentence. An empty `sanity` list means every claim checked out.
+
 - Output JSON ONLY, this shape:
-{"sequence": [{"n": 1, "action": "...", "verify": "...", "kind": "verify", "zephyr_step_idx": 1}], "notes": "anything assumed or reordered"}
+{"sequence": [{"n": 1, "action": "...", "verify": "...", "kind": "verify", "zephyr_step_idx": 1,
+               "claim": {"cable": "crossover", "dut": "mdix", "partner": "mdi", "expect": "down"}}],
+ "sanity": [{"steps": [6, 7], "issue": "one sentence: which two claims contradict, and why"}],
+ "notes": "anything assumed or reordered"}

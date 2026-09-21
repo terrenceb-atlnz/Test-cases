@@ -590,7 +590,8 @@ def test_anti_false_green_rules_survive_without_cli_grounding():
 def test_extract_prompt_rules_survive_without_cli_grounding():
     """Same defect in the step-2 prompt, where CLI fabrication ORIGINATES."""
     import jinja2
-    tpl = jinja2.Environment().from_string(EXTRACT.read_text())
+    # A loader, not from_string: the prompt includes `_pt_domain_facts.jinja` (2026-09-21).
+    tpl = jinja2.Environment(loader=jinja2.FileSystemLoader(str(EXTRACT.parent))).get_template(EXTRACT.name)
     for cli in ("## REF", ""):
         out = tpl.render(objective="o", steps=[{"description": "d", "expectedResult": "e"}],
                          cli_reference=cli, case_key="K", case_title="t")

@@ -17,6 +17,8 @@ correspond to it.
   - verify: {{ s.verify }}
 {%- endfor %}
 
+{% include '_pt_domain_facts.jinja' %}
+
 ## The script
 ```python
 {{ code }}
