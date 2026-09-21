@@ -61,7 +61,22 @@ not guessed, and he picked **R5's two JS surfaces**, then the zephyr gate red.
     stale badge is exactly the machinery half 2 needed, and a re-assembly changes the same
     script hash, so the item is now ~"stop popping it" rather than a new concept. Terrence's
     call 2026-09-22: **record it, do not build it.**
-- **Still genuinely open:** requirements carry lower bounds only (`fastapi>=0.139`, …), with
+- **t44297 #6 BUILT (most of it)** — own plan `ask-ck/plans/PLAN-durable-agent-review.md`, written
+  first; D6 answered in conversation (D6a **no TTL** — the horizon is "how long is a late answer
+  useful", not call duration, so 15 min was the wrong kind of number; D6b yes; D6c **name what
+  broke**). Reading the bridge changed the item twice: **B was already built** (agent.js posts
+  "local agent unreachable" through /api/agent/result), and #6's premise was wrong — a dropped tab
+  does not stop the local run, it runs to the full budget and the answer is discarded, so the
+  waste is real and was invisible. Shipped: the failure taxonomy (`never_claimed` /
+  `session_dropped` / `claimed_no_result`, with claim + last-poll times), the stale-review keep,
+  and a ck-agent watchdog that kills a run whose caller disconnected. **NOT shipped: saving a
+  LATE result** — it needs a callback plumbed through `run_prompt` → `_call_claude_agent` →
+  `registry.submit` plus a bounded retired-job map, and is left whole rather than half-done.
+  Four mutations, all caught. **Found while building:** `session_present` counts a claimed job as
+  proof its own session is alive, so the new call site made a dropped tab read as present and
+  `session_dropped` could never fire — the `exclude` parameter that had been deleted as
+  "unreachable" was unreachable only for the call sites of the day. Reinstated.
+- **Still genuinely open:** saving a late agent result (C above); requirements carry lower bounds only (`fastapi>=0.139`, …), with
   upper bounds / a lockfile an unanswered question since 2026-08-17; R6's 4th bar needs his ~$20
   scratch-server Opus run; t44297 #6 (both halves, D6 undecided); R1(b)'s PRUNE once there is
   something to prune.

@@ -6308,9 +6308,20 @@ def _assemble_and_store(key: str, sess: PtSession, ctx: dict, group: str, name: 
         step6_f["assembled_hash"] = _code_hash(stamped)     # slice A: the join to the chunks
         step6_f["assembly"] = {"units": len(ctx["units"]), "manifest": report,
                                "source": "per-unit"}
-        # A fresh assembly supersedes any earlier review: the findings were about a
-        # different artefact, and leaving them on screen would attribute them to this one.
-        step6_f.pop("review", None)
+        # D6b (t44297 #6, 2026-09-22): KEEP the review, do not delete it.
+        #
+        # This used to `step6_f.pop("review", None)` — "a fresh assembly supersedes any earlier
+        # review: the findings were about a different artefact". The reasoning was right and the
+        # remedy was too strong: on 2026-09-09 a review call died with the SSH session, and
+        # because re-assembly had already discarded the previous one the script was left with NO
+        # review at all until someone re-fired by hand. Deleting to avoid mis-attribution also
+        # deletes the only findings anyone has.
+        #
+        # Slice B (PLAN-generate-state-and-sequence-sanity) made deleting unnecessary: the review
+        # carries `code_hash`, `_gen_state` compares it to the current script hash and sets
+        # `review_stale`, and the UI renders a stale review collapsed under a badge with
+        # per-finding evidence checks. A re-assembly moves that same hash, so the review marks
+        # ITSELF stale from here — visibly about a different artefact, and still readable.
         step6_f["iterations"] = int(step6_f.get("iterations") or 0) + 1
         fresh.step6 = step6_f
 

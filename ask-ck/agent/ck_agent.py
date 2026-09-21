@@ -23,8 +23,10 @@ machine could call it, but it can only ever spend THIS user's own Claude seat.
 import json
 import os
 import re
+import select
 import shutil
 import signal
+import socket
 import subprocess
 import sys
 import tempfile
@@ -190,6 +192,11 @@ DEFAULT_TIMEOUT = int(os.environ.get("CK_AGENT_TIMEOUT", "600"))
 _RUNNING = {}
 _RUNNING_LOCK = threading.Lock()
 
+# How often watch_caller checks that the requesting socket is still attached.
+# Cheap (a non-blocking select + MSG_PEEK), so it can be brisk without cost;
+# the window it bounds is otherwise the whole call budget.
+_CALLER_POLL_SECONDS = 2.0
+
 
 def cancel_job(job_id: str) -> bool:
     """Kill the CLI running `job_id`. True if there was one to kill."""
@@ -205,6 +212,46 @@ def cancel_job(job_id: str) -> bool:
         except Exception:
             return False
     return True
+
+
+def watch_caller(sock, job_id: str, stop: "threading.Event") -> None:
+    """Kill `job_id` if the HTTP caller that asked for it goes away.
+
+    WHY THIS EXISTS (2026-09-22, t44297 #6 — PLAN-durable-agent-review.md)
+    ---------------------------------------------------------------------
+    `_RUNNING` + `cancel_job` already stop a run the user CANCELS: the browser hears the
+    server say the job is unwanted and POSTs /cancel. That path needs the tab alive.
+
+    When the TAB ITSELF dies -- a closed window, a dropped SSH session -- nobody is left to
+    send /cancel, and the watcher loop in agent.js died with it. The run then continues to
+    its full budget and is killed by `run_claude`'s own `communicate(timeout=...)`. So it is
+    bounded, not infinite -- but with the server's 1800s floor that is up to half an hour of
+    the user's own Claude seat spent on an answer that has nowhere to be delivered, because
+    the browser that would POST it is gone and a reloaded tab starts a fresh broker with no
+    memory of the job. Exactly the waste the _RUNNING comment above describes, reached by a
+    different route.
+
+    The server cannot tell us -- the browser calls this agent, never the reverse -- so the
+    only local evidence is the request socket. A peer that has closed reads EOF, which is
+    distinguishable from an idle-but-open connection.
+    """
+    while not stop.wait(_CALLER_POLL_SECONDS):
+        try:
+            r, _, _ = select.select([sock], [], [], 0)
+            if not r:
+                continue                       # nothing to read: caller still attached
+            if sock.recv(1, socket.MSG_PEEK) == b"":
+                break                          # clean EOF: the caller is gone
+        except (OSError, ValueError):
+            break                              # socket closed/invalid underneath us
+        except Exception:
+            return                             # never let a watchdog kill a healthy run
+    else:
+        return                                 # stop was set: the run finished normally
+    if cancel_job(job_id):
+        sys.stderr.write(
+            f"ck-agent: caller for job {job_id[:8]} disconnected — killed the local run "
+            "rather than spend the seat on an undeliverable answer\n")
 
 
 def _jobs_in_flight() -> int:
@@ -502,10 +549,24 @@ class Handler(BaseHTTPRequestHandler):
         if not prompt:
             self._send(400, {"content": "ERROR: no prompt", "error": True})
             return
-        result = run_claude(prompt, body.get("model", "default"),
-                            int(body.get("timeout", DEFAULT_TIMEOUT)),
-                            job_id=str(body.get("job_id") or ""),
-                            system=str(body.get("system") or ""))
+        job_id = str(body.get("job_id") or "")
+        # Watch the caller for the duration of the run: a tab that dies takes its /cancel
+        # with it, and only this socket still knows. No job_id means nothing to cancel.
+        stop = threading.Event()
+        watcher = None
+        if job_id:
+            watcher = threading.Thread(target=watch_caller,
+                                       args=(self.connection, job_id, stop), daemon=True)
+            watcher.start()
+        try:
+            result = run_claude(prompt, body.get("model", "default"),
+                                int(body.get("timeout", DEFAULT_TIMEOUT)),
+                                job_id=job_id,
+                                system=str(body.get("system") or ""))
+        finally:
+            stop.set()
+            if watcher is not None:
+                watcher.join(timeout=1)
         self._send(200, result)
 
     def log_message(self, fmt, *args):  # quieter default logging

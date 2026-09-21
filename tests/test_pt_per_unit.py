@@ -280,12 +280,23 @@ def test_assembly_refuses_an_incomplete_set():
     assert "409" in body[:2500]
 
 
-def test_assembly_drops_a_review_of_the_previous_artefact():
-    # Findings were about a different script; leaving them attributes them to this one.
-    # The assembly body moved into _assemble_and_store on 2026-09-07 so the per-unit Fix
-    # can re-assemble through the same implementation; the endpoint is now a thin caller.
+def test_assembly_KEEPS_the_review_and_lets_slice_B_mark_it_stale():
+    """REVERSED 2026-09-22 (D6b, t44297 #6). This asserted `pop("review", None)` — findings
+    about a different script must not be attributed to this one. The reasoning holds; deleting
+    was the wrong remedy. On 2026-09-09 a review died with the SSH session and, because
+    re-assembly had already discarded the previous one, the script was left with NO review at
+    all until a manual re-fire.
+
+    Slice B made deletion unnecessary: the review carries `code_hash`, `_gen_state` compares it
+    to the current script hash to set `review_stale`, and the UI shows a stale review collapsed
+    under a badge. Re-assembly moves that hash, so the review marks ITSELF stale — still visibly
+    about a different artefact, but readable instead of gone."""
     body = _CODE[_CODE.index("def _assemble_and_store"):]
-    assert 'pop("review", None)' in body[:3000]
+    assert 'pop("review", None)' not in body[:3000], (
+        "re-assembly deletes the review again — that re-creates the review-less state of "
+        "2026-09-09; slice B's code_hash marks it stale instead")
+    # and the mechanism that replaces it must still be wired
+    assert "review_stale" in _CODE and "code_hash" in _CODE
 
 
 # --- shape checking on arrival ----------------------------------------------------

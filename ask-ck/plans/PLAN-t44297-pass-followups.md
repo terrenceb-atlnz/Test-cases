@@ -129,6 +129,13 @@ server's — the two must not drift. → **D4**.
 
 ## #6 — Review(LLM) must not depend on a live SSH/browser session
 
+> **2026-09-22 — SPLIT OUT to `ask-ck/plans/PLAN-durable-agent-review.md`, which is now the
+> authority for this item.** D6 was answered there (D6a: no TTL; D6b: keep the review, marked
+> stale; D6c: name what broke). Built: the failure taxonomy, the stale-review keep, and the
+> ck-agent caller watchdog. NOT built: saving a result that arrives after the caller gave up.
+> The body below is the 2026-09-09 record and its first draft's reasoning; read the new plan for
+> what the mechanism actually turned out to be, which differs.
+
 **Evidence.** `review_script` uses `_llm_cfg(sess)` — the workspace LLM — which is
 `claude_agent`: browser-brokered through the user's local ck-agent bridge, tethered to the SSH
 session. On 2026-09-09 a ~4-min Opus review **failed twice** when the SSH session dropped

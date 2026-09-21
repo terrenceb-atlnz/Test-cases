@@ -137,12 +137,59 @@ class AgentJobRegistry:
                     "error": True, "timeout": True, "unclaimed": True}
         if not got:
             got = job.event.wait(timeout=max(0, timeout - grace))
+        # Snapshot the evidence BEFORE retiring — _retire drops the job, and `claimed_at`
+        # lives on it. Terrence, 2026-09-22: "if it drops, list why. Be as explicit as
+        # possible with what part broke."
+        claimed_at, last_seen = job.claimed_at, self.last_seen(session_id)
+        # Exclude THIS job: it is claimed and still in _inflight, so without the exclusion it
+        # would vouch for its own session and a dropped tab would read as present.
+        present = self.session_present(session_id, exclude_job_id=job.id)
         self._retire(job, session_id)
         if not got:
-            return {"content": ("ERROR: local Claude agent did not respond in time. "
-                                "Is ck-agent running on your machine and this tab open?"),
-                    "error": True, "timeout": True}
+            return self._timeout_reason(timeout, claimed_at, present, last_seen)
         return job.result or {"content": "ERROR: empty agent result", "error": True}
+
+    def _timeout_reason(self, timeout: int, claimed_at: Optional[float],
+                        present: bool, last_seen: float) -> dict:
+        """Name WHICH part broke, instead of one sentence covering three different failures.
+
+        This used to be a single "local Claude agent did not respond in time. Is ck-agent
+        running on your machine and this tab open?" — which asks the reader to guess between
+        an agent that never took the job, an agent that took it and died, and a browser that
+        went away. All three are distinguishable here from `claimed_at` and session presence;
+        only the wording was missing (t44297 #6, PLAN-durable-agent-review.md).
+
+        A failure the BROWSER can see reports itself through /api/agent/result and never
+        reaches this path — `agent.js` already posts "local agent unreachable" when its fetch
+        to ck-agent throws. This is the path for when the browser cannot tell us anything.
+        """
+        import datetime as _dt
+
+        def _when(ts: float) -> str:
+            if not ts:
+                return "never"
+            return _dt.datetime.fromtimestamp(ts).strftime("%H:%M:%S")
+
+        base = {"error": True, "timeout": True, "waited_s": timeout}
+        if claimed_at is None:
+            # Queued, a broker was around at the grace check, and still nothing took it.
+            return {**base, "reason": "never_claimed", "content": (
+                f"ERROR: the job sat in the queue for {timeout}s and no local Claude agent "
+                f"ever claimed it (last poll from this browser session: {_when(last_seen)}). "
+                "The broker tab is reachable but not taking work — reload the Ask CK tab.")}
+        if not present:
+            # It was claimed, then the browser stopped polling and is holding nothing.
+            return {**base, "reason": "session_dropped", "content": (
+                f"ERROR: your local agent CLAIMED this job at {_when(claimed_at)}, then the "
+                f"browser session stopped responding (last poll {_when(last_seen)}) and never "
+                f"posted a result within {timeout}s. That is a closed tab or a dropped "
+                "connection, NOT a slow model — the work may have finished on your machine "
+                "and had nowhere to be delivered. Reload the Ask CK tab and re-run.")}
+        return {**base, "reason": "claimed_no_result", "content": (
+            f"ERROR: your local agent CLAIMED this job at {_when(claimed_at)} and is still "
+            f"connected (last poll {_when(last_seen)}), but returned no result within "
+            f"{timeout}s. The browser is fine, so the `claude` run on your machine is what "
+            "failed or hung — check ck-agent's console.")}
 
     def is_wanted(self, job_id: str) -> bool:
         """Is this job still awaited by a caller?
@@ -164,7 +211,7 @@ class AgentJobRegistry:
         with self._lock:
             return job_id in self._inflight
 
-    def session_present(self, session_id: str) -> bool:
+    def session_present(self, session_id: str, exclude_job_id: Optional[str] = None) -> bool:
         """Is a broker for `session_id` alive -- polling, or busy on a claimed job?
 
         Both signals matter and neither alone is sufficient:
@@ -174,10 +221,12 @@ class AgentJobRegistry:
           * a claimed job proves someone took work, but an idle broker holds none, so the
             claim signal alone would abandon a healthy idle agent.
 
-        The caller's own job cannot pollute this: only CLAIMED jobs count, and a caller
-        only asks while its job is unclaimed. An `exclude` parameter was written for that
-        case and removed -- it was unreachable, and a mutation test proved it (deleting it
-        changed no behaviour and failed nothing).
+        `exclude_job_id` REINSTATED 2026-09-22. The note that replaced it said the caller's
+        own job could not pollute this, "only CLAIMED jobs count, and a caller only asks while
+        its job is unclaimed" -- true of the ONE call site that existed then (the phase-1
+        unclaimed branch). The failure taxonomy added a second call site that asks about a job
+        which IS claimed, so the job answers for its own session and every dropped tab read as
+        "present". Caught by test_session_dropped_is_named_as_a_closed_tab_not_a_slow_model.
         """
         now = time.time()
         with self._lock:
@@ -185,7 +234,15 @@ class AgentJobRegistry:
             if last and (now - last) <= _SESSION_PRESENT_WINDOW:
                 return True
             return any(job.session_id == session_id and job.claimed_at is not None
+                       and job.id != exclude_job_id
                        for job in self._inflight.values())
+
+    def last_seen(self, session_id: str) -> float:
+        """Wall-clock of this session's last long-poll, or 0.0. Read for the failure
+        messages — a timestamp is what makes "the tab went away" checkable rather than a
+        guess."""
+        with self._lock:
+            return self._session_seen.get(session_id, 0.0)
 
     def _retire(self, job: "_Job", session_id: str) -> None:
         """Drop a finished/abandoned job from both structures. Was inline in submit;

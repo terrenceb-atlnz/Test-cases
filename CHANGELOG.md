@@ -74,6 +74,32 @@ Plan `ask-ck/plans/PLAN-self-healing-generation.md` §6.4 (R5) and
   rewrite. Known trade-off, asserted in the tests so it stays known: groups differing only in
   punctuation (`Port A` / `Port-A`) fold to one library name.
 
+- **When an agent-brokered LLM call drops, the result now says WHICH part broke** (t44297 #6;
+  `ask-ck/plans/PLAN-durable-agent-review.md`). *Why:* Terrence — *"if it drops, list why. Be as
+  explicit as possible with what part broke."* Three genuinely different failures shared one
+  sentence ("local Claude agent did not respond in time. Is ck-agent running on your machine and
+  this tab open?"), which asks the reader to guess between an agent that never took the job, an
+  agent that took it and hung, and a browser that went away. All three were already
+  distinguishable from `claimed_at` and session presence; only the wording was missing. Each exit
+  now carries a machine-readable `reason` (`never_claimed` / `session_dropped` /
+  `claimed_no_result`), the claim and last-poll times, and prose that points at the right thing —
+  notably that a dropped tab means *"the work may have finished on your machine and had nowhere
+  to be delivered"*, which is a different action from waiting longer.
+- **A re-assembly no longer DELETES the review.** *Why:* it used to `pop("review", None)` so
+  findings about an older script could not be mis-attributed — right reasoning, too strong a
+  remedy. On 2026-09-09 a review died with the SSH session and, because re-assembly had already
+  discarded the previous one, the script was left with **no review at all** until a manual
+  re-fire. Slice B made deletion unnecessary: the review carries `code_hash`, `_gen_state` marks
+  it `review_stale`, and the UI shows it collapsed under a badge — so it marks itself stale and
+  stays readable.
+- **ck-agent kills a run whose caller has gone away.** *Why:* `cancel_job` already stops a run the
+  user cancels, but that path needs the tab alive to POST `/cancel`. When the tab itself dies the
+  run continues to its full budget — bounded by `communicate(timeout=…)`, but with the 1800 s
+  floor that is up to half an hour of the user's own Claude seat spent on an answer with nowhere
+  to go. The server cannot help (the browser calls the agent, never the reverse), so the agent now
+  watches its request socket and cancels on EOF. **Not** on silence: an open connection sending
+  nothing is the normal case for the whole call.
+
 ## 2026-09-21 (later) — The frame discovers its topology through the framework; the `[misc]` role contract is retired
 
 Plan `ask-ck/plans/PLAN-frame-framework-discovery.md`; commits `b96255c` + `f354f14` (reverts of the
