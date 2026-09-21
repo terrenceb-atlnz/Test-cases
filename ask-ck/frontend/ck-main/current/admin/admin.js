@@ -8,10 +8,12 @@
 import { registerActions } from '../shared/actions.js';
 import { S } from '../shared/state.js';
 import { goToPanel } from '../shared/nav.js';
+import { escapeHtml } from '../shared/dom-helpers.js';
 
 export function openAdminPanel() {
   goToPanel('panel-admin');
   refreshAdminStatus();
+  refreshLintTrends();
 }
 
 async function refreshAdminStatus() {
@@ -29,6 +31,65 @@ async function refreshAdminStatus() {
   } catch (e) {
     el.textContent = 'Status unavailable: ' + e;
   }
+}
+
+// --- R5 lint trends (PLAN-self-healing-generation.md §6.4) -------------------------------
+// The ALWAYS-VISIBLE half of R5's two surfaces; the other is the step-5 Summary banner, which
+// appears only while an alarm stands. This card renders its numbers whether or not a threshold
+// is crossed, and turns red when one is. A card that appeared only on alarm would make "nothing
+// is wrong" and "nothing was ever recorded" look identical — the silent-degradation failure
+// this panel exists to make impossible (see the 2026-07-30 audit).
+//
+// Read-only by design. The thresholds are server constants in routers/pytest_create.py
+// (_PT_TREND_WINDOW, _PT_PROMPT_DEFECT_UNIT_FRACTION, _PT_PROMPT_DEFECT_CONSECUTIVE,
+// _PT_LINT_TEXT_RETURN_RATE). §6.4 also wants them editable from here; that is backend work
+// and deliberately NOT in this slice.
+//
+// /lint_trends answers in three shapes and all three land here: a normal aggregate, a thin one
+// ({runs: 0} — no total_units/repair/return_rate), and a failure ({error} — no window, no
+// by_class, no prompt_version). Read every field defensively.
+const _QUIET = 'justification-note mb-2';
+
+export function renderLintTrendsCard(d) {
+  if (!d) return { className: _QUIET, html: 'Lint trends unavailable.' };
+  if (d.error) return { className: _QUIET, html: 'Lint trends unavailable: ' + escapeHtml(String(d.error)) };
+  if (!d.runs) {
+    return { className: _QUIET,
+             html: 'No assembly runs recorded yet — the trend starts at the first Assemble.' };
+  }
+  const byClass = Object.entries(d.by_class || {}).map(([k, v]) => `${k}:${v}`).join(' · ') || 'none';
+  const rr = (d.return_rate == null) ? 'n/a (no repairs attempted)' : Math.round(d.return_rate * 100) + '%';
+  const alarms = d.alarms || [];
+  const head = `${d.runs} run(s)`
+    + (d.window ? ` in a window of ${d.window}` : '')
+    + (d.total_units != null ? ` · ${d.total_units} unit(s)` : '')
+    + (d.prompt_version ? ` · prompt version ${d.prompt_version}` : '');
+  const body = `<div>${escapeHtml(head)}</div>`
+    + `<div>lint errors by class — ${escapeHtml(byClass)}</div>`
+    + `<div>repair return rate — ${escapeHtml(rr)}</div>`;
+  if (!alarms.length) {
+    return { className: _QUIET, html: body + '<div>no threshold crossed</div>' };
+  }
+  return {
+    className: 'status-banner is-error',
+    html: '<div class="status-title">⚠ Lint trend alarm</div>'
+      + `<ul>${alarms.map(a => `<li>${escapeHtml(a.detail || a.class || '')}</li>`).join('')}</ul>`
+      + `<div class="justification-note">${body}</div>`,
+  };
+}
+
+async function refreshLintTrends() {
+  const el = document.getElementById('admin-lint-trends');
+  if (!el) return;
+  let d = null;
+  try {
+    const r = await fetch('/api/pytest-create/lint_trends');
+    if (r.ok) d = await r.json();
+    else d = { error: 'HTTP ' + r.status };
+  } catch (e) { d = { error: String(e) }; }
+  const c = renderLintTrendsCard(d);
+  el.className = c.className;
+  el.innerHTML = c.html;
 }
 
 async function post(path, body) {

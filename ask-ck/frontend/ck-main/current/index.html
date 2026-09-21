@@ -380,6 +380,9 @@
         <div class="section-description">Local maintenance — reset session state or restart the server without a terminal. <strong>Single-user / localhost only.</strong> The server restart briefly drops the connection (the page reconnects). The database is the permanent source of truth and cannot be rebuilt from here.</div>
         <div id="admin-status" class="justification-note mb-2">Loading status…</div>
 
+        <div class="section-heading" style="font-size:13px;margin-top:10px;">Lint trends</div>
+        <div id="admin-lint-trends" class="mb-2">Loading lint trends…</div>
+
         <div class="section-heading" style="font-size:13px;margin-top:10px;">Session state</div>
         <div class="compact-flex mb-2">
           <button data-action="adminResetCase" class="btn btn-secondary btn-compact">Reset current case session</button>
@@ -771,6 +774,10 @@
                   title="Drop every generated unit, the review and the assembly history. Keeps steps 1-4 and the saved script.">Reset Generate (drop units)</button>
         </div>
         <div id="pt-gen-status" class="justification-note mb-2"></div>
+        <!-- R5 §6.4 alarm banner. Above the lint result so the trend reads beside the errors
+             it is about. Rendered ONLY while an alarm stands; the always-on numbers are the
+             admin panel's "Lint trends" card. -->
+        <div id="pt-lint-trends" class="mb-2"></div>
         <div id="pt-lint-result" class="mb-2"></div>
         <div id="pt-review-result" class="mb-2"></div>
         <textarea id="pt-gen-code" class="form-input editor-textarea" style="height:420px" spellcheck="false" placeholder="Generated script appears here…"></textarea>

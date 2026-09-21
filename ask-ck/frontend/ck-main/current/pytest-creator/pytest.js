@@ -1728,6 +1728,7 @@ export function renderPtGenPanel() {
     document.getElementById('pt-gen-lib-code').value = lib.code || '';
   }
   ptRenderLint(s6.lint);
+  ptRenderLintTrends();
   // Re-seed the review from the session, or a reload silently discards findings the
   // reviewer paid an LLM call for — and an empty panel reads as "no findings".
   ptRenderReview(s6.review, (files.test || {}).code || '');
@@ -1758,6 +1759,49 @@ function ptRenderLint(lint) {
   el.innerHTML = `<span class="badge ${lint.ok ? 'badge-success' : ''}">${lint.ok ? 'lint OK' : 'lint failed'}</span>`
     + (err ? `<div class="justification-note">${err}</div>` : '')
     + warnBlock;
+}
+
+// R5 — the lint-trend alarm banner (PLAN-self-healing-generation.md §6.4). The backend shipped
+// 2026-09-15; this surface was deferred then because no trend data existed yet and it would have
+// rendered empty. Built 2026-09-22, once /lint_trends began answering with real runs.
+//
+// §6.4 puts this "on every case while the alarm stands", so it renders ONLY while a threshold is
+// crossed and is empty otherwise; the always-visible numbers are the admin panel's card.
+// AMBER, not red, deliberately: it sits directly above the lint result, where red ✗ lines mean
+// BLOCKING errors you must clear. A trend alarm blocks nothing — it is advice about the prompt.
+//
+// The detail strings are the SERVER's (`alarms[].detail`), rendered verbatim. The same text goes
+// to the `[pt] LINT-TREND ALARM` log line, /health.pt_lint_alarms and pt_lint_report.py; three
+// spellings of one alarm would be worse than one awkward one.
+export function ptLintTrendBanner(d) {
+  const alarms = (d && d.alarms) || [];
+  if (!alarms.length) return { className: 'status-banner hidden', html: '' };
+  const runs = d.runs || 0;
+  const bits = [`measured over the last ${runs} run${runs === 1 ? '' : 's'}`];
+  if (d.prompt_version) bits.push(`prompt version ${d.prompt_version}`);
+  return {
+    className: 'status-banner is-warning',
+    html: '<div class="status-title">⚠ Lint trend — the generate prompt is the fix, not the repair</div>'
+      + `<ul>${alarms.map(a => `<li>${escapeHtml(a.detail || a.class || '')}</li>`).join('')}</ul>`
+      + `<div class="justification-note">${escapeHtml(bits.join(' · '))}`
+      + ` · full numbers in the admin panel's Lint trends card.</div>`,
+  };
+}
+
+// Passive read: a trend is context, never a blocker, so a failed/absent fetch leaves the banner
+// empty instead of alerting over the assemble/lint flow it sits beside. Not awaited by the panel
+// for the same reason. The server caches this for 60s, so re-renders are cheap.
+async function ptRenderLintTrends() {
+  const el = document.getElementById('pt-lint-trends');
+  if (!el) return;
+  let d = null;
+  try {
+    const r = await fetch(PT_API + '/lint_trends');
+    if (r.ok) d = await r.json();
+  } catch (e) { d = null; }
+  const b = ptLintTrendBanner(d);
+  el.className = b.className;
+  el.innerHTML = b.html;
 }
 
 // Pass C — the holistic review (PLAN-pytest-creator.md §9.6).
