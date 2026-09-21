@@ -192,3 +192,12 @@ def test_roles_here_match_the_profile_link_roles():
     assert set(pt_media.ROLE_REQUIRES) <= profile_links, (
         f"media roles {sorted(pt_media.ROLE_REQUIRES)} not all in profile links "
         f"{sorted(profile_links)}")
+
+
+def test_cusfp_role_is_twisted_pair_and_rejects_fibre():
+    """A copper SFP (1000BASE-T module in an SFP cage) is its own PLUGGABLE role (2026-09-21).
+    Before this entry the frame's `assert_role_media(..., 'cusfp')` was refused as an unknown
+    role, which would have aborted AWPTCM-T33234 at its first insertion step."""
+    assert assert_role_media(U4_COPPER, "port1.0.1", "cusfp")[0]
+    ok, why = assert_role_media(U4_FIBRE, "port1.0.7", "cusfp")
+    assert not ok and "fibre" in why

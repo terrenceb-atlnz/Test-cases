@@ -50,6 +50,11 @@ UNKNOWN = "unknown"
 ROLE_REQUIRES = {
     "copper": (TWISTED_PAIR,),
     "fibre": (FIBRE,),
+    # A copper SFP (1000BASE-T module in an SFP cage): electrically the same twisted pair as
+    # an RJ-45 port — MDI/MDI-X, 10/100/1000 — but a PLUGGABLE, so the insertion tests bind it
+    # as its own role (2026-09-21, AWPTCM-T33234 steps 16-17). Without this entry the frame's
+    # `assert_role_media(..., 'cusfp')` was refused as an unknown role and the suite aborted.
+    "cusfp": (TWISTED_PAIR,),
     # The testbox data link (profile `tblink`, `ck_link_tb = tb-<dut>:<eth>`): a capture /
     # injection path, not a media-under-test, so ANY fitted media satisfies it. An empty
     # tuple means "no media requirement" -- distinct from an UNKNOWN role, which is refused.

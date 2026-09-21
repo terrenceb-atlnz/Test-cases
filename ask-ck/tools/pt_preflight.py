@@ -63,6 +63,14 @@ DEFAULT_SCRIPT_ROOT = REPO / "ask-ck" / "functions" / "pytest-creator" / "genera
 
 TB = "tb"  # the framework's reserved name for the testbox itself
 
+# The ART frame's link CONTRACT (TOPOLOGY-PROFILES.md, 2026-09-07): `self._ck_bind_link(setup,
+# dut, misc, '<role>')` reads `[misc] ck_link_<role> = <devA>-<devB>:<port>` at run time. The
+# reference parser is pt_media's (byte-identical to the module the frame ships), imported the
+# way pt_profiles imports it.
+if str(Path(__file__).resolve().parent) not in sys.path:
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+from pt_media import parse_link_ref  # noqa: E402
+
 # Framework binders the skeleton uses to acquire a device from the .setup.
 BINDERS = {"init_swi": "switch", "init_stk": "stack", "init_tb": "tb"}
 
@@ -267,6 +275,22 @@ class LinkDemand:
         return f"init_portlink({self.argA}, {self.argB}{extra})"
 
 
+class RoleLinkDemand:
+    """`self._ck_bind_link(setup, dut, misc, '<role>')` — a link demanded BY ROLE, resolved
+    against the bench's `[misc] ck_link_<role>` (2026-09-21). Before this the preflight saw
+    only the helper's inner `init_portlink(dut, far, ...)`, could not resolve `far`, and
+    reported every ART-frame script as "cannot resolve 'far'" — an un-runnable verdict that
+    was really "cannot determine" (seen on test-9000.33234.py)."""
+    __slots__ = ("role", "line", "optional")
+
+    def __init__(self, role: str, line: int, optional: bool = False):
+        self.role, self.line, self.optional = role, line, optional
+
+    @property
+    def key(self) -> str:
+        return f"ck_link_{self.role}"
+
+
 class PowerDemand:
     __slots__ = ("role", "var", "attr", "line")
 
@@ -282,6 +306,7 @@ class ScriptDemands:
         self.bindings: Dict[str, str] = {}      # local var  -> .setup role
         self.roles: Dict[str, str] = {}         # role       -> binder kind
         self.links: List[LinkDemand] = []
+        self.role_links: List[RoleLinkDemand] = []   # the ART frame's _ck_bind_link demands
         self.power: List[PowerDemand] = []
         self.warnings: List[str] = []
 
@@ -343,6 +368,27 @@ def parse_script(text: str, path: Optional[Path] = None) -> ScriptDemands:
     """
     d = ScriptDemands(path)
     tree = ast.parse(text)
+    # The frame's own helper: its `init_portlink(dut, far, ...)` lines are the MECHANISM of a
+    # role binding, not a demand of their own — the demand is the call site's role literal.
+    helper_ranges = [(n.lineno, n.end_lineno or n.lineno) for n in ast.walk(tree)
+                     if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef))
+                     and n.name == "_ck_bind_link"]
+
+    def _in_helper(node: ast.AST) -> bool:
+        return any(lo <= getattr(node, "lineno", -1) <= hi for lo, hi in helper_ranges)
+
+    for node in ast.walk(tree):
+        if (isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute)
+                and node.func.attr == "_ck_bind_link" and not _in_helper(node)):
+            role = next((a.value for a in node.args
+                         if isinstance(a, ast.Constant) and isinstance(a.value, str)), None)
+            if role is None:
+                d.warnings.append(f"line {node.lineno}: _ck_bind_link() with a non-literal role — "
+                                  "cannot check statically")
+                continue
+            optional = any(k.arg == "assert_media" and isinstance(k.value, ast.Constant)
+                           and k.value.value is False for k in node.keywords)
+            d.role_links.append(RoleLinkDemand(role, node.lineno, optional))
 
     # self.<attr> = <local>, so a demand written against self.dut resolves too.
     selfmap: Dict[str, str] = {}
@@ -355,6 +401,8 @@ def parse_script(text: str, path: Optional[Path] = None) -> ScriptDemands:
         binder = _binder_of(node.value)
         if binder is None or binder == "init_portlink":
             continue
+        if helper_ranges and _in_helper(node):
+            continue        # `far = setup.init_swi(far_key)` inside the helper: mechanism, not a demand
         if binder == "init_tb":
             role = TB
         else:
@@ -394,6 +442,8 @@ def parse_script(text: str, path: Optional[Path] = None) -> ScriptDemands:
         if not isinstance(node, ast.Call):
             continue
         if _binder_of(node) == "init_portlink":
+            if helper_ranges and _in_helper(node):
+                continue                    # the helper's body — see RoleLinkDemand
             if len(node.args) < 2:
                 d.warnings.append(f"line {node.lineno}: init_portlink() with <2 positional args")
                 continue
@@ -476,6 +526,53 @@ def check(script: ScriptDemands, bench: Bench) -> dict:
                            "attributes become None and the script builds CLI against None",
         })
 
+    # Role-contract links (the ART frame). Resolved the way the frame does at run time:
+    # `[misc] ck_link_<role>` -> a declared, still-unused [portlink] between the two devices,
+    # preferring the one whose endpoint is the named port.
+    for dem in sorted(script.role_links, key=lambda x: x.line):
+        value = bench.misc.get(dem.key)
+        soft = " (OPTIONAL: the frame reports these steps UNSUPPORTED instead of aborting)" if dem.optional else ""
+        if not value:
+            problems.append({
+                "kind": "LINK", "role": dem.key, "line": dem.line,
+                "message": f"_ck_bind_link(..., {dem.role!r}): the bench declares no [misc] {dem.key}",
+                "detail": "declared roles: " + (", ".join(sorted(k for k in bench.misc if k.startswith("ck_link_")))
+                                                or "(none)") + soft,
+                "consequence": ("the frame raises 'BENCH PROBLEM' at init and the suite aborts before "
+                                "any case runs" if not dem.optional else
+                                "the frame sets <role>_supported = False; the pluggable steps report UNSUPPORTED"),
+            })
+            continue
+        devA, devB, port = parse_link_ref(value)
+        if not devA or not devB:
+            problems.append({"kind": "LINK", "role": dem.key, "line": dem.line,
+                             "message": f"{dem.key} = {value!r} is not <devA>-<devB>:<port>",
+                             "detail": "e.g. swi_a-swi_b:port1.0.1" + soft})
+            continue
+        unknown = [x for x in (devA, devB) if x != TB and not bench.known(x)]
+        if unknown:
+            problems.append({"kind": "LINK", "role": dem.key, "line": dem.line,
+                             "message": f"{dem.key} names undeclared device(s): {', '.join(unknown)}",
+                             "detail": "declare them in [switch]/[stack]" + soft})
+            continue
+        candidates = [l for l in bench.links_between(devA, devB) if not l.used]
+        if port:
+            preferred = [l for l in candidates if port in (l.portA, l.portB)]
+            candidates = preferred or candidates
+        if candidates:
+            candidates[0].used = True
+            devices.append({"role": dem.key, "kind": "link-role", "ok": True,
+                            "detail": f"{devA}<->{devB}" + (f" via {port}" if port else "")
+                            + (" (optional)" if dem.optional else "")})
+            continue
+        problems.append({
+            "kind": "LINK", "role": dem.key, "line": dem.line,
+            "message": f"{dem.key} = {value!r} but no unused [portlink] between {devA} and {devB}",
+            "detail": "bench declares: " + ("; ".join(l.raw for l in bench.links) or "NO [portlink] at all") + soft,
+            "consequence": "the frame raises 'BENCH PROBLEM' at init" if not dem.optional
+                           else "the frame sets <role>_supported = False",
+        })
+
     # Power.
     seen_power: Set[Tuple[str, int]] = set()
     for dem in sorted(script.power, key=lambda x: x.line):
@@ -507,7 +604,7 @@ def check(script: ScriptDemands, bench: Bench) -> dict:
         "problems": problems,
         "notes": notes,
         "runnable": not problems,
-        "links_demanded": len(script.links),
+        "links_demanded": len(script.links) + len(script.role_links),
         "links_unsatisfiable": sum(1 for p in problems if p["kind"] == "LINK"),
     }
 
