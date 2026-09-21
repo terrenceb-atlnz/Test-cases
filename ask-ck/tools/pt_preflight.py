@@ -29,6 +29,21 @@ Two failure classes, both observed on the real tb470 bench (2026-07-30):
   POWER  the script power-cycles a device that has no `[powerlink]`, i.e. the device is
          not on a PDU outlet at all, so the power call has nothing to drive.
 
+Two kinds of link demand are read (2026-09-21):
+
+  legacy   `(a, b) = setup.init_portlink(dut, far, type1=..)` — a named pair, matched
+           exactly the way the framework matches it (first unused link, type filters).
+  role     `self._ck_bind_link(setup, dut, '<role>'[, optional=True])` — the generated
+           frame's DISCOVERY binding. The frame walks `dut.get_all_port_links()` at run time
+           and picks the link by the MEDIA the DUT reports, so offline this tool can only
+           check what the `.setup` knows: for `tb`, a testbox<->DUT link exists; for a partner
+           role (copper / fibre / cusfp), an unused DUT<->partner `port` link exists. Which of
+           those links is copper, fibre or a copper SFP is NOT knowable from the file — the
+           verdict says so rather than guessing. An OPTIONAL role with no link is a note, not a
+           problem: the frame sets `<role>_supported = False` and those cases report UNSUPPORTED.
+           A stacked DUT is handled the way the frame does it: the frame binds the stack that
+           contains `swi_a`, so a link declared to ANY member satisfies the demand.
+
 Usage:
   python3 ask-ck/tools/pt_preflight.py --setup /path/to/tb470.setup
   python3 ask-ck/tools/pt_preflight.py --setup tb470.setup --script ask-ck/functions/pytest-creator/generated/Port/x.py
@@ -113,10 +128,8 @@ class Bench:
         self.links: List[Link] = []
         self.powerlinks: Dict[str, List[str]] = {}   # swi_c -> [pwr_c]
         self.power: Dict[str, str] = {}              # pwr_c -> '(pdu, 10.36.150.14, 8)'
-        # [misc] is a free-form key/value area the framework already accepts (Setup.py
-        # stores it verbatim, splitting comma values into a list). It is where a bench
-        # declares which TOPOLOGY PROFILES it implements -- see ask-ck/tools/pt_profiles.py.
-        self.misc: Dict[str, str] = {}
+        # [misc] is deliberately NOT read (Terrence, 2026-09-21): the frame discovers its
+        # topology through the framework, so a bench declares nothing there for us.
         self.warnings: List[str] = []
 
     # -- parsing ---------------------------------------------------------------
@@ -141,22 +154,10 @@ class Bench:
                 b.powerlinks[dev] = [p.strip() for p in pwrs.split(",") if p.strip()]
         if cp.has_section("power"):
             b.power = {k: v.strip() for k, v in cp.items("power")}
-        if cp.has_section("misc"):
-            b.misc = {k: v.strip() for k, v in cp.items("misc")}
         if cp.has_section("portlink"):
             for pair, ports in cp.items("portlink"):
                 b._add_portlinks(pair, ports)
         return b
-
-    def links_between(self, devA: str, devB: str) -> List[Link]:
-        """Every declared link joining these two devices, in either orientation.
-
-        Unlike take_link() this does NOT consume — it is the read-only query a profile
-        conformance check needs (and mirrors the framework's own get_port_link vs
-        init_portlink split).
-        """
-        return [l for l in self.links
-                if (l.devA == devA and l.devB == devB) or (l.devA == devB and l.devB == devA)]
 
     @classmethod
     def from_path(cls, path: Path) -> "Bench":
@@ -267,6 +268,18 @@ class LinkDemand:
         return f"init_portlink({self.argA}, {self.argB}{extra})"
 
 
+class RoleDemand:
+    """`self._ck_bind_link(setup, <dut>, '<role>'[, optional=True])` — a discovery binding."""
+    __slots__ = ("role", "dut", "optional", "line", "argDut")
+
+    def __init__(self, role, dut, optional, line, argDut):
+        self.role, self.dut, self.optional, self.line, self.argDut = role, dut, optional, line, argDut
+
+    def call_text(self) -> str:
+        opt = ", optional=True" if self.optional else ""
+        return f"_ck_bind_link(setup, {self.argDut}, '{self.role}'{opt})"
+
+
 class PowerDemand:
     __slots__ = ("role", "var", "attr", "line")
 
@@ -282,6 +295,7 @@ class ScriptDemands:
         self.bindings: Dict[str, str] = {}      # local var  -> .setup role
         self.roles: Dict[str, str] = {}         # role       -> binder kind
         self.links: List[LinkDemand] = []
+        self.role_links: List[RoleDemand] = []  # discovery-frame demands (2026-09-21)
         self.power: List[PowerDemand] = []
         self.warnings: List[str] = []
 
@@ -297,33 +311,17 @@ def _binder_of(call: ast.Call) -> Optional[str]:
     return name if name in BINDERS or name == "init_portlink" else None
 
 
-def _contract_role(call: ast.Call) -> Optional[str]:
-    """Role from a TOPOLOGY-CONTRACT binding: `init_swi(misc.get('ck_role_dut', 'swi_a'))`.
+def _legacy_default_role(call: ast.Call) -> Optional[str]:
+    """Role from a PRE-2026-09-21 saved script: `init_swi(misc.get('ck_role_dut', 'swi_a'))`.
 
-    WHY THIS EXISTS
-    ---------------
-    Generation deliberately stopped naming devices (2026-07-30, TOPOLOGY-PROFILES.md): the DUT
-    is resolved from the bench's own `[misc] ck_role_dut` at RUN time, so one script binds
-    correctly on any bench that implements the roles. Preflight, written the same day, could
-    only resolve a LITERAL role — so every script written to the new contract fell into the
-    "non-literal role" branch, and with no device bound, every link demand against it became
-    unresolvable.
-
-    The damage was not just lost coverage: the verdict printed
-    `VERDICT: UN-RUNNABLE (0/2 links satisfiable)`, which reads as a definite NO. The truth was
-    "cannot determine". A confident wrong negative is worse than an admitted unknown here,
-    because the whole purpose of this tool is to decide whether to spend bench time.
-
-    Reading the literal DEFAULT is sound rather than a guess: the generated frame is fixed and
-    always emits `misc.get('<key>', '<default>')`, and the default is the role name the
-    contract specifies. `check_script` additionally prefers the bench's OWN value for the key
-    when the `.setup` declares one, so a bench that renames its roles is still checked
-    correctly.
+    Those scripts read the bench's `[misc]` at run time; that layer is retired (the frame now
+    binds `swi_a` outright), but saved scripts still carry the call. The literal DEFAULT is
+    the role the frame would have used on a bench that declared nothing — which every bench
+    now is — so reading it is exact, not a guess. This function never reads the bench file.
     """
     f = call.args[0] if call.args else None
     if not isinstance(f, ast.Call):
         return None
-    # ...get('ck_role_dut', 'swi_a')
     if not (isinstance(f.func, ast.Attribute) and f.func.attr == "get"):
         return None
     if len(f.args) < 2:
@@ -332,6 +330,16 @@ def _contract_role(call: ast.Call) -> Optional[str]:
     if not key or not key.startswith("ck_role_") or not default:
         return None
     return default
+
+
+def _frame_helper_lines(tree: ast.AST) -> Set[int]:
+    """Line numbers inside the frame's own binding helpers. An `init_portlink()` call there
+    (legacy helper body) is the helper's mechanism, not a demand of the test."""
+    lines: Set[int] = set()
+    for n in ast.walk(tree):
+        if isinstance(n, ast.FunctionDef) and n.name in ("_ck_bind_link", "_ck_discover"):
+            lines.update(range(n.lineno, (n.end_lineno or n.lineno) + 1))
+    return lines
 
 
 def parse_script(text: str, path: Optional[Path] = None) -> ScriptDemands:
@@ -348,9 +356,13 @@ def parse_script(text: str, path: Optional[Path] = None) -> ScriptDemands:
     selfmap: Dict[str, str] = {}
 
     # Pass 1: bindings. Collected over the whole module, not just init(), because a
-    # portlink bound outside init() has happened before and is still a real demand.
+    # portlink bound outside init() has happened before and is still a real demand. The
+    # frame's own helpers are skipped: their `init_swi(far.name)` is mechanism, not a demand.
+    helper_lines = _frame_helper_lines(tree)
     for node in ast.walk(tree):
         if not isinstance(node, ast.Assign) or not isinstance(node.value, ast.Call):
+            continue
+        if node.lineno in helper_lines:
             continue
         binder = _binder_of(node.value)
         if binder is None or binder == "init_portlink":
@@ -358,9 +370,16 @@ def parse_script(text: str, path: Optional[Path] = None) -> ScriptDemands:
         if binder == "init_tb":
             role = TB
         else:
-            role = _const_str(node.value.args[0]) if node.value.args else None
+            arg0 = node.value.args[0] if node.value.args else None
+            role = _const_str(arg0) if arg0 is not None else None
             if role is None:
-                role = _contract_role(node.value)
+                role = _legacy_default_role(node.value)
+            if (role is None and binder == "init_stk" and isinstance(arg0, ast.Attribute)
+                    and arg0.attr == "name"):
+                # The discovery frame's `dut = setup.init_stk(_stk.name)` after
+                # `dut = setup.init_swi('swi_a')`: the DUT becomes the stack that CONTAINS
+                # swi_a. The earlier literal binding stands; check() expands it to the stack.
+                continue
             if role is None:
                 d.warnings.append(
                     f"line {node.lineno}: {binder}() called with a non-literal role — "
@@ -393,7 +412,26 @@ def parse_script(text: str, path: Optional[Path] = None) -> ScriptDemands:
     for node in ast.walk(tree):
         if not isinstance(node, ast.Call):
             continue
+        if (isinstance(node.func, ast.Attribute) and node.func.attr == "_ck_bind_link"
+                and node.lineno not in helper_lines):
+            # `self._ck_bind_link(setup, dut, 'copper', optional=True)` — and the legacy
+            # 4-positional shape `(setup, dut, misc, 'copper', assert_media=False)`: the role
+            # is the first string constant among the positional args either way.
+            role = next((c for c in (_const_str(a) for a in node.args) if c), None)
+            if role is None or len(node.args) < 2:
+                d.warnings.append(f"line {node.lineno}: _ck_bind_link() with a non-literal role")
+                continue
+            dut_role, arg_dut = resolve(node.args[1])
+            # `optional=True` (discovery frame) — or the legacy frame's `assert_media=False`,
+            # which bound a pluggable role inside try/except, i.e. optionally.
+            optional = any(isinstance(k.value, ast.Constant) and (
+                (k.arg == "optional" and k.value.value is True)
+                or (k.arg == "assert_media" and k.value.value is False)) for k in node.keywords)
+            d.role_links.append(RoleDemand(role, dut_role, optional, node.lineno, arg_dut))
+            continue
         if _binder_of(node) == "init_portlink":
+            if node.lineno in helper_lines:
+                continue                     # the helper's own mechanism, not a demand
             if len(node.args) < 2:
                 d.warnings.append(f"line {node.lineno}: init_portlink() with <2 positional args")
                 continue
@@ -476,6 +514,63 @@ def check(script: ScriptDemands, bench: Bench) -> dict:
                            "attributes become None and the script builds CLI against None",
         })
 
+    # Role demands (the discovery frame). Offline we know the CABLES, never the media — so
+    # REQUIRED roles are matched first and OPTIONAL ones take what is left. The frame binds
+    # the pluggable roles first at run time, but there each takes only a link whose media
+    # matches; here every partner link looks the same, and letting an optional role consume
+    # a cable a required role needs would print a confident wrong UN-RUNNABLE.
+    for dem in sorted(script.role_links, key=lambda x: (x.optional, x.line)):
+        if dem.dut is None:
+            problems.append({
+                "kind": "LINK", "role": None, "line": dem.line,
+                "message": f"{dem.call_text()}: cannot resolve {dem.argDut!r} to a .setup role",
+                "detail": "only a DUT bound via init_swi/init_stk can be checked",
+            })
+            continue
+        if not bench.known(dem.dut):
+            continue  # already reported as a DEVICE problem
+        # The frame binds the STACK that contains swi_a, so any member's cable counts.
+        dut_set = set(bench.expand(bench.stack_of(dem.dut) or dem.dut))
+        taken = None
+        for link in bench.links:
+            if link.used:
+                continue
+            for near_dev, near_port, far_dev in ((link.devA, link.portA, link.devB),
+                                                 (link.devB, link.portB, link.devA)):
+                if near_dev not in dut_set or iface_type(near_port) != "port":
+                    continue
+                is_tb = far_dev == TB
+                if (dem.role == TB) == is_tb and (is_tb or far_dev not in dut_set):
+                    taken = link
+                    break
+            if taken:
+                break
+        if taken is not None:
+            taken.used = True
+            notes.append(
+                f"line {dem.line}: role {dem.role!r} can take {taken.raw}"
+                + ("" if dem.role == TB else
+                   " — whether that link IS " + dem.role + " is read from the DUT at run time "
+                   "(show interface status / show system pluggable), not from this file"))
+            continue
+        partner = "the testbox" if dem.role == TB else "a partner switch"
+        declared = [l.raw for l in bench.links]
+        detail = (f"bench declares {len(declared)} portlink(s): " + "; ".join(declared)
+                  if declared else "the bench declares NO [portlink] at all")
+        if dem.optional:
+            notes.append(
+                f"line {dem.line}: OPTIONAL role {dem.role!r} has no unused {dem.dut}<->{partner} "
+                f"data link left — the frame sets {dem.role}_supported=False and the cases "
+                f"needing it report UNSUPPORTED ({detail})")
+            continue
+        problems.append({
+            "kind": "LINK", "role": dem.role, "line": dem.line,
+            "message": f"{dem.call_text()}: no unused data portlink between {dem.dut} and {partner}",
+            "detail": detail,
+            "consequence": "the frame's _ck_bind_link() raises BENCH PROBLEM at init() and the "
+                           "suite does not start",
+        })
+
     # Power.
     seen_power: Set[Tuple[str, int]] = set()
     for dem in sorted(script.power, key=lambda x: x.line):
@@ -507,7 +602,7 @@ def check(script: ScriptDemands, bench: Bench) -> dict:
         "problems": problems,
         "notes": notes,
         "runnable": not problems,
-        "links_demanded": len(script.links),
+        "links_demanded": len(script.links) + len(script.role_links),
         "links_unsatisfiable": sum(1 for p in problems if p["kind"] == "LINK"),
     }
 
@@ -552,10 +647,6 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                     help="a generated script; repeatable. Default: every .py under "
                          "ask-ck/functions/pytest-creator/generated/")
     ap.add_argument("--json", action="store_true", help="machine-readable report on stdout")
-    ap.add_argument("--profile", action="append", default=[], metavar="NAME",
-                    help="instead of checking scripts, check whether the bench IMPLEMENTS "
-                         "this topology profile; repeatable. 'all' checks every known "
-                         "profile. See ask-ck/tools/pt_profiles.py + TOPOLOGY-PROFILES.md")
     args = ap.parse_args(argv)
 
     setup_path = Path(args.setup)
@@ -563,31 +654,6 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         print(f"error: no such .setup file: {setup_path}", file=sys.stderr)
         print("hint: for tb470 use %s" % LOCAL_TB470_SETUP, file=sys.stderr)
         return 2
-
-    if args.profile:
-        # Profile conformance is a property of the BENCH alone — no scripts involved.
-        from pt_profiles import PROFILES, check_profiles, declared_profiles  # noqa: PLC0415
-        bench = Bench.from_path(setup_path)
-        names = (sorted(PROFILES) if "all" in args.profile else args.profile)
-        reports = check_profiles(bench, names)
-        if args.json:
-            print(json.dumps(reports, indent=2))
-            return 0 if all(r["conformant"] for r in reports) else 1
-        claimed = declared_profiles(bench)
-        print(f"{setup_path.name} claims: {', '.join(claimed) or '(nothing)'}\n")
-        for rep in reports:
-            mark = "IMPLEMENTS" if rep["conformant"] else "DOES NOT IMPLEMENT"
-            print(f"{mark}  {rep['profile']}")
-            for c in rep["checks"]:
-                print(f"    OK  {c['role']:<16} {c['detail']}")
-            for p in rep["problems"]:
-                print(f"    !!  {p['role'] or '-':<16} {p['message']}")
-                if p.get("fix"):
-                    print(f"        fix: {p['fix']}")
-            print()
-        ok = [r["profile"] for r in reports if r["conformant"]]
-        print(f"{len(ok)}/{len(reports)} implemented" + (f": {', '.join(ok)}" if ok else ""))
-        return 0 if len(ok) == len(reports) else 1
 
     scripts = [Path(s) for s in args.script] or sorted(DEFAULT_SCRIPT_ROOT.rglob("*.py"))
     missing = [s for s in scripts if not s.is_file()]
