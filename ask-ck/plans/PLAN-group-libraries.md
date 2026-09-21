@@ -115,6 +115,12 @@ references is removed — that member only, nothing else in the file moves. It n
 unbound-names walk run in **reverse** over every script in the group directory, and it is the
 only part of R1(b) that can delete a reviewer's working code, which is why it is separated.
 
+**Its precondition is NOT met yet (checked 2026-09-22).** The only group library on disk,
+`generated/Port/library_port.py`, has **zero** tagged members and **zero** `# AI: dependency`
+members — it is the migrated, untagged T33234 file. Prune would have nothing to act on, and
+building the destructive step against fixtures alone is exactly what deferring it was for.
+Re-check this before starting: a group library with auto-added members has to exist first.
+
 ## 6. Tests
 
 - `_group_library_stem`: `Port` → `library_port`; spaces/parens/hyphens fold; the documented

@@ -47,9 +47,24 @@ not guessed, and he picked **R5's two JS surfaces**, then the zephyr gate red.
   so all 1670 stayed green with the semantics wrong — they were re-aimed at a real group. Five
   mutations run; one gap they exposed was a REAL BUG (imports appended after the code that needed
   them in an untagged file), found by a test written to cover the branch a mutation had survived.
-- **Open, Terrence's:** R6's 4th bar still needs his ~$20 scratch-server Opus run; t44297 #6 is
-  medium with D6 still only a recommendation; R1(b)'s PRUNE pass. No small unblocked code item
-  remains that I can see.
+- **Open-item sweep — four claims checked against the code, three of them wrong.** Old entries
+  are append-only, so the corrections live here, not in them:
+  - `.REVIEW.py` "tracked by accident, ratify or revert" (listed open since 2026-08-17): the file
+    **no longer exists**, on disk or in `git ls-files`. Resolved.
+  - `PLAN-llm-mode-selection` §5 (an unauthenticated global write): **closed** by
+    `PLAN-seat-setup-and-per-seat-llm.md` §5–§6, per that plan's own SUPERSEDED banner. Resolved.
+  - **R1(b) PRUNE: precondition NOT met.** The only group library has zero tagged members and
+    zero `# AI: dependency` members, so there is nothing to prune. Recorded in the plan.
+  - **t44297 #6: still open, but cheaper.** I suspected slice B had already built its half 2 and
+    was wrong — `_assemble_and_store` still does `step6_f.pop("review", None)`, so the
+    review-less state is real. But slice B's `review.code_hash` / `review_stale` / collapsed
+    stale badge is exactly the machinery half 2 needed, and a re-assembly changes the same
+    script hash, so the item is now ~"stop popping it" rather than a new concept. Terrence's
+    call 2026-09-22: **record it, do not build it.**
+- **Still genuinely open:** requirements carry lower bounds only (`fastapi>=0.139`, …), with
+  upper bounds / a lockfile an unanswered question since 2026-08-17; R6's 4th bar needs his ~$20
+  scratch-server Opus run; t44297 #6 (both halves, D6 undecided); R1(b)'s PRUNE once there is
+  something to prune.
 - **Noticed, not acted on:** R5's prompt-defect alarm fires on `frac >= 0.10` with **no
   minimum-runs guard**, while the sibling lint-text branch guards with `attempts >= 3`. On a thin
   window one 2-unit blip raises a "change the generate prompt" alarm — which the new surfaces now

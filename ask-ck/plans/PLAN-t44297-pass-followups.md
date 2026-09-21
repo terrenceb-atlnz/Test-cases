@@ -157,6 +157,18 @@ Two halves:
    Keep it instead, **marked STALE** (`assembled_at > review.at`) until a new review lands, so a
    dropped call leaves the last findings visible rather than nothing.
 
+   > **2026-09-22 — STILL OPEN, but much cheaper than when this was written.** Verified against
+   > the code: `_assemble_and_store` still does `step6_f.pop("review", None)` on every
+   > re-assembly, so the review-less state is real and unfixed. What CHANGED is the cost. Slice B
+   > of `PLAN-generate-state-and-sequence-sanity.md` (2026-09-21, `fc8348b`) built the staleness
+   > machinery for a *different* path — a Save or hand edit moves the code on, `review.code_hash`
+   > stops matching the script hash, `_gen_state` sets `review_stale`, and `ptRenderReview` shows
+   > the findings collapsed under a stale badge with per-finding evidence checks. A re-assembly
+   > changes that same script hash. So this item is now essentially **stop popping it** and let
+   > the existing marker fire, rather than the standalone staleness concept described above.
+   > **D6's second question is still a decision, not a fact** — the mechanism exists; choosing to
+   > apply it to re-assembly has not been taken.
+
 Generate/fix are untouched; the workspace default and the `unit_fill` route are untouched.
 
 **Tests.** A review job whose session disconnects mid-call is **not** failed: a result posted
