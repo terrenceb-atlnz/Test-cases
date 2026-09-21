@@ -421,17 +421,54 @@ def test_every_generated_script_parses_and_is_checkable():
         assert demands.links, f"{path.name}: no portlink demands detected"
 
 
-def _verdicts(bench_text: str) -> dict:
+# The three Port scripts as generated on 2026-07-30, reduced to the ONLY thing the preflight
+# reads: their TestSet.init() bindings. Frozen here on 2026-09-21 because the live tree is a
+# moving target — the 2026-09-16 clean-slate reset removed those files (recoverable from
+# e35bbb2^), the ART rename made the next script `test-9000.<case>.py`, and every regeneration
+# changes what a script demands. A pin that read the tree therefore reddened the gate for a
+# week over a filename. The STORY these fixtures pin is the tool's: declaring the two verified
+# swi_a<->swi_b data links took tb470 from 0/3 to 2/3 (`_verdicts` below).
+FROZEN_2026_07_30 = {
+    "Port_Auto_MDI_MDI_test.py": """
+class TestSet(ATTestSet.TestSet):
+    def init(self, setup):
+        tb = setup.init_tb()
+        dut = setup.init_swi('swi_a')
+        lp = setup.init_swi('swi_b')
+        (dut.portA, lp.portA) = setup.init_portlink(dut, lp, type1='port', type2='port')
+""",
+    "Port_Auto_Negotiation_test.py": """
+class TestSet(ATTestSet.TestSet):
+    def init(self, setup):
+        tb = setup.init_tb()
+        dut = setup.init_swi('swi_a')
+        linkP = setup.init_swi('swi_b')
+        dutA = setup.init_swi('swi_c')
+        (dut.portTB, tb.ethA) = setup.init_portlink(dut, tb, type1='port')
+        (dut.portB, linkP.portA) = setup.init_portlink(dut, linkP, type1='port', type2='port')
+""",
+    "3_Port_Fixed_port_test.py": """
+class TestSet(ATTestSet.TestSet):
+    def init(self, setup):
+        tb = setup.init_tb()
+        dut = setup.init_swi('swi_a')
+        dutA = setup.init_swi('swi_b')
+        linkP = setup.init_swi('swi_c')
+        (dut.portA, linkP.portB) = setup.init_portlink(dut, linkP, type1='port', type2='port')
+        (dut.portB, dutA.portA) = setup.init_portlink(dut, dutA, type1='port', type2='port')
+""",
+}
+
+
+def _verdicts(bench_text: str, scripts: dict = FROZEN_2026_07_30) -> dict:
     """Per-script verdicts. A FRESH Bench per script — link consumption is per-run state,
     so one bench object would let script #1 use up script #2's cables."""
     return {
-        p.name: check(parse_script(p.read_text(encoding="utf-8", errors="replace"), p),
-                      Bench.from_text(bench_text))["runnable"]
-        for p in REAL_SCRIPTS
+        name: check(parse_script(src), Bench.from_text(bench_text))["runnable"]
+        for name, src in scripts.items()
     }
 
 
-@pytest.mark.skipif(not REAL_SCRIPTS, reason="no generated scripts in the tree")
 def test_real_scripts_on_the_live_bench():
     """Pins the tb470 outcome as at 2026-07-30 afternoon: declaring the two verified
     swi_a<->swi_b data links took that bench from 0/3 to 2/3.
@@ -446,9 +483,20 @@ def test_real_scripts_on_the_live_bench():
     assert v.get("3_Port_Fixed_port_test.py") is False, v
 
 
-@pytest.mark.skipif(not REAL_SCRIPTS, reason="no generated scripts in the tree")
 def test_real_scripts_were_all_unrunnable_before_the_inter_switch_links():
     """The before-picture, kept as the contrast that gives the test above its meaning: with
     only the testbox->DUT portlink declared, every Port (7) script was un-runnable because
     each needs at least one switch<->switch data link."""
     assert not any(_verdicts(BENCH_STACKED).values()), _verdicts(BENCH_STACKED)
+
+
+@pytest.mark.skipif(not REAL_SCRIPTS, reason="no generated scripts in the tree")
+def test_every_current_script_gets_a_verdict_without_crashing():
+    """The tree half, with NO pinned truth: whatever is in generated/ today must parse and
+    come back with a boolean verdict and a problems list. What the verdict IS depends on the
+    script and is not this test's business (see FROZEN_2026_07_30 for the pinned story)."""
+    for p in REAL_SCRIPTS:
+        rep = check(parse_script(p.read_text(encoding="utf-8", errors="replace"), p),
+                    Bench.from_text(TB470_2026_07_30))
+        assert isinstance(rep["runnable"], bool), p.name
+        assert isinstance(rep["problems"], list), p.name
