@@ -1,16 +1,20 @@
 ---
 name: frame-binds-two-roles-only
-description: DEFERRED repair — the generated frame binds only {tb, peer} and TOPOLOGY-PROFILES collapses copper+fibre onto ONE handle, so a multi-role case forces the setup UNIT to invent the role contract (4 of 6 highs on T33234). The state/UI gating, review-hash, sequence-sanity and library designs recorded here (A–D) SHIPPED 2026-09-21 — see PLAN-generate-state-and-sequence-sanity.md
+description: RECORD (all SHIPPED 2026-09-21) — why the generated frame used to bind only {tb, peer} with copper+fibre on ONE handle (4 of 6 highs on T33234), and the four process designs A–D agreed during that repair; the frame now binds a ROLE SET (tb/copper/fibre/cusfp, pluggables optional) — see PLAN-frame-role-set.md and PLAN-generate-state-and-sequence-sanity.md
 metadata:
   type: project
   verified: 2026-09-21
 ---
 
-> **UPDATE 2026-09-21 — sections A, B, C, D and the FIRST TASK below are BUILT** (commits 56c7022,
-> fc8348b, f75581b; plan `ask-ck/plans/PLAN-generate-state-and-sequence-sanity.md`; the *why*s are in
-> CHANGELOG 2026-09-21). They stay here as the record of what was agreed and why. **The one part of
-> this memory still open is the frame itself** — `_detect_links` returning `{tb, peer}` and the
-> profiles spec collapsing copper+fibre onto one handle. T33234's live session reads `diverged`
+> **UPDATE 2026-09-21 — EVERYTHING in this memory is BUILT.** Sections A–D and the FIRST TASK:
+> commits 56c7022, fc8348b, f75581b (plan `PLAN-generate-state-and-sequence-sanity.md`). The frame
+> itself: `e022e1c` + `6ada916` (plan `PLAN-frame-role-set.md`) — `_detect_links` returns the role SET
+> `{tb, copper, fibre, cusfp}`, the frame binds one `_ck_bind_link` block per role with fixed handles
+> (`portPeer`/`peer.portDut`, `portFibre`/`fibre_peer.portDut`, `portCuSfp`/`cusfp_peer.portDut`),
+> pluggable roles are OPTIONAL-with-UNSUPPORTED (`<role>_supported`, media asserted by the insertion
+> case via `assert_role_media_now`), `cusfp` is a profile + media role, and the preflight reads the
+> role contract. The *why*s are in CHANGELOG 2026-09-21. This file stays as the record of the
+> diagnosis and the agreements; nothing here is pending. T33234's live session reads `diverged`
 > until Terrence clicks Re-chunk; nothing can revert the repair meanwhile.
 
 **Terrence, 2026-09-17: "I want to repair it in the next session."** The evidence below is

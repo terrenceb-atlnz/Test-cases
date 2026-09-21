@@ -48,6 +48,20 @@ reset), f75581b (C). All four designs came out of the AWPTCM-T33234 repair (2026
 - **`save_sequence` now preserves `kind`/`claim` from the stored row.** *Why (found building C):* the
   Sequence table round-tripped only n/action/verify/from, so every Save Edits turned a `setup` step
   into a TestCase.
+- **The frame binds a ROLE SET (tb / copper / fibre / cusfp), not two links** (`e022e1c`, `6ada916`;
+  plan `PLAN-frame-role-set.md`). *Why:* `_detect_links` returned `{tb, peer}` and copper/fibre shared
+  one handle set, so a case needing four links (T33234) made the setup UNIT invent the missing
+  bindings and bind the copper test port from the testbox role — the single cause of 4 of the first
+  review's 6 highs. Pluggable roles (fibre, copper-SFP) are OPTIONAL-with-UNSUPPORTED: bound by
+  reference, media asserted by the insertion case, a bench without them runs the copper steps and
+  reports the pluggable steps UNSUPPORTED (Terrence, generalising the 2026-09-17 T33234 ruling);
+  tb/copper still abort. `cusfp` becomes a profile and a media role — the hand-repaired T33234 called
+  `assert_role_media(..., 'cusfp')`, which the shipped checker refused as unknown and would have
+  aborted the suite at step 16. The preflight now reads `_ck_bind_link(..., '<role>')` call sites
+  against `[misc] ck_link_<role>`; until now every ART-frame script scored "cannot resolve 'far'".
+- **The preflight bench pins are frozen fixtures, not the live tree** (`31a7ba7`). *Why:* the test
+  asserted verdicts by generated filename; the 2026-09-16 reset removed those files and the gate
+  carried a red for a week over a name.
 
 ## 2026-09-17 — Load Case & New Session; ART script identity (`test-9000.<case>`); objectives prompt scope guardrails; framework-log resolution
 

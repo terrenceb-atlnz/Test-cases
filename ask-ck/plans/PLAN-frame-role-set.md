@@ -2,12 +2,14 @@
 
 > ## Status (read first)
 >
-> **APPROVED 2026-09-21, IN PROGRESS.** The last deferred T33234 repair (memory `frame-binds-two-roles-only`,
+> **BUILT 2026-09-21** (step 1 `e022e1c`, step 2 `6ada916`, docs in the wrap commit). Rendered for T33234's real sequence the frame emits exactly the four bindings the hand repair added. Found on the way: the hand-repaired script's `assert_role_media(..., 'cusfp')` would have been refused (role unknown) — fixed by the `cusfp` media role.
+>
+> **Originally:** APPROVED 2026-09-21, IN PROGRESS. The last deferred T33234 repair (memory `frame-binds-two-roles-only`,
 > three-layer diagnosis). Decisions taken with Terrence 2026-09-21: `cusfp` is a first-class role + profile;
 > pluggable roles (fibre, cusfp) are OPTIONAL-with-UNSUPPORTED while tb/copper abort; handles are
 > `portFibre`/`fibre_peer.portDut` and `portCuSfp`/`cusfp_peer.portDut`, copper keeps `peer`/`portPeer`/`portDut`.
 >
-> Progress: step 1 vocabulary + preflight ☐ · step 2 detection + frame + prompts ☐ · step 3 docs/wrap ☐
+> Progress: step 1 vocabulary + preflight ☑ e022e1c · step 2 detection + frame + prompts ☑ 6ada916 · step 3 docs/wrap ☑
 
 
 ## Context

@@ -1114,6 +1114,43 @@ born at Extract Sequence were only caught at the third review round.
   `test_pt_prompt_library_context.py` (8); `pt-gen-state.spec.js`, `pt-review-stale.spec.js`,
   `pt-seq-claims.spec.js` (14).
 
+### The frame binds a ROLE SET — tb / copper / fibre / cusfp (2026-09-21)
+
+Plan: `ask-ck/plans/PLAN-frame-role-set.md` (BUILT; commits e022e1c, 6ada916). The last
+T33234 repair: `_detect_links` returned `{tb, peer}` and the frame bound at most two links,
+copper and fibre sharing one handle set, so a case needing four links made the setup UNIT
+invent the rest (4 of the first review's 6 highs).
+
+- **Detection** (`_detect_links` → `{tb, copper, fibre, cusfp, peer}`; `LINK_ROLES`):
+  `copper` is the neighbour predicate unless the case is fibre-flavoured and says nothing
+  copper-specific (`_COPPER_HINT_RX`: copper, twisted pair, RJ-45, polarity, MDI, crossover,
+  straight-through, `<n>BASE-T`); `fibre` from `_FIBRE_HINT_RX` OR any step's slice-C
+  `claim.cable`; `cusfp` from `_CUSFP_HINT_RX` (copper SFP, SFP-T, 1000BASE-T module …);
+  `peer` = any neighbour. Over-inclusive on purpose; a wrong choice cannot produce a wrong
+  verdict because the frame refuses a bench that lacks a required role.
+- **Frame** (`pt_script_template.py.jinja`): one `_ck_bind_link` block per role. `tb` and
+  `copper` are REQUIRED (abort as before). `fibre` and `cusfp` are OPTIONAL: bound by reference
+  (`assert_media=False`) inside `try/except RuntimeError`, `self.<role>_supported` flags, handles
+  `None` on a bench without the link, the media asserted by the insertion case through the
+  frame's module-level `assert_role_media_now(testCase, dut, port, role)`. Far devices are
+  cached per key (`self._ck_far_devices`) so two links to one partner never `init_swi()` it
+  twice. Fixed handles: `portA`/`tb.ethA`, `portPeer`/`peer.portDut`,
+  `portFibre`/`fibre_peer.portDut`, `portCuSfp`/`cusfp_peer.portDut`; the shortcut block carries
+  them all. `_skeleton_bound_ports` / `_skeleton_bound_devices` read any number back.
+- **Vocabulary**: `pt_profiles.PROFILES["cusfp"]`, `pt_media.ROLE_REQUIRES["cusfp"]`
+  (twisted pair — without it the hand-repaired T33234's `assert_role_media(..., 'cusfp')` was
+  refused as an unknown role), the spec table rows in TOPOLOGY-PROFILES.md.
+- **Preflight** (`pt_preflight.py`): `self._ck_bind_link(setup, dut, misc, '<role>')` call
+  sites are `RoleLinkDemand`s resolved against `[misc] ck_link_<role>` → a declared, unused
+  `[portlink]` (preferring the named port); the helper's inner `init_portlink`/`init_swi` are
+  its mechanism, not demands; `assert_media=False` marks the demand optional and the verdict
+  says UNSUPPORTED. Until now every ART-frame script read "cannot resolve 'far'".
+- **Prompts**: `pt_generate_step.jinja` and `pt_fill_rules.jinja` describe the pluggable
+  handles, the `<role>_supported` check and the UNSUPPORTED idiom (`self.supported = False`).
+- Tests: `test_pt_role_set.py` (16 incl. every role subset compiles), `test_pt_preflight.py`
+  (+5), `test_pt_media.py` (+1); `test_pt_art_shape.py` / `test_media_assertion_wiring.py`
+  re-aimed at the set. The whole-script prompt snapshot regenerated (rule 3's new paragraph).
+
 ### ART suite shape — frame, prompt, verdicts, library (2026-09-07)
 
 Six ART scripts read whole plus a census over all 188 (2,085 TestCase classes) showed eight

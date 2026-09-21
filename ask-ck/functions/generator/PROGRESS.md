@@ -25,8 +25,16 @@ green apart from the two known reds (preflight name test; zephyr corpus floor): 
   Continue → 5. Generate → pill reads `⚠ units stale` → **Re-chunk from script** → pill green →
   Assemble → code box unchanged (`# DELIBERATE` at line 74); Review panel shows the 2026-09-18
   findings folded as stale.
-- **Still deferred:** the frame binding only two roles (`_detect_links` → `{tb, peer}`; memory
-  `frame-binds-two-roles-only`, now the only open item there); re-aim `test_pt_preflight`.
+- **Then, same day ("continue"):** `31a7ba7` re-aimed the preflight bench pins at frozen 2026-07-30
+  bindings (a week-old red over a filename). **The frame now binds a ROLE SET** — `e022e1c` (cusfp
+  role + profile, preflight reads `_ck_bind_link` roles) and `6ada916` (detection → `{tb, copper,
+  fibre, cusfp}`, one bind block per role, pluggables optional-with-UNSUPPORTED, fixed handles,
+  far-device cache, prompts). Plan `PLAN-frame-role-set.md`. Rendered for T33234's real sequence it
+  emits exactly the four bindings the hand repair added. Gate 1670 passed / 1 known red (zephyr
+  corpus floor). **Nothing from the T33234 repair is deferred any more.**
+- **Open, not from this work:** tb470's `ck_profile`/`ck_link_*` are deliberately empty — declaring
+  them is Terrence's bench decision; until then the preflight names the four roles T33234 needs and
+  the frame would abort at init on that bench (by design).
 
 ## Earlier session (2026-09-17/18) — Port family (T33233–36): objectives, steps, script identity; T33234 repaired and saved
 

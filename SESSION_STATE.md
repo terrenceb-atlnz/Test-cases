@@ -4305,3 +4305,17 @@ The "one more thing": rewind every case and re-run the improved pipeline from sc
   in PROGRESS.md's top entry (Re-chunk → pill green → Assemble reproduces the saved script).
 - Found while building C: `save_sequence` lost `kind` on every Save Edits (setup → TestCase). Fixed.
 - Remaining deferred: frame binds two roles only; re-aim `test_pt_preflight`.
+
+## Session Close / Handoff (2026-09-21, later) — preflight re-aim; the frame binds a role set
+
+- `31a7ba7` test(pt): preflight pins → frozen fixtures. `e022e1c` cusfp role/profile + preflight role
+  contract. `6ada916` frame role set (tb/copper/fibre/cusfp; pluggables optional-with-UNSUPPORTED).
+  Plan `ask-ck/plans/PLAN-frame-role-set.md` BUILT. Docs/memory in the wrap commit.
+- Decisions (Terrence): cusfp first-class; pluggable roles optional, core roles abort; handles
+  portFibre/fibre_peer.portDut, portCuSfp/cusfp_peer.portDut, copper unchanged.
+- Gate at close: 1670 passed / 1 known red (zephyr corpus floor); vitest 316. Four production
+  reloads today in total for the frame work, all back ≤ 10 s.
+- Memory `frame-binds-two-roles-only`: everything in it is now SHIPPED; kept as the record.
+- Open: tb470 declares no ck_link_* (Terrence's bench decision). Manual check for Terrence: on a
+  scratch Port case, Extract → Generate → the setup unit's prompt lists the bound handles; the
+  rendered init() needs no hand edit.
