@@ -72,11 +72,18 @@ not guessed, and he picked **R5's two JS surfaces**, then the zephyr gate red.
   and a ck-agent watchdog that kills a run whose caller disconnected. **NOT shipped: saving a
   LATE result** — it needs a callback plumbed through `run_prompt` → `_call_claude_agent` →
   `registry.submit` plus a bounded retired-job map, and is left whole rather than half-done.
-  Four mutations, all caught. **Found while building:** `session_present` counts a claimed job as
+  **C then shipped too (same day): a late result is SAVED.** `deliver` now recognises a retired
+  job that carries a late handler and applies the result on arrival — not a parking lot, and it
+  expires on the existing `max_idle`. The handler reaches the transport via a ContextVar
+  (`current_late_handler`), the pattern `current_session_id` already uses, rather than threading a
+  callback through four layers; it is attached in `_on_start`, which already owns the job for the
+  cancel hook. Guards: a cancelled job is never resurrected, a wrong-session late deliver is
+  refused, and a review fired after this one's dispatch is never clobbered. **#6 is COMPLETE.**
+  Six mutations, all caught. **Found while building:** `session_present` counts a claimed job as
   proof its own session is alive, so the new call site made a dropped tab read as present and
   `session_dropped` could never fire — the `exclude` parameter that had been deleted as
   "unreachable" was unreachable only for the call sites of the day. Reinstated.
-- **Still genuinely open:** saving a late agent result (C above); requirements carry lower bounds only (`fastapi>=0.139`, …), with
+- **Still genuinely open:** requirements carry lower bounds only (`fastapi>=0.139`, …), with
   upper bounds / a lockfile an unanswered question since 2026-08-17; R6's 4th bar needs his ~$20
   scratch-server Opus run; t44297 #6 (both halves, D6 undecided); R1(b)'s PRUNE once there is
   something to prune.

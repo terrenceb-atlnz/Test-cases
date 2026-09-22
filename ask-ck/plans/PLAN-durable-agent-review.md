@@ -2,7 +2,7 @@
 
 > ## Status (read first)
 >
-> **BUILT 2026-09-22 — A, D and E shipped; C (saving a LATE result) NOT built, see below.** Terrence answered D6a–D6c in conversation and confirmed the
+> **BUILT 2026-09-22 — A, C, D and E all shipped. The item is COMPLETE.** Terrence answered D6a–D6c in conversation and confirmed the
 > reshaped scope (§4). The item is NOT the "durable jobs collected on reconnect" of 2026-09-09:
 > it is **explicit failure attribution** — *"If it drops, list why. Be as explicit as possible
 > with what part broke. I just want some basic error-handling."* Splits t44297 **#6** out of
@@ -142,16 +142,29 @@ done. On a failed `fetch(CK_AGENT_URL + '/run')` the catch sets
 to `/api/agent/result`, so the caller already receives that exact sentence. The gap is only when
 the BROWSER itself is gone and can report nothing — which is A.
 
-**C. ⏳ NOT BUILT — the one part of the agreed scope still open.** `_Job` carries
-`id, session_id, prompt, model, timeout, event, result, created, claimed_at, system` — no case
-key, no step — so a late result has nowhere to be written, and `deliver()` returns False for a
-job `_retire` has already dropped. Honouring *"if some things returned, save and display that
-data"* needs the result to re-enter `review_script`'s post-processing (parse JSON → normalise
-findings → build the review dict → persist), which lives entirely AFTER `run_prompt` returns. So
-it is a callback plumbed through `run_prompt` → `_call_claude_agent` → `registry.submit`, plus a
-bounded map of retired job ids so `deliver` can still recognise the job. Deliberately left for
-its own pass rather than half-done: A already names the loss precisely, which is the part that
-was costing time.
+**C. ✅ BUILT — a late result is saved (`agent_jobs` + `llm` + `review_script`).** `deliver()`
+looked only in `_inflight`, and `_retire` had already dropped the job, so a reply that arrived
+after the caller gave up was discarded and the seat that produced it wasted. Now `_retire` keeps
+a job that carries a late handler, `deliver` recognises it and hands the result to that handler
+immediately.
+
+**Not a parking lot** (D6a): nothing waits in memory to be polled for, the result is applied on
+arrival, and the retained entry — which exists only so `deliver` can still RECOGNISE the job —
+expires on the registry's existing `max_idle`, not a new horizon.
+
+The handler reached `_call_claude_agent` through a **ContextVar** (`current_late_handler`), the
+pattern `current_session_id` / `current_llm_call_id` already use, rather than threading a
+callback through `run_prompt` → `_call_llm_with_meta` → `_call_claude_agent` → `submit`. It is
+attached to the job in `_on_start`, which already owns the job object for the cancel hook.
+
+`_late_review_handler` captures everything at DISPATCH time — sequence, lint findings, the code
+being reviewed — because the script may have moved on by the time it runs. The stored review is
+bound to the code it actually read (`code_hash`), so slice B marks it stale rather than
+pretending it describes the current file, and it carries `late: True`. Three guards, each with a
+test: a **cancelled** job is never resurrected (a Stop must not have the answer appear anyway); a
+late deliver from the **wrong session** is refused, exactly as the in-flight path is; and a review
+the reviewer fired AFTER this one was dispatched is never clobbered — newer by intent beats newer
+by arrival.
 
 **D. ✅ BUILT — stop popping the review** (D6b).
 

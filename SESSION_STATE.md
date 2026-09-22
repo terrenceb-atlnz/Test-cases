@@ -4368,7 +4368,8 @@ The "one more thing": rewind every case and re-run the improved pipeline from sc
   machinery makes its half 2 much cheaper; Terrence's call: record, don't build.
 - **t44297 #6 mostly BUILT** (`PLAN-durable-agent-review.md`): failure taxonomy naming which part
   broke, the review kept + marked stale instead of deleted, and a ck-agent watchdog that kills a
-  run whose caller vanished. D6a settled as NO TTL. Saving a late result is the one piece left.
-- **Open (Terrence):** saving a late agent result; requirements upper bounds / lockfile; R1(b)'s PRUNE pass; R6's 4th bar (his ~$20 scratch Opus run); R1(b) (suite naming convention); t44297 #6 (medium,
+  run whose caller vanished, and a LATE result saved instead of dropped. D6a settled as NO TTL.
+  **#6 is complete.**
+- **Open (Terrence):** requirements upper bounds / lockfile; R1(b)'s PRUNE pass; R6's 4th bar (his ~$20 scratch Opus run); R1(b) (suite naming convention); t44297 #6 (medium,
   D6 still a recommendation). **Flagged, untouched:** R5's prompt-defect alarm has no
   minimum-runs guard, so a thin window turns one 2-unit blip into a prompt alarm.

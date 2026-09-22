@@ -131,8 +131,8 @@ server's — the two must not drift. → **D4**.
 
 > **2026-09-22 — SPLIT OUT to `ask-ck/plans/PLAN-durable-agent-review.md`, which is now the
 > authority for this item.** D6 was answered there (D6a: no TTL; D6b: keep the review, marked
-> stale; D6c: name what broke). Built: the failure taxonomy, the stale-review keep, and the
-> ck-agent caller watchdog. NOT built: saving a result that arrives after the caller gave up.
+> stale; D6c: name what broke). **COMPLETE 2026-09-22** — the failure taxonomy, the stale-review
+> keep, the ck-agent caller watchdog, and saving a result that arrives after the caller gave up.
 > The body below is the 2026-09-09 record and its first draft's reasoning; read the new plan for
 > what the mechanism actually turned out to be, which differs.
 

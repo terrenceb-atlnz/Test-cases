@@ -85,6 +85,19 @@ Plan `ask-ck/plans/PLAN-self-healing-generation.md` §6.4 (R5) and
   `claimed_no_result`), the claim and last-poll times, and prose that points at the right thing —
   notably that a dropped tab means *"the work may have finished on your machine and had nowhere
   to be delivered"*, which is a different action from waiting longer.
+- **A reply that arrives after the caller gave up is now SAVED, not dropped.** *Why:* the
+  2026-09-09 loss was never the model's work — that finished. `deliver()` looked only at
+  in-flight jobs and `_retire` had already dropped this one, so the answer went on the floor and
+  the Claude seat that produced it was wasted. A job that carries a late handler is now kept long
+  enough for `deliver` to recognise it, and the result is applied the instant it lands — **not**
+  parked waiting to be polled for, and expiring on the registry's existing `max_idle` rather than
+  a new horizon. The handler reaches the transport through a ContextVar, the pattern
+  `current_session_id` already uses, instead of threading a callback through four layers. A late
+  review is bound to the code it actually read, so it shows as stale rather than claiming to
+  describe the current file. Three guards, each tested: a **cancelled** job is never resurrected
+  (pressing Stop must not make the answer appear anyway), a late deliver from the **wrong
+  session** is refused exactly as the in-flight path is, and a review fired *after* this one was
+  dispatched is never clobbered — newer by intent beats newer by arrival.
 - **A re-assembly no longer DELETES the review.** *Why:* it used to `pop("review", None)` so
   findings about an older script could not be mis-attributed — right reasoning, too strong a
   remedy. On 2026-09-09 a review died with the SSH session and, because re-assembly had already

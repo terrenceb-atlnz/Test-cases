@@ -51,6 +51,14 @@ current_request_path: "contextvars.ContextVar[str]" = contextvars.ContextVar("ck
 # ContextVars above; empty for non-browser callers. See llm_inflight.py.
 current_llm_call_id: "contextvars.ContextVar[str]" = contextvars.ContextVar("ck_llm_call_id", default="")
 
+# A caller's handler for a result that arrives AFTER it gave up (t44297 #6, D6c: "if some
+# things returned, save and display that data"). A ContextVar, like the ids above, so a
+# caller does not have to thread a callback through run_prompt -> _call_llm_with_meta ->
+# _call_claude_agent -> registry.submit. Only the claude_agent transport can produce a late
+# result: it is the only one where the work happens somewhere the server does not control.
+# Default None = the caller has nowhere to put one, and the answer is dropped as before.
+current_late_handler: "contextvars.ContextVar" = contextvars.ContextVar("ck_late_handler", default=None)
+
 env = Environment(loader=FileSystemLoader(PROMPTS_DIR))
 
 def render_prompt(template_name: str, context: Dict[str, Any]) -> str:
@@ -149,12 +157,16 @@ def _call_claude_agent(prompt: str, model: str, meta: Dict[str, Any], session_id
     # local agent may still finish its call on their own machine, but the result
     # is discarded (the job is gone from the registry when it posts back).
     _cid = current_llm_call_id.get("")
+    _late = current_late_handler.get(None)
     def _on_start(job):
         def _cancel():
             job.result = {"content": f"ERROR: LLM call failed (claude via claude_agent): {_CANCEL_MSG}",
                           "error": True, "cancelled": True}
             job.event.set()
         llm_inflight.set_cancel(_cid, _cancel)
+        # Attached here rather than passed to submit(): _on_start is already the hook that
+        # owns the job object, and this keeps submit's signature about the CALL.
+        job.late = _late
     # The whole-response floor, which this path never had (2026-09-01).
     #
     # `claude_agent` is a headless `claude` CLI on the user's machine. It gets ONE shot at

@@ -17,7 +17,7 @@ from typing import Dict, Optional, Deque, Tuple
 
 class _Job:
     __slots__ = ("id", "session_id", "prompt", "model", "timeout", "event", "result",
-                 "created", "claimed_at", "system")
+                 "created", "claimed_at", "system", "late")
 
     def __init__(self, session_id: str, prompt: str, model: str, timeout: int = 0,
                  system: str = ""):
@@ -43,6 +43,10 @@ class _Job:
         # result", not "someone is working on it". The distinction is what lets submit
         # fail fast on an absent agent instead of burning the model's whole budget.
         self.claimed_at: Optional[float] = None
+        # Optional callback for a result that arrives AFTER the caller gave up. Set by
+        # llm._call_claude_agent from the `current_late_handler` ContextVar; None for every
+        # caller that has nowhere to put a late answer. See _retired / deliver.
+        self.late = None
 
 
 # How long to wait for SOME browser to claim a queued job before giving up on it.
@@ -76,6 +80,13 @@ class AgentJobRegistry:
         self._queues: Dict[str, Deque[_Job]] = {}      # session_id -> FIFO of unclaimed jobs
         self._inflight: Dict[str, _Job] = {}           # job_id -> job awaiting a result
         self._session_seen: Dict[str, float] = {}      # session_id -> last poll time
+        # job_id -> (retired_at, job) for jobs whose caller has gone but which carry a late
+        # handler. This is NOT a result parking lot (D6a: no TTL, nothing waits to be polled
+        # for) — a late result is applied the instant it arrives and the entry is dropped.
+        # These entries only exist so `deliver` can still RECOGNISE the job, and they are
+        # evicted by the same gc() and the same `max_idle` as everything else, rather than
+        # introducing a second horizon.
+        self._retired: Dict[str, Tuple[float, _Job]] = {}
         self._max_idle = max_idle_seconds
         self._last_gc = time.time()
 
@@ -250,6 +261,11 @@ class AgentJobRegistry:
         `_queues` would be handed to the next poller as if it were live work."""
         with self._lock:
             self._inflight.pop(job.id, None)
+            if job.late is not None and job.result is None:
+                # The caller is gone but still wants the answer if it turns up. A job that
+                # ALREADY has a result (delivered, or cancelled) is finished — keeping it
+                # would re-apply an answer the caller received, or resurrect a cancel.
+                self._retired[job.id] = (time.time(), job)
             q = self._queues.get(session_id)
             if q and job in q:
                 try:
@@ -309,8 +325,16 @@ class AgentJobRegistry:
         """
         with self._lock:
             job = self._inflight.get(job_id)
+            late = False
             if not job:
-                return False
+                # The caller gave up, but the work finished anyway. Terrence, 2026-09-22:
+                # "if some things returned, save and display that data". Before this the
+                # answer was dropped on the floor here and the seat that produced it wasted.
+                entry = self._retired.pop(job_id, None)
+                if entry is None:
+                    return False
+                _at, job = entry
+                late = True
             if session_id is not None and job.session_id != session_id:
                 return False   # job belongs to a different session — refuse
         job.result = {
@@ -319,6 +343,14 @@ class AgentJobRegistry:
             **({"usage": usage} if usage else {}),
             **({"total_cost_usd": total_cost_usd} if total_cost_usd is not None else {}),
         }
+        if late:
+            # Nobody is blocked on this one — hand it to the caller's own handler instead.
+            # Outside the lock, and never allowed to break the browser's POST.
+            try:
+                job.late(job.result)
+            except Exception as e:
+                print(f"[agent] late result for {job_id[:8]} could not be applied: {e}")
+            return True
         job.event.set()
         return True
 
@@ -341,6 +373,14 @@ class AgentJobRegistry:
             for s in stale:
                 self._session_seen.pop(s, None)
                 self._queues.pop(s, None)
+            # Retired jobs awaiting a late answer expire on the SAME horizon (D6a: reuse
+            # `max_idle`, do not invent a second one). An answer that has not arrived by
+            # then is not coming — its local run was bounded by the caller's budget, which
+            # is far shorter than this.
+            cold = [jid for jid, (at, _job) in self._retired.items()
+                    if now - at > self._max_idle]
+            for jid in cold:
+                self._retired.pop(jid, None)
 
 
 # Module-level singleton shared by the bridge router and llm.py.

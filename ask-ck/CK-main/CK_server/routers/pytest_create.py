@@ -30,7 +30,7 @@ from models import PtSession, safe_session_dict, model_to_dict
 from paths import REFINED_DIR, PT_GENERATED_DIR
 from timeutil import utc_now, as_utc
 from llm import (run_prompt, run_prompt_text, render_prompt,
-                 extract_json_block, _CODE_SYSTEM_PROMPT)
+                 extract_json_block, _CODE_SYSTEM_PROMPT, current_late_handler)
 import db as dbx   # aliased: several functions here have a `db` filter parameter
 import gen_assembly
 import locks
@@ -7819,6 +7819,55 @@ async def discard_held(key: str, body: dict = Body(default={})):
     return {"discarded": dropped}
 
 
+def _late_review_handler(key: str, sequence: List[dict], reviewed_lint, code: str,
+                         dispatched_at: str):
+    """Store a review whose reply arrived AFTER the caller gave up (t44297 #6, D6c).
+
+    The 2026-09-09 loss was not the model's work — that finished — it was that the answer had
+    nowhere to go once the browser was gone, so `deliver` dropped it and the seat that produced
+    it was wasted. Everything needed to turn a reply into a stored review is captured here at
+    DISPATCH time, because the script may have moved on by the time this runs: the review is
+    bound to the code it actually read (`code_hash`), which is what slice B then uses to mark it
+    stale rather than pretending it is about the current file.
+
+    Runs on the browser's POST thread, not the caller's, so it must not raise and must not
+    assume the session still looks the way it did.
+    """
+    def _apply_late(result: dict) -> None:
+        if not result or result.get("error") or result.get("cancelled"):
+            return                      # a failure arriving late is still a failure
+        parsed = extract_json_block(result.get("content", ""))
+        if parsed is None:
+            return                      # an unreadable answer is not "no findings" — same
+                                        # rule as the live path; silence beats a false clean
+        review = {
+            "at": utc_now().isoformat(),
+            "dispatched_at": dispatched_at,
+            "late": True,               # so the UI can say where this came from
+            "findings": _normalize_findings(
+                parsed.get("findings") if isinstance(parsed, dict) else parsed, sequence),
+            "reviewed_lint": reviewed_lint,
+            "code_hash": _code_hash(code),
+            "provenance": {"llm": {"auth_method": "claude_agent", "late": True},
+                           "prompt": "", "response": result.get("content", "")},
+        }
+
+        def _store(fresh: PtSession) -> None:
+            step6_f = dict(fresh.step6 or {})
+            cur = step6_f.get("review") or {}
+            # Do NOT clobber a review the reviewer fired AFTER this one was dispatched: that
+            # one is newer by intent, even though this one is newer by arrival.
+            if cur.get("at", "") > dispatched_at:
+                return
+            step6_f["review"] = review
+            fresh.step6 = step6_f
+
+        _pt_persist_fresh(key, _store)
+        print(f"[pt] late review for {key} stored ({len(review['findings'])} finding(s)) — "
+              "the caller had already given up")
+    return _apply_late
+
+
 @router.post("/review_script/{key}")
 async def review_script(key: str, request: Request):
     """Pass C: review the ASSEMBLED script and return FINDINGS — never a rewrite.
@@ -7845,6 +7894,13 @@ async def review_script(key: str, request: Request):
         raise HTTPException(409, gate)
 
     sequence = (sess.step2 or {}).get("sequence") or []
+    # Give this call somewhere to land if it finishes after we have stopped waiting (D6c).
+    # ContextVars propagate into run_in_threadpool, so nothing has to be threaded through
+    # run_prompt. A dry run sends nothing, so it gets no handler.
+    if not dry_run:
+        current_late_handler.set(_late_review_handler(
+            key, sequence, _review_lint_findings(sess),
+            step6["files"]["test"]["code"], utc_now().isoformat()))
     meta = await run_in_threadpool(run_prompt, "pt_review_script.jinja", {
         "case_key": key,
         "file_name": step6["files"]["test"]["name"],
