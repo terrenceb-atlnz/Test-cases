@@ -737,7 +737,8 @@ run (now unblocked — tb470 is live).
    objective-drafting does** (`refined-cases/<Group>/AWPTCM-Txxxx/…`). The generated
    Python tests and their comparison/judging artifacts sort by case so they relate
    back to the source case for later reference. (Concretely: results under
-   `ask-ck/functions/pytest-creator/generated/<Group>/` and `.meta/<Group>/<Name>/` already key
+   `ask-ck/functions/pytest-creator/generated/<family>_<Group>/` and
+   `.meta/<family>_<Group>/<Name>/` — the family prefix arrived 2026-09-22 — already key
    by case; the Part 2B/3 comparison + judging files join that per-case structure and
    are committed, not gitignored.)
 

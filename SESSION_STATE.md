@@ -4375,3 +4375,59 @@ The "one more thing": rewind every case and re-run the improved pipeline from sc
 - **Open (Terrence):** R1(b)'s PRUNE pass; R6's 4th bar (his ~$20 scratch Opus run); R1(b) (suite naming convention); t44297 #6 (medium,
   D6 still a recommendation). **Flagged, untouched:** R5's prompt-defect alarm has no
   minimum-runs guard, so a thin window turns one 2-unit blip into a prompt alarm.
+- **Superseded by the 2026-09-22 (later) entry below:** R1(b)'s PRUNE pass is built, and the
+  `library_<group>` naming settled here lasted one day — it is `library_<family>` now.
+
+
+## Session Close / Handoff (2026-09-22, later) — ART numbering `<family>.<case>.<TestCase>`; PRUNE closed
+
+Terrence set the convention in one message: *"Our Naming Convention will be 900x.yyyy.zzzz …
+9000 will be reserved for libraries. 9001 Port, 9002…"* — family · Zephyr case · the TestCase
+inside the script. Four decisions were his (family width, library name, on-disk shape, prune
+trigger); each was asked with the fact that bore on it already established.
+
+- **`zzzz` already existed — that is the headline, and it changed the size of the job.**
+  `ATTestCase` composes `testCaseName = '%s.%s.%d' % (testSuiteNum, testSetNum, testCaseNum)`;
+  **231 of the 239** ART scripts let the `TestCase_<n>` class name supply the last part; the run
+  log already prints `>> test-5700.2001.10` and `pt_exec._CASE_START` already parses it. The
+  dotted triple is ART's own style (`testCaseRef = 'CR-52769, 1331.1001.52769'`) and
+  `library_1330.py` builds it explicitly. Only the FIRST number lacked a per-group meaning, so
+  this was a rename plus one missing number, not a build.
+- **Family width: 9001–9999, not one literal digit.** The AWPTCM target set is 410 cases across
+  **20** folder leaves, so `900x` runs out at the tenth group. ART occupies 1330–1399 and
+  6000–6101 across 51 suite dirs, so the 9000 block is free.
+- **`library_<family>.py` RESTORES ART's `library_<suite>.py`.** Yesterday's
+  `PLAN-group-libraries.md` departed from it for one stated reason — every script shared suite
+  9000, so a faithful `library_<suite>` would be one library for the whole output. A family per
+  mother folder removes exactly that reason. D1 there is marked **superseded**, not rewritten.
+- **PRUNE built** (`POST /library_prune`, preview then apply, explicit only — D4). Only
+  `# AI: dependency` members are candidates; `# ART` members and untagged preamble are never
+  touched; liveness needs a **fixed point** (dropping a member can kill the one only it called);
+  an **unparseable script BLOCKS** the run rather than counting as "references nothing".
+- **The client lost its copy of the suite number.** `pytest.js` carried `PT_ART_SUITE = '9000'`
+  and built the filename locally; with per-group families it cannot know the number, so it reads
+  the family back out of the server-resolved name. A guessed suite in a filename is what sent
+  every run to `test-0.0.log` in the first place.
+- **Migration in the open:** `Port/` → `9001_Port/`, `test-9000.33234.py` →
+  `test-9001.33234.py`, `library_port.py` → `library_9001.py` + its import, 18 `testCaseRef`s
+  now carrying the triple, `.families.json` seeded. The archived
+  `history/iter-1/test-9000.33234.py` **keeps its old name** — it genuinely was that file, and an
+  archive that renames itself is a falsified record.
+- **Gate at close: EXIT=0 — pytest 1742 / 1 skipped; vitest 348 in 30 files; both guards OK;
+  `ck.db` untouched.** Live check: `POST /library_prune` on production returned family 9001,
+  folder `9001_Port`, 0 candidates, nothing written.
+- **22 mutations run; 2 survived first time, both weak TESTS not weak code** — the
+  registry-authority test used a folder number that did not collide (the mutation was a no-op on
+  it), and the blocked-plan guard was unreachable through the real planner. Both re-aimed, all 22
+  caught. The suite itself caught `_effective_family` sitting dead because I had inlined its body.
+- **OPEN, needs the bench:** running ONE TestCase by its number. The legacy py2 `ATPylib` selects
+  with `if str(testCase.testCaseNum) in args`, but `/home/st-art/framework` was not readable from
+  the dev host and the live framework parses `-s`/`-v` flags the legacy stub cannot. Shipped as a
+  reference (certainly correct) with the operand **explicitly unverified**; recorded in
+  `TESTBOX-ACCESS.md` §3 where a bench session will meet it.
+- **Still open (Terrence):** R6's 4th bar (his ~$20 scratch-server Opus run); the larger pipeline
+  phases (0, 1, 3, 5, 6, 8, 9, 10, 12 and 11.3–11.5), which want a design conversation rather
+  than a pick-up. **Flagged, untouched:** R5's prompt-defect alarm still has no minimum-runs
+  guard, so a thin window turns one 2-unit blip into a prompt alarm. **Pre-existing, not mine:**
+  `awplus-service-gated-routing-daemons.md:41` cites an AW+ wiki page that does not resolve —
+  that memory is a symlink into the *device-testing* store, so fixing it is a cross-repo write.

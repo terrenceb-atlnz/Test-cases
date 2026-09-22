@@ -1640,7 +1640,9 @@ to know it dropped one, which is precisely the D15 outcome.
 > ```
 >
 > `save_script` then calls `_persist_generated_files(sess)`. So **pressing Lint writes the
-> textarea to `generated/<Group>/<Name>.py`**, and the `writeFiles` parameter is dead.
+> textarea to `generated/<family>_<Group>/<Name>.py`**, and the `writeFiles` parameter is dead.
+> (Path shape updated 2026-09-22: the mother folder now carries its ART family number —
+> `PLAN-art-family-numbering-and-prune.md`. The behaviour described here is unchanged.)
 >
 > That was a conscious trade-off when written ("acceptable per plan") — but it predates D15. Now
 > that a fix pass can regress a script, *the reviewer's first instinct after a bad fix — press
