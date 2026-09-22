@@ -1,0 +1,9 @@
+{
+  "_comment": "group -> ART family number (PLAN-art-family-numbering-and-prune.md). Authoritative over the <n>_<Group> folder names; a number here is never reused.",
+  "reserved": {
+    "9000": "libraries — never allocated to a group"
+  },
+  "families": {
+    "Port": 9001
+  }
+}

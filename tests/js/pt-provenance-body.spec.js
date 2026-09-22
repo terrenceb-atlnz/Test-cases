@@ -86,17 +86,32 @@ describe('ptGenNaming', () => {
     expect(body).not.toMatch(/getElementById/);
   });
 
-  it('falls back to the derived ART name before the first generation', () => {
-    expect(body).toMatch(/ptArtName/);
+  it('sends no name of its own — only the server knows the ART family', () => {
+    // Until 2026-09-22 this fell back to a client-derived `ptArtName`, which mirrored a single
+    // PT_ART_SUITE = '9000'. Families are per-group and allocated server-side now, so a name
+    // built here would carry a guessed family — and a wrong suite in the filename is what sent
+    // every run to test-0.0.log in the first place.
+    expect(body).toMatch(/name: naming\.name \|\| ''/);
+    expect(body).not.toMatch(/ptArtName|PT_ART_SUITE/);
   });
 });
 
-describe('ptArtName (display mirror of the server rule)', () => {
-  const body = fnBody(PT, 'ptArtName');
+describe('ptArtDir (the folder, read back out of the server-resolved name)', () => {
+  const body = fnBody(PT, 'ptArtDir');
 
-  it('builds test-<suite>.<case digits> from the case key', () => {
-    expect(body).toMatch(/PT_ART_SUITE/);
-    expect(body).toMatch(/\\d\+/);
+  it('takes the family from the name rather than deriving one', () => {
+    expect(body).toMatch(/\^test-/);
+    expect(body).not.toMatch(/9000|PT_ART_SUITE/);
+  });
+
+  it('returns nothing when the name carries no family yet', () => {
+    expect(body).toMatch(/if \(!fam\) return ''/);
+  });
+});
+
+describe('the client keeps no copy of the suite number', () => {
+  it('PT_ART_SUITE is gone from the module', () => {
+    expect(PT).not.toMatch(/PT_ART_SUITE/);
   });
 });
 

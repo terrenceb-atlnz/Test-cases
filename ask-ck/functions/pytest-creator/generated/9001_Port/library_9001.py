@@ -1,12 +1,15 @@
 #!/usr/bin/python3
-# Helper library for the Port group.
+# Helper library for the Port group — ART family 9001.
 #
-# Renamed from library_awptcm_t33234.py on 2026-09-22: libraries are now one per mother
-# folder, not one per case (R1(b), PLAN-group-libraries.md), so EVERY script in Port/
-# imports this module and the generator MERGES into it by provenance tag rather than
-# overwriting. Members below predate that and carry no tags; they are preserved whole.
+# Renamed library_awptcm_t33234.py -> library_port.py -> library_9001.py on 2026-09-22.
+# Libraries are one per mother folder (R1(b), PLAN-group-libraries.md) and named for that
+# folder's ART family, which is ART's own library_<suite>.py convention
+# (PLAN-art-family-numbering-and-prune.md). EVERY script in 9001_Port/ imports this module,
+# and the generator MERGES into it by provenance tag rather than overwriting. Members below
+# predate all of that and carry no tags; they are preserved whole and prune never touches
+# them — only `# AI: dependency` members are ever prunable.
 #
-# Shipped beside test-9000.33234.py. Every helper here is a thin, well-behaved
+# Shipped beside test-9001.33234.py. Every helper here is a thin, well-behaved
 # wrapper around the ART device handle: it drives the CLI, parses the output and
 # returns a boolean or a value. None of them issue pass/fail verdicts — the
 # TestCases own the verdicts.

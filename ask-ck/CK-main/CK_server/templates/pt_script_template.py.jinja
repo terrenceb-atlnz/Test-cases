@@ -380,7 +380,9 @@ class TestSet(ATTestSet.TestSet):
 {% for step in steps %}
 class TestCase_{{ step.n }}(ATTestCase.TestCase):
     testCaseDesc = {{ (step.action | default('', true) ) | pyliteral }}
-    testCaseRef = '{{ case_key }}'
+    # ART identity <family>.<case>.<TestCase> — the framework composes the same triple
+    # from the filename and this class name, and the run log prints it per case.
+    testCaseRef = '{{ case_key }}{% if art_set %}, {{ art_set }}.{{ step.n }}{% endif %}'
     testCaseMethod = {{ ((step.action | default('', true)) ~ '\n') | pyliteral }}
     testCaseMethod += {{ ('Verify: ' ~ (step.verify | default('', true)) ~ '\n') | pyliteral }}
 

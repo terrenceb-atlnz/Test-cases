@@ -92,7 +92,8 @@ quality problem; it is asking a question the context cannot answer.
 *plus* all 15 findings at once — so it could see that two symptom findings shared one cause and
 fix the cause. Result: **7 findings** (2 high / 4 med / 1 low), of which one (`expect_value=True`
 at `TestCase_9`) is a **false positive** — the kwarg really is declared at
-`def checkConfiguredPort` in `library_awptcm_t33234.py`.
+`def checkConfiguredPort` in `library_awptcm_t33234.py` — a name that no longer exists; it became
+`library_port.py` — also retired — and then, on 2026-09-22, `generated/9001_Port/library_9001.py`.
 
 Cost of that hammer: **19 of 19 classes rewritten**, no unit byte-identical, 113 KB → 135 KB,
 and it **introduced a new high** — binding `cusfp`/`fibre` at suite-init *and asserting the
@@ -297,7 +298,8 @@ Then run it against T33234 and Terrence re-confirms Generate by hand.
 
 `review_script` renders `pt_review_script.jinja` with `code`, `sequence` and `lint_findings`
 only. The script does `from library_awptcm_t33234 import *`, and the library ships beside it
-(`generated/Port/library_awptcm_t33234.py`), but the reviewer never sees it. On the final
+(`generated/Port/library_awptcm_t33234.py`, a path that no longer exists — it is
+`generated/9001_Port/library_9001.py` since 2026-09-22), but the reviewer never sees it. On the final
 T33234 review **4 of 5 findings were this one blindness**: `waitForLinkState(..., 'down')`
 (the helper handles 'down' explicitly, twice flagged), `checkCurrentPort(..., 'auto', 'auto',
 ...)` (the helper treats 'auto' as "value present"), and `expect_value=True` (declared in the

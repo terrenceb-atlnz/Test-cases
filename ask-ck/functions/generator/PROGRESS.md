@@ -4,7 +4,58 @@
 
 **Last Updated**: 2026-09-22 (by Claude, with Terrence for every decision)
 
-## Latest session (2026-09-22) — R5's two lint-trend surfaces SHIPPED; the gate reaches vitest again
+## Latest session (2026-09-22, later) — the ART numbering `900x.yyyy.zzzz`, and PRUNE closed
+
+Terrence set the convention: *"Our Naming Convention will be 900x.yyyy.zzzz … 9000 will be
+reserved for libraries. 9001 Port, 9002…"* — family · case · TestCase. Four decisions were his:
+the family is the **9000 block (9001–9999)**, not one literal digit; the library is
+**`library_<family>.py`**; folders are **`9001_Port/` with `.families.json` authoritative**; and
+prune is **explicit only**.
+
+- **`zzzz` was already there, and that is the headline.** `ATTestCase` composes
+  `testCaseName = '%s.%s.%d' % (testSuiteNum, testSetNum, testCaseNum)`; **231 of the 239** ART
+  scripts let the `TestCase_<n>` class name supply the last part; the run log already prints
+  `>> test-5700.2001.10` and `pt_exec._CASE_START` already parses it. The triple is also already
+  ART's house style — `testCaseRef = 'CR-52769, 1331.1001.52769'` — and `library_1330.py` builds
+  `'.'.join([testSuiteNum, testSetNum, str(testCaseNum)])`. So this was a **rename plus one
+  missing number**, not a build. The scripts now emit the full ref.
+- **Why not a single digit.** The AWPTCM target set is 410 cases across **20** folder leaves;
+  `900x` runs out at the tenth. 9001–9999 is free in ART (it uses 1330–1399 and 6000–6101).
+- **`library_<group>` lasted one day, deliberately.** `PLAN-group-libraries.md` departed from
+  ART's `library_<suite>.py` for one stated reason — every script sat on suite 9000, so that
+  would be ONE library for everything. A family per mother folder removes exactly that reason,
+  so `library_9001.py` is a **restoration**, not a third convention. D1 is marked superseded on
+  its own page rather than quietly rewritten.
+- **Allocation.** Lowest free ≥ 9001; the registry is authoritative and a number seen on disk is
+  taken even when the registry has never heard of it — that is what stops a restored folder's
+  number reaching a different group and silently re-pointing old logs.
+- **PRUNE — R1(b)'s deferred half, now closed.** `POST /library_prune`, preview then apply. Only
+  `# AI: dependency` members are ever candidates; reviewer-selected `# ART` members and untagged
+  preamble are never touched; dead-ness needs a **fixed point** (dropping a member can kill the
+  one only it called); and an **unparseable script BLOCKS** the prune rather than counting as
+  "references nothing", which is precisely how a prune deletes what it uses.
+- **A client-side mirror had to go.** `pytest.js` carried its own `PT_ART_SUITE = '9000'` and
+  built the filename locally. With per-group families it cannot know the number, so it now reads
+  the family back out of the server-resolved name and shows an honest placeholder before the
+  first generate. A guessed suite in the filename is what sent every run to `test-0.0.log`.
+- **Migration done in the open**: `Port/` → `9001_Port/`, `test-9000.33234.py` →
+  `test-9001.33234.py`, `library_port.py` → `library_9001.py` + its import. The archived
+  `history/iter-1/test-9000.33234.py` **keeps its old name** — it genuinely was that file, and an
+  archive that renames itself is a falsified record.
+- **Verification.** 37 backend + 13 frontend tests. **22 mutations run, 2 survived** — both weak
+  TESTS, not weak code: the registry-authority test used a folder number that did not collide
+  (so the mutation was a no-op on it), and the blocked-plan guard could not be reached through
+  the real planner. Both re-aimed; all 22 caught. The suite also caught `_effective_family`
+  sitting dead because I inlined its body.
+- **Open, needs the bench:** running ONE TestCase as an operand. The legacy py2 `ATPylib`
+  selects with `if str(testCase.testCaseNum) in args`, but `/home/st-art/framework` was not
+  mounted on the dev host and the live framework parses `-s`/`-v` flags the legacy stub has no
+  parser for. Shipped as a **reference** (certainly correct — it is what the log prints), with
+  the operand explicitly **unverified**.
+
+Gate: EXIT=0 — pytest **1742 / 1 skipped**, vitest **348 in 30 files**, `ck.db` untouched.
+
+## Session (2026-09-22, earlier) — R5's two lint-trend surfaces SHIPPED; the gate reaches vitest again
 
 Terrence: *"ok, lets continue some plans. whats easiest?"* → the easiest was ranked from the code,
 not guessed, and he picked **R5's two JS surfaces**, then the zephyr gate red.

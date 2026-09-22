@@ -799,16 +799,20 @@ a clean sweep to every count-based check. Expected-case count comes from the scr
    `stepN` keys are unchanged, step5=fragments etc.; only the visible sidebar numbers shifted.)*
 5. **Generate** — the LLM **fills a standardized skeleton** rendered from the reviewed
    sequence (`templates/pt_script_template.py.jinja`), not a free-form compose
-   **Script identity is derived, not typed (2026-09-17).** Every generated script is named
-   `test-9000.<zephyr number>.py` (`PT_ART_SUITE = "9000"`, `_art_script_name(key)`; e.g.
-   `AWPTCM-T33234` → `test-9000.33234`), authoritative at `generate_script`. *Why:* the
+   **Script identity is derived, not typed (2026-09-17; renumbered 2026-09-22).** Every
+   generated script is named `test-<family>.<zephyr number>.py` (`_art_script_name(key, family)`;
+   e.g. `AWPTCM-T33234` in the Port group → `test-9001.33234`), authoritative at
+   `generate_script`. The **family** is one ART suite number per mother folder, allocated on
+   first use from 9001–9999 and persisted in `generated/.families.json`; **9000 is reserved for
+   libraries** and never given to a group. Each `TestCase_<n>` completes the triple
+   `<family>.<case>.<n>` — see *ART identity* below. *Why:* the
    framework's `ATTestSet.create_log_file` names the run log from the script **filename**
    (`re.search(r'test-(\d+).(\d+).*\.py')` → `test-<suite>.<set>.log`, else `test-0.0.log`), and
    `_NAME_RX` used to forbid dots — so every generated script logged to `test-0.0.log` and
    `pt_exec`'s old `remote_logs[0]` fallback could hand back a device **console transcript**,
-   which parses to zero cases and reads as success. `9000` is the unused ART suite number
-   assigned to this work; the set number is the Zephyr key, so sibling cases get distinct native
-   logs. `pt_exec._framework_log_name` resolves that name first, falls back to `test-0.0.log`, and
+   which parses to zero cases and reads as success. The 9000 block was unused in ART (the
+   corpus occupies 1330–1399 and 6000–6101); the set number is the Zephyr key, so sibling cases
+   get distinct native logs. `pt_exec._framework_log_name` resolves that name first, falls back to `test-0.0.log`, and
    never returns a console log. The Group / Script-name inputs were removed from the panel; the
    path readout (`pt-gen-path`) shows the derived name. The paragraph below is history.
    **Naming survives the page and the call (2026-08-31 — superseded above).** `step6.naming` had exactly two
@@ -907,7 +911,7 @@ a clean sweep to every count-based check. Expected-case count comes from the scr
    original-step-number → `TestCase_<n>` class number before stamping — fixing a divergence
    bug where a dropped setup step shifted the class numbers and the wrong fragment's tag was
    stamped on the wrong TestCase. The script name is fixed by the server
-   (`generated/<Group>/test-9000.<zephyr number>.py`, see *Script identity* above); review/edit,
+   (`generated/<family>_<Group>/test-<family>.<zephyr number>.py`, see *Script identity* above); review/edit,
    **Lint** (py_compile + structure +
    framework-import + **template/logging-contract conformance**: each `main()` needs a
    `self.log()` and ≥1 non-empty `passed()`/`failed()`, no empty verdicts, no leftover
@@ -978,9 +982,9 @@ cd tool
 ```
 `GET /api/pytest-create/status` reports the DB-backed script count + enrichment %.
 
-**Generated artifacts:** `ask-ck/functions/pytest-creator/generated/<Group>/<Name>.py`, with
-per-test provenance, sequence, iteration history, and run logs under
-`generated/.meta/<Group>/<Name>/`. Generated scripts carry **inline source-provenance
+**Generated artifacts:** `ask-ck/functions/pytest-creator/generated/<family>_<Group>/<Name>.py`
+(ART's own suite-dir shape, `1332_lldp_med`), with per-test provenance, sequence, iteration
+history, and run logs under `generated/.meta/<family>_<Group>/<Name>/`. Generated scripts carry **inline source-provenance
 tags** on reused blocks (`# ART/SVT/legacy <id> <lines>`) and gap-fill (`# AI <model>
 <date>`), so a reviewer can trace any block back to its origin script + lines or to the
 model that synthesised it.
@@ -1221,19 +1225,23 @@ and Terrence asked for all eight closed in one pass. What changed, and why each:
 6. **Class attributes:** `testCaseMethod` is the ART `=` / `+=` multi-line form; no
    `testCaseExcl` / `testCaseIncl` are generated (platform lists are hardware-verified, never
    inferred — rule 3d), and the run-time gate is the ART idiom `self.supported = False`.
-7. **A group library** `library_<group>.py` (`_build_library`, keyed by `_group_library_stem`)
+7. **A group library** `library_<family>.py` (`_build_library`, keyed by `_family_library_stem`)
    holds every selected fragment that is a stand-alone function, class or constant, verbatim
    under its provenance tag, with its source's imports; the frame imports it with `*`; it is
    stored as `files.library`, so `_persist_generated_files` writes it and the run ships it, and
-   the lint compiles it. **One per mother folder since 2026-09-22** (`Port/` → `library_port.py`;
-   R1(b), `ask-ck/plans/PLAN-group-libraries.md`) — it was `library_<case>.py` until then, which
-   gave every case its own copy of a shared helper. Deliberately NOT ART's `library_<suite>`:
-   every script we generate sits on our one suite 9000, so that would be a single library for
-   the whole output. Because every script in a folder writes the SAME path,
-   `_persist_generated_files` **merges by provenance tag** instead of overwriting — a tag already
-   present is left byte for byte (so a hand edit survives), a new tag is appended, imports are
-   unioned, and nothing is ever removed. Pruning auto-added members is a separate, later pass.
-   Both generation paths pass the group into `_build_library` explicitly (`_effective_group`),
+   the lint compiles it. **One per mother folder since 2026-09-22** (`9001_Port/` →
+   `library_9001.py`; R1(b), `ask-ck/plans/PLAN-group-libraries.md`) — it was `library_<case>.py`
+   until then, which gave every case its own copy of a shared helper, and `library_<group>` for
+   one day. It is now ART's own `library_<suite>`: that convention was rejected only because
+   every script shared suite 9000, and a family per group removes that reason
+   (`PLAN-art-family-numbering-and-prune.md`). Because every script in a folder writes the SAME
+   path, `_persist_generated_files` **merges by provenance tag** instead of overwriting — a tag
+   already present is left byte for byte (so a hand edit survives), a new tag is appended,
+   imports are unioned, and nothing is ever removed on a save. Removing auto-added
+   (`# AI: dependency`) members nothing references is the **explicit** `POST /library_prune`,
+   which previews unless asked to apply and never runs on its own.
+   Both generation paths pass the group AND the family into `_build_library` explicitly
+   (`_effective_group` / `_effective_family`),
    because a divergent stem would change the frame and make slice A's assembly gating 409. Units
    are told to CALL these, and they leave the per-unit and hoisted fragment sections. Two
    exclusions, both found on the real T44297 selection: a fragment that DEFINES a class the

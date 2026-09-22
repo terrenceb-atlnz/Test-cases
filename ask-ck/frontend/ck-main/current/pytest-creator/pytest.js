@@ -1675,17 +1675,28 @@ async function ptAssembleAndSettle() {
 // here for DISPLAY ONLY so the panel can show the target path before the first generation —
 // `_art_script_name` on the server is authoritative and is what actually names the file. A
 // drift between the two shows a wrong path, never a wrong file.
-const PT_ART_SUITE = '9000';
-function ptArtName(key) {
-  const digits = String(key || '').match(/\d+/g);
-  return digits ? `test-${PT_ART_SUITE}.${digits.join('')}` : '';
+// The ART family (9001..9999, one per mother folder) is allocated SERVER-SIDE and persisted in
+// generated/.families.json — see PLAN-art-family-numbering-and-prune.md. This used to mirror a
+// single `PT_ART_SUITE = '9000'` and build the name here, which is no longer possible: the
+// client cannot know which family a group holds. So the NAME comes from the server, and the
+// only thing derived here is the folder, read back out of that name — a display detail, not a
+// second copy of the allocation rule.
+function ptArtDir(group, name) {
+  const fam = String(name || '').match(/^test-(\d+)\./);
+  if (!fam) return '';
+  const slug = String(group || 'Ungrouped').replace(/[^A-Za-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
+  return `${fam[1]}_${slug || 'Ungrouped'}`;
 }
 
 function ptUpdateGenPath() {
   const naming = ((ptSession || {}).step6 || {}).naming || {};
   const g = naming.group || (ptCaseInfo ? ptCaseInfo.group_display : '') || '<Group>';
-  const n = naming.name || ptArtName(S.ptCase && S.ptCase.key) || '<Name>';
-  document.getElementById('pt-gen-path').textContent = `→ generated/${g}/${n}.py`;
+  const n = naming.name || '';
+  const el = document.getElementById('pt-gen-path');
+  // Before the first generation there is no family yet. Say so, rather than showing a number
+  // this side invented — a guessed suite in the filename is what sent every run to test-0.0.log.
+  el.textContent = n ? `→ generated/${ptArtDir(g, n)}/${n}.py`
+                     : `→ generated/<family>_${g}/ — the ART family is assigned on generate`;
 }
 
 // The step-6 naming as the server resolved it — the one reader for the dry-run body. The
@@ -1696,7 +1707,7 @@ function ptGenNaming() {
   const naming = ((ptSession || {}).step6 || {}).naming || {};
   return {
     group: naming.group || (ptCaseInfo ? ptCaseInfo.group_display : '') || '',
-    name: naming.name || ptArtName(S.ptCase && S.ptCase.key),
+    name: naming.name || '',          // the server derives it — only it knows the family
   };
 }
 
@@ -1720,6 +1731,7 @@ export function renderPtGenPanel() {
   }
   ptRenderLint(s6.lint);
   ptRenderLintTrends();
+  ptClearPrune();
   // Re-seed the review from the session, or a reload silently discards findings the
   // reviewer paid an LLM call for — and an empty panel reads as "no findings".
   ptRenderReview(s6.review, (files.test || {}).code || '');
@@ -1794,6 +1806,66 @@ async function ptRenderLintTrends() {
   el.className = b.className;
   el.innerHTML = b.html;
 }
+
+// PRUNE — explicit only (PLAN-art-family-numbering-and-prune.md D4).
+//
+// TWO clicks, never one. This is the only control in the app that deletes a reviewer's working
+// code, so the first click asks the server what WOULD go and the second applies it. Nothing
+// else in the flow — not a save, not a review, not a settle round — triggers a prune.
+export function ptPruneSummary(d) {
+  if (!d) return { className: 'status-banner is-error', html: '<div class="status-title">Prune failed</div>' };
+  if (d.blocked) {
+    return { className: 'status-banner is-warning',
+             html: '<div class="status-title">⚠ Prune did not run</div>'
+                 + `<div>${escapeHtml(d.blocked)}</div>` };
+  }
+  const scripts = (d.scripts || []).join(', ');
+  if (!(d.removed || []).length) {
+    const n = d.candidates || 0;
+    return { className: 'status-banner',
+             html: '<div class="status-title">Nothing to prune</div>'
+                 + `<div>${escapeHtml(d.library || '')} has ${n} auto-added member${n === 1 ? '' : 's'}`
+                 + `${n ? ', all still referenced' : ''}.`
+                 + ` Reviewer-selected members are never prune candidates.</div>` };
+  }
+  const rows = d.removed.map(r =>
+    `<li><code>${escapeHtml((r.names || []).join(', ') || '?')}</code>`
+    + ` <span class="justification-note">${escapeHtml(r.tag || '')}</span></li>`).join('');
+  if (d.applied) {
+    return { className: 'status-banner is-success',
+             html: `<div class="status-title">Removed ${d.removed.length} member(s) from ${escapeHtml(d.library || '')}</div>`
+                 + `<ul>${rows}</ul>` };
+  }
+  return { className: 'status-banner is-warning',
+           html: `<div class="status-title">Would remove ${d.removed.length} auto-added member(s) from ${escapeHtml(d.library || '')}</div>`
+               + `<ul>${rows}</ul>`
+               + `<div class="justification-note">Referenced by none of: ${escapeHtml(scripts || '(no other script in this group)')}.`
+               + ' Only <code># AI: dependency</code> members are candidates — anything a reviewer selected stays.</div>'
+               + '<div class="compact-flex mt-1"><button data-action="ptPruneLibraryApply"'
+               + ' class="btn btn-compact">Remove them</button></div>' };
+}
+
+function ptClearPrune() {
+  const el = document.getElementById('pt-lib-prune-result');
+  if (el) { el.className = ''; el.innerHTML = ''; }
+}
+
+async function ptPruneRequest(apply, btn) {
+  const el = document.getElementById('pt-lib-prune-result');
+  const d = await ptApi('/library_prune', {
+    method: 'POST', btn, busyLabel: apply ? 'Removing…' : 'Checking…',
+    body: JSON.stringify({ group: ptGenNaming().group, apply }),
+  }, ptStatusEl('pt-lib-prune-status'));
+  if (!el) return;
+  const s = ptPruneSummary(d);
+  el.className = s.className;
+  el.innerHTML = s.html;
+  // Applying rewrites the file on disk; the textarea is showing the pre-prune copy.
+  if (d && d.applied) document.getElementById('pt-gen-lib-code').value = d.code || '';
+}
+
+function ptPruneLibrary(btn) { return ptPruneRequest(false, btn); }
+function ptPruneLibraryApply(btn) { return ptPruneRequest(true, btn); }
 
 // Pass C — the holistic review (PLAN-pytest-creator.md §9.6).
 //
@@ -2426,7 +2498,7 @@ registerActions({
   ptFragGoStep, ptFragPrevStep, ptFragNextStep, ptFragToggle, ptPreviewFragments,
   ptLintScript, ptReviewScript, ptFixScript, ptFixFromSummary, ptFixUnits, ptFixUnitsFromValidate, ptSaveScript,
   ptLoadUnits, ptGenerateUnit, ptGenerateAllUnits, ptAssembleScript, ptAssembleAndSettle,
-  ptRechunk, ptResetGenerate,
+  ptRechunk, ptResetGenerate, ptPruneLibrary, ptPruneLibraryApply,
   ptGoUnit, ptGoSummary, ptUnitPrev, ptUnitNext, ptClearUnitErrors,
   ptViewSource, ptRun, ptValidate,
   ptEditProfile, ptSaveProfile, ptCheckProfile, ptResetProfileForm,

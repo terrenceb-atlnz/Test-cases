@@ -2,17 +2,27 @@
 
 > ## Status (read first)
 >
-> **BUILT 2026-09-22** — approved with the three decisions below and shipped the same day.
-> Gate at close: EXIT=0, pytest 1683 / 1 skipped (+13), vitest 335. PRUNE (§5) remains open. Splits R1(b) out of
+> **BUILT 2026-09-22 — then PARTLY SUPERSEDED the same day.** Approved with the three decisions
+> below and shipped; gate at close EXIT=0, pytest 1683 / 1 skipped (+13), vitest 335.
+>
+> **Read `PLAN-art-family-numbering-and-prune.md` alongside this one.** It supersedes **D1**: the
+> stem is now `library_<family>` (`library_9001.py`), which is ART's own `library_<suite>` — the
+> convention §"Why `library_<group>`" below rejected *because* every script shared suite 9000.
+> One suite number per mother folder removes that reason, so the departure recorded here is
+> retired, not overruled. It also **closes §5 (PRUNE)**, which shipped there as an explicit
+> preview-then-apply action. Everything else on this page — the merge-by-tag contract, the
+> one-derivation-two-paths rule, the migration method — stands unchanged; only the stem moved.
+>
+> Splits R1(b) out of
 > `PLAN-self-healing-generation.md`, where it was deferred on 2026-09-15 because it "changes the
 > library naming CONTRACT (filename, the frame's import, persistence)" and the suite naming
 > convention was not settled. It is settled now — decision D1 below.
 >
 > | decision | answer |
 > |---|---|
-> | **D1 — the convention** | `library_<group>` from the mother folder (`Port/` → `library_port.py`) |
+> | **D1 — the convention** | ~~`library_<group>` from the mother folder~~ — **superseded 2026-09-22** by `library_<family>` (`9001_Port/` → `library_9001.py`) |
 > | **D2 — the existing T33234 library** | **Migrate now, explicitly** — rename the file and fix the script's import |
-> | **D3 — scope of this pass** | **Merge + mark now; PRUNE deferred** to its own pass |
+> | **D3 — scope of this pass** | **Merge + mark now; PRUNE deferred** to its own pass — **built 2026-09-22**, `PLAN-art-family-numbering-and-prune.md` §4 |
 >
 > Prune is deliberately NOT in this pass: merge and mark only ever ADD, while prune deletes
 > members from a file shared across a group. It gets its own plan once real group libraries have
@@ -115,11 +125,12 @@ references is removed — that member only, nothing else in the file moves. It n
 unbound-names walk run in **reverse** over every script in the group directory, and it is the
 only part of R1(b) that can delete a reviewer's working code, which is why it is separated.
 
-**Its precondition is NOT met yet (checked 2026-09-22).** The only group library on disk,
-`generated/Port/library_port.py`, has **zero** tagged members and **zero** `# AI: dependency`
-members — it is the migrated, untagged T33234 file. Prune would have nothing to act on, and
-building the destructive step against fixtures alone is exactly what deferring it was for.
-Re-check this before starting: a group library with auto-added members has to exist first.
+**BUILT 2026-09-22** — `PLAN-art-family-numbering-and-prune.md` §4, `POST /library_prune`.
+The precondition recorded here was never met and still is not: `generated/9001_Port/library_9001.py`
+has **zero** tagged and **zero** `# AI: dependency` members, so a real prune is a no-op today.
+That is asserted as the correct behaviour rather than worked around, and the destructive path is
+exercised against libraries `_build_library` itself produced, so the tags under test are the tags
+the generator emits. It is **explicit only** (preview, then apply) — nothing triggers it on a save.
 
 ## 6. Tests
 

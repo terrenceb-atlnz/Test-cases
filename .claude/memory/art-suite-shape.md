@@ -44,7 +44,9 @@ and called the partner `dut`: 59 / 63 unbound-port lint errors, all frame-caused
 - Rule 3d: never generate `testCaseExcl`/`testCaseIncl` (hardware-agnostic, see
   [[scripts-must-be-hardware-agnostic]]); gate at run time with `self.supported = False`.
   Its framework semantics are corpus-grounded, not source-verified (framework not mounted).
-- `_build_library` → `library_<case>.py` from stand-alone fragment defs/classes/constants;
+- `_build_library` → `library_<family>.py` (ART's `library_<suite>`; `9001_Port/library_9001.py`,
+  one per mother folder since 2026-09-22 — was `library_<case>`) from stand-alone fragment
+  defs/classes/constants;
   frame imports it with `*`; units are told to CALL, not paste. It REFUSES a fragment that
   re-defines a framework class (legacy `lldp_class.py` copies of the ATPackets layers would
   shadow the real ones — `haslayer()` then fails silently) and a member whose default arg

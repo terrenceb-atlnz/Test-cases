@@ -11,6 +11,36 @@ current working thread see
 [`ask-ck/functions/generator/PROGRESS.md`](ask-ck/functions/generator/PROGRESS.md).
 
 
+## 2026-09-22 — ART family numbering `<family>.<case>.<TestCase>`, and library PRUNE
+
+**Terrence's convention**, set this session: `900x.yyyy.zzzz` — family · Zephyr case · the
+TestCase inside the script. 9000 is reserved for libraries; groups take 9001 upward.
+
+*Why it was cheap:* `zzzz` already existed. `ATTestCase` composes
+`'%s.%s.%d' % (testSuiteNum, testSetNum, testCaseNum)`, 231 of the 239 ART scripts let the
+`TestCase_<n>` class name supply the last part, the run log already prints
+`>> test-5700.2001.10`, and `pt_exec._CASE_START` already parses it. The dotted triple is ART's
+own style (`testCaseRef = 'CR-52769, 1331.1001.52769'`). Only the FIRST number was missing a
+per-group meaning.
+
+*Why 9001–9999 and not one digit:* the AWPTCM target set is 410 cases over **20** folder leaves,
+so a single family digit runs out at the tenth group. ART occupies 1330–1399 and 6000–6101, so
+the 9000 block is free.
+
+*Why `library_<family>.py`:* `PLAN-group-libraries.md` rejected ART's `library_<suite>.py` one
+day earlier for one stated reason — every script shared suite 9000, so it would collapse into a
+single `library_9000.py`. A family per mother folder removes that reason exactly, so this
+**restores** ART's convention rather than inventing a third. D1 there is marked superseded.
+
+**PRUNE** (R1(b)'s deferred half) ships as `POST /library_prune`: preview, then apply. Only
+`# AI: dependency` members auto-added by R1(a)'s closure are candidates; reviewer-selected
+`# ART` members and untagged preamble are never touched; liveness is a fixed point; and an
+unparseable script blocks the run rather than counting as "references nothing".
+
+`generated/Port/` → `generated/9001_Port/`, and `pytest.js` lost its private copy of the suite
+number — with per-group families the client cannot derive the filename, so it reads the family
+back out of the name the server resolved.
+
 ## 2026-09-22 — R5's two lint-trend surfaces; the gate reaches vitest again
 
 Plan `ask-ck/plans/PLAN-self-healing-generation.md` §6.4 (R5) and

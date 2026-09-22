@@ -924,36 +924,154 @@ def _group_display(group_dir: str) -> str:
     return g or "Ungrouped"
 
 
-# Our assigned, previously-unused ART suite number. The family lives at 9000.<set>.<case>,
-# modelled on the 1000-series convention (2026-09-17, Terrence).
-PT_ART_SUITE = "9000"
+# ---------------------------------------------------------------------------
+# ART identity — `<family>.<case>.<testcase>` (2026-09-22, Terrence).
+#
+#   9000        RESERVED for libraries. Never allocated to a group, so `test-9000.*` does not
+#               exist and `library_9000` can never also be some family's script suite.
+#   9001..9999  one FAMILY per mother folder, allocated on first use, lowest free first.
+#   <case>      the Zephyr case this script maps FOR (AWPTCM-T33234 -> 33234).
+#   <testcase>  the TestCase_<n> inside it. NOT invented here: `ATTestCase` already composes
+#               `'%s.%s.%d' % (testSuiteNum, testSetNum, testCaseNum)`, 231 of the 239 ART
+#               scripts let the `TestCase_<n>` class name supply the last part, and the run
+#               log already prints `>> test-9001.33234.5` per case (pt_exec._CASE_START).
+#
+# Was a single `PT_ART_SUITE = "9000"` for the entire output (2026-09-17). One suite number for
+# every group is precisely why PLAN-group-libraries.md had to depart from ART's own
+# `library_<suite>.py` — it would have collapsed to one library for everything. A family per
+# group removes that reason; see `_family_library_stem`.
+#
+# The 9000 block is entirely free in ART (the corpus occupies 1330-1399 and 6000-6101 across 51
+# suite dirs), so 9001..9999 collides with nothing and leaves ~990 spare slots against the 20
+# mother folders the 410 AWPTCM target cases fall into. A single digit would have run out at
+# the tenth group, which is why `900x` is read as the 9000 BLOCK and not as one literal digit.
+# ---------------------------------------------------------------------------
+PT_LIBRARY_SUITE = "9000"
+PT_FAMILY_MIN = 9001
+PT_FAMILY_MAX = 9999
+
+# group -> family, and AUTHORITATIVE over the `<n>_<Group>` folder names: a group that has been
+# allocated a number keeps it even if its folder is renamed or deleted, so a retired number is
+# never handed to a different group and yesterday's logs never re-point at today's work.
+FAMILY_REGISTRY = PT_GENERATED_DIR / ".families.json"
+_FAMILY_LOCK = threading.Lock()
+_FAMILY_DIR_RX = re.compile(r"^(\d+)_")
 
 
-def _art_script_name(case_key: str) -> str:
-    """`AWPTCM-T33233` -> `test-9000.33233`: the script's ART identity, derived not typed.
+def _family_registry() -> Dict[str, int]:
+    """The persisted group -> family map. Absent or unreadable reads as EMPTY rather than
+    raising: a corrupt registry must not take the Generate panel down, and the next allocation
+    rewrites it from whatever survived plus every number visible on disk."""
+    try:
+        raw = json.loads(FAMILY_REGISTRY.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return {}
+    out: Dict[str, int] = {}
+    for g, n in ((raw.get("families") if isinstance(raw, dict) else None) or {}).items():
+        try:
+            n = int(n)
+        except (TypeError, ValueError):
+            continue
+        if PT_FAMILY_MIN <= n <= PT_FAMILY_MAX:
+            out[str(g)] = n
+    return out
+
+
+def _families_on_disk() -> set:
+    """Family numbers visible as `<n>_<Group>` directories, whether or not the registry knows
+    them. Union'd into "taken" when allocating so a folder created, restored or committed out
+    of band cannot have its number reallocated to a DIFFERENT group."""
+    out = set()
+    for root in (PT_GENERATED_DIR, META_ROOT):
+        if not root.exists():
+            continue
+        try:
+            entries = list(root.iterdir())
+        except OSError:
+            continue
+        for d in entries:
+            m = _FAMILY_DIR_RX.match(d.name) if d.is_dir() else None
+            if m:
+                out.add(int(m.group(1)))
+    return out
+
+
+def _write_family_registry(fams: Dict[str, int]) -> None:
+    PT_GENERATED_DIR.mkdir(parents=True, exist_ok=True)
+    payload = {
+        "_comment": "group -> ART family number (PLAN-art-family-numbering-and-prune.md). "
+                    "Authoritative over the <n>_<Group> folder names; a number here is never reused.",
+        "reserved": {PT_LIBRARY_SUITE: "libraries — never allocated to a group"},
+        "families": dict(sorted(fams.items(), key=lambda kv: kv[1])),
+    }
+    tmp = FAMILY_REGISTRY.with_name(FAMILY_REGISTRY.name + ".tmp")
+    tmp.write_text(json.dumps(payload, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    tmp.replace(FAMILY_REGISTRY)      # atomic: a reader never sees a half-written registry
+
+
+def _family_for_group(group: str) -> int:
+    """This group's ART family, allocating the lowest free number >= 9001 on first use.
+
+    IDEMPOTENT, which is what lets both generation paths call it and still agree: the stem it
+    feeds rides in the frame (`from library_9001 import *`), so a divergence would change
+    `assembled_hash` and 409 every splice through slice A's gating.
+    """
+    group = (group or "").strip() or "Ungrouped"
+    with _FAMILY_LOCK:
+        fams = _family_registry()
+        if group in fams:
+            return fams[group]
+        taken = set(fams.values()) | _families_on_disk()
+        n = PT_FAMILY_MIN
+        while n in taken:
+            n += 1
+        if n > PT_FAMILY_MAX:
+            raise HTTPException(
+                507, f"ART families {PT_FAMILY_MIN}-{PT_FAMILY_MAX} are exhausted "
+                     f"({len(fams)} allocated); no number left for group '{group}'.")
+        fams[group] = n
+        _write_family_registry(fams)
+        return n
+
+
+def _group_dir_name(group: str, family: Optional[int] = None) -> str:
+    """`Port` -> `9001_Port`: ART's own suite-dir shape (`1332_lldp_med`), so the family is
+    visible to anyone listing the tree. The fold is path-safety only — `_GROUP_RX` admits
+    spaces, parens and hyphens, none of which belong in a directory name we also read back."""
+    if family is None:
+        family = _family_for_group(group)
+    slug = re.sub(r"[^A-Za-z0-9]+", "_", group or "Ungrouped").strip("_") or "Ungrouped"
+    return f"{family}_{slug}"
+
+
+def _art_script_name(case_key: str, family: int) -> str:
+    """`AWPTCM-T33233` + 9001 -> `test-9001.33233`: the script's ART identity, derived not typed.
 
     The filename is NOT cosmetic — it is the only input the framework has for its own
     identity. `ATTestSet.py:71` parses `test-(\\d+).(\\d+).*\\.py` out of it and
     `create_log_file()` writes `test-<suite>.<set>.log`; no match means the '0' defaults
     stand and every run lands in `test-0.0.log`. Putting the Zephyr case number in the SET
     position is what makes each case's log natively named and self-describing
-    (`9000.33233.<step>` = suite · case · step), so the four Port cases produce four
+    (`9001.33233.<case>` = family · case · TestCase), so the four Port cases produce four
     correctly-named logs with no post-processing.
+
+    The framework reads only TWO numbers out of the name, which is why the third part of the
+    convention lives on the TestCase and not in the filename — one file holds every TestCase.
 
     Derived from the key rather than the title, and authoritative over anything stored or
     posted: a typed name cannot satisfy a convention the framework parses.
     """
     digits = "".join(re.findall(r"\d+", case_key or ""))
     if digits:
-        return f"test-{PT_ART_SUITE}.{digits}"
+        return f"test-{family}.{digits}"
     slug = re.sub(r"[^A-Za-z0-9]+", "_", case_key or "generated").strip("_") or "generated"
-    return f"test-{PT_ART_SUITE}.0_{slug}"[:60]
+    return f"test-{family}.0_{slug}"[:60]
 
 
 # `_propose_name(title)` — which coined a name from the case TITLE ("MDIX_test") — was removed
 # on 2026-09-17 along with the Generate panel's naming inputs. A title-derived name cannot
 # satisfy the framework's `test-<suite>.<set>.py` pattern, so every script it named produced a
-# `test-0.0.log`. `_art_script_name(case_key)` above replaced it as the only namer.
+# `test-0.0.log`. `_art_script_name(case_key, family)` above replaced it as the only namer.
 
 
 # ---------------------------------------------------------------------------
@@ -1003,11 +1121,11 @@ def _validate_naming(group: str, name: str) -> Tuple[str, str]:
 
 
 def _script_path(group: str, name: str) -> Path:
-    return PT_GENERATED_DIR / group / f"{name}.py"
+    return PT_GENERATED_DIR / _group_dir_name(group) / f"{name}.py"
 
 
 def _meta_dir(group: str, name: str) -> Path:
-    return META_ROOT / group / name
+    return META_ROOT / _group_dir_name(group) / name
 
 
 # A scaffolding-marker comment line: a pure comment (only whitespace before the
@@ -1653,26 +1771,22 @@ def _detect_links(sequence: List[dict], fragments: List[dict], objective: str = 
             "peer": copper or fibre or cusfp}
 
 
-def _group_library_stem(group: str) -> str:
-    """`Port` -> `library_port`: ONE library per mother folder (R1(b), PLAN-group-libraries.md).
+def _family_library_stem(family: int) -> str:
+    """`9001` -> `library_9001`: ART's own `library_<suite>.py` (2026-09-22).
 
-    Was `library_<case>` until 2026-09-22, which gave every case its own copy of a shared
-    helper — the duplication R1(a)'s dependency closure makes MORE likely, since it now
-    auto-ships a fragment's dependencies into whatever library the case happens to own.
+    This RESTORES that convention rather than departing from it. `PLAN-group-libraries.md`
+    rejected `library_<suite>` for one stated reason — every script we generated sat on the
+    single suite 9000, so a faithful `library_<suite>` would have collapsed the ENTIRE output
+    into one `library_9000.py` — and keyed on the mother folder instead (`library_port`). A
+    family per mother folder removes that reason exactly: ART's convention and "one library per
+    group" now name the same file, and 9000 stays reserved so `library_9000` can never also be
+    some family's script suite.
 
-    Deliberately NOT ART's `library_<suite>`: ART keys that on the numeric suite
-    (`library_1332.py` for `1332_lldp_med`), but every script we generate sits on our one
-    assigned suite 9000 (`PT_ART_SUITE`), so a faithful `library_<suite>` would be a single
-    `library_9000.py` for the entire output. The mother folder is the grouping that carries
-    meaning here. Recorded so nobody "corrects" it back.
-
-    Group names are not module names — `_GROUP_RX` admits spaces, parens and hyphens — so the
-    same fold `_library_stem` always used applies. KNOWN consequence: `Port A` and `Port-A`
-    both become `library_port_a`. That collision class did not exist when the key was the case;
-    it is left unguarded because two groups differing only in punctuation would be visible the
-    moment it happened (both scripts import the same module).
+    Nothing is folded here because there is nothing to fold: the family is an int. That retires
+    the `Port A` / `Port-A` collision `_group_library_stem` documented as a known trade-off —
+    two differently-named groups now get two different numbers.
     """
-    return "library_" + re.sub(r"[^a-z0-9]+", "_", (group or "group").lower()).strip("_")
+    return f"library_{int(family)}"
 
 
 def _effective_group(sess) -> str:
@@ -1686,6 +1800,12 @@ def _effective_group(sess) -> str:
     """
     naming = (getattr(sess, "step6", None) or {}).get("naming") or {}
     return naming.get("group") or _group_display(getattr(sess, "group", "") or "")
+
+
+def _effective_family(sess) -> int:
+    """The family BOTH generation paths must agree on, for the same reason as `_effective_group`
+    — the library stem rides in the frame, so a divergence changes `assembled_hash`."""
+    return _family_for_group(_effective_group(sess))
 
 
 _LIB_SKIP_IMPORTS = {"sys", "framework.ATTestCase", "framework.ATTestSet"}
@@ -1810,10 +1930,12 @@ def _close_fragment_deps(fragments: List[dict], data: dict, already: set,
     return members, import_lines
 
 
-def _build_library(group: str, fragments: List[dict], data: dict,
+def _build_library(group: str, family: int, fragments: List[dict], data: dict,
                    surface: Optional[dict] = None) -> Optional[dict]:
-    """The GROUP's own helper module — one per mother folder since 2026-09-22 (R1(b)); see
-    `_group_library_stem`. Modelled on the way every ART suite ships one (`library_1332.py`
+    """The GROUP's own helper module — one per mother folder since 2026-09-22 (R1(b)), named for
+    its ART family since the numbering landed the same day; see `_family_library_stem`. `group`
+    and `family` are BOTH passed in and never re-derived here, so the two generation paths
+    cannot drift. Modelled on the way every ART suite ships one (`library_1332.py`
     holds the packets and the shared checks; 154 of 188 tests import theirs with `*`).
 
     Contents: every SELECTED fragment that is a stand-alone module-level definition — a
@@ -1848,7 +1970,7 @@ def _build_library(group: str, fragments: List[dict], data: dict,
         surface = _framework_surface_doc()
     fw_classes = {cn for mod in (surface or {}).values() if isinstance(mod, dict)
                   for cn in (mod.get("classes") or {})}
-    stem = _group_library_stem(group)
+    stem = _family_library_stem(family)
     members: List[dict] = []
     imports: List[str] = []
     dupes: List[str] = []
@@ -1959,7 +2081,7 @@ def _build_library(group: str, fragments: List[dict], data: dict,
         return {"name": "", "stem": "", "code": "", "members": [], "tags": set(),
                 "framework_dupes": sorted(set(dupes)), "framework_tags": dupe_tags,
                 "skipped": skipped}
-    body = [f'"""{stem} — helpers shared by the {group} group.',
+    body = [f'"""{stem} — helpers shared by the {group} group (ART family {family}).',
             "",
             "Generated by Ask CK PyTest Creator alongside the test scripts, modelled on the way every",
             "ART suite ships a `library_<suite>.py`. EVERY script in this group imports this one module",
@@ -2115,7 +2237,8 @@ def _objective_comment_lines(objective: str, width: int = 88) -> List[str]:
 
 def _render_skeleton(case_key: str, case_title: str, sequence: List[dict],
                      extra_imports: List[str], fragments: Optional[List[dict]] = None,
-                     objective: str = "", library: Optional[dict] = None) -> str:
+                     objective: str = "", library: Optional[dict] = None,
+                     art_set: str = "") -> str:
     """Render the standardized ART skeleton (fixed frame + FILL slots) for this case.
     Each TestCase step carries a resolved `kind` (verify/physical/manual) so the template
     renders the right main() pattern (CLI check vs operator-prompt-and-wait vs yesNo).
@@ -2140,6 +2263,7 @@ def _render_skeleton(case_key: str, case_title: str, sequence: List[dict],
                       setup_keys=_setup_keys_for(switches),
                       links=_detect_links(sequence, fragments or [], objective),
                       lib_stem=(library or {}).get("stem") or "",
+                      art_set=art_set,
                       objective_lines=_objective_comment_lines(objective))
 
 
@@ -4006,6 +4130,129 @@ def _merge_library_code(existing: str, incoming: str) -> str:
     return "\n".join(lines).rstrip("\n") + "\n"
 
 
+# ---------------------------------------------------------------------------
+# PRUNE (PLAN-art-family-numbering-and-prune.md §4) — the deferred half of R1(b).
+#
+# EXPLICIT ONLY. This is the one operation in R1(a)/R1(b) that can delete a reviewer's working
+# code, so nothing calls it on a save, on a review, or on any other schedule: `library_prune`
+# is the only caller and it previews unless asked to apply.
+# ---------------------------------------------------------------------------
+_LIB_AI_TAG_RX = re.compile(r"^#\s*AI:?\s+dependency\b")
+
+
+def _loaded_names(code: str) -> Optional[set]:
+    """Every name a module LOADS, or None when it does not parse.
+
+    Scoping is deliberately flat, exactly as in `_lint_unbound_names`: it OVER-reports
+    references, so a prune built on it under-removes rather than over-removes. None is
+    distinct from the empty set on purpose — an unparseable file contributes no references,
+    and treating that as "references nothing" is how a prune deletes what it actually uses.
+    """
+    import ast as ast_mod
+    try:
+        tree = ast_mod.parse(code)
+    except SyntaxError:
+        return None
+    return {n.id for n in ast_mod.walk(tree)
+            if isinstance(n, ast_mod.Name) and isinstance(n.ctx, ast_mod.Load)}
+
+
+def _member_bound_names(member_lines: List[str]) -> set:
+    """The module-level names a library member binds — what a `*` import of the library would
+    publish from it, and therefore what a script would have to name to be using it."""
+    import ast as ast_mod
+    try:
+        tree = ast_mod.parse(textwrap_dedent("\n".join(member_lines)))
+    except SyntaxError:
+        return set()
+    out = set()
+    for node in tree.body:
+        if isinstance(node, (ast_mod.FunctionDef, ast_mod.AsyncFunctionDef, ast_mod.ClassDef)):
+            out.add(node.name)
+        elif isinstance(node, ast_mod.Assign):
+            out.update(t.id for t in node.targets if isinstance(t, ast_mod.Name))
+        elif isinstance(node, ast_mod.AnnAssign) and isinstance(node.target, ast_mod.Name):
+            out.add(node.target.id)
+    return out
+
+
+def _prune_library_plan(group: str) -> dict:
+    """What an explicit prune WOULD remove from this group's library, and the resulting code.
+
+    Only `# AI: dependency …` members are ever candidates — the ones R1(a)'s closure auto-added.
+    A reviewer-selected `# ART` / `# SVT` / `# legacy` member is never removed however dead it
+    looks, and untagged preamble (an LLM-authored library is ALL preamble) is never touched.
+
+    Dead = no `.py` in the group's folder other than the library itself Loads any name the
+    member binds, AND no RETAINED member does either. The second half needs a fixed point:
+    dropping a member can kill the one only it called, so the walk repeats until a pass revives
+    nothing. It starts from "drop every candidate" and revives, which converges downward.
+
+    REFUSES rather than guesses when a script in the folder does not parse: an unparseable
+    script contributes no references, so pruning against it would remove members it uses.
+    """
+    family = _family_for_group(group)
+    stem = _family_library_stem(family)
+    folder = PT_GENERATED_DIR / _group_dir_name(group, family)
+    lib_path = folder / f"{stem}.py"
+    out = {"group": group, "family": family, "library": f"{stem}.py", "folder": folder.name,
+           "scripts": [], "candidates": 0, "removed": [], "kept": [],
+           "code": "", "blocked": ""}
+    if not lib_path.exists():
+        out["blocked"] = f"no library at {folder.name}/{stem}.py — nothing to prune"
+        return out
+    existing = lib_path.read_text(encoding="utf-8")
+    out["code"] = existing
+    pre, members = _split_library(existing)
+    cand = {i for i, (tag, _) in enumerate(members) if _LIB_AI_TAG_RX.match(tag)}
+    out["kept"] = [t for t, _ in members]
+    out["candidates"] = len(cand)
+    if not cand:
+        # Not a failure: a library with no auto-added members has nothing prune may touch.
+        return out
+
+    referenced: set = set()
+    for p in sorted(folder.glob("*.py")):
+        if p.name == lib_path.name:
+            continue
+        try:
+            names = _loaded_names(p.read_text(encoding="utf-8"))
+        except OSError as exc:
+            out["blocked"] = f"cannot read {p.name}: {exc}"
+            return out
+        if names is None:
+            out["blocked"] = (f"{p.name} does not parse, so it reports no references — pruning "
+                              f"against it could delete members it uses. Fix the script first.")
+            return out
+        out["scripts"].append(p.name)
+        referenced |= names
+    referenced |= _loaded_names("\n".join(pre)) or set()     # the untagged preamble calls things too
+
+    drop = set(cand)
+    while True:
+        live = set(referenced)
+        for i in range(len(members)):
+            if i not in drop:
+                live |= _loaded_names("\n".join(members[i][1])) or set()
+        revived = {i for i in drop if _member_bound_names(members[i][1]) & live}
+        if not revived:
+            break
+        drop -= revived
+
+    keep = [i for i in range(len(members)) if i not in drop]
+    out["removed"] = [{"tag": members[i][0],
+                       "names": sorted(_member_bound_names(members[i][1]))}
+                      for i in sorted(drop)]
+    out["kept"] = [members[i][0] for i in keep]
+    lines = list(pre)
+    for i in keep:
+        lines += members[i][1]
+    # With nothing dropped this reconstructs the file: `_split_library` slices to the next tag,
+    # so each member already carries its own leading tag line and trailing blank lines.
+    out["code"] = "\n".join(lines).rstrip("\n") + "\n"
+    return out
+
+
 def _persist_generated_files(sess: PtSession) -> List[str]:
     """Write <Group>/<Name>.py (+library) and sidecar meta; returns written paths."""
     step6 = sess.step6 or {}
@@ -5141,7 +5388,8 @@ async def generate_script(key: str, request: Request, body: dict = Body(default=
     # Script-name inputs were removed with this change: a name the reviewer types cannot
     # satisfy a convention the framework parses out of the filename, and a stored name from
     # before the convention would otherwise keep winning here.
-    name = _art_script_name(key)
+    family = _family_for_group(group)
+    name = _art_script_name(key, family)
     group, name = _validate_naming(group, name)
     file_name = f"{name}.py"
 
@@ -5179,10 +5427,11 @@ async def generate_script(key: str, request: Request, body: dict = Body(default=
     # inside _render_skeleton, so multi-device cases keep a fixed init() frame.
     # `group` is already resolved above, and equals `_effective_group(sess)` once the naming has
     # been persisted — pass it rather than re-deriving, so the two paths cannot drift (§1).
-    library = _build_library(group, fragments, data)
+    library = _build_library(group, family, fragments, data)
     skeleton = _render_skeleton(key, _case_title(data, key), sequence,
                                 extra_import_lines, fragments,
-                                _case_payload_fields(sess)["objective"], library)
+                                _case_payload_fields(sess)["objective"], library,
+                                name[len("test-"):])
 
     # SIZE ADVICE, NOT A SIZE GATE (Phase 7.4). This used to raise 409 for any script whose
     # projected output exceeded "32,000 tokens minus thinking". That premise is refuted: the
@@ -5643,10 +5892,13 @@ def _pt_generation_context(key: str, data: dict, sess: PtSession) -> dict:
                 if line not in extra_import_lines:
                     extra_import_lines.append(line)
     sequence = (sess.step2 or {}).get("sequence") or []
-    library = _build_library(_effective_group(sess), fragments, data)
+    _group = _effective_group(sess)
+    _family = _effective_family(sess)
+    library = _build_library(_group, _family, fragments, data)
     skeleton = _render_skeleton(key, _case_title(data, key), sequence,
                                 extra_import_lines, fragments,
-                                _case_payload_fields(sess)["objective"], library)
+                                _case_payload_fields(sess)["objective"], library,
+                                _art_script_name(key, _family)[len("test-"):])
     # Slice A: once the units have been re-chunked from an assembled script, THAT script is the
     # frame — module-level helpers a whole-script Fix or a hand edit added are part of it, and
     # the server's fresh render would silently drop them. The snapshot is trusted only while
@@ -6402,7 +6654,8 @@ async def assemble_script(key: str, request: Request, body: dict = Body(default=
 
     naming = step6.get("naming") or {}
     group = (body.get("group") or naming.get("group") or "").strip()
-    name = (body.get("name") or naming.get("name") or _art_script_name(key)).strip()
+    name = (body.get("name") or naming.get("name")
+            or _art_script_name(key, _family_for_group(group))).strip()
     return _assemble_and_store(key, sess, ctx, group, name)
 
 
@@ -6477,7 +6730,8 @@ async def assemble_and_settle(key: str, request: Request, body: dict = Body(defa
         raise HTTPException(409, "The skeleton has no fillable units — confirm step 4 first.")
     naming = step6.get("naming") or {}
     group = (body.get("group") or naming.get("group") or "").strip()
-    name = (body.get("name") or naming.get("name") or _art_script_name(key)).strip()
+    name = (body.get("name") or naming.get("name")
+            or _art_script_name(key, _family_for_group(group))).strip()
     res = await run_in_threadpool(_assemble_and_store, key, sess, ctx, group, name)
 
     async def _settle_chain():
@@ -7051,6 +7305,26 @@ def _effective_repair_turns() -> int:
     if rr is not None and rr < _PT_LINT_TEXT_RETURN_RATE:
         return min(2, _PT_REPAIR_TURNS + 1)
     return _PT_REPAIR_TURNS
+
+
+@router.post("/library_prune")
+async def library_prune(body: dict = Body(default={})):
+    """Preview, then (only when asked) apply, a prune of this group's library.
+
+    D4 — EXPLICIT ONLY. `apply` defaults to false and reports what would go without writing,
+    because this is the only path in R1(a)/R1(b) that can delete a reviewer's working code.
+    """
+    group = str(body.get("group") or "").strip()
+    if not group:
+        raise HTTPException(400, "group is required.")
+    group, _ = _validate_naming(group, "prune")
+    plan = await run_in_threadpool(_prune_library_plan, group)
+    applied = False
+    if body.get("apply") and plan["removed"] and not plan["blocked"]:
+        folder = PT_GENERATED_DIR / _group_dir_name(group, plan["family"])
+        (folder / plan["library"]).write_text(plan["code"], encoding="utf-8")
+        applied = True
+    return {**plan, "applied": applied}
 
 
 @router.get("/lint_trends")
@@ -7683,7 +7957,7 @@ async def fix_units(key: str, request: Request, body: dict = Body(default={})):
               for uid in targets}
     naming = step6.get("naming") or {}
     group = (naming.get("group") or "").strip()
-    name = (naming.get("name") or _art_script_name(key)).strip()
+    name = (naming.get("name") or _art_script_name(key, _family_for_group(group))).strip()
     previous_code = code
     iteration = int(step6.get("iterations") or 1)
     file_name = test.get("name") or f"{name}.py"
@@ -7779,7 +8053,7 @@ async def apply_held(key: str, request: Request, body: dict = Body(default={})):
     ctx = _pt_generation_context(key, data, sess)
     naming = step6.get("naming") or {}
     group = (naming.get("group") or "").strip()
-    name = (naming.get("name") or _art_script_name(key)).strip()
+    name = (naming.get("name") or _art_script_name(key, _family_for_group(group))).strip()
     test = (step6.get("files") or {}).get("test") or {}
     previous_code = test.get("code") or ""
     iteration = int(step6.get("iterations") or 1)

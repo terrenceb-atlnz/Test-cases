@@ -87,10 +87,12 @@ persistence) and Terrence framed it as future ("until we solidify a naming conve
 pass in the future anyway"). Best done deliberately when the suite structure settles; the closure
 above delivers the class-1 prevention now, into whatever library the case ships.
 
-**R1(b) — one library per group (Terrence, D4). ✅ BUILT 2026-09-22 — see
-`ask-ck/plans/PLAN-group-libraries.md`, which owns it from here** (naming settled as
-`library_<group>`; the existing T33234 library migrated explicitly; merge + mark shipped, PRUNE
-deferred to its own pass because it is the only part that can delete a reviewer's code).** We are re-structuring ART's features into our
+**R1(b) — one library per group (Terrence, D4). ✅ COMPLETE 2026-09-22 — see
+`ask-ck/plans/PLAN-group-libraries.md`** (merge + mark) **and
+`ask-ck/plans/PLAN-art-family-numbering-and-prune.md`** (the numbering, and PRUNE — the part
+that can delete a reviewer's code, so it is an explicit preview-then-apply action). The naming
+settled as `library_<group>` for one day and is now `library_<family>` — ART's own
+`library_<suite>`, viable again once each mother folder got its own suite number.** We are re-structuring ART's features into our
 own suites, so the library is OURS, not ART's: named after the script's mother folder
 (`library_management.py` for `Management/…`, `library_port.py`, …) until a suite naming
 convention is settled — today it is `library_<case>` (`_library_stem`). Consequences:

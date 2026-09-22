@@ -31,11 +31,12 @@ hygiene with zero script code (see `../test-composer/ART-EXECUTION-CHAIN.md`).
 
 - `#!/usr/bin/python3`, `import sys`, `from framework import ATTestSet, ATTestCase`
   (+ any real extra imports; `from framework.ATPackets import *` when the frame binds the
-  testbox link; `from library_<case> import *` when the suite library exists — see below).
+  testbox link; `from library_<family> import *` when the suite library exists — see below).
 - `class TestSet(ATTestSet.TestSet)` with `FEATURES = ['ALL']`, `init(self, setup)`
   binding topology, `configure(self)`, `tear_down(self)`.
 - One `class TestCase_<n>(ATTestCase.TestCase)` **per sequence step, in order**, each
-  with `testCaseDesc`, `testCaseRef = '<case_key>'`, the ART multi-line `testCaseMethod  =
+  with `testCaseDesc`, `testCaseRef = '<case_key>, <family>.<case>.<n>'` (ART's own shape —
+  `'CR-52769, 1331.1001.52769'`), the ART multi-line `testCaseMethod  =
   '<action>\n'` / `testCaseMethod += 'Verify: <verify>\n'`, and **three methods**:
   `configure(self)` (the precondition the step presumes — config only), `main(self)`, and
   `tear_down(self)` (the mirror of configure() and of what main() changed, in `no` form).
@@ -51,7 +52,8 @@ hygiene with zero script code (see `../test-composer/ART-EXECUTION-CHAIN.md`).
   for the DUT's own stack, and a partner called `dut` made every model read `dut.portA` as
   the DUT port. Which links a case gets is text-driven (`_detect_links`); an unneeded link
   costs one bench-file line, a missing one dies on `interface None`.
-- **The suite library** `library_<case>.py` (the ART `library_<suite>.py` convention) holds
+- **The suite library** `library_<family>.py` — ART's `library_<suite>.py`, one per mother
+  folder since 2026-09-22 (`9001_Port/library_9001.py`) — holds
   every selected fragment that is a stand-alone function, class or constant, verbatim under
   its provenance tag, plus its source's imports; the frame imports it with `*` and it ships
   and is persisted beside the script. Methods and class-body slices stay fragments.

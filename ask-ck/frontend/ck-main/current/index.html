@@ -783,6 +783,15 @@
         <textarea id="pt-gen-code" class="form-input editor-textarea" style="height:420px" spellcheck="false" placeholder="Generated script appears here…"></textarea>
         <div id="pt-gen-lib-wrap" class="hidden">
           <div class="justification-note mt-2">Companion library: <span id="pt-gen-lib-name"></span></div>
+          <!-- PRUNE is EXPLICIT (PLAN-art-family-numbering-and-prune.md D4): this is the only
+               action that can delete a reviewer's working code, so it previews first and
+               nothing else in the flow triggers it. -->
+          <div class="compact-flex mt-1">
+            <button data-action="ptPruneLibrary" class="btn btn-compact" id="pt-lib-prune-btn"
+                    title="List the auto-added (# AI: dependency) members no script in this group still references. Removes nothing until you confirm.">Prune library…</button>
+            <span id="pt-lib-prune-status" class="justification-note"></span>
+          </div>
+          <div id="pt-lib-prune-result" class="mb-2"></div>
           <textarea id="pt-gen-lib-code" class="form-input editor-textarea" style="height:180px" spellcheck="false"></textarea>
         </div>
         <div id="pt-gen-prov"></div>

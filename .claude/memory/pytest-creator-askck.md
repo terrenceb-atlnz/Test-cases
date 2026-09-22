@@ -6,7 +6,7 @@ metadata:
   type: project
   originSessionId: 3813cc75-639d-4e62-abb8-fd384442d015
   modified: 2026-07-28T02:34:43.796Z
-  verified: 2026-09-04
+  verified: 2026-09-22
 ---
 
 The **PyTest Creator** (a tool inside the Ask CK FastAPI workbench at
@@ -33,8 +33,21 @@ Remaining as of 2026-07-28: **Part 3b** (execution judging on tb470) needs `conf
 device list and physical wiring are. Parsing `.setup` inside `CK_server` is the outstanding
 design follow-up ([[setup-file-declares-topology]]). T33234 TestCase_8 is still graded bad.
 
+**ART identity (Terrence, 2026-09-22): `<family>.<case>.<TestCase>`.** One family per mother
+folder, allocated 9001-9999 and persisted in `generated/.families.json` (authoritative over the
+folder names); **9000 is reserved for libraries**. So `9001_Port/test-9001.33234.py`,
+`library_9001.py`, and `9001.33234.5` is TestCase_5 inside it. Two things that are easy to get
+wrong: the framework parses only TWO numbers out of the filename, so the third part lives on the
+`TestCase_<n>` class (that is where `testCaseNum` comes from — 231 of 239 ART scripts never
+assign it), and **no client may derive the script name** since only the server knows the family.
+Plan: `ask-ck/plans/PLAN-art-family-numbering-and-prune.md`; see also [[art-suite-shape]].
+Running ONE TestCase by that number is UNVERIFIED against the live framework — the legacy py2
+`ATPylib` does `if str(testCase.testCaseNum) in args`, but the current py3 framework takes
+`-s`/`-v` flags the legacy stub cannot parse. Confirm on tb470 before relying on it.
+
 Conventions: `framework` is a whole library (not just the two base classes); generated
-scripts go to `generated/<Group>/<Name>.py` with names the user can edit at creation;
+scripts go to `generated/<family>_<Group>/<Name>.py` — the name is DERIVED from the case key,
+not typed (the panel's naming inputs were removed 2026-09-17);
 testbox profiles need `tb_number` + IP minimum, stored in gitignored `secrets.testboxes.json`;
 server runs via `ask-ck/CK-main/run.sh` on port 8000. Reaching a device by hand:
 [[testbox-console-access]].

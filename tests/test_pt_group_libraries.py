@@ -18,25 +18,22 @@ sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1] / "ask-ck" / 
 from routers import pytest_create as pc          # noqa: E402
 
 
-# --- 3. the fold ---------------------------------------------------------------------------
+# --- 3. the stem ---------------------------------------------------------------------------
 
-def test_the_stem_is_keyed_on_the_group_not_the_case():
-    assert pc._group_library_stem("Port") == "library_port"
-    assert pc._group_library_stem("Management") == "library_management"
-
-
-def test_group_names_that_are_not_module_names_are_folded():
-    # _GROUP_RX admits spaces, parens and hyphens; a module name admits none of them.
-    assert pc._group_library_stem("Authentication_Security") == "library_authentication_security"
-    assert pc._group_library_stem("Port (7)") == "library_port_7"
-    assert pc._group_library_stem("Layer-3 Switching") == "library_layer_3_switching"
-    assert pc._group_library_stem("") == "library_group"          # never a bare "library_"
+def test_the_stem_is_the_groups_ART_FAMILY_not_the_case_and_not_the_group_name():
+    """Since PLAN-art-family-numbering-and-prune.md the stem is ART's own `library_<suite>`.
+    It was `library_<case>` (one copy per case), then `library_<group>` for one day — the group
+    fold only existed because every script shared suite 9000, which a family per group fixes."""
+    assert pc._family_library_stem(9001) == "library_9001"
+    assert pc._family_library_stem(9002) == "library_9002"
 
 
-def test_the_known_collision_is_documented_not_accidental():
-    """`Port A` and `Port-A` fold together. This is ASSERTED so it stays a known trade-off:
-    if someone later guards it, this test fails and they must update the docstring too."""
-    assert pc._group_library_stem("Port A") == pc._group_library_stem("Port-A")
+def test_the_fold_collision_is_retired_by_the_numbering():
+    """`_group_library_stem` knowingly collided `Port A` with `Port-A`. Numbers cannot collide,
+    so that trade-off is GONE — asserted here so nobody reintroduces a name-derived stem."""
+    assert not hasattr(pc, "_group_library_stem"), (
+        "_group_library_stem is back: the stem must key on the family, which is collision-free")
+    assert pc._family_library_stem(9001) != pc._family_library_stem(9010)
 
 
 # --- 1. one derivation, two paths ----------------------------------------------------------
@@ -61,13 +58,15 @@ def test_both_generation_paths_pass_the_group_into_build_library():
     """A source assertion, deliberately: the hazard is that ONE path is updated and the other
     keeps re-deriving, which no behavioural test of either path alone would catch."""
     src = pathlib.Path(pc.__file__).read_text(encoding="utf-8")
-    calls = re.findall(r"(?<!def )_build_library\(([^,]+),", src)
+    calls = re.findall(r"(?<!def )_build_library\(([^,]+),\s*([^,]+),", src)
     assert calls, "no _build_library call sites found — did it get renamed?"
-    for arg in calls:
-        arg = arg.strip()
-        assert arg in ("group", "_effective_group(sess)"), (
-            f"_build_library is called with {arg!r}: every call site must pass the GROUP, "
-            "or the two generation paths derive different frames")
+    for group_arg, family_arg in calls:
+        assert group_arg.strip() in ("group", "_group"), (
+            f"_build_library is called with group={group_arg.strip()!r}: every call site must "
+            "pass a resolved GROUP, or the two generation paths derive different frames")
+        assert family_arg.strip() in ("family", "_family"), (
+            f"_build_library is called with family={family_arg.strip()!r}: the FAMILY must be "
+            "passed in too — re-deriving it inside would let the two paths drift")
 
 
 # --- 2. merge, never overwrite --------------------------------------------------------------
@@ -75,7 +74,7 @@ def test_both_generation_paths_pass_the_group_into_build_library():
 TAG_A = "# ART art/1332_lldp_med/test-1332.1.py lines 10-12"
 TAG_B = "# AI: dependency `LLDP_PHONE_PKT` of " + TAG_A
 
-EXISTING = f'''"""library_port — helpers shared by the Port group."""
+EXISTING = f'''"""library_9001 — helpers shared by the Port group (ART family 9001)."""
 import time
 
 
@@ -84,7 +83,7 @@ def check_lldp_lag(testCase, eth, tb):
     return True
 '''
 
-INCOMING = f'''"""library_port — helpers shared by the Port group."""
+INCOMING = f'''"""library_9001 — helpers shared by the Port group (ART family 9001)."""
 import re
 import time
 

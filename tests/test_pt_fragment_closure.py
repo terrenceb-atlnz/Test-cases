@@ -109,7 +109,7 @@ def test_build_library_ships_the_closed_dependency(monkeypatch):
     frag = {"source_id": src_id, "loc": [1, 2], "symbol": "main",
             "code": "def main(self):\n    sendp(HELPER_PKT, iface=x)\n"}
     data = {"scripts_index_by_id": {src_id: {"suite_dir": "suite", "db": "x", "imports": []}}}
-    lib = pc._build_library("AWPTCM-T1", [frag], data, surface={})
+    lib = pc._build_library("AWPTCM-T1", 9001, [frag], data, surface={})
     assert lib and "HELPER_PKT =" in lib["code"], "the dependency is shipped in the library file"
     assert "# AI: dependency `HELPER_PKT`" in lib["code"]
     assert "from framework.ATPackets import *" in lib["code"]
