@@ -4,6 +4,22 @@
 #
 # Versions below are lower bounds known to work as of 2026-07-16.
 #
+# UPPER BOUNDS (added 2026-09-22, Terrence). A floor with no ceiling resolves to whatever is
+# newest on the day you install, so `pydantic>=2.9` would have installed pydantic 3.0 the day it
+# shipped. There is no CI runner and no lockfile here, so a breaking major is found by whoever
+# next runs setup.sh, with no record of what previously resolved to diff against. Each package
+# below that follows SEMVER is therefore capped at the next major — the boundary we have actually
+# run.
+#
+# Four packages are deliberately left UNCAPPED, and it is worth saying why rather than adding a
+# bound that looks like protection and is not:
+#   * fastapi, uvicorn, python-multipart, sqlite-vec, pysqlite3-binary are 0.x, where the
+#     convention is that MINORS break. `<1` guards nothing, and capping the minor would block
+#     routine patch upgrades on the packages that change most.
+#   * fissix uses calendar versioning (24.4.24), so an upper bound just blocks next year.
+# Re-check a cap when you bump past it; a cap below the installed version is worse than none
+# (found while adding these: requirements-dev said pytest>=8 with 9.1.1 installed).
+#
 # Requires Python >= 3.10 (fastapi>=0.139 drops 3.9). setup.sh enforces this and
 # will pick the newest python3.1x on PATH; installing manually on Python 3.9 or
 # older fails with "No matching distribution found for fastapi".
@@ -18,10 +34,10 @@
 # --- Core server (required to boot; keyword search works with just these) ---
 fastapi>=0.139
 uvicorn>=0.46
-jinja2>=3.1
-requests>=2.34
+jinja2>=3.1,<4
+requests>=2.34,<3
 python-multipart>=0.0.9
-pydantic>=2.9
+pydantic>=2.9,<3                 # 2.13.4 installed 2026-09-22
 
 # --- Testbox execution (PyTest Creator step "6. Run") ---
 # pt_exec.py's SSH/SFTP runner. It was used from the day that feature landed but declared
@@ -31,7 +47,7 @@ pydantic>=2.9
 # pt_exec._connect(), so the server boots, every other tool works, and the profile probe
 # just answers {"ok": false, "detail": "SSH connection failed: No module named 'paramiko'"}
 # — which reads as a testbox/network problem, not a missing dependency.
-paramiko>=3.4
+paramiko>=3.4,<6                 # 5.0.0 installed 2026-09-22
 
 # --- Py2 -> Py3 fragment translation (PyTest Creator "4. Fragments", D3) ---
 # The legacy corpus is Python 2, so reused fragments are modernized deterministically
@@ -56,7 +72,7 @@ fissix>=24.4.24
 # "style NOT checked" instead of silently reporting a clean style pass. That distinction is
 # the point: the same shape (a check that could die and still lint green) is exactly what
 # Phase 7.7 had to fix in the coverage check.
-pycodestyle>=2.11
+pycodestyle>=2.11,<3             # 2.14.0 installed 2026-09-22
 
 # --- Semantic / hybrid search (Stage D; the server degrades to keyword without them) ---
 # ALL THREE BELOW ARE REQUIRED for semantic/hybrid search and the offline embedding
@@ -69,8 +85,8 @@ pycodestyle>=2.11
 #     pip install --index-url https://download.pytorch.org/whl/cpu torch
 # setup.sh does this automatically (CPU wheel first, then the rest).
 sqlite-vec>=0.1.6
-sentence-transformers>=3.0
-torch>=2.2
+sentence-transformers>=3.0,<6    # 5.6.1 installed 2026-09-22
+torch>=2.2,<3                    # 2.13.0+cpu installed 2026-09-22
 # sqlite-vec needs a SQLite built with enable_load_extension. If the runtime
 # Python's stdlib sqlite3 lacks it (e.g. macOS system Python), install this
 # self-contained build (Linux/most wheels); db.py auto-prefers it. Vector search

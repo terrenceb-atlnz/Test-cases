@@ -233,3 +233,50 @@ def test_mixed_tabs_and_spaces_survive_translation():
     assert status == "translated", status
     ast.parse(out)
     assert "\t" not in out, "tabs survived; the translated fragment can still fail on 3.x"
+
+
+# --- upper bounds (2026-09-22) ------------------------------------------------------
+
+def test_no_declared_cap_excludes_the_version_actually_installed():
+    """A cap BELOW what is running is worse than no cap: it makes the working environment
+    unreproducible while looking like diligence.
+
+    This is not hypothetical — it was nearly shipped the day the caps were added.
+    `requirements-dev.txt` said `pytest>=8`, so `<9` was the obvious next-major cap; pytest
+    **9.1.1** was the version actually running the gate. The cap went in as `<10` instead, and
+    this test is what keeps the next person from repeating it.
+
+    Packages that are not installed are skipped, not failed: a fresh checkout before setup.sh
+    has none of them, and this file's job is the DECLARATION, not the environment.
+    """
+    import importlib.metadata as md
+
+    packaging_req = pytest.importorskip(
+        "packaging.requirements",
+        reason="packaging is a transitive dep; without it there is no spec parser to test with")
+    Requirement = packaging_req.Requirement
+
+    offenders = []
+    for f in (_REQS, _REQS_DEV):
+        if not f.exists():
+            continue
+        for raw in f.read_text(encoding="utf-8").splitlines():
+            line = raw.split("#")[0].strip()
+            if not line or line.startswith("-r"):
+                continue
+            try:
+                req = Requirement(line)
+            except Exception:
+                continue                       # not a requirement line (e.g. an index flag)
+            if not req.specifier:
+                continue
+            try:
+                installed = md.version(req.name)
+            except md.PackageNotFoundError:
+                continue                       # not installed here — nothing to contradict
+            if not req.specifier.contains(installed, prereleases=True):
+                offenders.append(f"{f.name}: {req.name} {installed} does not satisfy "
+                                 f"'{req.specifier}'")
+    assert not offenders, (
+        "a declared version spec excludes the version installed in this venv:\n  "
+        + "\n  ".join(offenders))

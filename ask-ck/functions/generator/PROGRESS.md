@@ -83,10 +83,17 @@ not guessed, and he picked **R5's two JS surfaces**, then the zephyr gate red.
   proof its own session is alive, so the new call site made a dropped tab read as present and
   `session_dropped` could never fire — the `exclude` parameter that had been deleted as
   "unreachable" was unreachable only for the call sites of the day. Reinstated.
-- **Still genuinely open:** requirements carry lower bounds only (`fastapi>=0.139`, …), with
-  upper bounds / a lockfile an unanswered question since 2026-08-17; R6's 4th bar needs his ~$20
-  scratch-server Opus run; t44297 #6 (both halves, D6 undecided); R1(b)'s PRUNE once there is
-  something to prune.
+- **Requirements upper bounds DONE** (open since 2026-08-17). Capped at the next major where
+  semver means it (pydantic, torch, sentence-transformers, requests, jinja2, paramiko,
+  pycodestyle, pytest); left uncapped WITH the reason in the file for the 0.x packages (fastapi,
+  uvicorn, python-multipart, sqlite-vec, pysqlite3-binary — minors break there, so `<1` is not
+  protection) and calver fissix. Lockfile rejected: no CI, one deployment, and torch's custom CPU
+  index makes a portable lock awkward. **Nearly shipped the trap it guards against:** dev said
+  `pytest>=8` while 9.1.1 runs the gate, so `<9` looked right and would have excluded the
+  installed version — caught by checking the venv before writing the cap, and now pinned by
+  `test_no_declared_cap_excludes_the_version_actually_installed`.
+- **Still genuinely open:** R6's 4th bar needs his ~$20 scratch-server Opus run; R1(b)'s PRUNE
+  once there is something to prune.
 - **Noticed, not acted on:** R5's prompt-defect alarm fires on `frac >= 0.10` with **no
   minimum-runs guard**, while the sibling lint-text branch guards with `attempts >= 3`. On a thin
   window one 2-unit blip raises a "change the generate prompt" alarm — which the new surfaces now

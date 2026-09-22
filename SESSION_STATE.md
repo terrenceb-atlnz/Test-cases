@@ -4370,6 +4370,8 @@ The "one more thing": rewind every case and re-run the improved pipeline from sc
   broke, the review kept + marked stale instead of deleted, and a ck-agent watchdog that kills a
   run whose caller vanished, and a LATE result saved instead of dropped. D6a settled as NO TTL.
   **#6 is complete.**
-- **Open (Terrence):** requirements upper bounds / lockfile; R1(b)'s PRUNE pass; R6's 4th bar (his ~$20 scratch Opus run); R1(b) (suite naming convention); t44297 #6 (medium,
+- **Requirements upper bounds DONE** — next-major caps where semver means it, 0.x and calver left
+  uncapped with the reason recorded; a test now rejects any cap below the installed version.
+- **Open (Terrence):** R1(b)'s PRUNE pass; R6's 4th bar (his ~$20 scratch Opus run); R1(b) (suite naming convention); t44297 #6 (medium,
   D6 still a recommendation). **Flagged, untouched:** R5's prompt-defect alarm has no
   minimum-runs guard, so a thin window turns one 2-unit blip into a prompt alarm.

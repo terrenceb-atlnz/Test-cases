@@ -113,6 +113,23 @@ Plan `ask-ck/plans/PLAN-self-healing-generation.md` §6.4 (R5) and
   watches its request socket and cancels on EOF. **Not** on silence: an open connection sending
   nothing is the normal case for the whole call.
 
+- **Runtime dependencies now carry UPPER bounds where semver makes one meaningful.** *Why:* the
+  file declared floors only ("lower bounds known to work as of 2026-07-16"), so `pydantic>=2.9`
+  would install pydantic **3.0** the day it ships, and `torch>=2.2` /
+  `sentence-transformers>=3.0` are the same shape. With no CI runner and no lockfile, a breaking
+  major is found by whoever next runs `setup.sh`, with no record of what previously resolved to
+  diff against — open as a question since 2026-08-17. Capped at the next major: pydantic, torch,
+  sentence-transformers, requests, jinja2, paramiko, pycodestyle, pytest. **Deliberately left
+  uncapped, with the reason in the file:** fastapi, uvicorn, python-multipart, sqlite-vec and
+  pysqlite3-binary are 0.x, where the convention is that *minors* break, so `<1` would look like
+  protection and give none; fissix uses calendar versioning, where a cap just blocks next year.
+  A lockfile was considered and rejected — no CI, one deployment, and torch comes from a custom
+  CPU index that `setup.sh` special-cases, so a stale lockfile would silently pin security fixes
+  away. *Found while doing it:* `requirements-dev.txt` said `pytest>=8` while **9.1.1** is what
+  actually runs the gate, so the obvious `<9` cap would have excluded the version in use. It went
+  in as `<10`, and `test_no_declared_cap_excludes_the_version_actually_installed` now fails on any
+  cap below what is installed.
+
 ## 2026-09-21 (later) — The frame discovers its topology through the framework; the `[misc]` role contract is retired
 
 Plan `ask-ck/plans/PLAN-frame-framework-discovery.md`; commits `b96255c` + `f354f14` (reverts of the
