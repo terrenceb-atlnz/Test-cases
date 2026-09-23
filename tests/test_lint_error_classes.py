@@ -77,6 +77,9 @@ BLOCKING = [
     # `getattr(basicLayer, 'port_desc', None)` off lldp_basic and passed on nothing — the test
     # cannot observe what it claims, so no reviewer judgement makes it a test.
     "unknown field: `port_desc` at line 834 in TestCase_6 — `lldp_basic` has no such field (declared: chassis_id",
+    # 2026-09-23 (Terrence): a NON-negative case unsetting a suite-owned command is BANNED —
+    # blocking, not the reviewer's call (it was policy 2026-09-15 to 2026-09-23).
+    "suite-owned: TestCase_1.tear_down() line 60 unsets `lldp run` (`no lldp run`) on dutA, which TestSet.configure() sets for the whole run, and TestCase_1 is not a negative test — only a case whose sequence step is marked negative may unset a suite command (mark the step on the Sequence page, or leave the suite's setting alone)",
 ]
 
 POLICY = [
@@ -95,10 +98,6 @@ POLICY = [
     # NEIGHBOUR. The inference (DUT/neighbour boundary) is sound but not infallible, so the
     # reviewer may override with a reason.
     "line 22: `peer.cmd('interface ...')` selects `portPeer`, which is dutA's port, on peer — the neighbour's own end",
-    # 2026-09-15 (reworked G8(b)): a case unsets a suite-owned command and never re-sets it, so
-    # it leaks to the cases behind it. The script runs; the reviewer may have a reason (a case
-    # may legitimately own the tail of a run).
-    "suite-owned: TestCase_1.tear_down() line 60 unsets `lldp run` (`no lldp run`) on dutA, which TestSet.configure() issues for the whole run — the suite owns it — and no later case re-sets it, so it leaks to every case after this one",
 ]
 
 

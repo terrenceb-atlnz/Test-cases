@@ -303,6 +303,7 @@ function ptRenderSequence(seq) {
   const anyClaim = seq.some(s => s.claim && typeof s.claim === 'object');
   html += '<table class="table"><thead><tr><th style="width:20px"></th><th style="width:24px">#</th><th style="width:44px">from</th><th>Action</th><th>Verify</th>'
     + (anyClaim ? '<th style="width:150px" title="The physical situation the step asserts: cable · DUT setting · partner setting → expected link">Claim</th>' : '')
+    + '<th style="width:44px" title="Negative test: this case may unset (no …) a command the suite setup applies for the whole run. Any other case doing so is refused.">Neg</th>'
     + '<th style="width:30px"></th></tr></thead><tbody id="pt-seq-tbody">';
   seq.forEach((s, i) => {
     const from = (typeof s.zephyr_step_idx === 'number') ? s.zephyr_step_idx : '—';
@@ -316,6 +317,7 @@ function ptRenderSequence(seq) {
       <td><textarea class="form-input pt-seq-action" data-i="${i}" style="width:100%;height:44px;font-size:11px">${escapeHtml(s.action || '')}</textarea></td>
       <td><textarea class="form-input pt-seq-verify" data-i="${i}" style="width:100%;height:44px;font-size:11px">${escapeHtml(s.verify || '')}</textarea></td>
       ${anyClaim ? `<td class="pt-seq-claim" style="font-size:11px">${escapeHtml(_ptClaimText(s.claim)) || '<span class="justification-note">—</span>'}</td>` : ''}
+      <td style="text-align:center"><input type="checkbox" class="pt-seq-negative" data-i="${i}"${s.negative ? ' checked' : ''} title="Negative test — may unset suite-owned commands"></td>
       <td><button class="btn btn-compact" data-action="ptRemoveSeqRow" data-args='[${i}]'>✕</button></td>
     </tr>`;
   });
@@ -349,11 +351,14 @@ function _ptReadSeqRows() {
   return rows.map((row, i) => {
     const a = row.querySelector('.pt-seq-action');
     const v = row.querySelector('.pt-seq-verify');
+    const neg = row.querySelector('.pt-seq-negative');
     const from = _ptSeqCache[Number(row.dataset.i)] || {};
     const out = {
       n: i + 1,
       action: a ? a.value.trim() : '',
       verify: v && v.value ? v.value.trim() : '',
+      // Editable, so it is sent explicitly either way: an unticked box must clear the flag.
+      negative: !!(neg && neg.checked),
     };
     if (typeof from.zephyr_step_idx === 'number') out.zephyr_step_idx = from.zephyr_step_idx;
     if (from.kind) out.kind = from.kind;
@@ -2069,10 +2074,10 @@ async function ptPushCodeEdits(writeFiles) {
   if (!libWrap.classList.contains('hidden')) {
     body.library_code = document.getElementById('pt-gen-lib-code').value;
   }
-  if (!writeFiles) {
-    // save_script both persists edits and writes files; for lint-only we still
-    // use it (files on disk mirror the session) — acceptable per plan.
-  }
+  // Lint and Fix push the edits into the session only; Save (writeFiles) is the one path
+  // that writes generated/ — a Lint after a bad fix must not overwrite the good copy on disk
+  // (pipeline plan 9.1c, 2026-09-23).
+  body.write_files = !!writeFiles;
   return await ptApi(`/save_script/${S.ptCase.key}`, {
     method: 'POST', body: JSON.stringify(body),
   }, ptStatusEl('pt-gen-status'));
@@ -2189,6 +2194,17 @@ function ptRenderRuns() {
   let html = `<div class="mb-1"><b>Run ${escapeHtml(last.run_id)}</b> on ${escapeHtml(last.profile || '')} — `
     + `<span class="badge ${last.status === 'done' ? 'badge-success' : ''}">${escapeHtml(last.status)}</span>`
     + (last.error ? ` <span class="justification-note">⚠ ${escapeHtml(last.error)}</span>` : '') + '</div>';
+  // Plan 10.4: the bench was checked before anything ran, and it cannot host this script as
+  // declared. Show why, and offer the recorded override — preflight has no "cannot determine"
+  // verdict yet, so it can be wrong.
+  const pf = last.preflight;
+  if (last.status === 'preflight_failed' && pf && typeof pf === 'object') {
+    html += '<div class="status-banner warning mb-1"><b>Preflight: this bench cannot run this script as declared.</b> Nothing was executed.<ul>'
+      + (pf.problems || []).map(p => `<li>${escapeHtml(p.message || '')}${p.detail ? ` <span class="justification-note">${escapeHtml(p.detail)}</span>` : ''}</li>`).join('')
+      + '</ul><button class="btn btn-compact" data-action="ptRunAnyway" title="Dispatch without the topology check; the skip is recorded on the run">Run anyway</button></div>';
+  } else if (pf && typeof pf === 'object' && pf.skipped) {
+    html += '<div class="justification-note mb-1">Preflight skipped for this run ("run anyway").</div>';
+  }
   const parsed = last.parsed || {};
   if ((parsed.cases || []).length) {
     html += '<table class="table"><thead><tr><th>TestCase</th><th style="width:80px">Result</th><th>Failures</th></tr></thead><tbody>';
@@ -2203,7 +2219,9 @@ function ptRenderRuns() {
   el.innerHTML = html;
 }
 
-async function ptRun() {
+async function ptRunAnyway() { return ptRun(true); }
+
+async function ptRun(ignorePreflight) {
   if (!ptRequireCase()) return;
   const profile = document.getElementById('pt-run-profile').value;
   if (!profile) { alert('Select a testbox.'); return; }
@@ -2211,7 +2229,8 @@ async function ptRun() {
   const setupPath = document.getElementById('pt-run-setup-path').value.trim();
   const d = await ptApi(`/run/${S.ptCase.key}`, {
     method: 'POST',
-    body: JSON.stringify({ profile, setup: setupPath || setupName }),
+    body: JSON.stringify({ profile, setup: setupPath || setupName,
+                           ignore_preflight: ignorePreflight === true }),
   }, ptStatusEl('pt-run-status'));
   if (!d) return;
   ptStatusEl('pt-run-status').textContent = `Run ${d.run_id} queued…`;
@@ -2230,10 +2249,11 @@ async function ptPollRun(runId) {
   // case — a run orphaned by a restart would otherwise poll forever. The server now
   // re-marks those 'stale' (_sweep_stale_runs), so this is belt-and-braces against any
   // other way `active` and `status` can disagree.
-  if (['done', 'error', 'stale'].includes(d.run.status) || d.active === false) {
+  const TERMINAL = ['done', 'error', 'stale', 'preflight_failed'];
+  if (TERMINAL.includes(d.run.status) || d.active === false) {
     clearInterval(ptRunPoll);
     ptRunPoll = null;
-    if (d.active === false && !['done', 'error', 'stale'].includes(d.run.status)) {
+    if (d.active === false && !TERMINAL.includes(d.run.status)) {
       ptStatusEl('pt-run-status').textContent =
         `Run ${runId}: interrupted (no longer running on the server)`;
     }
@@ -2500,7 +2520,7 @@ registerActions({
   ptLoadUnits, ptGenerateUnit, ptGenerateAllUnits, ptAssembleScript, ptAssembleAndSettle,
   ptRechunk, ptResetGenerate, ptPruneLibrary, ptPruneLibraryApply,
   ptGoUnit, ptGoSummary, ptUnitPrev, ptUnitNext, ptClearUnitErrors,
-  ptViewSource, ptRun, ptValidate,
+  ptViewSource, ptRun, ptRunAnyway, ptValidate,
   ptEditProfile, ptSaveProfile, ptCheckProfile, ptResetProfileForm,
   ptAddSetupRow, ptRemoveSetupRow,
   ptCheckProfileNamed, ptDeleteProfile,

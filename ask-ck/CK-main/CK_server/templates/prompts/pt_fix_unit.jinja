@@ -57,8 +57,10 @@ precondition this unit did not establish for itself.
 - A precondition is MISSING only if neither `TestSet.configure()` (the "Given by
   `TestSet.configure()`" section, when shown) nor this unit's own `configure()` establishes
   it. A missing one belongs in this unit's `configure()`, its undo in `tear_down()`. Never
-  re-issue a command the suite setup issues, and never undo one in `tear_down()`: that undo
-  runs before the next case and breaks every case after this one. Never reach for a handle
+  re-issue a command the suite setup issues. Never undo one either — that undo runs before
+  the next case and breaks every case after this one — UNLESS this case is a negative test
+  (its sequence step is marked negative, shown in the step above): a negative test may unset
+  whatever its step needs, and re-sets it in `tear_down()` if a later case depends on it. Never reach for a handle
   or port the shortcut lines do not define.
 - Every rule above the split line still applies, including that this unit is SELF-CONTAINED.
 

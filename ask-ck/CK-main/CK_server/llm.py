@@ -27,7 +27,7 @@ import llm_inflight
 import contextvars
 import time
 from jinja2 import Environment, FileSystemLoader
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, List, Optional, Tuple
 import requests  # fallback, or use openai litellm for more providers later
 
 import llm_debug
@@ -1576,6 +1576,32 @@ def _scan_balanced_json(content: str, opener: str, closer: str, start: int) -> O
     return None
 
 
+def _balanced_span_end(content: str, opener: str, closer: str, start: int) -> Optional[int]:
+    """Index of the closer that balances the opener at `start` (string-aware, the same scan
+    as `_scan_balanced_json`), or None when it never closes — a truncated or broken reply."""
+    depth = 0
+    in_str = escaped = False
+    for i in range(start, len(content)):
+        ch = content[i]
+        if in_str:
+            if escaped:
+                escaped = False
+            elif ch == "\\":
+                escaped = True
+            elif ch == '"':
+                in_str = False
+            continue
+        if ch == '"':
+            in_str = True
+        elif ch == opener:
+            depth += 1
+        elif ch == closer:
+            depth -= 1
+            if depth == 0:
+                return i
+    return None
+
+
 def extract_json_block(content: str) -> Any:
     """Best-effort extraction of the first JSON object/array from LLM output.
 
@@ -1584,32 +1610,57 @@ def extract_json_block(content: str) -> Any:
     and braces/brackets INSIDE string values (string-aware balanced scan). Returns None when
     nothing parses. This is the single shared extractor — all JSON-bearing LLM parsers route
     through it rather than ad-hoc greedy regexes (adversarial-review finding cluster).
+
+    Callers that must tell a broken reply from an empty one use `extract_json_result`.
+    """
+    return extract_json_result(content)[0]
+
+
+def extract_json_result(content: str) -> Tuple[Any, str]:
+    """`extract_json_block` plus WHY it returned what it did: (value, status).
+
+    status is "ok" (value parsed), "none" (the reply holds no JSON structure at all) or
+    "malformed" (a structure was started but its OUTERMOST form does not parse — a bad token,
+    a truncated reply). Pipeline plan 5.1 (2026-09-23): a malformed outer structure used to be
+    SALVAGED by walking inward to the first inner element that parsed, so a `{"sequence":
+    [...]}` with one bad token came back as that sequence's first row — a dict without the
+    "sequence" key, which every caller read as "the model answered nothing". Now nothing
+    nested inside a failed outer structure is ever returned; the caller gets None and
+    "malformed", and says so, instead of reporting an empty answer.
     """
     if not content:
-        return None
+        return None, "none"
+    status = "none"
     # 1) Try every fenced block in order; accept the first that actually parses as JSON.
     for m in re.finditer(r"```(?:json)?\s*(.+?)```", content, re.DOTALL):
         body = m.group(1).strip()
         try:
-            return json.loads(body)
+            return json.loads(body), "ok"
         except json.JSONDecodeError:
-            # Fenced block wasn't pure JSON (e.g. a pseudocode example) — try to extract a
-            # balanced structure from within it before moving on.
-            got = _extract_first_balanced(body)
-            if got is not None:
-                return got
-    # 2) No usable fence — scan the whole content for the OUTERMOST structure, choosing
-    #    whichever bracket type opens first (an object with a nested array must not return
-    #    the inner array).
-    return _extract_first_balanced(content)
+            # Fenced block wasn't pure JSON (e.g. a pseudocode example, or prose around the
+            # object) — look for a balanced structure inside it before moving on.
+            got, st = _extract_first_balanced(body)
+            if st == "ok":
+                return got, st
+            if st == "malformed":
+                status = "malformed"
+    # 2) No usable fence — scan the whole content for the OUTERMOST structure.
+    got, st = _extract_first_balanced(content)
+    if st == "ok":
+        return got, st
+    return None, ("malformed" if "malformed" in (status, st) else "none")
 
 
-def _extract_first_balanced(content: str) -> Any:
-    """Return the first balanced {..} or [..] that parses as JSON, scanning by POSITION
-    left-to-right across BOTH bracket types. Walking every opener of one type before the
-    other could return a nested object (inside a later array) instead of that array; by
-    position order the outer structure — whose opener comes first — is tried first.
-    A string-aware scan is used so brackets inside string values don't mislead."""
+def _extract_first_balanced(content: str) -> Tuple[Any, str]:
+    """(value, status) for the first OUTERMOST balanced {..} or [..] that parses as JSON,
+    scanning by POSITION left-to-right across BOTH bracket types, string-aware so brackets
+    inside string values don't mislead.
+
+    An opener nested inside an earlier structure that failed to parse is never tried: its
+    parse would be a fragment of a broken answer, not the answer (plan 5.1). An opener that
+    never closes swallows the rest of the text, so the scan stops there as "malformed". A
+    balanced span that is not JSON — `{the answer}` in prose — only blocks its own inside,
+    so a real object after it is still found."""
     openers = {"{": "}", "[": "]"}
     # Collect every opener position (both types), skipping ones inside string literals.
     positions = []
@@ -1627,9 +1678,18 @@ def _extract_first_balanced(content: str) -> Any:
             in_str = True
         elif ch in openers:
             positions.append(i)
+    blocked_through = -1
+    failed = False
     for pos in positions:
+        if pos <= blocked_through:
+            continue                     # inside a structure that already failed to parse
         opener = content[pos]
-        got = _scan_balanced_json(content, opener, openers[opener], pos)
-        if got is not None:
-            return got
-    return None
+        end = _balanced_span_end(content, opener, openers[opener], pos)
+        if end is None:
+            return None, "malformed"     # never closes: everything after it is inside it
+        try:
+            return json.loads(content[pos:end + 1]), "ok"
+        except json.JSONDecodeError:
+            failed = True
+            blocked_through = end
+    return None, ("malformed" if failed else "none")

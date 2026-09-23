@@ -131,7 +131,7 @@ def test_atpackets_is_imported_only_when_the_testbox_link_exists():
 
 def test_bound_devices_and_ports_are_read_back_off_the_frame():
     sk = render(BOTH_SEQ)
-    assert pc._skeleton_bound_devices(sk, "dutA") == ["dutA", "tb", "peer"]
+    assert pc._skeleton_bound_devices(sk, "dutA") == ["dutA", "tb", "dut_stack", "peer"]
     assert pc._skeleton_bound_ports(sk) == [
         {"role": "tb", "near": "dutA.portA", "far": "tb.ethA"},
         {"role": "copper", "near": "dutA.portPeer", "far": "peer.portDut"},

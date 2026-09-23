@@ -64,14 +64,27 @@ def _pt_row(case, entry, chunks, updated):
 
 
 def test_prompt_defect_alarm_fires_on_a_recurring_class(monkeypatch):
-    # 3 runs each with a suite-owned error -> 3 consecutive runs -> prompt_defect.
+    # A full window (5 runs, the floor since 2026-09-23), each with a suite-owned error.
     entry = {"by_class": {"suite-owned": 2}, "units": 10}
-    rows = [_pt_row(f"T{i}", entry, {}, f"2026-09-15T0{i}:00") for i in range(3)]
+    rows = [_pt_row(f"T{i}", entry, {}, f"2026-09-15T0{i}:00") for i in range(5)]
     monkeypatch.setattr(dbmod, "snapshot_sessions", lambda: rows)
     tr = pc._pt_lint_trends(window=5)
-    assert tr["runs"] == 3
+    assert tr["runs"] == 5 and tr["min_runs"] == 5
     kinds = {(a["class"], a["kind"]) for a in tr["alarms"]}
     assert ("suite-owned", "prompt_defect") in kinds
+
+
+def test_a_thin_window_raises_no_prompt_defect(monkeypatch):
+    # The R5 gap (flagged 2026-09-22, fixed 2026-09-23): ONE 2-unit run with a single lint
+    # error is 50% of the window's units — far over the 10% bar — and used to raise a prompt
+    # alarm on its own. Below the five-run floor the numbers are reported, the alarm is not.
+    for n in (1, 4):
+        entry = {"by_class": {"suite-owned": 1}, "units": 2}
+        rows = [_pt_row(f"T{i}", entry, {}, f"2026-09-15T0{i}:00") for i in range(n)]
+        monkeypatch.setattr(dbmod, "snapshot_sessions", lambda rows=rows: rows)
+        tr = pc._pt_lint_trends(window=5)
+        assert tr["runs"] == n and tr["by_class"]["suite-owned"] == n
+        assert not [a for a in tr["alarms"] if a["kind"] == "prompt_defect"], n
 
 
 def test_lint_text_defect_alarm_fires_on_a_low_return_rate(monkeypatch):

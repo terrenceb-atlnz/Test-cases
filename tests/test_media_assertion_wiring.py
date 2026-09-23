@@ -72,7 +72,7 @@ CONFORMANT = (
 
 def test_skeleton_defines_and_calls_the_binding_helper():
     sk = render()
-    assert "def _ck_discover(self, dut):" in sk
+    assert "def _ck_discover(self, dut, unit=None):" in sk
     assert "def _ck_bind_link(self, setup, dut, role, optional=False):" in sk
     assert "self._ck_bind_link(" in sk, "helper defined but never called"
 

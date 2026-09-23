@@ -564,6 +564,66 @@ def check_profile(profile: dict) -> Dict[str, Any]:
     return result
 
 
+_TOOLS_DIR = Path(__file__).resolve().parents[2] / "tools"      # ask-ck/tools
+
+
+def _preflight(script_text: str, setup_text: str, script_name: str, setup_name: str) -> dict:
+    """ask-ck/tools/pt_preflight.py, imported where it lives (the server imports cli_lookup
+    the same way) so the Run path and the CLI can never disagree."""
+    import sys as _sys
+    if str(_TOOLS_DIR) not in _sys.path:
+        _sys.path.insert(0, str(_TOOLS_DIR))
+    import pt_preflight
+    return pt_preflight.preflight_text(script_text, setup_text, script_name, setup_name)
+
+
+def _preflight_gate(client, run: dict, files: Dict[str, str], setup_remote: str,
+                    on_update) -> bool:
+    """Pipeline plan 10.4 (2026-09-23; Terrence: block, allow override). Before anything is
+    uploaded or executed, read the chosen `.setup` from the testbox and check the script's
+    topology demands against it. UN-RUNNABLE stops the run as `preflight_failed` with the
+    report — nothing touches the hardware. `run["preflight"] == "skip"` (the Run step's
+    "run anyway") bypasses it, because preflight has no CANNOT-DETERMINE verdict yet and can
+    be wrong; the bypass is recorded on the run. A preflight that cannot run is reported and
+    does not block. Returns True to proceed."""
+    if run.get("preflight") == "skip":
+        run["preflight"] = {"skipped": True}
+        on_update(run)
+        return True
+    run["status"] = "preflight"
+    on_update(run)
+    try:
+        sftp = client.open_sftp()
+        try:
+            with sftp.open(setup_remote, "r") as f:
+                setup_text = f.read().decode("utf-8", errors="replace")
+        finally:
+            sftp.close()
+        test_name = run["test_file"]
+        rep = _preflight(files.get(test_name, ""), setup_text, test_name, setup_remote)
+    except Exception as e:                     # the CHECK failed, not the bench: say so, go on
+        run["preflight"] = {"error": f"preflight could not run: {e}"}
+        on_update(run)
+        return True
+    run["preflight"] = {"runnable": rep.get("runnable", False),
+                        "problems": rep.get("problems") or [], "notes": rep.get("notes") or []}
+    if rep.get("runnable"):
+        on_update(run)
+        return True
+    first = (rep.get("problems") or [{}])[0].get("message", "")
+    run.update({"status": "preflight_failed",
+                "error": f"PREFLIGHT: this bench cannot run this script as declared — {first} "
+                         f"({len(rep.get('problems') or [])} problem(s); nothing was executed). "
+                         f"Fix the bench, or run again with 'run anyway'.",
+                "finished_at": utc_now().isoformat()})
+    on_update(run)
+    try:
+        client.close()
+    except Exception:
+        pass
+    return False
+
+
 class RunManager:
     """One background run at a time per case key; state persisted via callback."""
 
@@ -630,6 +690,8 @@ class RunManager:
             return
 
         try:
+            if not _preflight_gate(client, run, files, setup_remote, on_update):
+                return
             run["status"] = "uploading"
             on_update(run)
             # Guard: the run workdir must never be under the read-only framework dir.

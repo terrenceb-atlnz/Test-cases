@@ -123,7 +123,9 @@ def test_the_dut_is_swi_a_or_its_stack():
     body = init_body(render(seq("copper")))
     assert "dut = setup.init_swi('swi_a')" in body
     assert "_stk = dut.get_stack()" in body
-    assert "dut = setup.init_stk(_stk.name)" in body
+    # ART's shape (2026-09-23): the stack is bound ALONGSIDE, never over, the swi_a handle.
+    assert "dut_stack = setup.init_stk(_stk.name) if _stk is not None else None" in body
+    assert "dut = setup.init_stk(" not in body
 
 
 def test_pluggable_roles_are_optional_and_core_roles_are_not():
@@ -160,7 +162,7 @@ def test_the_frame_reads_back_all_four_links_and_devices():
         {"role": "fibre", "near": "dut.portFibre", "far": "fibre_peer.portFibre"},
         {"role": "copper", "near": "dut.portPeer", "far": "peer.portDut"},
     ]
-    assert pc._skeleton_bound_devices(sk, "dut") == ["dut", "tb", "cusfp_peer", "fibre_peer", "peer"]
+    assert pc._skeleton_bound_devices(sk, "dut") == ["dut", "tb", "dut_stack", "cusfp_peer", "fibre_peer", "peer"]
 
 
 def test_the_shortcut_block_carries_every_bound_handle():
@@ -181,9 +183,9 @@ def discover_src(sk):
 
 def test_discovery_walks_the_frameworks_port_links_and_asks_the_dut():
     d = discover_src(render(seq("copper")))
-    assert "dut.get_all_port_links().items()" in d
+    assert "unit.get_all_port_links().items()" in d          # the STACK's links when stacked
     assert "isinstance(far, ATTestBox.TestBox)" in d              # the testbox is the TestBox end
-    assert "dut.all_members()" in d and "if far in members:" in d  # a stack member is not a partner
+    assert "unit.all_members()" in d and "if far in members:" in d  # a stack member is not a partner
     assert "dut.cmd('show system pluggable')" in d
     assert "dut.cmd('show interface %s status' % near.name)" in d
     assert "ck_media.classify(ck_media.media_type(status, near.name))" in d

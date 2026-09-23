@@ -41,6 +41,19 @@ mis-used symbol, and do not re-derive what an argument means when the docstring 
 - {{ f }}
 {%- endfor %}
 {% endif %}
+{% if negative_unsets %}
+## Negative tests that unset a suite setting and leave it unset — CHECK THESE
+A negative test may unset a command the suite's `TestSet.configure()` applies for the whole
+run; that is allowed and is NOT itself a finding. What matters is whether a LATER case depends
+on the setting. For each item below, read the cases that run after it: if one of them needs
+the setting in effect (it verifies, configures on top of, or reads output produced by it),
+report ONE finding with `kind: missing_precondition`, `where` = the negative case's
+`tear_down`, naming the later case that depends on it. If no later case needs it, say nothing
+about it.
+{% for f in negative_unsets %}
+- {{ f }}
+{%- endfor %}
+{% endif %}
 
 ## What to look for, in priority order
 

@@ -124,7 +124,7 @@ def test_no_field_lists_means_no_lint(monkeypatch):
 def test_it_runs_inside_lint_generated_after_the_suite_owned_lint(monkeypatch):
     src = Path(pc.__file__).read_text(encoding="utf-8")
     body = src[src.index("def _lint_generated("):]
-    assert body.index("_lint_suite_owned_commands(tree, code)") < body.index("_lint_layer_fields(tree)")
+    assert body.index("_lint_suite_owned_commands(") < body.index("_lint_layer_fields(tree)")
     monkeypatch.setattr(pc, "_framework_surface_doc", lambda: SURFACE)
     code = ("#!/usr/bin/python3\nimport sys\nfrom framework import ATTestSet, ATTestCase\n"
             "from framework.ATPackets import *\n\n\nclass TestSet(ATTestSet.TestSet):\n"

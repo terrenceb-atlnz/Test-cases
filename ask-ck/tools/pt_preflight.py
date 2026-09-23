@@ -51,7 +51,7 @@ Usage:
 
 The bench file lives outside this repo. For tb470 use the always-current local copy on
 the NFS lab home -- no scp, and no risk of reading the box mid-apply:
-  ~/claude/IE520-testing/bench-setup/tb470.setup.current
+  ~/claude/device-testing/bench-setup/tb470.setup.current
 It is generated from bench-state.md, which is the source of truth for that bench.
 
 Exit status: 0 = every script is runnable on that bench, 1 = at least one is not,
@@ -71,7 +71,7 @@ from typing import Dict, List, Optional, Sequence, Set, Tuple
 # tb470's .setup is GENERATED from bench-state.md; this local copy on the NFS lab
 # home is always current, so there is no need to scp it off the box (and no risk of
 # catching the box mid-apply).
-LOCAL_TB470_SETUP = "~/claude/IE520-testing/bench-setup/tb470.setup.current"
+LOCAL_TB470_SETUP = "~/claude/device-testing/bench-setup/tb470.setup.current"
 
 REPO = Path(__file__).resolve().parents[2]  # ask-ck/tools/ -> repo root
 DEFAULT_SCRIPT_ROOT = REPO / "ask-ck" / "functions" / "pytest-creator" / "generated"
@@ -608,6 +608,22 @@ def check(script: ScriptDemands, bench: Bench) -> dict:
 
 
 # -------------------------------------------------------------------------------- CLI
+
+
+def preflight_text(script_text: str, setup_text: str, script_name: str = "<script>",
+                   setup_name: str = "<setup>") -> dict:
+    """One script against one bench, both as TEXT — the entry the server's Run path uses
+    (pipeline plan 10.4, 2026-09-23: `POST /run` used to dispatch to hardware with no topology
+    check at all). A script that does not parse is reported as a PARSE problem, never raised."""
+    bench = Bench.from_text(setup_text, Path(setup_name))
+    try:
+        demands = parse_script(script_text, Path(script_name))
+    except SyntaxError as e:
+        return {"script": script_name, "setup": setup_name, "devices": [],
+                "problems": [{"kind": "PARSE", "role": None, "line": e.lineno,
+                              "message": f"script does not parse: {e.msg}", "detail": ""}],
+                "notes": [], "runnable": False, "links_demanded": 0, "links_unsatisfiable": 0}
+    return check(demands, bench)
 
 
 def _render(rep: dict) -> str:

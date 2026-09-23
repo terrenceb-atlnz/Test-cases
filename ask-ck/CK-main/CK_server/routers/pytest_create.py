@@ -30,7 +30,8 @@ from models import PtSession, safe_session_dict, model_to_dict
 from paths import REFINED_DIR, PT_GENERATED_DIR
 from timeutil import utc_now, as_utc
 from llm import (run_prompt, run_prompt_text, render_prompt,
-                 extract_json_block, _CODE_SYSTEM_PROMPT, current_late_handler)
+                 extract_json_block, extract_json_result, _CODE_SYSTEM_PROMPT,
+                 current_late_handler)
 import db as dbx   # aliased: several functions here have a `db` filter parameter
 import gen_assembly
 import locks
@@ -2189,7 +2190,14 @@ def _detect_topology(sequence: List[dict], fragments: List[dict]) -> Tuple[List[
     # Fragment device names first (they're what the reused code calls), then any literal
     # swi_* from the text, else the default pair (most cases are DUT + link partner).
     switches = frag_devs or swi_literal or ["dut", "lp"]
-    stacks = sorted(set(_STK_RX.findall(blob)))
+    # Plan 8.1 (2026-09-23): a STACK is a bench demand, so only the case's own text may make
+    # one. A `stk_*` that appears only inside reused fragment code — two LLDP fragments
+    # borrowed from a script written for a stack — is aliased to the DUT instead
+    # (`_fragment_only_stacks`), never bound with init_stk(): in ART `stk_a` names the DUT's
+    # own stack, which init() binds already, and an extra init_stk() demands a stack the bench
+    # may not have (the D13 chain: no generated script could pass preflight on tb470).
+    seq_blob = " ".join((s.get("action", "") + " " + s.get("verify", "")) for s in sequence)
+    stacks = sorted(set(_STK_RX.findall(seq_blob)))
     # A PHYSICAL step always needs a port link, whatever its wording says. Its rendered
     # body does `port = dut.portA` and then polls `show interface <port> status`, so
     # without the init_portlink FILL slot `portA` is never bound and the script dies with
@@ -2199,6 +2207,16 @@ def _detect_topology(sequence: List[dict], fragments: List[dict]) -> Tuple[List[
     has_physical = any(_step_kind(s) == "physical" for s in sequence)
     needs_portlink = bool(_PORTLINK_RX.search(blob)) or has_physical
     return switches, stacks, needs_portlink
+
+
+def _fragment_only_stacks(sequence: List[dict], fragments: List[dict]) -> List[str]:
+    """`stk_*` names that occur in the selected fragments' code but nowhere in the case's own
+    sequence text (plan 8.1). The frame aliases each to the DUT handle, so fragment code that
+    calls `stk_a.cmd(...)` still resolves while the script demands no second stack."""
+    seq_blob = " ".join((s.get("action", "") + " " + s.get("verify", "")) for s in sequence)
+    in_seq = set(_STK_RX.findall(seq_blob))
+    in_frag = set(_STK_RX.findall(" ".join(f.get("code", "") for f in (fragments or []))))
+    return sorted(in_frag - in_seq)
 
 
 def _fragment_device_note(fragments: List[dict], bound: List[str]) -> str:
@@ -2260,6 +2278,8 @@ def _render_skeleton(case_key: str, case_title: str, sequence: List[dict],
                       extra_imports=extra_imports or [],
                       setup_steps=setup_steps, steps=verify_steps,
                       switches=switches, stacks=stacks, needs_portlink=needs_portlink,
+                      stack_aliases=[s for s in _fragment_only_stacks(sequence, fragments or [])
+                                     if s != (switches or ["swi_a"])[0]],
                       setup_keys=_setup_keys_for(switches),
                       links=_detect_links(sequence, fragments or [], objective),
                       lib_stem=(library or {}).get("stem") or "",
@@ -2609,8 +2629,9 @@ _POLICY_LINT_MARKERS = (
     "binding devices is the frame's job",      # a unit init_swi()/init_stk()-ing its own device (2026-09-21)
     "are config only; the verdict belongs in main()",   # a verdict in configure()/tear_down()
     "'s port, on ",                            # a port selected on the switch it does not belong to
-    "the suite owns it",                       # G8(b): a case re-issues / undoes a TestSet.configure() command
 )
+# G8(b)'s "the suite owns it" left this list 2026-09-23: a non-negative case unsetting a suite
+# command is now BANNED (blocking), and a negative case's unset is not reported at all.
 
 
 def _split_lint_errors(errors: List[str]) -> Tuple[List[str], List[str]]:
@@ -3171,19 +3192,28 @@ def _cmd_literals(fn_node) -> List[Tuple[str, str, int]]:
     return out
 
 
-def _lint_suite_owned_commands(tree, code: str) -> List[str]:
-    """G8(b) (RC6 of PLAN-fix-units-guardrails; reworked 2026-09-15 per Terrence's call on the
-    T44297 proof run). The suite's `TestSet.configure()` owns a command for the whole run. A case
-    is FREE to unset it (`no X`) when its own step needs to — a transmit-only negative test does
-    exactly that (T44297 tc25: `no lldp receive`) — PROVIDED it re-sets it, so the suite baseline
-    is whole for the cases behind it. What leaks, and all this flags, is an unset that is NEVER
-    re-set later (fix run 5 put `no lldp run` in tc1's tear_down and never restored it — 36 cases
-    behind it ran with LLDP off). A re-set is the cure, so a re-set is never flagged; a redundant
-    re-issue is not state harm, so that is dropped too. Deterministic, cross-case, no model; a
-    POLICY finding (the reviewer is the authority — a case may legitimately own the tail of a
-    run). Mode navigation and `show` are not state. Because restoration is judged over the WHOLE
-    script, this is an Assemble/Review check, not an arrival one: a later case that restores the
-    unset may not be generated yet, so `_arrival_refusal` never refuses a unit on it."""
+def _is_negative(step: dict) -> bool:
+    """A sequence step's `negative` flag as a real bool (a model may send "true" or 1)."""
+    v = step.get("negative")
+    if isinstance(v, str):
+        return v.strip().lower() in ("true", "yes", "1")
+    return bool(v)
+
+
+def _negative_case_names(sequence: List[dict]) -> frozenset:
+    """TestCase class names whose sequence step is flagged `negative`. TestCase_<i> is the i-th
+    non-setup step — the numbering `_split_sequence` gives the frame."""
+    _setup, tc_steps = _split_sequence(sequence or [])
+    return frozenset(f"TestCase_{s['n']}" for s in tc_steps if _is_negative(s))
+
+
+def _suite_owned_unsets(tree) -> tuple:
+    """(owned, unsets, resets) over a parsed script. `owned` maps (device, command) to the
+    TestSet method that issues it for the whole run; `unsets` lists every case's `no X` of an
+    owned X as (dev, X, position, class, method, line); `resets` maps (dev, X) to the positions
+    of cases re-issuing X. A position orders execution — case order in the file, then
+    configure < main < tear_down, then line — so "re-set LATER" is a strict comparison. Mode
+    navigation and `show` are not state."""
     import ast as ast_mod
     classes = [n for n in tree.body if isinstance(n, ast_mod.ClassDef)]
 
@@ -3199,19 +3229,11 @@ def _lint_suite_owned_commands(tree, code: str) -> List[str]:
                 for dev, cmd, _ln in _cmd_literals(m):
                     if not _SUITE_NAV_CMD_RX.match(cmd):
                         owned.setdefault((dev, cmd), m.name)
-    if not owned:
-        return []
-
-    # Every unset and re-set of a suite-owned command a CASE issues, tagged with an execution
-    # position (case order in the file, then configure < main < tear_down, then line) so
-    # "re-set LATER" is a strict ordering. A re-set is a case re-issuing the suite's own `X`; an
-    # unset is a case issuing `no X` against it. A re-set later than the unset (same case or a
-    # later one) means the suite baseline is whole for the cases behind it — a well-formed
-    # negative test (T44297 tc25: `no lldp receive` then `lldp receive`). An unset with no later
-    # re-set leaks (fix run 5's tc1). A redundant re-issue is not state harm, so it is dropped.
-    _PHASE = {"configure": 0, "main": 1, "tear_down": 2}
     unsets: List[tuple] = []
     resets: Dict[Tuple[str, str], List[tuple]] = {}
+    if not owned:
+        return owned, unsets, resets
+    _PHASE = {"configure": 0, "main": 1, "tear_down": 2}
     cases = [c for c in classes if _base_has(c, "TestCase")]
     for ci, c in enumerate(cases):
         for m in c.body:
@@ -3226,16 +3248,51 @@ def _lint_suite_owned_commands(tree, code: str) -> List[str]:
                     unsets.append((dev, cmd[3:], pos, c.name, m.name, ln))
                 elif not cmd.startswith("no ") and (dev, cmd) in owned:
                     resets.setdefault((dev, cmd), []).append(pos)
+    return owned, unsets, resets
 
+
+def _lint_suite_owned_commands(tree, code: str, negative: frozenset = frozenset()) -> List[str]:
+    """G8(b), reworked 2026-09-23 on Terrence's rule: *"If there is a 'negative test' type of
+    testcase, the Fix and Generate should be able to UnSet whatever needs unsetting to test it.
+    There should be no pushback at any point for this. IF THEY ARE UNSETTING THINGS NOT ON A
+    NEGATIVE TEST, IT SHOULD BE BANNED."*
+
+    The suite's `TestSet.configure()` owns a command for the whole run. A case whose sequence
+    step is flagged `negative` may unset (`no X`) any of them and this check never reports it —
+    whether a LATER case depends on the setting is the Review's question, fed by
+    `_negative_unset_facts`. Any OTHER case unsetting one is a BLOCKING error, restored later or
+    not: fix run 5 put `no lldp run` in tc1's tear_down and the 36 cases behind it ran with LLDP
+    off. Judged per case, so it also refuses on arrival and on a fix. Re-issuing a suite command
+    is not state harm and is not reported. (Until 2026-09-23 any case could unset if a later
+    case re-set it, and the finding was a reviewer-overridable POLICY one.)"""
+    owned, unsets, _resets = _suite_owned_unsets(tree)
     out: List[str] = []
-    for dev, base, pos, cname, mname, ln in unsets:
-        if any(rp > pos for rp in resets.get((dev, base), [])):
-            continue                                       # re-set later — a well-formed override
+    for dev, base, _pos, cname, mname, ln in unsets:
+        if cname in negative:
+            continue
         owner = owned.get((dev, base))
         out.append(
             f"suite-owned: {cname}.{mname}() line {ln} unsets `{base}` (`no {base}`) on {dev}, "
-            f"which TestSet.{owner}() issues for the whole run — the suite owns it — and no "
-            f"later case re-sets it, so it leaks to every case after this one")
+            f"which TestSet.{owner}() sets for the whole run, and {cname} is not a negative "
+            f"test — only a case whose sequence step is marked negative may unset a suite "
+            f"command (mark the step on the Sequence page, or leave the suite's setting alone)")
+    return out
+
+
+def _negative_unset_facts(tree, negative: frozenset) -> List[str]:
+    """For the Review prompt: each unset a NEGATIVE case makes of a suite-owned command that no
+    later case re-sets. Terrence, 2026-09-23: allow it, and have Review check whether a later
+    case needs the setting; if none does, ignore it."""
+    if not negative:
+        return []
+    owned, unsets, resets = _suite_owned_unsets(tree)
+    out = []
+    for dev, base, pos, cname, mname, ln in unsets:
+        if cname not in negative or any(rp > pos for rp in resets.get((dev, base), [])):
+            continue
+        out.append(f"{cname}.{mname}() line {ln} (a NEGATIVE test) unsets `{base}` on {dev}; "
+                   f"TestSet.{owned.get((dev, base))}() sets it for the whole run and no later "
+                   f"case re-sets it")
     return out
 
 
@@ -3972,7 +4029,8 @@ def _lint_generated(sess: PtSession) -> dict:
             errors.append(_e)
         for _e in _lint_port_owner(tree, code):
             errors.append(_e)
-        for _e in _lint_suite_owned_commands(tree, code):       # G8(b), 2026-09-14
+        for _e in _lint_suite_owned_commands(                   # G8(b), reworked 2026-09-23
+                tree, code, _negative_case_names((sess.step2 or {}).get("sequence") or [])):
             errors.append(_e)
         for _e in _lint_layer_fields(tree):                     # D4, 2026-09-15
             errors.append(_e)
@@ -4655,14 +4713,21 @@ async def extract_sequence(key: str, request: Request):
         return _provenance_preview(meta)
     if meta.get("error"):
         raise HTTPException(502, meta.get("content", "LLM error"))
-    parsed = extract_json_block(meta.get("content", ""))
+    parsed, parse_status = extract_json_result(meta.get("content", ""))
     sequence = _parsed_list(parsed, "sequence")
+    if parse_status == "malformed":
+        # Plan 5.1: a reply whose outer JSON is broken is NOT "no sequence" — say which, so
+        # the reviewer re-runs rather than concluding the case has nothing automatable.
+        raise HTTPException(502, "The LLM's sequence reply is malformed JSON (its outer object "
+                                 "does not parse), so nothing was taken from it. Re-run Extract; "
+                                 "the raw response is in provenance.")
     if not sequence:
         raise HTTPException(502, "LLM returned no sequence. Raw response stored in provenance.")
     notes = _parsed_field(parsed, "notes", "")
     for i, s in enumerate(sequence):
         s["n"] = i + 1
         _collapse_step_text(s)
+        s["negative"] = _is_negative(s)
         claim = _normalize_claim(s.get("claim"))
         if claim:
             s["claim"] = claim
@@ -4733,7 +4798,7 @@ async def save_sequence(key: str, body: dict = Body(...)):
         # same row, so a drag-reorder never pins another step's kind or claim onto this one.
         old = prev_by_n.get(str(s["n"]))
         if old and " ".join(str(old.get("action") or "").split()) == (s.get("action") or ""):
-            for fld in ("kind", "claim", "zephyr_step_idx"):
+            for fld in ("kind", "claim", "zephyr_step_idx", "negative"):
                 if s.get(fld) in (None, "") and old.get(fld) not in (None, ""):
                     s[fld] = old[fld]
         else:
@@ -4742,6 +4807,8 @@ async def save_sequence(key: str, body: dict = Body(...)):
                 s["claim"] = claim
             else:
                 s.pop("claim", None)
+    for s in sequence:
+        s["negative"] = _is_negative(s)
     # Re-check coverage on manual edits too — deleting a row in the UI can drop the last
     # entry covering a Zephyr step just as easily as the LLM can.
     coverage = _coverage_report(sequence, _case_payload_fields(sess)["steps"])
@@ -4936,7 +5003,12 @@ async def suggest_scripts_step(key: str, step_n: int, request: Request,
         # per-step path has no fallback to offer, so say what happened.
         if meta.get("error"):
             raise HTTPException(502, meta.get("content", "LLM error"))
-        parsed = extract_json_block(meta.get("content", ""))
+        parsed, parse_status = extract_json_result(meta.get("content", ""))
+        if parse_status != "ok":
+            # Plan 5.1: an unreadable reply is not "no matches for this step" — the same rule
+            # as the error branch above. A genuine empty answer (`{"matches": []}`) parses.
+            raise HTTPException(502, "Could not parse the LLM's match reply as JSON (an "
+                                     "unreadable answer is not 'no matches'). Re-run Suggest.")
         valid_ids = {c["id"] for c in candidates}
         llm_matches = [m for m in _parsed_list(parsed, "matches")
                        if isinstance(m, dict) and m.get("id") in valid_ids
@@ -5595,7 +5667,12 @@ async def generate_script(key: str, request: Request, body: dict = Body(default=
 
 @router.post("/save_script/{key}")
 async def save_script(key: str, body: dict = Body(...)):
-    """Persist user edits (code and/or naming) and write files to generated/."""
+    """Persist user edits (code and/or naming) and write files to generated/.
+
+    `write_files: false` persists the edits to the session and re-lints WITHOUT touching
+    generated/ (plan 9.1c, 2026-09-23). The Lint and Fix buttons push the textarea first so
+    they judge what the reviewer sees; they used to go through this endpoint's disk write too,
+    so pressing Lint after a bad fix overwrote the last good copy on disk. Only Save writes."""
     sess = _pt_get(key)
     step6 = sess.step6 or {}
     if not (step6.get("files") or {}).get("test"):
@@ -5610,11 +5687,20 @@ async def save_script(key: str, body: dict = Body(...)):
         step6["files"]["test"]["code"] = body["code"]
     if "library_code" in body and step6["files"].get("library"):
         step6["files"]["library"]["code"] = body["library_code"]
+    if body.get("library_name") and step6["files"].get("library"):
+        # Re-point the stored library file name (2026-09-23): the ART-family migration renamed
+        # `library_awptcm_t33234.py` -> `library_9001.py` on disk only, and nothing else can
+        # change the name the session ships at Run. Same basename rules as the write path.
+        lib_name = Path(str(body["library_name"])).name
+        if (not lib_name.endswith(".py") or ".." in lib_name
+                or not _NAME_RX.match(lib_name[:-3]) or lib_name != body["library_name"]):
+            raise HTTPException(400, "Invalid library_name (a bare <name>.py; letters/digits/.-_).")
+        step6["files"]["library"]["name"] = lib_name
     step6["confirmed"] = False
     sess.step6 = step6
     _invalidate_from(sess, 6)
     lint = _lint_generated(sess)
-    written = _persist_generated_files(sess)
+    written = _persist_generated_files(sess) if body.get("write_files", True) else []
     _pt_persist(sess)
     return {"written": written, "lint": lint, "naming": step6["naming"],
             "gen_state": _gen_state(step6)}
@@ -5749,7 +5835,10 @@ async def run_script(key: str, body: dict = Body(...)):
            "test_file": step6["files"]["test"]["name"],
            "started_at": utc_now().isoformat(),
            "finished_at": None, "log_file": None, "parsed": None,
-           "exit_code": None, "error": None}
+           "exit_code": None, "error": None,
+           # Plan 10.4: the run thread checks the bench before touching it; "run anyway"
+           # (`ignore_preflight`) skips that and the skip is recorded on the run.
+           "preflight": "skip" if body.get("ignore_preflight") else None}
 
     step7 = sess.step7 or {}
     step7["profile"] = profile_name
@@ -6325,13 +6414,10 @@ def _arrival_refusal(key: str, unit: dict, code: str, ctx: dict, sess) -> Option
         return None
     guard = {"assembled_code": placeholder_partial, "sess": fresh, "baseline_errors": baseline}
     mine = _spliced_new_errors(guard, code, unit, include_unmapped=False)
-    if mine:
-        # Suite-owned unset findings (D-2026-09-15) are a cross-case POLICY flag judged over the
-        # WHOLE assembled script at Review — a later case may re-set the unset, and may not be
-        # generated yet — so a unit is never arrival-refused (nor repair-thrashed) for one. A
-        # negative test that unsets a suite command for its own step is legitimate; the Review
-        # flag is what checks it is re-set. Every other per-unit class still refuses here.
-        mine = [e for e in mine if not str(e).startswith("suite-owned:")]
+    # Suite-owned unsets are judged PER CASE since 2026-09-23: a negative case's unset produces
+    # no finding at all and any other case's unset is banned — so, like every other per-unit
+    # class, it refuses here. (The 2026-09-15 exclusion existed because the old rule depended on
+    # a later case re-setting the command, and that case might not be generated yet.)
     if mine:
         return "generated unit has lint error(s): " + "; ".join(str(e)[:160] for e in mine[:3])
     return None
@@ -6523,6 +6609,140 @@ def _assemble_units(ctx: dict, chunks: dict) -> Tuple[str, List[str]]:
     return "\n".join(lines), list(reversed(missing))
 
 
+# --- Import tidy at assembly (Tier A + Tier B, 2026-09-23) -------------------------------------
+#
+# Tier A (deferred 2026-09-02): the header is rendered line by line, so two fragments from one
+# framework package produced two `from framework.X import …` lines, and nothing grouped stdlib /
+# framework / local. Tier B: an import nothing uses (the frame's `import re` on a case that never
+# parses with it, a fragment's module the unit no longer calls) sat in every script, and
+# pycodestyle cannot see it (that is pyflakes F401). Terrence, 2026-09-23: remove at assembly,
+# deterministically, and record what was removed. Star imports and the two framework base
+# classes are never touched (usage through `*` cannot be judged); trailing comments survive.
+_IMPORT_KEEP = frozenset({"ATTestSet", "ATTestCase"})
+
+
+def _import_group(module: str) -> int:
+    """0 stdlib, 1 framework / third party, 2 this script's own library module."""
+    import sys as _sys
+    top = (module or "").split(".")[0]
+    if top.startswith("library_"):
+        return 2
+    return 0 if top in getattr(_sys, "stdlib_module_names", ()) else 1
+
+
+def _tidy_imports(code: str) -> Tuple[str, List[str]]:
+    """(code, changes). Rewrites ONLY the leading run of top-level import statements: drops
+    names nothing in the module uses, merges `from M import …` lines for the same M, and
+    groups stdlib / framework / local with one blank line between groups. Anything it cannot
+    judge — a syntax error, a relative import — leaves the code exactly as it was."""
+    import ast as ast_mod
+    import io
+    import tokenize
+    try:
+        tree = ast_mod.parse(code)
+    except SyntaxError:
+        return code, []
+    header = []
+    for node in tree.body:
+        if isinstance(node, (ast_mod.Import, ast_mod.ImportFrom)):
+            header.append(node)
+        elif header:
+            break
+        elif not (isinstance(node, ast_mod.Expr) and isinstance(getattr(node, "value", None), ast_mod.Constant)):
+            return code, []                 # something other than a docstring before the imports
+    if not header or any(isinstance(n, ast_mod.ImportFrom) and n.level for n in header):
+        return code, []
+    lines = code.split("\n")
+    first, last = header[0].lineno, max(n.end_lineno for n in header)
+    # Only import statements, blank lines and comments may sit inside the header run.
+    header_lines = {ln for n in header for ln in range(n.lineno, n.end_lineno + 1)}
+    for ln in range(first, last + 1):
+        if ln not in header_lines and lines[ln - 1].strip() and not lines[ln - 1].lstrip().startswith("#"):
+            return code, []
+    comments = {}
+    try:
+        for tok in tokenize.generate_tokens(io.StringIO(code).readline):
+            if tok.type == tokenize.COMMENT and first <= tok.start[0] <= last:
+                comments.setdefault(tok.start[0], tok.string)
+    except (tokenize.TokenError, IndentationError):
+        return code, []
+    used = set()
+    header_ids = {id(n) for n in header}
+    for node in tree.body:
+        if id(node) in header_ids:
+            continue
+        for sub in ast_mod.walk(node):
+            if isinstance(sub, ast_mod.Name):
+                used.add(sub.id)
+    changes: List[str] = []
+    stmts = []                               # (group, module_or_None, [alias...], comment)
+    for n in header:
+        comment = comments.get(n.lineno, "")
+        if isinstance(n, ast_mod.Import):
+            for a in n.names:
+                bound = a.asname or a.name.split(".")[0]
+                if bound not in used and bound not in _IMPORT_KEEP:
+                    changes.append(f"removed unused import: import {a.name}"
+                                   + (f" as {a.asname}" if a.asname else ""))
+                    continue
+                stmts.append((_import_group(a.name), None, [a], comment))
+                comment = ""
+            continue
+        if any(a.name == "*" for a in n.names) or n.module == "__future__":
+            stmts.append((_import_group(n.module), n.module, list(n.names), comment))
+            continue
+        kept = []
+        for a in n.names:
+            bound = a.asname or a.name
+            if bound in used or bound in _IMPORT_KEEP:
+                kept.append(a)
+            else:
+                changes.append(f"removed unused import: from {n.module} import {a.name}")
+        if kept:
+            stmts.append((_import_group(n.module), n.module, kept, comment))
+    # Merge `from M import …` for the same M (star and __future__ lines stay as they are).
+    merged: list = []
+    by_mod: dict = {}
+    for g, mod, names, comment in stmts:
+        plain = mod is not None and mod != "__future__" and not any(a.name == "*" for a in names)
+        if plain and mod in by_mod:
+            tgt = by_mod[mod]
+            have = {(a.name, a.asname) for a in tgt[2]}
+            added = [a for a in names if (a.name, a.asname) not in have]
+            tgt[2].extend(added)
+            tgt[3] = tgt[3] or comment
+            changes.append(f"merged into one line: from {mod} import …")
+            continue
+        entry = [g, mod, list(names), comment]
+        merged.append(entry)
+        if plain:
+            by_mod[mod] = entry
+
+    def _fmt(entry):
+        g, mod, names, comment = entry
+        spec = ", ".join(a.name + (f" as {a.asname}" if a.asname else "") for a in names)
+        text = f"import {spec}" if mod is None else f"from {mod} import {spec}"
+        return text + (f"   {comment}" if comment else "")
+
+    out: List[str] = []
+    for g in (0, 1, 2):
+        group = [_fmt(e) for e in merged if e[0] == g]
+        if group:
+            if out:
+                out.append("")
+            out.extend(group)
+    new_code = "\n".join(lines[:first - 1] + out + lines[last:])
+    if new_code == code:
+        return code, []
+    if not changes:
+        changes.append("grouped imports: standard library / framework / local")
+    try:
+        ast_mod.parse(new_code)
+    except SyntaxError:
+        return code, []
+    return new_code, changes
+
+
 def _assemble_and_store(key: str, sess: PtSession, ctx: dict, group: str, name: str) -> dict:
     """Splice + re-stamp + manifest + persist + lint. The body of assemble_script, extracted
     (2026-09-07) so the per-unit Fix can re-assemble after its units land without a second
@@ -6545,6 +6765,9 @@ def _assemble_and_store(key: str, sess: PtSession, ctx: dict, group: str, name: 
         stamped = _restamp_provenance(code, ctx["fragments"],
                                       (_llm_cfg_for(sess, "unit_fill").get("model") or ""),
                                       ctx["sequence"])
+    import_changes: List[str] = []
+    if not (frame.get("code") and code == frame["code"]):
+        stamped, import_changes = _tidy_imports(stamped)
     report = gen_assembly.manifest_check(stamped)
 
     def _apply(fresh: PtSession) -> None:
@@ -6559,7 +6782,7 @@ def _assemble_and_store(key: str, sess: PtSession, ctx: dict, group: str, name: 
         step6_f["assembled_at"] = utc_now().isoformat()
         step6_f["assembled_hash"] = _code_hash(stamped)     # slice A: the join to the chunks
         step6_f["assembly"] = {"units": len(ctx["units"]), "manifest": report,
-                               "source": "per-unit"}
+                               "source": "per-unit", "imports": import_changes}
         # D6b (t44297 #6, 2026-09-22): KEEP the review, do not delete it.
         #
         # This used to `step6_f.pop("review", None)` — "a fresh assembly supersedes any earlier
@@ -7196,6 +7419,10 @@ async def generate_units(key: str, request: Request, body: dict = Body(default={
 _PT_TREND_WINDOW = 5
 _PT_PROMPT_DEFECT_UNIT_FRACTION = 0.10
 _PT_PROMPT_DEFECT_CONSECUTIVE = 3
+# No prompt-defect alarm until this many assembly runs are in the window (Terrence, 2026-09-23:
+# the full window). Before it, one thin run could cross the unit-fraction bar on its own — a
+# single 2-unit blip read as a prompt defect.
+_PT_PROMPT_DEFECT_MIN_RUNS = 5
 _PT_LINT_TEXT_RETURN_RATE = 0.50
 _pt_trend_cache: dict = {"at": 0.0, "value": None}
 _PT_TREND_TTL = 60.0
@@ -7257,7 +7484,9 @@ def _pt_lint_trends(window: int = _PT_TREND_WINDOW) -> dict:
         rep = repair.get(cls, {"repaired_ok": 0, "arrival_failed": 0})
         touched = rep["repaired_ok"] + rep["arrival_failed"] + class_lint.get(cls, 0)
         frac = touched / total_units
-        if frac >= _PT_PROMPT_DEFECT_UNIT_FRACTION or class_runs.get(cls, 0) >= _PT_PROMPT_DEFECT_CONSECUTIVE:
+        if len(runs) >= _PT_PROMPT_DEFECT_MIN_RUNS and (
+                frac >= _PT_PROMPT_DEFECT_UNIT_FRACTION
+                or class_runs.get(cls, 0) >= _PT_PROMPT_DEFECT_CONSECUTIVE):
             alarms.append({"class": cls, "kind": "prompt_defect",
                            "detail": f"class `{cls}` touched {touched}/{total_units} units "
                                      f"({frac:.0%}) over {len(runs)} runs — change the generate prompt, not the repair"})
@@ -7269,6 +7498,7 @@ def _pt_lint_trends(window: int = _PT_TREND_WINDOW) -> dict:
     total_ok = sum(r["repaired_ok"] for r in repair.values())
     total_att = total_ok + sum(r["arrival_failed"] for r in repair.values())
     return {"runs": len(runs), "window": window, "total_units": total_units,
+            "min_runs": _PT_PROMPT_DEFECT_MIN_RUNS,
             "prompt_version": _generate_prompt_version(),
             "by_class": dict(class_lint), "repair": {k: v for k, v in repair.items()},
             "return_rate": (total_ok / total_att) if total_att else None,
@@ -7445,6 +7675,18 @@ def _library_prompt_context(step6: dict) -> Dict[str, str]:
     lib = ((step6 or {}).get("files") or {}).get("library") or {}
     return {"library_name": str(lib.get("name") or ""),
             "library_code": str(lib.get("code") or "")}
+
+
+def _review_negative_unsets(sess: PtSession) -> List[str]:
+    """`_negative_unset_facts` over the assembled script, for the Review prompt (2026-09-23)."""
+    import ast as ast_mod
+    code = (((sess.step6 or {}).get("files") or {}).get("test") or {}).get("code") or ""
+    try:
+        tree = ast_mod.parse(code)
+    except SyntaxError:
+        return []
+    return _negative_unset_facts(
+        tree, _negative_case_names((sess.step2 or {}).get("sequence") or []))
 
 
 def _review_lint_findings(sess: PtSession) -> List[str]:
@@ -8181,6 +8423,7 @@ async def review_script(key: str, request: Request):
         "code": step6["files"]["test"]["code"],
         "sequence": sequence,
         "lint_findings": _review_lint_findings(sess),
+        "negative_unsets": _review_negative_unsets(sess),
         **_library_prompt_context(step6),
     }, llm_config=_llm_cfg(sess), timeout=600, dry_run=dry_run,
        # Findings, not a script: the reply is a small JSON object, so the default
@@ -8334,9 +8577,10 @@ async def fix_script(key: str, request: Request):
         step6_n["iterations"] = iteration + 1
         step6_n["confirmed"] = False
         # A fix produces a NEW artefact, so its predecessor's review no longer describes what
-        # is on screen — mirror assemble_script and drop it, or the pre-fix findings read as
-        # if they were about the rewritten script (2026-09-04). The reviewer re-runs Review to
-        # see what remains.
+        # is on screen — drop it, or the pre-fix findings read as if they were about the
+        # rewritten script (2026-09-04, kept deliberately; SERVER-README "Stale reviews").
+        # Assemble no longer drops a review: since 2026-09-22 it keeps it and marks it stale
+        # by code hash (t44297 #6). The reviewer re-runs Review to see what remains.
         step6_n.pop("review", None)
         fresh.step6 = step6_n
         _invalidate_from(fresh, 6)  # revised code must be re-reviewed and re-run

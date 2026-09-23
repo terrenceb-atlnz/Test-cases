@@ -37,7 +37,10 @@
     switches       list of switch VARIABLE names to bind (e.g. ["dut","lp"]) — default ["swi_a"]
     setup_keys     the .setup [switch] KEYS those variables look up, positionally
                    (swi_a/swi_b/...); see _setup_keys_for(). Falls back to the variable name.
-    stacks         list of stack names to bind (e.g. ["stk_a"]) — may be empty
+    stacks         list of stack names to bind (e.g. ["stk_a"]) — may be empty; named in
+                   the case's SEQUENCE text only (plan 8.1)
+    stack_aliases  `stk_*` names seen only in fragment code — aliased to the DUT, never
+                   bound with init_stk() (plan 8.1)
     needs_portlink truthy if the case uses port links (legacy: means the copper link)
     links          {tb, copper, fibre, cusfp, peer: bool} — which link ROLES the case needs;
                    see _detect_links(). Each is bound by run-time discovery, never declared.
@@ -189,8 +192,11 @@ class TestSet(ATTestSet.TestSet):
     FEATURES = ['ALL']
 
 {%- if any_link %}
-    def _ck_discover(self, dut):
+    def _ck_discover(self, dut, unit=None):
         """Every data link on the DUT, classified by asking the DUT what is fitted in each port.
+
+        `dut` is the switch handle commands go to; `unit` is what owns the ports — the STACK
+        when the DUT is in one (its members' [portlink]s all count), else `dut` itself.
 
         Fixed frame — do not edit or delete. Nothing here is pre-declared (Terrence, 2026-09-21:
         "the information shouldn't require pre-loading variables to know it"). The cables come
@@ -203,10 +209,11 @@ class TestSet(ATTestSet.TestSet):
         tb / copper (fixed twisted pair) / cusfp (twisted pair in a cage) / fibre / absent / unknown.
         """
         import ck_media
-        members = set(dut.all_members()) if hasattr(dut, 'all_members') else set()
+        unit = unit if unit is not None else dut
+        members = set(unit.all_members()) if hasattr(unit, 'all_members') else set()
         in_cage = ck_media.pluggable_ports(dut.cmd('show system pluggable'))
         found = {'tb': [], 'copper': [], 'cusfp': [], 'fibre': [], 'absent': [], 'unknown': []}
-        for far, pairs in dut.get_all_port_links().items():
+        for far, pairs in unit.get_all_port_links().items():
             if far in members:
                 continue                       # stackport / member cabling is not a data path
             for near, far_port in pairs:
@@ -285,24 +292,33 @@ class TestSet(ATTestSet.TestSet):
         # not. (`swi_a`/`stk_a`: 297/192 corpus lookups; a role-named key appears 0 times.)
         tb = setup.init_tb()
         {{ dut }} = setup.init_swi('swi_a')
+        # ART's own shape (103 of 239 suites bind BOTH the stack and the swi_a switch):
+        # the STACK owns the ports [portlink] declares per member and is what discovery walks;
+        # COMMANDS go to the swi_a member handle, which has cmd()/mode() — the framework's Stack
+        # class defines neither, and every VCStack member serves the stack-wide CLI. (2026-09-21
+        # to 2026-09-23 the frame rebound `{{ dut }}` to the Stack, so every command died on a
+        # stacked DUT; Terrence: "Copy what they do, because it works.")
         _stk = {{ dut }}.get_stack()
-        if _stk is not None:
-            # Ports belong to MEMBERS and [portlink] declares them per member; commands go to
-            # the master. The stack handle walks its members for both.
-            {{ dut }} = setup.init_stk(_stk.name)
+        dut_stack = setup.init_stk(_stk.name) if _stk is not None else None
         {%- for st in (stacks or []) %}
         {# Stack names are DETECTED as `stk_[a-z]`, so the name is already a valid .setup key
            (2026-07-28). The DUT's own stack is reused, never initialised twice. #}
-        {{ st }} = {{ dut }} if (_stk is not None and _stk.name == '{{ st }}') else setup.init_stk('{{ st }}')
+        {{ st }} = dut_stack if (_stk is not None and _stk.name == '{{ st }}') else setup.init_stk('{{ st }}')
+        {%- endfor %}
+        {%- for st in (stack_aliases or []) %}
+        # `{{ st }}` appears only inside reused fragment code. In ART it names the DUT's own
+        # stack, bound above, so it is an alias here — never a second stack demand (plan 8.1).
+        {{ st }} = dut_stack if dut_stack is not None else {{ dut }}
         {%- endfor %}
         self.tb = tb
         self.{{ dut }} = {{ dut }}
-        {%- for st in (stacks or []) %}
+        self.dut_stack = dut_stack
+        {%- for st in (stacks or []) + (stack_aliases or []) %}
         self.{{ st }} = {{ st }}
         {%- endfor %}
         {%- if any_link %}
         self._ck_far = {}
-        self._ck_topo = self._ck_discover({{ dut }})
+        self._ck_topo = self._ck_discover({{ dut }}, dut_stack)
         {%- endif %}
         {%- if links.tb %}
         # The TESTBOX data link: the ART shape `(dut.portA, tb.ethA)`. Captures, injected

@@ -116,7 +116,10 @@ The suite's one-time setup below runs ONCE before the first case, and the suite'
 never re-issue one of these commands in a case's `configure()` or `main()`, and never undo
 one in a case's `tear_down()` — that undo runs before the NEXT case and breaks every case
 after it (on a real pass a fix added `no lldp run` to one case's tear_down and would have
-disabled LLDP for the 36 cases behind it).
+disabled LLDP for the 36 cases behind it). The linter REFUSES a case that undoes one — EXCEPT
+a NEGATIVE test (its sequence step is marked negative; "Your unit" below says so when yours
+is), which may unset whatever its step needs and re-sets it in its own `tear_down()` when a
+later case depends on the setting.
 ```python
 {{ suite_setup_body }}
 ```
@@ -177,6 +180,10 @@ This class implements **sequence step {{ source_n }}**.
 
 - **action**: {{ step.action }}
 - **verify**: {{ step.verify }}
+{%- if step.negative %}
+- **negative test**: yes — this case MAY unset (`no …`) a command the suite's `TestSet.configure()`
+  applies, when its step needs to.
+{%- endif %}
 
 The `verify` text is the contract. Your pass/fail determination must correspond to it — not
 to something narrower, broader, or adjacent. This is the single most important property of

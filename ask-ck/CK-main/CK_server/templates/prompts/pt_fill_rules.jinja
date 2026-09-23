@@ -37,7 +37,7 @@
    `lldp tlv-select link-aggregation` is mirrored by `no lldp tlv-select link-aggregation`.
    Reads that need exec mode belong in main(); leave the console in exec mode (`mode('#')`)
    when a method ends.
-3. Reach devices from a TestCase via `self.testSet.<name>`{% if bound_devices %} (init binds: {{ bound_devices | join(', ') }}){% endif %}{% if bound_ports %}; the bound links are {% for l in bound_ports %}`{{ l.near }}` <-> `{{ l.far }}`{% if not loop.last %}, {% endif %}{% endfor %}{% endif %}.
+3. Reach devices from a TestCase via `self.testSet.<name>`{% if bound_devices %} (init binds: {{ bound_devices | join(', ') }}){% endif %}{% if bound_ports %}; the bound links are {% for l in bound_ports %}`{{ l.near }}` <-> `{{ l.far }}`{% if not loop.last %}, {% endif %}{% endfor %}{% endif %}.{% if 'dut_stack' in (bound_devices or []) %} Send every CLI command through the DUT switch handle; `dut_stack` is the DUT's STACK (None on a standalone DUT) — it has no `cmd()`/`mode()`, so use it only for stack-wide calls (`all_members()`, `get_member_ids()`), never to send a command.{% endif %}
    Every method in the frame OPENS with the ART shortcut block — `tb = self.testSet.tb`,
    `<dut> = self.testSet.<dut>`, `ethA = tb.ethA`, `portA = <dut>.portA`, ... — KEEP those
    lines and use the local names they define; they are the complete list of what exists.

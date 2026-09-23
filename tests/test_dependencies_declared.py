@@ -55,7 +55,7 @@ _DIST_ALIASES = {
 _TRANSITIVE_OF_DECLARED = {"starlette"}
 
 # Modules that live in this repo but outside CK_server (ask-ck/tools/ is on the path at runtime).
-_REPO_LOCAL = {"cli_lookup"}
+_REPO_LOCAL = {"cli_lookup", "pt_preflight"}   # pt_preflight: ask-ck/tools, imported by the Run path (plan 10.4)
 
 # Imports that are deliberately undeclared because a DECLARED package covers the same job.
 # Distinct from EXPECTED_UNDECLARED: nothing is broken here, so these must never be

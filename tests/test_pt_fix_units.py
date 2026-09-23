@@ -622,29 +622,26 @@ if __name__ == '__main__':
 """
 
 
-def test_G8b_flags_only_the_unrestored_unset_and_drops_the_redundant_reissue():
-    # Reworked 2026-09-15 (Terrence's call on the T44297 proof run): a case may unset OR re-issue
-    # a suite-owned command; the only harm — and all this flags — is an unset never re-set later.
-    # tc1.tear_down's `no lldp run` is never restored (a leak: 36 cases behind it ran with LLDP
-    # off). tc1.configure's redundant `lldp run` re-issue is no longer flagged at all.
+def test_G8b_a_non_negative_case_may_not_unset_a_suite_command():
+    # Terrence, 2026-09-23: "IF THEY ARE UNSETTING THINGS NOT ON A NEGATIVE TEST, IT SHOULD BE
+    # BANNED." tc1.tear_down's `no lldp run` (fix run 5: 36 cases behind it ran with LLDP off) is
+    # flagged because TestCase_1 is not a negative test. A redundant re-issue is not state harm.
     import ast
     errs = pc._lint_suite_owned_commands(ast.parse(SUITE_OWNED_SCRIPT), SUITE_OWNED_SCRIPT)
     assert len(errs) == 1, errs
-    leak = errs[0]
-    assert "TestCase_1.tear_down()" in leak and "unsets `lldp run` (`no lldp run`) on dutA" in leak
-    assert "no later case re-sets it" in leak and "leaks to every case after this one" in leak
-    assert not any("re-issues" in e for e in errs)   # a redundant re-issue is not state harm
+    ban = errs[0]
+    assert "TestCase_1.tear_down()" in ban and "unsets `lldp run` (`no lldp run`) on dutA" in ban
+    assert "is not a negative test" in ban
+    assert not any("re-issues" in e for e in errs)
     # tlv-select (case-specific), `interface …` (navigation), `show`, and `lldp receive` on a
     # DIFFERENT device than the suite issued it on are all left alone.
     assert not any("tlv-select" in e or "interface" in e or "show" in e or "TestCase_2" in e for e in errs)
+    # ... and the SAME script with TestCase_1 marked negative is not flagged at all.
+    assert pc._lint_suite_owned_commands(ast.parse(SUITE_OWNED_SCRIPT), SUITE_OWNED_SCRIPT,
+                                         frozenset({"TestCase_1"})) == []
 
-
-def test_G8b_a_self_contained_negative_test_that_re_sets_is_not_flagged():
-    # T44297 tc25: the step's requirement is a transmit-only port (`no lldp receive`), and the
-    # unit restores `lldp receive` before it finishes. Unset + re-set in the same case: the suite
-    # baseline is whole for the next case, so there is nothing to flag.
-    import ast
-    script = (
+def _tc25_script():
+    return (
         "import sys\n"
         "from framework import ATTestSet, ATTestCase\n\n\n"
         "class TestSet(ATTestSet.TestSet):\n"
@@ -664,33 +661,67 @@ def test_G8b_a_self_contained_negative_test_that_re_sets_is_not_flagged():
         "        # AI\n"
         "        dutA = self.testSet.dutA\n"
         "        dutA.mode(')#')\n"
-        "        dutA.cmd('no lldp receive')\n"          # the negative-test action (line ~19)
+        "        dutA.cmd('no lldp receive')\n"
         "        dutA.mode('#')\n"
         "        self.log('STEP: transmit-only')\n"
-        "        self.passed('captured only egress LLDPDUs')\n"
-        "        dutA.mode(')#')\n"
-        "        dutA.cmd('lldp receive')\n"             # restore the suite baseline (later line)
-        "        dutA.mode('#')\n\n\n"
+        "        self.passed('captured only egress LLDPDUs')\n\n\n"
+        "class TestCase_2(ATTestCase.TestCase):\n"
+        "    testCaseDesc = 'next'\n"
+        "    testCaseRef = 'AWPTCM-T44297'\n"
+        "    testCaseMethod = 'next'\n\n"
+        "    def main(self):\n"
+        "        # AI\n"
+        "        self.log('STEP: next')\n"
+        "        self.passed('ok')\n\n\n"
         "if __name__ == '__main__':\n"
         "    ts = TestSet()\n"
         "    ts.add_testCase(TestCase_1)\n"
+        "    ts.add_testCase(TestCase_2)\n"
         "    ts.run(sys.argv)\n")
-    errs = pc._lint_suite_owned_commands(ast.parse(script), script)
-    assert errs == [], errs
 
 
-def test_G8b_is_a_policy_error_the_reviewer_may_override_and_the_linter_raises_it():
+def test_G8b_a_negative_test_may_unset_and_review_is_told_if_it_is_never_re_set():
+    # T44297 tc25 shape: a transmit-only check needs `no lldp receive`. Marked negative, it is
+    # never pushed back — no lint finding — whether or not it restores the setting (Terrence,
+    # 2026-09-23). Left unset, it is handed to the Review as a FACT to judge ("does a later case
+    # need it?"); not flagged by the linter either way.
+    import ast
+    script = _tc25_script()
+    tree = ast.parse(script)
+    neg = frozenset({"TestCase_1"})
+    assert pc._lint_suite_owned_commands(tree, script, neg) == []
+    facts = pc._negative_unset_facts(tree, neg)
+    assert len(facts) == 1 and "TestCase_1.main()" in facts[0] and "`lldp receive`" in facts[0]
+    # Restored later in the same case: nothing for the Review either.
+    restored = script.replace(
+        "        self.passed('captured only egress LLDPDUs')\n",
+        "        self.passed('captured only egress LLDPDUs')\n"
+        "        dutA.mode(')#')\n        dutA.cmd('lldp receive')\n        dutA.mode('#')\n", 1)
+    assert pc._negative_unset_facts(ast.parse(restored), neg) == []
+    # Not negative: the same unset is banned.
+    assert len(pc._lint_suite_owned_commands(tree, script)) == 1
+
+
+def test_the_negative_flag_maps_to_the_testcase_numbering():
+    seq = [{"n": 1, "action": "cfg", "kind": "setup", "negative": True},   # setup: never a case
+           {"n": 2, "action": "a", "verify": "v"},
+           {"n": 3, "action": "b", "verify": "w", "negative": "true"}]
+    assert pc._negative_case_names(seq) == frozenset({"TestCase_2"})
+
+def test_G8b_is_a_blocking_error_and_the_linter_reads_the_flag_from_the_sequence():
     import ast
     errs = pc._lint_suite_owned_commands(ast.parse(SUITE_OWNED_SCRIPT), SUITE_OWNED_SCRIPT)
     blocking, policy = pc._split_lint_errors(errs)
-    assert policy == errs and blocking == []
+    assert blocking == errs and policy == []
     s = pc.PtSession(key="AWPTCM-T44297")
     s.step6 = {"files": {"test": {"name": "t.py", "code": SUITE_OWNED_SCRIPT}}}
     s.step2 = {"sequence": [{"n": 1, "action": "cfg", "kind": "setup"},
                             {"n": 2, "action": "a", "verify": "v"}, {"n": 3, "action": "b", "verify": "w"}]}
     lint = pc._lint_generated(s)
     assert [e for e in lint["errors"] if e.startswith("suite-owned:")] == errs
-
+    s.step2["sequence"][1]["negative"] = True          # TestCase_1 is now a negative test
+    lint = pc._lint_generated(s)
+    assert not [e for e in lint["errors"] if e.startswith("suite-owned:")]
 
 def test_G8b_through_G6_the_fix_run_5_reply_is_refused_and_the_current_tc1_kept():
     """The whole point, end to end: fix run 5's tc1 (the two suite-owned lines) arrives at the
@@ -1034,26 +1065,19 @@ def test_generation_guard_returns_arrival_refused_without_wiping_a_prior_run(mon
     assert ch["status"] == "error" and "undefined_helper" in ch["code"]
 
 
-def test_arrival_does_not_refuse_a_unit_only_for_a_suite_owned_unset(monkeypatch):
-    # Change A (2026-09-15): a suite-owned unset is a cross-case POLICY flag judged over the whole
-    # script at Review — a later case may re-set it and may not be generated yet — so a unit is
-    # never arrival-refused for one. Here the spliced lint returns only a suite-owned finding;
-    # _arrival_refusal must return None (every other class would still refuse).
+def test_arrival_refuses_a_non_negative_unit_for_a_suite_owned_unset(monkeypatch):
+    # 2026-09-23: the finding is per case now (a negative case never produces one), so a
+    # suite-owned unset refuses on arrival like every other per-unit class. Until then it was
+    # exempt, because the old rule waited on a later case that might not be generated yet.
     good = pc._chunks_from_code(SCRIPT, CTX)
     sess = _arrival_sess(good)
     monkeypatch.setattr(pc, "_pt_load", lambda key: sess)
     monkeypatch.setattr(pc, "_spliced_new_errors",
                         lambda *a, **k: ["suite-owned: TestCase_1.tear_down() line 5 unsets `lldp run` "
-                                         "(`no lldp run`) on dutA — the suite owns it — and no later "
-                                         "case re-sets it, so it leaks to every case after this one"])
-    assert pc._arrival_refusal("AWPTCM-T00001", _unit("tc1"), good["tc1"], {**CTX, "skeleton": SCRIPT}, sess) is None
-    # a blocking class alongside it still refuses
-    monkeypatch.setattr(pc, "_spliced_new_errors",
-                        lambda *a, **k: ["suite-owned: … the suite owns it …",
-                                         "unbound name: undefined_helper (used in TestCase_1.main())"])
+                                         "(`no lldp run`) on dutA, which TestSet.configure() sets for "
+                                         "the whole run, and TestCase_1 is not a negative test"])
     why = pc._arrival_refusal("AWPTCM-T00001", _unit("tc1"), good["tc1"], {**CTX, "skeleton": SCRIPT}, sess)
-    assert why and "undefined_helper" in why and "suite-owned" not in why
-
+    assert why and "suite-owned" in why
 
 def test_a_clean_generated_unit_stores_ok_through_the_arrival_guard(monkeypatch):
     good = pc._chunks_from_code(SCRIPT, CTX)
@@ -1127,3 +1151,18 @@ def test_assemble_and_settle_endpoint_loops_bounded_and_records_rounds():
     # it assembles synchronously first, then settles in the background
     assert "_assemble_and_store, key, sess, ctx, group, name" in ep
     assert '"settling": True' in ep
+
+
+def test_the_negative_line_is_per_unit_and_leaves_the_cached_half_identical():
+    # The unit prompt's shared half is the cached system prompt, byte-identical across units;
+    # the negative-test permission is per unit, so it must live below the split marker.
+    from llm import render_prompt
+    base = {"mode": "testcase", "tc_n": 3, "source_n": 4, "split_marker": pc._PT_PROMPT_SPLIT,
+            "suite_setup_body": "dutA.cmd('lldp run')", "blank_block": "class TestCase_3: pass",
+            "framework_surface": {}}
+    neg = render_prompt("pt_generate_step.jinja", {**base, "step": {"action": "a", "verify": "v", "negative": True}})
+    pos = render_prompt("pt_generate_step.jinja", {**base, "step": {"action": "a", "verify": "v"}})
+    shared_neg, unit_neg = neg.split(pc._PT_PROMPT_SPLIT, 1)
+    shared_pos, unit_pos = pos.split(pc._PT_PROMPT_SPLIT, 1)
+    assert shared_neg == shared_pos
+    assert "negative test**: yes" in unit_neg and "negative test**: yes" not in unit_pos

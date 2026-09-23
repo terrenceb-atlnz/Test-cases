@@ -67,3 +67,42 @@ def test_suggest_id_list_handles_object_wrapped_array():
 def test_suggest_id_list_plain_array_with_leading_prose():
     out = llm._parse_suggest_id_list('sure:\n[{"id":"ART-2"}]')
     assert out and out[0]["id"] == "ART-2"
+
+
+# --- plan 5.1 (2026-09-23): a broken OUTER structure is never salvaged from inside ----------
+R = llm.extract_json_result
+
+
+def test_a_bad_token_in_the_outer_object_is_malformed_not_its_first_row():
+    # The T33304 shape: one JavaScript ternary made `{"sequence": [...]}` unparseable, and the
+    # old scan walked inward and returned the first ROW — a dict with no "sequence" key, which
+    # every caller read as "the model answered nothing".
+    reply = ('{"sequence": [{"n": 1, "action": "a", "zephyr_step_idx": 44 > 0 ? 23 : 23},'
+             ' {"n": 2, "action": "b"}]}')
+    assert R(reply) == (None, "malformed")
+    assert E(reply) is None
+
+
+def test_a_truncated_reply_is_malformed():
+    assert R('{"sequence": [{"n": 1}, {"n": 2') == (None, "malformed")
+
+
+def test_a_balanced_non_json_span_in_prose_does_not_hide_the_real_answer():
+    assert R('Here {the answer} is: {"a": [1, 2]}') == ({"a": [1, 2]}, "ok")
+
+
+def test_a_cli_error_blob_is_not_an_empty_answer():
+    # Recorded 2026-09-10: a CLI failure text embedding a truncated stream-json event. The old
+    # scan returned its inner `"tools": []` as the answer — an EMPTY list, i.e. "nothing found".
+    blob = 'ERROR: LLM call failed: {"type":"system","tools":[],"mcp_servers":[],"slash'
+    assert R(blob) == (None, "malformed")
+
+
+def test_no_json_at_all_is_none_not_malformed():
+    assert R("no json here") == (None, "none")
+    assert R("") == (None, "none")
+
+
+def test_a_legitimately_empty_answer_still_parses():
+    assert R('{"matches": []}') == ({"matches": []}, "ok")
+    assert R('```json\n{"steps": []}\n```') == ({"steps": []}, "ok")

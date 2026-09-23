@@ -124,6 +124,12 @@ Convert this manual test case into a prescriptive sequence of automatable test s
   - `verify` — a normal automatable action + observable check driven over the CLI/traffic (the common case, the default).
   - `physical` — REQUIRES a human to physically act on the hardware (insert/remove a pluggable, plug/unplug a cable, hot-swap), then the script waits for the resulting port state change (link up/down, pluggable detected) and continues. These are IN SCOPE — do NOT skip them. Model: prompt the operator, then poll `show interface <port> status` for the state transition (see the SVT 3009 Pluggable Qualifications `waitForReplugEvent`/`waitForHotswapEvent` pattern).
   - `manual` — a visual/physical check the DEVICE CANNOT self-report (LED colour, physical seating), needing operator Y/N confirmation (`yesNo("Press Y when …")`).
+- **"negative"** = `true` when the step is a NEGATIVE test — it checks that something does NOT
+  work, is refused, or is absent (a link that must stay down, a rejected command, a frame that
+  must not be sent) and so may need to undo a setting the suite's setup applies for the whole
+  run (`no lldp receive` for a transmit-only check). `false` for every other step, including
+  `setup` steps. Only a negative step's test case may unset a suite command; the reviewer can
+  change the flag on the Sequence page.
 - For `physical`/`manual` steps, still write the action (the human instruction) and verify (the state change / confirmation to check) — they become real test cases with the interactive pattern, not skips.
 - If the execution order differs from the manual step order (reordering, splitting, or merging), state briefly in "notes" what you changed and why.
 
@@ -147,7 +153,8 @@ changed that a reviewer must know about, as `sanity` entries naming the step num
 contradiction in one sentence. An empty `sanity` list means every claim checked out.
 
 - Output JSON ONLY, this shape:
-{"sequence": [{"n": 1, "action": "...", "verify": "...", "kind": "verify", "zephyr_step_idx": 1,
+{"sequence": [{"n": 1, "action": "...", "verify": "...", "kind": "verify", "negative": true,
+               "zephyr_step_idx": 1,
                "claim": {"cable": "crossover", "dut": "mdix", "partner": "mdi", "expect": "down"}}],
  "sanity": [{"steps": [6, 7], "issue": "one sentence: which two claims contradict, and why"}],
  "notes": "anything assumed or reordered"}

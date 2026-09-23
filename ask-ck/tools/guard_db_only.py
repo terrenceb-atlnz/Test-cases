@@ -56,20 +56,45 @@ RETIRED_MOUNT_RX = re.compile(r"testsuites_art|svt_scripts|/mnt/testbox_home/.*f
 # regression; PT_GENERATED_DIR / REFINED_DIR / DEBUG_LOG_DIR remain legitimate.
 CORPUS_ANCHOR_RX = re.compile(r"\bDATA_DIR\b|\bPT_DATA_DIR\b")
 
-# Lines matching these are known-legitimate and skipped even if they look filey.
+# Lines matching these are known-legitimate and skipped even if they look filey. The match
+# runs on the CODE part of a line only (comments stripped by `_code_lines`): this list used to
+# carry "# ", so any line with a trailing comment was skipped whole — adding a comment to a
+# corpus read defeated invariant #2 (pipeline plan 12.4, fixed 2026-09-23).
 ALLOW_RX = re.compile(
     r"secrets|provenance\.json|zephyr_payload\.json|index\.html|PROCESS|"
-    r"llm-debug|debug-log|session_log|sftp\.open|# ")
+    r"llm-debug|debug-log|session_log|sftp\.open")
 
 
-def main() -> int:
+def _code_lines(text: str):
+    """(line_no, code) for every line, with `#` comments removed by the tokenizer, so a comment
+    can neither hide a read nor fake one. A file that does not tokenize falls back to the raw
+    lines — the guard then over-reports rather than under-reports."""
+    import io
+    import tokenize
+    lines = text.splitlines()
+    cut: dict = {}
+    try:
+        for tok in tokenize.generate_tokens(io.StringIO(text).readline):
+            if tok.type == tokenize.COMMENT:
+                cut[tok.start[0]] = min(cut.get(tok.start[0], 10 ** 9), tok.start[1])
+    except (tokenize.TokenError, IndentationError, SyntaxError):
+        cut = {}
+    for n, line in enumerate(lines, 1):
+        yield n, (line[:cut[n]] if n in cut else line)
+
+
+def scan(root: Path) -> list:
+    """Every violation under `root` (a CK_server tree), as printable lines."""
     violations = []
-    for py in sorted(CK_SERVER.rglob("*.py")):
-        for n, line in enumerate(py.read_text(encoding="utf-8").splitlines(), 1):
+    for py in sorted(root.rglob("*.py")):
+        for n, line in _code_lines(py.read_text(encoding="utf-8")):
             stripped = line.strip()
-            if stripped.startswith("#") or ALLOW_RX.search(line):
+            if not stripped or ALLOW_RX.search(line):
                 continue
-            rel = py.relative_to(CK_SERVER.parent.parent.parent)
+            try:
+                rel = py.relative_to(root.parent.parent.parent)
+            except ValueError:
+                rel = py
             hit = next((f for f in FORBIDDEN if f in line), None)
             if hit or DECISIONS_RX.search(line):
                 # Only care about actual reads, not mentions in strings/comments.
@@ -89,6 +114,11 @@ def main() -> int:
                 m = CORPUS_ANCHOR_RX.search(line)
                 violations.append(f"  {rel}:{n}: {stripped}  [retired corpus anchor '{m.group(0)}' — corpora live in ck.db]")
 
+    return violations
+
+
+def main() -> int:
+    violations = scan(CK_SERVER)
     if violations:
         print("GUARD FAIL — runtime corpus JSON read(s) found in CK_server/ "
               "(corpora must come from ck.db via db.*):")
