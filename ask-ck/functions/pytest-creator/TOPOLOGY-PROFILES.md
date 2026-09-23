@@ -76,17 +76,22 @@ one link per role, discovered at run time:
 ```python
 tb  = setup.init_tb()
 dut = setup.init_swi('swi_a')
-_stk = dut.get_stack()
-if _stk is not None:
-    dut = setup.init_stk(_stk.name)       # ports belong to members; commands go to the master
-self._ck_topo = self._ck_discover(dut)    # one pass over dut.get_all_port_links()
+_stk = dut.get_stack()                  # ART's shape: commands -> dut (Switch), ports -> dut_stack
+dut_stack = setup.init_stk(_stk.name) if _stk is not None else None
+self.dut_stack = dut_stack
+self._ck_topo = self._ck_discover(dut, dut_stack)   # one pass over the port owner's links
 (dut.portA, tb.ethA, _tb)               = self._ck_bind_link(setup, dut, 'tb')
 (dut.portCuSfp, cusfp_port, cusfp_peer) = self._ck_bind_link(setup, dut, 'cusfp', optional=True)
 (dut.portFibre, fibre_port, fibre_peer) = self._ck_bind_link(setup, dut, 'fibre', optional=True)
 (dut.portPeer, peer_port, peer)         = self._ck_bind_link(setup, dut, 'copper')
 ```
 
-`_ck_discover(dut)` walks `dut.get_all_port_links()`, skips stack members, takes the `TestBox`
+**Never re-bind `dut` to the Stack** (corrected 2026-09-23). The framework's `Stack` has no
+`cmd`, and the frame did exactly that from 2026-09-21, so every command would have died on a
+stacked DUT. 103 of 239 ART scripts bind both handles, and the frame now does the same.
+
+`_ck_discover(dut, unit)` walks `unit.get_all_port_links()` (the stack when there is one, else
+`dut`), skips stack members, takes the `TestBox`
 far end as the testbox link, and for every other link runs `show interface <port> status` and
 `show system pluggable` on the DUT side: twisted pair in a cage → `cusfp`, twisted pair fixed →
 `copper`, fibre → `fibre`, `not present` → `absent`. **An empty cage is `absent` and is never a

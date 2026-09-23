@@ -4590,8 +4590,14 @@ built on branch `sweep-fixes-2026-09-23`:
 - `5bb2162`: T33234 hand-edited.
 - One docs commit.
 
-**Main was NOT fast-forwarded:** the merge was blocked as a production deploy and waits for
-Terrence. After it, the T33234 session is re-saved through the server, Terrence re-confirms, and
-device-testing's `bench-state.md` §2 is edited (it has two open questions). The full ruling list,
-the D-24 to D-31 status and what is blocked are in `PROGRESS.md`'s 2026-09-23 (later) entry.
-Gate on the branch: 1770 passed / 2 skipped, vitest 348, `ck.db` untouched.
+**Merged on Terrence's "Run it"**: main fast-forwarded to `6796b67`, production reloaded once,
+and `/health` is OK. The wrap commit then landed three things:
+- **T33234 follows the frame.** A pluggable must be fitted before the run (a PRECONDITION), and
+  no empty cage is bound. It was saved through the server, so the `ck.db` session is current.
+- **bench-state.md §2:** device-testing's `[misc]` block was removed; nothing read it.
+- **`bench_topology.py`** no longer emits `[misc]`.
+
+Terrence still has to re-confirm and Re-chunk T33234, and apply the bench file to tb470. The
+full ruling list, the D-24 to D-31 status and what is blocked are in `PROGRESS.md`'s
+2026-09-23 (later) entry. Gate on main: 1771 passed / 1 skipped, vitest 348, `ck.db`
+untouched by tests.

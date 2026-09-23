@@ -51,8 +51,11 @@ Terrence answered the doc sweep's open list, and these are his rulings built (`d
   - Unused imports are removed at assembly, and the removals are recorded.
   - The R5 prompt-defect alarm needs 5 runs, so one blip can no longer raise it.
   - `bench_probe.py` is now a pointer to device-testing's copy.
-- **T33234 hand-edited** to framework discovery (`5bb2162`). *Why:* regenerating it would
-  overwrite case code Terrence wants kept.
+- **T33234 hand-edited** to framework discovery (`5bb2162`, then the wrap commit). *Why:*
+  regenerating it would overwrite case code Terrence wants kept. It follows the frame on empty
+  cages: a pluggable role takes only a fitted module, and fitting both SFPs before the run is a
+  stated PRECONDITION. Terrence: *"we should follow the frame, whenever possible. if we need to
+  have a pluggable inserted first, as a precondition, then so be it."*
 
 ## 2026-09-22 — ART family numbering `<family>.<case>.<TestCase>`, and library PRUNE
 

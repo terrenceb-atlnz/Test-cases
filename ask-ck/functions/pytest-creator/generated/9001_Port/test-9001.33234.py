@@ -21,6 +21,14 @@
 #   - Resolved MDI/MDI-X role re-resolving to the same role across an administrative
 #   shutdown/no-shutdown cycle and a port reset, with the polarity configuration persisting.
 # ==================================================================
+#
+# ==== PRECONDITION — fit the pluggables BEFORE the run (Terrence, 2026-09-23) ====
+#   A COPPER (1000BASE-T) SFP and a FIBRE SFP must already be fitted in DUT cages whose
+#   [portlink]s go to a partner switch. The frame binds a pluggable role only when its module
+#   is fitted at init(), and an EMPTY cage is no role, so with no module fitted the copper-SFP
+#   and fibre cases report UNSUPPORTED. Steps 16 and 18 confirm the fitted module is recognised
+#   and cabled; they no longer ask for a fresh insertion mid-run.
+# ==================================================================
 
 import sys
 import time
@@ -201,7 +209,8 @@ class TestSet(ATTestSet.TestSet):
         end that is a TestBox; a member of the DUT's own stack is never a partner; and the
         MEDIA of each DUT-side port is read from `show interface <port> status` (its Type
         column) and `show system pluggable` (which cages hold a module). A LAG member is an
-        ordinary partner link (Terrence, 2026-09-23). An EMPTY cage lands in `absent`.
+        ordinary partner link (Terrence, 2026-09-23). An EMPTY cage lands in `absent`, and no
+        role takes it: it has no media (the frame's rule).
         Returns {bucket: [(near_port, far_port, far_device), ...]} for the buckets
         tb / copper (fixed twisted pair) / cusfp (twisted pair in a cage) / fibre / absent / unknown.
         """
@@ -245,16 +254,14 @@ class TestSet(ATTestSet.TestSet):
         role with no link aborts the suite ("this bench cannot host this test" is a bench
         problem, not a test result); an OPTIONAL role returns (None, None, None).
 
-        PLUGGABLE roles (cusfp, fibre) in THIS script (Terrence, 2026-09-23): steps 16 and 18
-        have the operator INSERT the module mid-run, so at init() the cage is usually EMPTY.
-        A matching fitted module is taken first; otherwise a declared link whose DUT cage is
-        empty (`absent`) is bound, and its media is checked by the insertion case itself
-        (`assert_role_media_now`) once the operator has fitted the module. The operator prompt
-        names the port, so which empty cage becomes which role does not matter.
+        PLUGGABLE roles (cusfp, fibre) take only a FITTED module of their media, as the frame
+        does (Terrence, 2026-09-23: "we should follow the frame, whenever possible"). An empty
+        cage is no role. Fitting the modules before the run is this script's PRECONDITION (see
+        the header).
         """
         import ck_media
         buckets = {'tb': ('tb',), 'copper': ('copper', 'cusfp'),
-                   'cusfp': ('cusfp', 'absent'), 'fibre': ('fibre', 'absent')}[role]
+                   'cusfp': ('cusfp',), 'fibre': ('fibre',)}[role]
         for bucket in buckets:
             if not self._ck_topo.get(bucket):
                 continue
@@ -264,10 +271,8 @@ class TestSet(ATTestSet.TestSet):
                     self._ck_far[far.name] = (setup.init_stk(far.name) if hasattr(far, 'all_members')
                                               else setup.init_swi(far.name))
                 far = self._ck_far[far.name]
-            self.log('topology: role %r -> %s %s <-> %s %s (%s%s)' % (
-                role, dut.name, near.name, getattr(far, 'name', 'tb'), far_port.name, bucket,
-                ' — cage empty now; media checked when the operator fits the module'
-                if bucket == 'absent' else ''))
+            self.log('topology: role %r -> %s %s <-> %s %s (%s)' % (
+                role, dut.name, near.name, getattr(far, 'name', 'tb'), far_port.name, bucket))
             return near, far_port, far
         have = ', '.join('%d %s' % (len(v), k) for k, v in self._ck_topo.items() if v) or 'none'
         why = ("BENCH PROBLEM, not a product defect: no unused %s link on %s (data links "
@@ -317,7 +322,8 @@ class TestSet(ATTestSet.TestSet):
         if self.cusfp_supported:
             cusfp_peer.portCuSfp = cusfp_far_port
         else:
-            self.cusfp_reason = 'no unused copper-SFP (or empty-cage) link to a partner on this bench'
+            self.cusfp_reason = ('no copper SFP fitted in a partner-cabled cage at init() — fit one before the run '
+                                 '(PRECONDITION)')
         self.cusfp_peer = cusfp_peer
         self.cusfp_far_port = cusfp_far_port
 
@@ -327,7 +333,8 @@ class TestSet(ATTestSet.TestSet):
         if self.fibre_supported:
             fibre_peer.portFibre = fibre_far_port
         else:
-            self.fibre_reason = 'no unused fibre (or empty-cage) link to a partner on this bench'
+            self.fibre_reason = ('no fibre SFP fitted in a partner-cabled cage at init() — fit one before the run '
+                                 '(PRECONDITION)')
         self.fibre_peer = fibre_peer
         self.peer_fibre_port = fibre_far_port
         # Backwards-compatible alias: `portPeer` has always meant "the DUT's fibre SFP port" in
@@ -2365,7 +2372,7 @@ class TestCase_15(ATTestCase.TestCase):
         far_port = self.testSet.cusfp_far_port
         # Precondition: the pluggable-capable port under test and its partner are
         # brought back to default auto-negotiation (speed/duplex/polarity) and left
-        # enabled, so the module the operator inserts can negotiate freely.
+        # enabled, so the fitted module can negotiate freely.
         configureDefaultPort(self, dut, portCuSfp)
         configureDefaultPort(self, cusfp_peer, far_port)
         dut.mode(')#')
@@ -2389,18 +2396,21 @@ class TestCase_15(ATTestCase.TestCase):
         self.log("STEP 16: Prompt the operator to insert a copper SFP module into a pluggable-capable port on the DUT and connect it with a straight-through cable to the partner port; then poll 'show interface <port> status' and 'show system pluggable' until the module is detected.")
         # PHYSICAL: the operator acts on the hardware, then we poll for the state change.
         port = portCuSfp
-        self.log("OPERATOR: insert a copper SFP module into {} and connect it with a straight-through "
-                 "cable to partner port {}.".format(port.name, far_port.name))
+        # PRECONDITION (header): the module was fitted before the run, since the frame binds a
+        # pluggable role only from a fitted module. This step confirms the cabling, then
+        # polls for recognition.
+        self.log("OPERATOR: confirm the copper SFP module fitted in {} is connected with a "
+                 "straight-through cable to partner port {}.".format(port.name, far_port.name))
 
         confirmed = yesNo(
-            'Insert a COPPER (1000BASE-T) SFP module into DUT port {} and connect it with a '
-            'STRAIGHT-THROUGH cable to partner port {}. Confirm when done'.format(
+            'The COPPER (1000BASE-T) SFP module fitted in DUT port {} must be connected with a '
+            'STRAIGHT-THROUGH cable to partner port {}. Confirm when it is'.format(
                 port.name, far_port.name))
         if not confirmed:
-            self.failed('Operator did not confirm insertion of the copper SFP module into {}'.format(
+            self.failed('Operator did not confirm the copper SFP module in {} is cabled'.format(
                 port.name))
             return
-        self.passed('Operator confirmed insertion of the copper SFP module into {} and the '
+        self.passed('Operator confirmed the copper SFP module in {} and the '
                     'straight-through connection to {}'.format(port.name, far_port.name))
 
         deadline = time.time() + 120
@@ -2444,9 +2454,8 @@ class TestCase_15(ATTestCase.TestCase):
                 "the link-up timeout: {}".format(port.name, pluggable_output))
             return
 
-        # Deferred media check: TestSet.init bound this pluggable role by port reference only,
-        # because the bay was empty until the operator acted. The inserted module must be the
-        # copper role before steps 16/17 can mean anything.
+        # Media re-check: init() bound this role from the module fitted then. It must still be
+        # the copper role before steps 16/17 can mean anything.
         if not assert_role_media_now(self, dut, port, 'cusfp'):
             return
 
@@ -2587,8 +2596,8 @@ class TestCase_17(ATTestCase.TestCase):
                      '{}'.format(getattr(self.testSet, 'fibre_reason', '')))
             return
         portFibre = dut.portFibre
-        # Physical-media step: the port is brought up by the operator inserting the
-        # module; make sure it is administratively enabled so the link can establish.
+        # Physical-media step: the module is fitted before the run (PRECONDITION); make
+        # sure the port is administratively enabled so the link can establish.
         dut.mode(')#')
         dut.cmd('interface {}'.format(portFibre.name))
         dut.cmd('no shutdown')
@@ -2616,17 +2625,20 @@ class TestCase_17(ATTestCase.TestCase):
         # neighbour link (dut.portFibre <-> fibre_peer.portFibre) — a handle distinct
         # from the copper-SFP role used by steps 16/17.
         port = portFibre
-        self.log('OPERATOR: insert a fibre SFP module into {} on the DUT, connect it to {} on '
-                 'the partner switch, then confirm the link.'.format(port.name, far_port.name))
+        # PRECONDITION (header): the module was fitted before the run, since the frame binds a
+        # pluggable role only from a fitted module. This step confirms the cabling, then
+        # polls for recognition.
+        self.log('OPERATOR: confirm the fibre SFP module fitted in {} on the DUT is connected to '
+                 '{} on the partner switch.'.format(port.name, far_port.name))
 
         confirmed = yesNo(
-            'Insert a FIBRE SFP module into DUT port {} and connect it to the matching fibre '
-            'partner port {}. Confirm when done'.format(port.name, far_port.name))
+            'The FIBRE SFP module fitted in DUT port {} must be connected to the matching fibre '
+            'partner port {}. Confirm when it is'.format(port.name, far_port.name))
         if not confirmed:
-            self.failed('Operator did not confirm insertion of the fibre SFP module into {}'.format(
+            self.failed('Operator did not confirm the fibre SFP module in {} is cabled'.format(
                 port.name))
             return
-        self.passed('Operator confirmed insertion of the fibre SFP module into {} and the fibre '
+        self.passed('Operator confirmed the fibre SFP module in {} and the fibre '
                     'connection to {}'.format(port.name, far_port.name))
 
         deadline = time.time() + 120
@@ -2666,7 +2678,7 @@ class TestCase_17(ATTestCase.TestCase):
         if fibre_match and not copper_match:
             self.passed('show system pluggable identifies {} as a fibre transceiver: {} (row: {})'.format(
                 port.name, fibre_match.group(0), plug_row.strip()))
-            # Deferred media check: init() bound this pluggable role by port reference only.
+            # Media re-check: init() bound this role from the module fitted then.
             assert_role_media_now(self, dut, port, 'fibre')
         elif copper_match:
             self.failed('show system pluggable identifies {} as a COPPER transceiver ({}), a fibre '

@@ -6,7 +6,7 @@ metadata:
   type: project
   originSessionId: 55f64c5f-6b57-4d85-9f09-b5090301f55a
   modified: 2026-07-30T00:09:29.447Z
-  verified: 2026-09-21
+  verified: 2026-09-23
 ---
 
 `ask-ck/tools/pt_preflight.py` (built 2026-07-30) answers "can this bench run this script?" offline —
@@ -25,10 +25,13 @@ cable serves one `init_portlink` call), **either orientation** matches, empty `t
 match any interface, a **stack** stands in for any member. Two problem classes: `LINK` and
 `POWER` (power-cycling a device with no `[powerlink]`).
 
-Usage: `python3 ask-ck/tools/pt_preflight.py --setup ~/claude/IE520-testing/bench-setup/tb470.setup.current`. Exit 0/1/2.
-No scp — that copy on the NFS lab home is always current, because tb470's `.setup` is
-GENERATED from `~/claude/IE520-testing/bench-setup/bench-state.md`, the source of truth
+Usage: `python3 ask-ck/tools/pt_preflight.py --setup ~/claude/device-testing/bench-setup/tb470.setup.current [--script <path>]`. Exit 0/1/2.
+No scp: that copy on the NFS lab home is always current, because tb470's `.setup` is
+GENERATED from `~/claude/device-testing/bench-setup/bench-state.md`, the source of truth
 for that bench.
+**2026-09-23: Run calls it too** (`pt_exec._preflight_gate`, via `preflight_text`, before
+upload). UN-RUNNABLE stops the run as `preflight_failed`, and the page's **Run anyway** sends
+`ignore_preflight`. An error inside the check never blocks the run.
 **2026-09-21 — reads the discovery frame's ROLE demands.** `self._ck_bind_link(setup, dut,
 '<role>'[, optional=True])` call sites: `tb` needs a testbox↔DUT `port` link; a partner role
 (copper/fibre/cusfp) needs an unused DUT↔partner `port` link, the DUT expanded to the stack

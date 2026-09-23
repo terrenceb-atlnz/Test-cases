@@ -65,10 +65,12 @@ link, extras are `# NOT BOUND`.
 
 **LAG member links ARE partner ports (Terrence, 2026-09-23):** *"the LAG member links can
 absolutely be partner ports."* The preflight already treats them that way, so no change was
-needed. **T33234 differs from the frame on empty cages.** It was hand-edited on 2026-09-23
-(Terrence: no regenerate) to bind an empty cage for its insertion case. It prefers a matching
-fitted module, and falls back to a declared link with an empty cage, whose media the insertion
-case checks. The frame template still treats an empty cage as no role.
+needed. **Follow the frame on empty cages, whenever possible (Terrence, 2026-09-23):** *"if we
+need to have a pluggable inserted first, as a precondition, then so be it."* So a script whose
+case inserts a module states "fit the module before the run" as a PRECONDITION. It does not
+bind the empty cage. T33234 was briefly hand-edited to bind empty cages, and was brought back
+in line the same day. Its header carries the precondition, and its steps 16 and 18 confirm the
+fitted module is cabled and recognised.
 **Still Terrence's:** the inert `[misc] ck_*` lines in `tb470.setup` (his file, via
 device-testing's `bench-state.md` §2).
 

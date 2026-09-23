@@ -16,9 +16,9 @@ verified: 2026-09-23
 Terrence walked the sweep's open list (the entry below) and ruled on every item. His
 direction: *"we are moving on to making real code and firing it asap"*. The work was built in
 one worktree (branch `sweep-fixes-2026-09-23`: `dc2e501` code, `5bb2162` T33234, plus this docs
-commit), so production reloads once when main fast-forwards to it. **That merge had not
-happened at the time of writing**: the fast-forward was blocked as a production deploy, and it
-waits for Terrence.
+commit), so production reloaded once when main fast-forwarded to it. On Terrence's "Run it",
+main fast-forwarded to `6796b67`. `/health` came back OK after about 15 s, and the live
+`lint_trends` reports `min_runs: 5`, so the new code is serving.
 
 **Built** (details in CHANGELOG 2026-09-23 and SERVER-README "Negative tests, run preflight, and
 the 2026-09-23 fixes"):
@@ -32,10 +32,19 @@ the 2026-09-23 fixes"):
   `_apply_fix` comment; the dead `agent_bridge` citation; `pt_preflight`'s stale `.setup` path;
   `bench_probe.py` replaced by `bench_probe.md` pointing at device-testing's copy (item 9).
 - **T33234 hand-edited** to discovery plus the ART stack shape; no regenerate, on Terrence's
-  ruling. Empty SFP cages are bound: a matching fitted module is preferred, otherwise a
-  declared link with an empty cage, whose media the insertion case checks. Lint shows 0
-  blocking. One E127 indent warning is inherited from the frame's own code. `pt_preflight` on
-  `tb470.setup.current`: RUNNABLE 4/4.
+  ruling.
+  - **It now follows the frame on empty cages.** The first edit bound empty cages. Terrence
+    reversed that: *"we should follow the frame, whenever possible. if we need to have a
+    pluggable inserted first, as a precondition, then so be it."* So a pluggable role takes
+    only a fitted module. The script header carries a PRECONDITION (fit the copper SFP and the
+    fibre SFP before the run). Steps 16 and 18 now confirm that the fitted module is cabled and
+    recognised; they no longer ask for a mid-run insertion.
+  - **Saved through the server**, so `ck.db`'s `pt-AWPTCM-T33234` now holds this code as
+    `test-9001.33234` with `library_9001.py`. The files on disk are byte-identical to what was
+    sent.
+  - **Checks:** lint `ok`, 0 errors, 3 pep8 warnings (E127, E501, E741). `pt_preflight`
+    against `tb470.setup.current`: RUNNABLE 4/4.
+  - **Still Terrence's:** re-confirm, and Re-chunk.
 
 **Recorded, no build needed:**
 - **§9 step 6:** dropped (*"drop it until we need it"*).
@@ -62,28 +71,32 @@ the code, in `ask-ck/frontend/ck-main/current/pytest-creator/cli_lookup.py`:
 - **D-27 to D-31:** still apply. **D-28** (the prompt's speed "legal values" text) is the one
   most worth his eye.
 
+**device-testing, done the same session:**
+- **`bench-state.md` §2:** the `[misc]` block is removed (Terrence: drop `ck_cap_*` if vestigial).
+  It was vestigial: nothing read `ck_profile`, `ck_role_dut` or `ck_cap_*` (not the scripts,
+  not Ask-CK's tools, not the framework, whose `[misc]` is optional). The fence now carries
+  only a `###` note. The IE520 `polarity` fact is kept as prose. The render changes only that
+  block.
+- **`bench_topology.py`** no longer writes `[misc]` (Terrence: "update it"). Its `diff` of the
+  record against the new render prints MATCH.
+- **Not yet applied to the box:** `./bench_setup.py apply` is Terrence's. It dates the
+  superseded record into `backups/` itself.
+- **Noticed, not edited:** device-testing's `orient-dt` skill still tells readers that "a
+  topology profile (`ck_profile`) needs cabling".
+
 **Blocked:**
-- **Merge of `sweep-fixes-2026-09-23` into main.** It needs Terrence: either he runs
-  `git merge --ff-only sweep-fixes-2026-09-23` in the repo, or he allows it. That causes one
-  production reload; then check `/health`.
-- **After the merge, the T33234 session:**
-  - `ck.db`'s `pt-AWPTCM-T33234` still holds pre-2026-09-22 code (name `test-9000.33234`).
-  - Re-save it through `POST /api/pytest-create/save_script/AWPTCM-T33234` (group Port, name
-    `test-9001.33234`, `library_name: library_9001.py`).
-  - Terrence then re-confirms and Re-chunks.
-- **bench-state.md §2** (device-testing): the `[misc] ck_profile` / `ck_role_dut` block and its
-  TOPOLOGY PROFILES prose. It is sequenced after T33234 lands. Open questions: whether to drop
-  `ck_cap_*` (nothing reads it), and whether to update `bench_topology.py`, which still emits
-  all three. Applying it to the box is Terrence's job.
 - **B2** (the per-product CLI classes): `awplus-cmdref-combined.zip` is on neither the host nor
   the share. Terrence needs to supply it.
 
-**Gate** (worktree, after the code commit): pytest 1770 passed / 2 skipped; vitest 348 in 30
-files; both guards OK; `ck.db` untouched. The worktree used local copies of the gitignored
-fixture logs (not committed).
+**Gate:**
+- **On the branch, after the code commit:** pytest 1770 passed / 2 skipped. The worktree used
+  local copies of the gitignored fixture logs (not committed).
+- **On main at the wrap:** pytest **1771 passed / 1 skipped**; vitest 348 in 30 files; both
+  guards OK; `ck.db` untouched by tests. It was dirtied only by the real `save_script`.
 
-**Pick up here:** the merge, then the T33234 re-save and Terrence's re-confirm, then Phase 11.4
-(the first hardware run of a generated script) with the preflight now in the Run path.
+**Pick up here:** Terrence re-confirms and Re-chunks T33234, applies the bench file to tb470 and
+fits both SFPs. Then Phase 11.4 (the first hardware run of a generated script), with the
+preflight now in the Run path.
 
 ## Latest session (2026-09-23) — doc freshness sweep: every doc verified, stamped or retired; no product change
 
