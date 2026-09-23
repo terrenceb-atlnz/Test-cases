@@ -1,0 +1,539 @@
+2026-02-10 07:59:07: ================ TESTSET STARTED ================
+2026-02-10 07:59:07: ['/home/terrenceb/test_scripts/5700_bootloader/test-5700.2001.py', '-s', 'default.setup', '-u', '-v']
+2026-02-10 07:59:07: Loading setup file: default.setup
+2026-02-10 07:59:07: ============================
+2026-02-10 07:59:07: TESTBOXES
+2026-02-10 07:59:07: ============================
+2026-02-10 07:59:07: tb101 :
+2026-02-10 07:59:07:   Connected to:
+2026-02-10 07:59:07:     swi_a  via : eth2-port1.0.2
+2026-02-10 07:59:07: 
+2026-02-10 07:59:07: ============================
+2026-02-10 07:59:07: SWITCHES
+2026-02-10 07:59:07: ============================
+2026-02-10 07:59:07: swi_a :
+2026-02-10 07:59:07:   Connected to:
+2026-02-10 07:59:07:     tb  via : port1.0.2-eth2
+2026-02-10 07:59:07: 
+2026-02-10 07:59:07: swi_a is defined and initialized
+2026-02-10 07:59:08: swi_a is connected to a powerstrip: pdu, 10.36.230.208, 1
+2026-02-10 07:59:08: ======== Power cycle all devices that have been initialized
+2026-02-10 07:59:09: Skip power-off : swi_a, device is running and responsive
+2026-02-10 07:59:09: Successfully power cycled all initialized devices
+2026-02-10 07:59:09: ======== Check that all stacks and switches are well formed
+2026-02-10 07:59:09: Check that swi_a login succeeds
+2026-02-10 07:59:35: swi_a is currently running and logged on
+2026-02-10 08:00:12: ======== Clear exception log for all devices
+2026-02-10 08:00:14: The following features were specified for the TestSet: 'ACCESS'
+2026-02-10 08:00:14: ======== Generate default.cfg for all devices and reboot them
+2026-02-10 08:00:14: Generating default.cfg for swi_a
+2026-02-10 08:00:24: Will be removing tracelog in swi_a
+2026-02-10 08:00:35: The following features were specified for the TestSet: 'ACCESS'
+2026-02-10 08:00:39: swi_a platform type is x230v2
+2026-02-10 08:00:39: No license bundles require loading on swi_a for platform family x230v2
+2026-02-10 08:00:39: No license bundles require unloading from swi_a
+2026-02-10 08:00:41: 
+2026-02-10 08:00:41: Rebooting swi_a with the following default.cfg:
+line con 0
+length 0
+exec-timeout 0
+no stack 1 enable
+no stack virtual-mac
+no stack virtual-chassis-id
+hostname swi_a_5700_2001
+int port1.0.1-port1.0.18
+shutdown
+
+2026-02-10 08:00:42: Check that swi_a login succeeds with default.cfg.
+2026-02-10 08:05:41: swi_a is currently running and logged on
+2026-02-10 08:05:45: Retrieve basic system information from swi_a
+2026-02-10 08:06:17: Executing TestSet configure...
+2026-02-10 08:06:21: Retrieving device information...
+2026-02-10 08:06:39: 
+2026-02-10 08:06:39: --------------------------------------------------------------------------------
+2026-02-10 08:06:39: Collected network details:
+2026-02-10 08:06:39: --------------------------------------------------------------------------------
+2026-02-10 08:06:39: 	tftp boot switch interface   : port1.0.2
+2026-02-10 08:06:39: 	tftp boot tb interface       : eth2
+2026-02-10 08:06:39: 	post-bootup switch interface : port1.0.2
+2026-02-10 08:06:39: 	post-bootup tb interface     : eth2
+2026-02-10 08:06:39: 	tftpfilename: x230v2-tb101.rel
+2026-02-10 08:06:39: 	filenamecopy: x230v2-copy-tb101.rel
+2026-02-10 08:06:39: 	wrong filename: XS900-5.5.3-2.1.rel
+2026-02-10 08:06:39: 	ipTFTP    : 10.37.101.1
+2026-02-10 08:06:39: 	ipDevice  : 10.37.101.2
+2026-02-10 08:06:39: 	subnetmask: 255.255.255.224
+2026-02-10 08:06:39: 	port: 2
+2026-02-10 08:06:39: 	version: 6.2.37
+2026-02-10 08:06:39: 	has realtime clock: True
+2026-02-10 08:06:39: 
+2026-02-10 08:06:39: 	MAIN_RELEASE:  mainrelease.rel
+2026-02-10 08:06:39: 	BACKUP_RELEASE: backuprelease.rel
+2026-02-10 08:06:39: 
+2026-02-10 08:10:08: dir *.rel
+  31181995 -rw- Feb 09 2026 19:09:26  flash:/backuprelease.rel
+  31181995 -rw- Feb 09 2026 19:07:45  flash:/mainrelease.rel
+swi_a_5700_2001#
+2026-02-10 08:10:08: ======== Wait for all devices to finish booting before bringing up all switch ports
+2026-02-10 08:10:09: ======== Bring up all switch ports that have been initialized in init() to be used for the TestSet
+2026-02-10 08:10:10: Bringing up swi_a ports: port1.0.2
+2026-02-10 08:10:16: All ports on swi_a that are used in this TestSet have been successfully brought up
+2026-02-10 08:10:16: ======== Save the current running config (TestSet config) as the boot config
+2026-02-10 08:10:16: Generating running config and saving to swi_a_5700_2001.cfg
+2026-02-10 08:10:28: ======== Mark unsupported test cases
+2026-02-10 08:10:28: Exclude TestCases with run-priority 10
+2026-02-10 08:10:28: ======== TestSet preparation is now complete. Execute each TestCase one by one
+>> test-5700.2001.10
+TEST_CASE_DATETIME_STARTED
+2026-02-10 08:10:28
+TEST_CASE_DESCRIPTION
+Bootup process - "Verifying release" is displayed
+TEST_CASE_REFERENCES
+CR-74346, Factory test procedure
+TEST_CASE_METHOD
+3. Verify the DUT displays 'Verifying release' during the bootup process
+
+TEST_CASE_LOGS
+2026-02-10 08:10:29: _PreRunThread-swi_a - Joined
+2026-02-10 08:10:31: Save the current running configuration as swi_a_5700_2001_10.cfg on swi_a
+2026-02-10 08:10:38: _SaveConfigsThread-swi_a - Joined
+2026-02-10 08:10:38: _CheckRunningConfigsThread-swi_a - Joined
+2026-02-10 08:10:39: Setting the Boot System current to valid release files
+2026-02-10 08:10:41: Reboot the DUT and watch for bootup
+2026-02-10 08:15:47: PASS: DUT displayed "Verifying release" during bootup
+2026-02-10 08:15:47: 
+2026-02-10 08:15:47: 
+2026-02-10 08:15:48: Set the swi_a boot configuration back to the TestSet configuration (flash:/swi_a_5700_2001.cfg)
+2026-02-10 08:15:50: Save the current running configuration as TestCase_tear_down.cfg on swi_a
+2026-02-10 08:15:55: Compare swi_a_5700_2001.cfg and TestCase_tear_down.cfg on swi_a
+2026-02-10 08:15:56: PASS: Configuration on swi_a after TestCase tear_down() is the same as the initial TestSet Configuration
+2026-02-10 08:15:56: _PostTearDownThread-swi_a - Joined
+2026-02-10 08:15:58: PASS: swi_a contains no exceptions
+2026-02-10 08:16:01: Moving *.pcap files across from /tmp
+TEST_CASE_DATETIME_ENDED
+2026-02-10 08:16:01
+<< test-5700.2001.10: PASS (numPassed: 3 numFailed: 0)
+
+>> test-5700.2001.20
+TEST_CASE_DATETIME_STARTED
+2026-02-10 08:16:01
+TEST_CASE_DESCRIPTION
+Bootup process - "Booting..." is displayed
+TEST_CASE_REFERENCES
+CR-74346
+TEST_CASE_METHOD
+3. Verify the DUT displays 'Booting...' during the bootup process
+
+TEST_CASE_LOGS
+2026-02-10 08:16:02: _PreRunThread-swi_a - Joined
+2026-02-10 08:16:04: Save the current running configuration as swi_a_5700_2001_20.cfg on swi_a
+2026-02-10 08:16:11: _SaveConfigsThread-swi_a - Joined
+2026-02-10 08:16:11: _CheckRunningConfigsThread-swi_a - Joined
+2026-02-10 08:16:12: Setting the Boot System current to valid release files
+2026-02-10 08:16:14: Reboot the DUT and watch for bootup
+2026-02-10 08:21:37: PASS: DUT displayed "Booting..." during bootup
+2026-02-10 08:21:37: 
+2026-02-10 08:21:37: 
+2026-02-10 08:21:39: Set the swi_a boot configuration back to the TestSet configuration (flash:/swi_a_5700_2001.cfg)
+2026-02-10 08:21:41: Save the current running configuration as TestCase_tear_down.cfg on swi_a
+2026-02-10 08:21:45: Compare swi_a_5700_2001.cfg and TestCase_tear_down.cfg on swi_a
+2026-02-10 08:21:47: PASS: Configuration on swi_a after TestCase tear_down() is the same as the initial TestSet Configuration
+2026-02-10 08:21:47: _PostTearDownThread-swi_a - Joined
+2026-02-10 08:21:49: PASS: swi_a contains no exceptions
+2026-02-10 08:21:52: Moving *.pcap files across from /tmp
+TEST_CASE_DATETIME_ENDED
+2026-02-10 08:21:52
+<< test-5700.2001.20: PASS (numPassed: 3 numFailed: 0)
+
+>> test-5700.2001.1
+TEST_CASE_DATETIME_STARTED
+2026-02-10 08:21:52
+TEST_CASE_DESCRIPTION
+Boot System: Check the Boot System Backup release
+ cannot be set to the same as the Boot System release.
+TEST_CASE_REFERENCES
+TestLink: AWP2642
+TEST_CASE_METHOD
+1. Set the Boot System release
+2. Set the Boot System Backup release to the same file
+3. Check an error is reported
+
+TEST_CASE_LOGS
+2026-02-10 08:21:53: _PreRunThread-swi_a - Joined
+2026-02-10 08:21:53: Save the current running configuration as swi_a_5700_2001_1.cfg on swi_a
+2026-02-10 08:21:59: _SaveConfigsThread-swi_a - Joined
+2026-02-10 08:21:59: _CheckRunningConfigsThread-swi_a - Joined
+2026-02-10 08:22:04: PASS: Current boot image is correct, mainrelease.rel
+2026-02-10 08:22:05: PASS: Backup boot image is correct, Not set
+2026-02-10 08:22:05: 
+2026-02-10 08:22:05: Setting backup to same release as current
+2026-02-10 08:22:06: PASS: command 'boot system backup mainrelease.rel' rejected with expected message 'Can not set the current'
+2026-02-10 08:22:06: 
+2026-02-10 08:22:08: PASS: Current boot image is correct, mainrelease.rel
+2026-02-10 08:22:10: PASS: Backup boot image is correct, Not set
+2026-02-10 08:22:13: PASS: Backup boot image is correct, backuprelease.rel
+2026-02-10 08:22:13: 
+2026-02-10 08:22:14: Set the swi_a boot configuration back to the TestSet configuration (flash:/swi_a_5700_2001.cfg)
+2026-02-10 08:22:17: Save the current running configuration as TestCase_tear_down.cfg on swi_a
+2026-02-10 08:22:21: Compare swi_a_5700_2001.cfg and TestCase_tear_down.cfg on swi_a
+2026-02-10 08:22:23: PASS: Configuration on swi_a after TestCase tear_down() is the same as the initial TestSet Configuration
+2026-02-10 08:22:23: _PostTearDownThread-swi_a - Joined
+2026-02-10 08:22:25: PASS: swi_a contains no exceptions
+2026-02-10 08:22:27: Moving *.pcap files across from /tmp
+TEST_CASE_DATETIME_ENDED
+2026-02-10 08:22:27
+<< test-5700.2001.1: PASS (numPassed: 8 numFailed: 0)
+
+>> test-5700.2001.2
+TEST_CASE_DATETIME_STARTED
+2026-02-10 08:22:27
+TEST_CASE_DESCRIPTION
+Boot System: Check that the Boot System current and backup cannot be set to a file name that has now been moved to a different name.
+TEST_CASE_REFERENCES
+TestLink: AWP2643
+TEST_CASE_METHOD
+1. Move a release file to a new name
+2. Set the Boot System current the previous relase file name which is now nonexistent
+3. Check an error is reported
+
+TEST_CASE_LOGS
+2026-02-10 08:22:28: _PreRunThread-swi_a - Joined
+2026-02-10 08:22:30: Save the current running configuration as swi_a_5700_2001_2.cfg on swi_a
+2026-02-10 08:22:37: _SaveConfigsThread-swi_a - Joined
+2026-02-10 08:22:37: _CheckRunningConfigsThread-swi_a - Joined
+2026-02-10 08:22:38: 
+2026-02-10 08:22:38: Moving the release file to a new name
+2026-02-10 08:22:39: PASS: command 'move mainrelease.rel movedmainrelease.rel' issued and output 'Successful operation' seen
+2026-02-10 08:22:39: 
+2026-02-10 08:22:39: Setting the Boot System current to the old release file name
+2026-02-10 08:22:40: PASS: command 'boot system mainrelease.rel' rejected with expected message 'does not exist'
+2026-02-10 08:22:40: 
+2026-02-10 08:22:40: Setting the Boot System backup to the old release file name
+2026-02-10 08:22:43: PASS: command 'boot system backup mainrelease.rel' rejected with expected message 'does not exist'
+2026-02-10 08:22:43: 
+2026-02-10 08:22:45: PASS: Current boot image is correct, Not set
+2026-02-10 08:22:46: PASS: Backup boot image is correct, Not set
+2026-02-10 08:22:46: 
+2026-02-10 08:23:36: Set the swi_a boot configuration back to the TestSet configuration (flash:/swi_a_5700_2001.cfg)
+2026-02-10 08:23:38: Save the current running configuration as TestCase_tear_down.cfg on swi_a
+2026-02-10 08:23:42: Compare swi_a_5700_2001.cfg and TestCase_tear_down.cfg on swi_a
+2026-02-10 08:23:44: PASS: Configuration on swi_a after TestCase tear_down() is the same as the initial TestSet Configuration
+2026-02-10 08:23:44: _PostTearDownThread-swi_a - Joined
+2026-02-10 08:23:46: PASS: swi_a contains no exceptions
+2026-02-10 08:23:48: Moving *.pcap files across from /tmp
+TEST_CASE_DATETIME_ENDED
+2026-02-10 08:23:48
+<< test-5700.2001.2: PASS (numPassed: 7 numFailed: 0)
+
+>> test-5700.2001.3
+TEST_CASE_DATETIME_STARTED
+2026-02-10 08:23:48
+TEST_CASE_DESCRIPTION
+Boot System: Check that the Boot System current and backup release cannot be set to a file that does not have the correct file extension
+TEST_CASE_REFERENCES
+TestLink: AWP2644
+TEST_CASE_METHOD
+1. Rename a release file to a '.cfg' file
+2. Set the Boot System current and then the backup to the '.cfg' file
+3. Check an error is reported
+
+TEST_CASE_LOGS
+2026-02-10 08:23:50: _PreRunThread-swi_a - Joined
+2026-02-10 08:23:51: Save the current running configuration as swi_a_5700_2001_3.cfg on swi_a
+2026-02-10 08:23:58: _SaveConfigsThread-swi_a - Joined
+2026-02-10 08:23:58: _CheckRunningConfigsThread-swi_a - Joined
+2026-02-10 08:23:59: 
+2026-02-10 08:23:59: Moving the release file to a file name with a suffix of '.cfg'
+2026-02-10 08:24:01: PASS: command 'move mainrelease.rel movedmainrelease.cfg' issued and output 'Successful operation' seen
+2026-02-10 08:24:01: 
+2026-02-10 08:24:01: Setting the Boot System current to the release file renamed with a suffix of '.cfg'
+2026-02-10 08:24:02: PASS: command 'boot system movedmainrelease.cfg' rejected with expected message 'Release files must have'
+2026-02-10 08:24:02: 
+2026-02-10 08:24:02: Setting the Boot System backup to the release file renamed with a suffix of '.cfg'
+2026-02-10 08:24:02: PASS: command 'boot system backup movedmainrelease.cfg' rejected with expected message 'Release files must have'
+2026-02-10 08:24:02: 
+2026-02-10 08:24:04: PASS: Current boot image is correct, Not set
+2026-02-10 08:24:06: PASS: Backup boot image is correct, Not set
+2026-02-10 08:24:06: 
+2026-02-10 08:24:49: Set the swi_a boot configuration back to the TestSet configuration (flash:/swi_a_5700_2001.cfg)
+2026-02-10 08:24:51: Save the current running configuration as TestCase_tear_down.cfg on swi_a
+2026-02-10 08:24:55: Compare swi_a_5700_2001.cfg and TestCase_tear_down.cfg on swi_a
+2026-02-10 08:24:57: PASS: Configuration on swi_a after TestCase tear_down() is the same as the initial TestSet Configuration
+2026-02-10 08:24:57: _PostTearDownThread-swi_a - Joined
+2026-02-10 08:24:59: PASS: swi_a contains no exceptions
+2026-02-10 08:25:01: Moving *.pcap files across from /tmp
+TEST_CASE_DATETIME_ENDED
+2026-02-10 08:25:01
+<< test-5700.2001.3: PASS (numPassed: 7 numFailed: 0)
+
+>> test-5700.2001.4
+TEST_CASE_DATETIME_STARTED
+2026-02-10 08:25:01
+TEST_CASE_DESCRIPTION
+Boot System: Check that the Boot System current and backup relesae cannot be set to a validly named release file that is not a valid release version file.
+TEST_CASE_REFERENCES
+TestLink: AWP2645
+TEST_CASE_METHOD
+1. Create a simple text file named with a valid release file name extension
+2. Set the Boot System current and then backup release to the fake release file
+3. Check an error is reported
+
+TEST_CASE_LOGS
+2026-02-10 08:25:02: _PreRunThread-swi_a - Joined
+2026-02-10 08:25:04: Save the current running configuration as swi_a_5700_2001_4.cfg on swi_a
+2026-02-10 08:25:11: _SaveConfigsThread-swi_a - Joined
+2026-02-10 08:25:11: _CheckRunningConfigsThread-swi_a - Joined
+2026-02-10 08:25:12: Create a fake release file, named as a '.rel' file, from simple text
+2026-02-10 08:25:13: 
+2026-02-10 08:25:13: Setting the Boot System current to the fake release file
+2026-02-10 08:25:15: PASS: command 'boot system fakerelease.rel' rejected with expected message 'Not a regular file'
+2026-02-10 08:25:15: 
+2026-02-10 08:25:15: Setting the Boot System backup to the fake release file
+2026-02-10 08:25:15: PASS: command 'boot system backup fakerelease.rel' rejected with expected message 'Not a regular file'
+2026-02-10 08:25:15: 
+2026-02-10 08:25:17: PASS: Current boot image is correct, Not set
+2026-02-10 08:25:18: PASS: Backup boot image is correct, Not set
+2026-02-10 08:25:18: 
+2026-02-10 08:25:19: Set the swi_a boot configuration back to the TestSet configuration (flash:/swi_a_5700_2001.cfg)
+2026-02-10 08:25:21: Save the current running configuration as TestCase_tear_down.cfg on swi_a
+2026-02-10 08:25:25: Compare swi_a_5700_2001.cfg and TestCase_tear_down.cfg on swi_a
+2026-02-10 08:25:27: PASS: Configuration on swi_a after TestCase tear_down() is the same as the initial TestSet Configuration
+2026-02-10 08:25:27: _PostTearDownThread-swi_a - Joined
+2026-02-10 08:25:29: PASS: swi_a contains no exceptions
+2026-02-10 08:25:32: Moving *.pcap files across from /tmp
+TEST_CASE_DATETIME_ENDED
+2026-02-10 08:25:32
+<< test-5700.2001.4: PASS (numPassed: 6 numFailed: 0)
+
+>> test-5700.2001.5
+TEST_CASE_DATETIME_STARTED
+2026-02-10 08:25:32
+TEST_CASE_DESCRIPTION
+Boot System: Check both the Boot System current and backup cannot be set to a nonexistent file.
+TEST_CASE_REFERENCES
+AWP2648
+TEST_CASE_METHOD
+1. Set the Boot System current and then the backup release to the name of a nonexistent file
+2. Check an error is reported
+
+TEST_CASE_LOGS
+2026-02-10 08:25:33: _PreRunThread-swi_a - Joined
+2026-02-10 08:25:35: Save the current running configuration as swi_a_5700_2001_5.cfg on swi_a
+2026-02-10 08:25:41: _SaveConfigsThread-swi_a - Joined
+2026-02-10 08:25:41: _CheckRunningConfigsThread-swi_a - Joined
+2026-02-10 08:25:43: 
+2026-02-10 08:25:43: Setting the Boot System current to a nonexistent release file
+2026-02-10 08:25:44: PASS: command 'boot system asdf1234qwerty.rel' rejected with expected message 'does not exist'
+2026-02-10 08:25:44: 
+2026-02-10 08:25:44: Setting the Boot System backup to a nonexistent release file
+2026-02-10 08:25:44: PASS: command 'boot system backup asdf1234qwerty.rel' rejected with expected message 'does not exist'
+2026-02-10 08:25:44: 
+2026-02-10 08:25:46: PASS: Current boot image is correct, Not set
+2026-02-10 08:25:47: PASS: Backup boot image is correct, Not set
+2026-02-10 08:25:47: 
+2026-02-10 08:25:49: Set the swi_a boot configuration back to the TestSet configuration (flash:/swi_a_5700_2001.cfg)
+2026-02-10 08:25:51: Save the current running configuration as TestCase_tear_down.cfg on swi_a
+2026-02-10 08:25:55: Compare swi_a_5700_2001.cfg and TestCase_tear_down.cfg on swi_a
+2026-02-10 08:25:57: PASS: Configuration on swi_a after TestCase tear_down() is the same as the initial TestSet Configuration
+2026-02-10 08:25:57: _PostTearDownThread-swi_a - Joined
+2026-02-10 08:25:59: PASS: swi_a contains no exceptions
+2026-02-10 08:26:02: Moving *.pcap files across from /tmp
+TEST_CASE_DATETIME_ENDED
+2026-02-10 08:26:02
+<< test-5700.2001.5: PASS (numPassed: 6 numFailed: 0)
+
+>> test-5700.2001.6
+TEST_CASE_DATETIME_STARTED
+2026-02-10 08:26:02
+TEST_CASE_DESCRIPTION
+Boot System: Check that the file set as the Boot System current and backup cannot be moved to a different name.
+TEST_CASE_REFERENCES
+AWP2659
+TEST_CASE_METHOD
+1. Set the Boot System current and backup to a valid release
+2. Move the file set as Boot Sytem current and backup
+3. Check an error is reported
+
+TEST_CASE_LOGS
+2026-02-10 08:26:03: _PreRunThread-swi_a - Joined
+2026-02-10 08:26:05: Save the current running configuration as swi_a_5700_2001_6.cfg on swi_a
+2026-02-10 08:26:12: _SaveConfigsThread-swi_a - Joined
+2026-02-10 08:26:12: _CheckRunningConfigsThread-swi_a - Joined
+2026-02-10 08:26:13: Setting the Boot System current and backup to valid release files
+2026-02-10 08:26:17: PASS: Current boot image is correct, mainrelease.rel
+2026-02-10 08:26:18: PASS: Backup boot image is correct, backuprelease.rel
+2026-02-10 08:26:18: 
+2026-02-10 08:26:18: Move the release file already set as the Boot System current
+2026-02-10 08:26:19: PASS: command 'move mainrelease.rel asdf.rel' rejected with expected message 'configured as the current boot image'
+2026-02-10 08:26:19: 
+2026-02-10 08:26:19: Move the release file already set as the Boot System backup
+2026-02-10 08:26:20: PASS: command 'move backuprelease.rel asdf.rel' rejected with expected message 'configured as the backup boot image'
+2026-02-10 08:26:20: 
+2026-02-10 08:26:22: PASS: Current boot image is correct, mainrelease.rel
+2026-02-10 08:26:23: PASS: Backup boot image is correct, backuprelease.rel
+2026-02-10 08:26:23: 
+2026-02-10 08:26:24: Set the swi_a boot configuration back to the TestSet configuration (flash:/swi_a_5700_2001.cfg)
+2026-02-10 08:26:27: Save the current running configuration as TestCase_tear_down.cfg on swi_a
+2026-02-10 08:26:31: Compare swi_a_5700_2001.cfg and TestCase_tear_down.cfg on swi_a
+2026-02-10 08:26:33: PASS: Configuration on swi_a after TestCase tear_down() is the same as the initial TestSet Configuration
+2026-02-10 08:26:33: _PostTearDownThread-swi_a - Joined
+2026-02-10 08:26:35: PASS: swi_a contains no exceptions
+2026-02-10 08:26:37: Moving *.pcap files across from /tmp
+TEST_CASE_DATETIME_ENDED
+2026-02-10 08:26:37
+<< test-5700.2001.6: PASS (numPassed: 8 numFailed: 0)
+
+>> test-5700.2001.7
+TEST_CASE_DATETIME_STARTED
+2026-02-10 08:26:37
+TEST_CASE_DESCRIPTION
+Boot System: Check that the file set as the Boot System current and backup cannot be edited.
+TEST_CASE_REFERENCES
+AWP2661
+TEST_CASE_METHOD
+1. Set the Boot System current and backup to a valid release
+2. Edit the file set as Boot Sytem current and backup
+3. Check an error is reported
+
+TEST_CASE_LOGS
+2026-02-10 08:26:39: _PreRunThread-swi_a - Joined
+2026-02-10 08:26:40: Save the current running configuration as swi_a_5700_2001_7.cfg on swi_a
+2026-02-10 08:26:47: _SaveConfigsThread-swi_a - Joined
+2026-02-10 08:26:47: _CheckRunningConfigsThread-swi_a - Joined
+2026-02-10 08:26:49: Setting the Boot System current and backup to valid release files
+2026-02-10 08:26:52: PASS: Current boot image is correct, mainrelease.rel
+2026-02-10 08:26:53: PASS: Backup boot image is correct, backuprelease.rel
+2026-02-10 08:26:53: 
+2026-02-10 08:26:53: Edit the release file already set as the Boot System current
+2026-02-10 08:26:57: PASS: command 'edit mainrelease.rel' issued and output 'must be a text file' seen
+2026-02-10 08:26:57: 
+2026-02-10 08:26:57: Edit the release file already set as the Boot System backup
+2026-02-10 08:27:01: PASS: command 'edit backuprelease.rel' issued and output 'must be a text file' seen
+2026-02-10 08:27:01: 
+2026-02-10 08:27:02: PASS: Current boot image is correct, mainrelease.rel
+2026-02-10 08:27:03: PASS: Backup boot image is correct, backuprelease.rel
+2026-02-10 08:27:03: 
+2026-02-10 08:27:05: Set the swi_a boot configuration back to the TestSet configuration (flash:/swi_a_5700_2001.cfg)
+2026-02-10 08:27:07: Save the current running configuration as TestCase_tear_down.cfg on swi_a
+2026-02-10 08:27:11: Compare swi_a_5700_2001.cfg and TestCase_tear_down.cfg on swi_a
+2026-02-10 08:27:13: PASS: Configuration on swi_a after TestCase tear_down() is the same as the initial TestSet Configuration
+2026-02-10 08:27:13: _PostTearDownThread-swi_a - Joined
+2026-02-10 08:27:15: PASS: swi_a contains no exceptions
+2026-02-10 08:27:17: Moving *.pcap files across from /tmp
+TEST_CASE_DATETIME_ENDED
+2026-02-10 08:27:17
+<< test-5700.2001.7: PASS (numPassed: 8 numFailed: 0)
+
+>> test-5700.2001.8
+TEST_CASE_DATETIME_STARTED
+2026-02-10 08:27:18
+TEST_CASE_DESCRIPTION
+Boot System: Check that the file set as the Boot System current and backup cannot be deleted.
+TEST_CASE_REFERENCES
+AWP2665
+TEST_CASE_METHOD
+1. Set the Boot System current and backup to a valid release
+2. Delete the file set as Boot Sytem current and backup
+3. Check an error is reported
+
+TEST_CASE_LOGS
+2026-02-10 08:27:19: _PreRunThread-swi_a - Joined
+2026-02-10 08:27:20: Save the current running configuration as swi_a_5700_2001_8.cfg on swi_a
+2026-02-10 08:27:27: _SaveConfigsThread-swi_a - Joined
+2026-02-10 08:27:27: _CheckRunningConfigsThread-swi_a - Joined
+2026-02-10 08:27:29: Setting the Boot System current and backup to valid release files
+2026-02-10 08:27:32: PASS: Current boot image is correct, mainrelease.rel
+2026-02-10 08:27:33: PASS: Backup boot image is correct, backuprelease.rel
+2026-02-10 08:27:33: 
+2026-02-10 08:27:33: Delete the release file already set as the Boot System current
+2026-02-10 08:27:34: PASS: command 'delete mainrelease.rel' rejected with expected message 'Cannot delete'
+2026-02-10 08:27:34: 
+2026-02-10 08:27:34: Delete the release file already set as the Boot System backup
+2026-02-10 08:27:34: PASS: command 'delete backuprelease.rel' rejected with expected message 'Cannot delete'
+2026-02-10 08:27:34: 
+2026-02-10 08:27:36: PASS: Current boot image is correct, mainrelease.rel
+2026-02-10 08:27:37: PASS: Backup boot image is correct, backuprelease.rel
+2026-02-10 08:27:37: 
+2026-02-10 08:27:38: Set the swi_a boot configuration back to the TestSet configuration (flash:/swi_a_5700_2001.cfg)
+2026-02-10 08:27:41: Save the current running configuration as TestCase_tear_down.cfg on swi_a
+2026-02-10 08:27:45: Compare swi_a_5700_2001.cfg and TestCase_tear_down.cfg on swi_a
+2026-02-10 08:27:47: PASS: Configuration on swi_a after TestCase tear_down() is the same as the initial TestSet Configuration
+2026-02-10 08:27:47: _PostTearDownThread-swi_a - Joined
+2026-02-10 08:27:49: PASS: swi_a contains no exceptions
+2026-02-10 08:27:51: Moving *.pcap files across from /tmp
+TEST_CASE_DATETIME_ENDED
+2026-02-10 08:27:51
+<< test-5700.2001.8: PASS (numPassed: 8 numFailed: 0)
+
+>> test-5700.2001.9
+TEST_CASE_DATETIME_STARTED
+2026-02-10 08:27:51
+TEST_CASE_DESCRIPTION
+Boot System: Check that the file set as the Boot System current and backup can be copied.
+TEST_CASE_REFERENCES
+AWP2663
+TEST_CASE_METHOD
+1. Set the Boot System current to a valid release
+2. Set the Boot System backup to nothing
+3. Delete the backup release from flash
+4. Copy MAIN_RELEASE to a new file name
+5. Move the new file to BACKUP_RELEASE
+6. Clear the boot system current setting and set backup to a valid file name
+7. Delete the main releas from flash
+8. Copy BACKUP_RELEASE to a new file name
+
+TEST_CASE_LOGS
+2026-02-10 08:27:52: _PreRunThread-swi_a - Joined
+2026-02-10 08:27:54: Save the current running configuration as swi_a_5700_2001_9.cfg on swi_a
+2026-02-10 08:28:01: _SaveConfigsThread-swi_a - Joined
+2026-02-10 08:28:01: _CheckRunningConfigsThread-swi_a - Joined
+2026-02-10 08:28:02: Setting the Boot System current to valid release files
+2026-02-10 08:28:05: PASS: Current boot image is correct, mainrelease.rel
+2026-02-10 08:28:06: PASS: Backup boot image is correct, Not set
+2026-02-10 08:28:06: 
+2026-02-10 08:28:06: Delete backuprelease.rel file
+2026-02-10 08:28:11: PASS: command 'delete backuprelease.rel' issued and output 'Successful operation' seen
+2026-02-10 08:28:11: 
+2026-02-10 08:28:11: Copy the release file already set as the Boot System current
+2026-02-10 08:28:50: PASS: command 'copy mainrelease.rel copymainrelease.rel' issued and output 'Successful operation' seen
+2026-02-10 08:28:50: 
+2026-02-10 08:28:50: Move copymainrelease.rel to backuprelease.rel file
+2026-02-10 08:28:51: PASS: command 'move copymainrelease.rel backuprelease.rel' issued and output 'Successful operation' seen
+2026-02-10 08:28:52: Unset the Boot System current release
+2026-02-10 08:28:53: Setting the Boot System backup to valid release files
+2026-02-10 08:28:56: PASS: Current boot image is correct, Not set
+2026-02-10 08:28:57: PASS: Backup boot image is correct, backuprelease.rel
+2026-02-10 08:28:57: 
+2026-02-10 08:28:57: Delete mainrelease.rel file
+2026-02-10 08:29:02: PASS: command 'delete mainrelease.rel' issued and output 'Successful operation' seen
+2026-02-10 08:29:02: 
+2026-02-10 08:29:02: Copy the release file already set as the Boot System backup
+2026-02-10 08:29:41: PASS: command 'copy backuprelease.rel copybackuprelease.rel' issued and output 'Successful operation' seen
+2026-02-10 08:29:41: 
+2026-02-10 08:29:41: Move copybackuprelease.rel to mainrelease.rel file
+2026-02-10 08:29:43: PASS: command 'move copybackuprelease.rel mainrelease.rel' issued and output 'Successful operation' seen
+2026-02-10 08:29:44: Setting the Boot System current and backup to valid release files
+2026-02-10 08:29:45: 
+2026-02-10 08:29:47: PASS: Current boot image is correct, mainrelease.rel
+2026-02-10 08:29:49: PASS: Backup boot image is correct, backuprelease.rel
+2026-02-10 08:29:49: 
+2026-02-10 08:29:50: Set the swi_a boot configuration back to the TestSet configuration (flash:/swi_a_5700_2001.cfg)
+2026-02-10 08:29:52: Save the current running configuration as TestCase_tear_down.cfg on swi_a
+2026-02-10 08:29:57: Compare swi_a_5700_2001.cfg and TestCase_tear_down.cfg on swi_a
+2026-02-10 08:29:58: PASS: Configuration on swi_a after TestCase tear_down() is the same as the initial TestSet Configuration
+2026-02-10 08:29:58: _PostTearDownThread-swi_a - Joined
+2026-02-10 08:30:00: PASS: swi_a contains no exceptions
+2026-02-10 08:30:03: Moving *.pcap files across from /tmp
+TEST_CASE_DATETIME_ENDED
+2026-02-10 08:30:03
+<< test-5700.2001.9: PASS (numPassed: 14 numFailed: 0)
+
+2026-02-10 08:30:03: ======== TestCase execution is now complete
+
+2026-02-10 08:30:03: Renaming ./testbox.log to testbox_2001.log
+2026-02-10 08:30:03: Renaming ./power-sock-10.36.230.208-1.log to power-sock-10.36.230.208-1_2001.log
+2026-02-10 08:30:03: Renaming ./power-group-swi_a.log to power-group-swi_a_2001.log
+2026-02-10 08:30:03: Renaming ./swi_a.log to swi_a_2001.log
+2026-02-10 08:30:03: Renaming power-group-20260210.log to power-group-20260210_2001.log
+2026-02-10 08:30:03: Renaming ./setup.log to setup_2001.log
+2026-02-10 08:30:03: ================ TESTSET FINISHED (rc = 0) ================

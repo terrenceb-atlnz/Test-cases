@@ -1,0 +1,1446 @@
+2026-02-09 11:28:54: ================ TESTSET STARTED ================
+2026-02-09 11:28:54: ['/home/terrenceb/test_scripts/5700_bootloader/test-5700.2002.py', '-s', 'default.setup', '-u', '-v']
+2026-02-09 11:28:54: Loading setup file: default.setup
+2026-02-09 11:28:54: ============================
+2026-02-09 11:28:54: TESTBOXES
+2026-02-09 11:28:54: ============================
+2026-02-09 11:28:54: tb101 :
+2026-02-09 11:28:54:   Connected to:
+2026-02-09 11:28:54:     swi_a  via : eth2-port1.0.2
+2026-02-09 11:28:54: 
+2026-02-09 11:28:54: ============================
+2026-02-09 11:28:54: SWITCHES
+2026-02-09 11:28:54: ============================
+2026-02-09 11:28:54: swi_a :
+2026-02-09 11:28:54:   Connected to:
+2026-02-09 11:28:54:     tb  via : port1.0.2-eth2
+2026-02-09 11:28:54: 
+2026-02-09 11:28:54: swi_a is defined and initialized
+2026-02-09 11:28:54: swi_a is connected to a powerstrip: pdu, 10.36.230.208, 3
+2026-02-09 11:28:54: ======== Power cycle all devices that have been initialized
+2026-02-09 11:28:55: Skip power-off : swi_a, device is running and responsive
+2026-02-09 11:28:56: Successfully power cycled all initialized devices
+2026-02-09 11:28:56: ======== Check that all stacks and switches are well formed
+2026-02-09 11:28:56: Check that swi_a login succeeds
+2026-02-09 11:28:57: swi_a is currently running and logged on
+2026-02-09 11:29:13: ======== Clear exception log for all devices
+2026-02-09 11:29:15: The following features were specified for the TestSet: 'ACCESS'
+2026-02-09 11:29:15: ======== Generate default.cfg for all devices and reboot them
+2026-02-09 11:29:15: Generating default.cfg for swi_a
+2026-02-09 11:29:25: Will be removing tracelog in swi_a
+2026-02-09 11:29:36: The following features were specified for the TestSet: 'ACCESS'
+2026-02-09 11:29:39: swi_a platform type is x230v2
+2026-02-09 11:29:39: No license bundles require loading on swi_a for platform family x230v2
+2026-02-09 11:29:39: No license bundles require unloading from swi_a
+2026-02-09 11:29:42: 
+2026-02-09 11:29:42: Rebooting swi_a with the following default.cfg:
+line con 0
+length 0
+exec-timeout 0
+no stack 1 enable
+no stack virtual-mac
+no stack virtual-chassis-id
+hostname swi_a_5700_2002
+int port1.0.1-port1.0.18
+shutdown
+
+2026-02-09 11:29:42: Check that swi_a login succeeds with default.cfg.
+2026-02-09 11:35:09: swi_a is currently running and logged on
+2026-02-09 11:35:13: Retrieve basic system information from swi_a
+2026-02-09 11:35:29: Executing TestSet configure...
+2026-02-09 11:35:33: Retrieving device information...
+2026-02-09 11:35:51: 
+2026-02-09 11:35:51: --------------------------------------------------------------------------------
+2026-02-09 11:35:51: Collected network details:
+2026-02-09 11:35:51: --------------------------------------------------------------------------------
+2026-02-09 11:35:51: 	tftp boot switch interface   : port1.0.2
+2026-02-09 11:35:51: 	tftp boot tb interface       : eth2
+2026-02-09 11:35:51: 	post-bootup switch interface : port1.0.2
+2026-02-09 11:35:51: 	post-bootup tb interface     : eth2
+2026-02-09 11:35:51: 	tftpfilename: x230v2-tb101.rel
+2026-02-09 11:35:51: 	filenamecopy: x230v2-copy-tb101.rel
+2026-02-09 11:35:51: 	wrong filename: soft64-5.5.3-2.1.rel
+2026-02-09 11:35:51: 	ipTFTP    : 10.37.101.1
+2026-02-09 11:35:51: 	ipDevice  : 10.37.101.2
+2026-02-09 11:35:51: 	subnetmask: 255.255.255.224
+2026-02-09 11:35:51: 	port: 2
+2026-02-09 11:35:51: 	version: 6.2.37
+2026-02-09 11:35:51: 	has realtime clock: True
+2026-02-09 11:35:51: 
+2026-02-09 11:35:51: 	MAIN_RELEASE:  mainrelease.rel
+2026-02-09 11:35:51: 	BACKUP_RELEASE: backuprelease.rel
+2026-02-09 11:35:51: 
+2026-02-09 11:39:29: dir *.rel
+
+  31182003 -rw- Feb 08 2026 22:38:42  flash:/backuprelease.rel
+  31182003 -rw- Feb 08 2026 22:36:54  flash:/mainrelease.rel
+swi_a_5700_2002#
+2026-02-09 11:39:29: ======== Wait for all devices to finish booting before bringing up all switch ports
+2026-02-09 11:39:30: ======== Bring up all switch ports that have been initialized in init() to be used for the TestSet
+2026-02-09 11:39:31: Bringing up swi_a ports: port1.0.2
+2026-02-09 11:39:37: All ports on swi_a that are used in this TestSet have been successfully brought up
+2026-02-09 11:39:37: ======== Save the current running config (TestSet config) as the boot config
+2026-02-09 11:39:37: Generating running config and saving to swi_a_5700_2002.cfg
+2026-02-09 11:39:50: ======== Mark unsupported test cases
+2026-02-09 11:39:50: 
+2026-02-09 11:39:50: -- TestCase 90
+2026-02-09 11:39:50: ---- Checking testCaseExcl
+2026-02-09 11:39:50:       swi_a : exclude : "AR.*", "FS980"
+2026-02-09 11:39:50:         no match on dev.get_switch_family() : "x230v2"
+2026-02-09 11:39:50: Exclude TestCases with run-priority 10
+2026-02-09 11:39:50: Selected 26 TestCases from 27 total
+2026-02-09 11:39:50: ======== TestSet preparation is now complete. Execute each TestCase one by one
+>> test-5700.2002.1
+TEST_CASE_DATETIME_STARTED
+2026-02-09 11:39:50
+TEST_CASE_DESCRIPTION
+SD Card is present
+TEST_CASE_REFERENCES
+-
+TEST_CASE_METHOD
+1. If DUT shows an SD card slot, fail if there is no SD card
+
+TEST_CASE_LOGS
+2026-02-09 11:39:51: _PreRunThread-swi_a - Joined
+2026-02-09 11:39:51: Save the current running configuration as swi_a_5700_2002_1.cfg on swi_a
+2026-02-09 11:39:57: _SaveConfigsThread-swi_a - Joined
+2026-02-09 11:39:57: _CheckRunningConfigsThread-swi_a - Joined
+2026-02-09 11:40:03: !!FAIL: DUT supports SD Card but no SD Card installed
+2026-02-09 11:40:03: 
+2026-02-09 11:40:03: Set the swi_a boot configuration back to the TestSet configuration (flash:/swi_a_5700_2002.cfg)
+2026-02-09 11:40:04: Save the current running configuration as TestCase_tear_down.cfg on swi_a
+2026-02-09 11:40:09: Compare swi_a_5700_2002.cfg and TestCase_tear_down.cfg on swi_a
+2026-02-09 11:40:10: PASS: Configuration on swi_a after TestCase tear_down() is the same as the initial TestSet Configuration
+2026-02-09 11:40:10: _PostTearDownThread-swi_a - Joined
+2026-02-09 11:40:12: PASS: swi_a contains no exceptions
+2026-02-09 11:40:15: Setup is no longer reliable - all devices will be rebooted
+2026-02-09 11:40:15: Power cycle swi_a
+2026-02-09 11:41:21: Power cycle swi_a completed: Fail
+2026-02-09 11:41:21: _PowerCycleThread-swi_a - Joined
+2026-02-09 11:41:21: Wait for all ports to reach running state after power-cycle
+2026-02-09 11:41:22: All ports on swi_a that are used in this TestSet have been successfully brought up
+2026-02-09 11:41:22: wait_for_all_ports_running-swi_a - Joined
+2026-02-09 11:41:22: Moving *.pcap files across from /tmp
+TEST_CASE_DATETIME_ENDED
+2026-02-09 11:41:22
+<< test-5700.2002.1: FAIL (numPassed: 2 numFailed: 1)
+
+>> test-5700.2002.2
+TEST_CASE_DATETIME_STARTED
+2026-02-09 11:41:22
+TEST_CASE_DESCRIPTION
+USB Media is present
+TEST_CASE_REFERENCES
+-
+TEST_CASE_METHOD
+1. If DUT shows a USB slot, fail if there is no USB media
+
+TEST_CASE_LOGS
+2026-02-09 11:41:23: _PreRunThread-swi_a - Joined
+2026-02-09 11:41:23: Save the current running configuration as swi_a_5700_2002_2.cfg on swi_a
+2026-02-09 11:41:29: _SaveConfigsThread-swi_a - Joined
+2026-02-09 11:41:29: _CheckRunningConfigsThread-swi_a - Joined
+2026-02-09 11:41:55: !!FAIL: DUT does not support USB Media
+2026-02-09 11:41:55: 
+2026-02-09 11:41:55: Set the swi_a boot configuration back to the TestSet configuration (flash:/swi_a_5700_2002.cfg)
+2026-02-09 11:41:57: Save the current running configuration as TestCase_tear_down.cfg on swi_a
+2026-02-09 11:42:01: Compare swi_a_5700_2002.cfg and TestCase_tear_down.cfg on swi_a
+2026-02-09 11:42:03: PASS: Configuration on swi_a after TestCase tear_down() is the same as the initial TestSet Configuration
+2026-02-09 11:42:03: _PostTearDownThread-swi_a - Joined
+2026-02-09 11:42:05: PASS: swi_a contains no exceptions
+2026-02-09 11:42:07: Moving *.pcap files across from /tmp
+TEST_CASE_DATETIME_ENDED
+2026-02-09 11:42:07
+<< test-5700.2002.2: UNSUPPORTED (numPassed: 2 numFailed: 1)
+
+>> test-5700.2002.10
+TEST_CASE_DATETIME_STARTED
+2026-02-09 11:42:07
+TEST_CASE_DESCRIPTION
+Skip Default config
+TEST_CASE_REFERENCES
+AWP2716
+TEST_CASE_METHOD
+1. Check default and currrent boot config settings
+2. Add config 'log console level alerts' to the current config
+3. Enter the Boot menu and select option 5 - Special boot options
+4. Select option 1 - Skip startup script (Use system defaults)
+5. On reboot check that the default boot config was used by checking that 'log console level alerts' was not configured
+
+TEST_CASE_LOGS
+2026-02-09 11:42:09: _PreRunThread-swi_a - Joined
+2026-02-09 11:42:09: Save the current running configuration as swi_a_5700_2002_10.cfg on swi_a
+2026-02-09 11:42:15: _SaveConfigsThread-swi_a - Joined
+2026-02-09 11:42:15: _CheckRunningConfigsThread-swi_a - Joined
+2026-02-09 11:42:15: 
+2026-02-09 11:42:15: Check Default boot config is set
+2026-02-09 11:42:17: PASS: Default boot config is correct, default.cfg
+2026-02-09 11:42:17: 
+2026-02-09 11:42:17: Check Current boot config is set
+2026-02-09 11:42:18: PASS: Current boot config is correct, swi_a_5700_2002_10.cfg
+2026-02-09 11:42:18: 
+2026-02-09 11:42:18: Set current config to contain config to 'log console level alerts'
+2026-02-09 11:42:25: PASS: Current config has been updated
+2026-02-09 11:42:25: 
+2026-02-09 11:42:25: Power-off swi_a
+2026-02-09 11:42:56: Set swi_a to skip the startup script
+2026-02-09 11:42:56: Power-cycle swi_a and watch for <Ctrl+B> message
+2026-02-09 11:43:37: Turning swi on from thread, swi_a
+2026-02-09 11:46:09: Turning swi on from thread, swi_a
+2026-02-09 11:48:41: Turning swi on from thread, swi_a
+2026-02-09 11:51:13: Turning swi on from thread, swi_a
+2026-02-09 11:53:44: Turning swi on from thread, swi_a
+2026-02-09 11:56:16: Turning swi on from thread, swi_a
+2026-02-09 11:58:06: !!FAIL: Problem occurred whilst setting boot environment on swi_a, abort
+2026-02-09 11:58:06: ----------------------------------------
+2026-02-09 11:58:06: swi_a
+2026-02-09 11:58:06: ----------------------------------------
+2026-02-09 11:58:06: 
+2026-02-09 11:58:06: !!FAIL: Did not see recognized successful bootup message(s): Mounting, Booting, Initializing
+2026-02-09 11:58:06: --------------------------------------------------
+2026-02-09 11:58:06: ----------------------------------------
+2026-02-09 11:58:06: swi_a
+2026-02-09 11:58:06: ----------------------------------------
+2026-02-09 11:58:06: 
+2026-02-09 11:58:06: --------------------------------------------------
+2026-02-09 11:58:06: show run
+
+!
+service password-encryption
+!
+hostname swi_a_5700_2002
+!
+no banner motd
+!
+username manager privilege 15 password 8 <REDACTED-HASH>
+!
+log console level alerts 
+!
+ssh server secure-algs
+no service ssh
+!
+no service telnet
+!
+service http
+!
+no clock timezone
+!
+snmp-server
+!
+!
+!
+aaa authentication enable default local
+aaa authentication login default local
+!
+!
+!
+!
+!
+!
+!
+ip domain-lookup
+!
+!
+!
+no service dhcp-server
+!
+spanning-tree mode rstp
+!
+no lacp global-passive-mode enable
+!
+interface port1.0.1
+ switchport
+ switchport mode access
+ shutdown
+!
+interface port1.0.2
+ switchport
+ switchport mode access
+ spanning-tree edgeport
+ spanning-tree portfast bpdu-filter enable
+!
+interface port1.0.3-1.0.18
+ switchport
+ switchport mode access
+ shutdown
+!
+line con 0
+ exec-timeout 0 0
+ length 0
+line vty 0 7
+!
+end
+
+swi_a_5700_2002#
+2026-02-09 11:58:06: !!FAIL: incorrect message when setting skip startup script
+2026-02-09 11:58:07: 
+2026-02-09 11:58:07: Check that running config does not have the config to 'log console level alerts'
+2026-02-09 11:58:09: show run
+
+!
+service password-encryption
+!
+hostname swi_a_5700_2002
+!
+no banner motd
+!
+username manager privilege 15 password 8 <REDACTED-HASH>
+!
+log console level alerts 
+!
+ssh server secure-algs
+no service ssh
+!
+no service telnet
+!
+service http
+!
+no clock timezone
+!
+snmp-server
+!
+!
+!
+aaa authentication enable default local
+aaa authentication login default local
+!
+!
+!
+!
+!
+!
+!
+ip domain-lookup
+!
+!
+!
+no service dhcp-server
+!
+spanning-tree mode rstp
+!
+no lacp global-passive-mode enable
+!
+interface port1.0.1
+ switchport
+ switchport mode access
+ shutdown
+!
+interface port1.0.2
+ switchport
+ switchport mode access
+ spanning-tree edgeport
+ spanning-tree portfast bpdu-filter enable
+!
+interface port1.0.3-1.0.18
+ switchport
+ switchport mode access
+ shutdown
+!
+line con 0
+ exec-timeout 0 0
+ length 0
+line vty 0 7
+!
+end
+
+swi_a_5700_2002#
+2026-02-09 11:58:09: !!FAIL: config persisted when skipping boot config
+2026-02-09 12:03:37: Set current config to not contain config to 'no log console level alerts'
+2026-02-09 12:03:42: PASS: config has been reverted
+2026-02-09 12:03:42: 
+2026-02-09 12:03:42: Set the swi_a boot configuration back to the TestSet configuration (flash:/swi_a_5700_2002.cfg)
+2026-02-09 12:03:44: Save the current running configuration as TestCase_tear_down.cfg on swi_a
+2026-02-09 12:03:48: Compare swi_a_5700_2002.cfg and TestCase_tear_down.cfg on swi_a
+2026-02-09 12:03:50: PASS: Configuration on swi_a after TestCase tear_down() is the same as the initial TestSet Configuration
+2026-02-09 12:03:50: _PostTearDownThread-swi_a - Joined
+2026-02-09 12:03:52: PASS: swi_a contains no exceptions
+2026-02-09 12:03:54: Setup is no longer reliable - all devices will be rebooted
+2026-02-09 12:03:54: Power cycle swi_a
+2026-02-09 12:05:00: Power cycle swi_a completed: Fail
+2026-02-09 12:05:00: _PowerCycleThread-swi_a - Joined
+2026-02-09 12:05:00: Wait for all ports to reach running state after power-cycle
+2026-02-09 12:05:01: All ports on swi_a that are used in this TestSet have been successfully brought up
+2026-02-09 12:05:01: wait_for_all_ports_running-swi_a - Joined
+2026-02-09 12:05:01: Moving *.pcap files across from /tmp
+TEST_CASE_DATETIME_ENDED
+2026-02-09 12:05:01
+<< test-5700.2002.10: FAIL (numPassed: 6 numFailed: 4)
+
+>> test-5700.2002.20
+TEST_CASE_DATETIME_STARTED
+2026-02-09 12:05:01
+TEST_CASE_DESCRIPTION
+Filenames named ---w-z-03-09-a-y---.rel - Flash
+TEST_CASE_REFERENCES
+AWP2750, AWP2751
+TEST_CASE_METHOD
+1. Create copies of the main release file called ---w-z-03-09-a-y---.rel and store it in flash2. Set the Boot System current to a release file called ---w-z-03-09-a-y---.rel
+3. Set the default Boot Source to flash
+4. Check the release file ---w-z-03-09-a-y---.rel is used to boot from after each reboot
+
+TEST_CASE_LOGS
+2026-02-09 12:05:02: _PreRunThread-swi_a - Joined
+2026-02-09 12:05:02: Save the current running configuration as swi_a_5700_2002_20.cfg on swi_a
+2026-02-09 12:05:08: _SaveConfigsThread-swi_a - Joined
+2026-02-09 12:05:08: _CheckRunningConfigsThread-swi_a - Joined
+2026-02-09 12:07:03: dir *.rel
+
+  31182003 -rw- Feb 08 2026 23:06:16  flash:/backuprelease.rel
+swi_a_5700_2002#
+2026-02-09 12:07:07: 
+2026-02-09 12:07:46: PASS: command 'copy backuprelease.rel ---w-z-03-09-a-y---.rel' issued and output 'Successful operation' seen
+2026-02-09 12:07:46: 
+2026-02-09 12:07:46: Set the Boot System current to ---w-z-03-09-a-y---.rel
+2026-02-09 12:07:49: PASS: Current boot image is correct, ---w-z-03-09-a-y---.rel
+2026-02-09 12:07:49: 
+2026-02-09 12:07:49: Set default boot source to flash and reboot
+2026-02-09 12:07:49: Set swi_a to boot from CLI
+2026-02-09 12:07:49: Power-cycle swi_a and watch for <Ctrl+B> message
+2026-02-09 12:08:33: Turning swi on from thread, swi_a
+2026-02-09 12:11:05: Turning swi on from thread, swi_a
+2026-02-09 12:13:36: Turning swi on from thread, swi_a
+2026-02-09 12:16:08: Turning swi on from thread, swi_a
+2026-02-09 12:18:40: Turning swi on from thread, swi_a
+2026-02-09 12:21:12: Turning swi on from thread, swi_a
+2026-02-09 12:23:02: !!FAIL: Problem occurred whilst setting boot environment on swi_a, abort
+2026-02-09 12:23:02: ----------------------------------------
+2026-02-09 12:23:02: swi_a
+2026-02-09 12:23:02: ----------------------------------------
+2026-02-09 12:23:02: 
+2026-02-09 12:23:02: !!FAIL: Did not see recognized successful bootup message(s): Mounting, Booting, Initializing
+2026-02-09 12:23:02: --------------------------------------------------
+2026-02-09 12:23:02: ----------------------------------------
+2026-02-09 12:23:02: swi_a
+2026-02-09 12:23:02: ----------------------------------------
+2026-02-09 12:23:02: 
+2026-02-09 12:23:02: --------------------------------------------------
+2026-02-09 12:23:34: Set swi_a to boot from TFTP
+2026-02-09 12:23:34: Power-cycle swi_a and watch for <Ctrl+B> message
+2026-02-09 12:24:15: Turning swi on from thread, swi_a
+2026-02-09 12:26:46: Turning swi on from thread, swi_a
+2026-02-09 12:29:18: Turning swi on from thread, swi_a
+2026-02-09 12:31:50: Turning swi on from thread, swi_a
+2026-02-09 12:34:21: Turning swi on from thread, swi_a
+2026-02-09 12:36:54: Turning swi on from thread, swi_a
+2026-02-09 12:38:44: !!FAIL: Problem occurred whilst setting boot environment on swi_a, abort
+2026-02-09 12:38:44: ----------------------------------------
+2026-02-09 12:38:44: swi_a
+2026-02-09 12:38:44: ----------------------------------------
+2026-02-09 12:38:44: 
+2026-02-09 12:38:55: Restore swi_a to booting from default
+2026-02-09 12:39:57: Set swi_a to boot from TFTP
+2026-02-09 12:39:57: Power-cycle swi_a and watch for <Ctrl+B> message
+2026-02-09 12:40:38: Turning swi on from thread, swi_a
+2026-02-09 12:43:10: Turning swi on from thread, swi_a
+2026-02-09 12:45:42: Turning swi on from thread, swi_a
+2026-02-09 12:48:13: Turning swi on from thread, swi_a
+2026-02-09 12:50:45: Turning swi on from thread, swi_a
+2026-02-09 12:53:17: Turning swi on from thread, swi_a
+2026-02-09 12:55:07: !!FAIL: Problem occurred whilst setting boot environment on swi_a, abort
+2026-02-09 12:55:07: ----------------------------------------
+2026-02-09 12:55:07: swi_a
+2026-02-09 12:55:07: ----------------------------------------
+2026-02-09 12:55:07: 
+2026-02-09 12:55:21: PASS: command 'move ---w-z-03-09-a-y---.rel mainrelease.rel' issued and output 'Successful operation' seen
+2026-02-09 12:56:23: Set swi_a to boot from TFTP
+2026-02-09 12:56:23: Power-cycle swi_a and watch for <Ctrl+B> message
+2026-02-09 12:57:04: Turning swi on from thread, swi_a
+2026-02-09 12:59:35: Turning swi on from thread, swi_a
+2026-02-09 13:02:07: Turning swi on from thread, swi_a
+2026-02-09 13:04:39: Turning swi on from thread, swi_a
+2026-02-09 13:07:11: Turning swi on from thread, swi_a
+2026-02-09 13:09:42: Turning swi on from thread, swi_a
+2026-02-09 13:11:32: !!FAIL: Problem occurred whilst setting boot environment on swi_a, abort
+2026-02-09 13:11:32: ----------------------------------------
+2026-02-09 13:11:32: swi_a
+2026-02-09 13:11:32: ----------------------------------------
+2026-02-09 13:11:32: 
+2026-02-09 13:11:44: PASS: Current software is x230v2-tb101.rel
+2026-02-09 13:11:44: 
+2026-02-09 13:11:48: Set the swi_a boot configuration back to the TestSet configuration (flash:/swi_a_5700_2002.cfg)
+2026-02-09 13:11:50: Save the current running configuration as TestCase_tear_down.cfg on swi_a
+2026-02-09 13:11:54: Compare swi_a_5700_2002.cfg and TestCase_tear_down.cfg on swi_a
+2026-02-09 13:11:56: PASS: Configuration on swi_a after TestCase tear_down() is the same as the initial TestSet Configuration
+2026-02-09 13:11:56: _PostTearDownThread-swi_a - Joined
+2026-02-09 13:11:57: PASS: swi_a contains no exceptions
+2026-02-09 13:12:00: Setup is no longer reliable - all devices will be rebooted
+2026-02-09 13:12:00: Power cycle swi_a
+2026-02-09 13:13:06: Power cycle swi_a completed: Fail
+2026-02-09 13:13:06: _PowerCycleThread-swi_a - Joined
+2026-02-09 13:13:06: Wait for all ports to reach running state after power-cycle
+2026-02-09 13:13:07: All ports on swi_a that are used in this TestSet have been successfully brought up
+2026-02-09 13:13:07: wait_for_all_ports_running-swi_a - Joined
+2026-02-09 13:13:07: Moving *.pcap files across from /tmp
+TEST_CASE_DATETIME_ENDED
+2026-02-09 13:13:07
+<< test-5700.2002.20: FAIL (numPassed: 6 numFailed: 5)
+
+>> test-5700.2002.21
+TEST_CASE_DATETIME_STARTED
+2026-02-09 13:13:07
+TEST_CASE_DESCRIPTION
+Filenames named ---w-z-03-09-a-y---.rel - SD Card
+TEST_CASE_REFERENCES
+AWP2750, AWP2751
+TEST_CASE_METHOD
+1. Create copies of the main release file called ---w-z-03-09-a-y---.rel and store it in flash and SD card2. Set the Boot System current to a release file called ---w-z-03-09-a-y---.rel
+3. Set the default Boot Source to flash and to SD card with a reboot in between
+4. Check the release file ---w-z-03-09-a-y---.rel is used to boot from after each reboot
+
+TEST_CASE_LOGS
+2026-02-09 13:13:08: _PreRunThread-swi_a - Joined
+2026-02-09 13:13:08: Save the current running configuration as swi_a_5700_2002_21.cfg on swi_a
+2026-02-09 13:13:14: _SaveConfigsThread-swi_a - Joined
+2026-02-09 13:13:14: _CheckRunningConfigsThread-swi_a - Joined
+2026-02-09 13:15:07: dir *.rel
+
+  31182003 -rw- Feb 09 2026 00:14:20  flash:/backuprelease.rel
+swi_a_5700_2002#
+2026-02-09 13:15:11: 
+2026-02-09 13:15:50: PASS: command 'copy backuprelease.rel ---w-z-03-09-a-y---.rel' issued and output 'Successful operation' seen
+2026-02-09 13:18:27: PASS: command 'copy backuprelease.rel card:/---w-z-03-09-a-y---.rel' issued and output 'Successful operation' seen
+2026-02-09 13:18:27: 
+2026-02-09 13:18:27: Set the Boot System current to card:---w-z-03-09-a-y---.rel
+2026-02-09 13:18:31: PASS: Current boot image is correct, card:/---w-z-03-09-a-y---.rel
+2026-02-09 13:18:31: 
+2026-02-09 13:18:31: Set default boot source to SD Card and reboot
+2026-02-09 13:18:31: Set swi_a to boot from SD_CARD
+2026-02-09 13:18:31: Power-cycle swi_a and watch for <Ctrl+B> message
+2026-02-09 13:19:15: Turning swi on from thread, swi_a
+2026-02-09 13:21:47: Turning swi on from thread, swi_a
+2026-02-09 13:24:18: Turning swi on from thread, swi_a
+2026-02-09 13:26:50: Turning swi on from thread, swi_a
+2026-02-09 13:29:22: Turning swi on from thread, swi_a
+2026-02-09 13:31:54: Turning swi on from thread, swi_a
+2026-02-09 13:33:44: !!FAIL: Problem occurred whilst setting boot environment on swi_a, abort
+2026-02-09 13:33:44: ----------------------------------------
+2026-02-09 13:33:44: swi_a
+2026-02-09 13:33:44: ----------------------------------------
+2026-02-09 13:33:44: 
+2026-02-09 13:33:44: !!FAIL: Did not see recognized successful bootup message(s): Mounting, Booting, Initializing
+2026-02-09 13:33:44: --------------------------------------------------
+2026-02-09 13:33:44: ----------------------------------------
+2026-02-09 13:33:44: swi_a
+2026-02-09 13:33:44: ----------------------------------------
+2026-02-09 13:33:44: 
+2026-02-09 13:33:44: --------------------------------------------------
+2026-02-09 13:33:44: !!FAIL: Problem occured setting swi_a to boot ---w-z-03-09-a-y---.rel from SD card
+2026-02-09 13:33:44: Restore swi_a to booting from TFTP
+2026-02-09 13:34:46: Set swi_a to boot from TFTP
+2026-02-09 13:34:46: Power-cycle swi_a and watch for <Ctrl+B> message
+2026-02-09 13:35:27: Turning swi on from thread, swi_a
+2026-02-09 13:37:58: Turning swi on from thread, swi_a
+2026-02-09 13:40:30: Turning swi on from thread, swi_a
+2026-02-09 13:43:02: Turning swi on from thread, swi_a
+2026-02-09 13:45:33: Turning swi on from thread, swi_a
+2026-02-09 13:48:05: Turning swi on from thread, swi_a
+2026-02-09 13:49:55: !!FAIL: Problem occurred whilst setting boot environment on swi_a, abort
+2026-02-09 13:49:55: ----------------------------------------
+2026-02-09 13:49:55: swi_a
+2026-02-09 13:49:55: ----------------------------------------
+2026-02-09 13:49:55: 
+2026-02-09 13:50:10: PASS: command 'move ---w-z-03-09-a-y---.rel mainrelease.rel' issued and output 'Successful operation' seen
+2026-02-09 13:51:12: Set swi_a to boot from TFTP
+2026-02-09 13:51:12: Power-cycle swi_a and watch for <Ctrl+B> message
+2026-02-09 13:51:53: Turning swi on from thread, swi_a
+2026-02-09 13:54:25: Turning swi on from thread, swi_a
+2026-02-09 13:56:56: Turning swi on from thread, swi_a
+2026-02-09 13:59:28: Turning swi on from thread, swi_a
+2026-02-09 14:02:00: Turning swi on from thread, swi_a
+2026-02-09 14:04:32: Turning swi on from thread, swi_a
+2026-02-09 14:06:22: !!FAIL: Problem occurred whilst setting boot environment on swi_a, abort
+2026-02-09 14:06:22: ----------------------------------------
+2026-02-09 14:06:22: swi_a
+2026-02-09 14:06:22: ----------------------------------------
+2026-02-09 14:06:22: 
+2026-02-09 14:06:33: PASS: Current software is x230v2-tb101.rel
+2026-02-09 14:06:33: 
+2026-02-09 14:06:37: Set the swi_a boot configuration back to the TestSet configuration (flash:/swi_a_5700_2002.cfg)
+2026-02-09 14:06:39: Save the current running configuration as TestCase_tear_down.cfg on swi_a
+2026-02-09 14:06:43: Compare swi_a_5700_2002.cfg and TestCase_tear_down.cfg on swi_a
+2026-02-09 14:06:45: PASS: Configuration on swi_a after TestCase tear_down() is the same as the initial TestSet Configuration
+2026-02-09 14:06:45: _PostTearDownThread-swi_a - Joined
+2026-02-09 14:06:47: PASS: swi_a contains no exceptions
+2026-02-09 14:06:49: Setup is no longer reliable - all devices will be rebooted
+2026-02-09 14:06:49: Power cycle swi_a
+2026-02-09 14:07:55: Power cycle swi_a completed: Fail
+2026-02-09 14:07:55: _PowerCycleThread-swi_a - Joined
+2026-02-09 14:07:55: Wait for all ports to reach running state after power-cycle
+2026-02-09 14:07:56: All ports on swi_a that are used in this TestSet have been successfully brought up
+2026-02-09 14:07:56: wait_for_all_ports_running-swi_a - Joined
+2026-02-09 14:07:56: Moving *.pcap files across from /tmp
+TEST_CASE_DATETIME_ENDED
+2026-02-09 14:07:56
+<< test-5700.2002.21: FAIL (numPassed: 7 numFailed: 5)
+
+>> test-5700.2002.22
+TEST_CASE_DATETIME_STARTED
+2026-02-09 14:07:56
+TEST_CASE_DESCRIPTION
+Filenames named ---w-z-03-09-a-y---.rel - USB media
+TEST_CASE_REFERENCES
+AWP2750, AWP2751
+TEST_CASE_METHOD
+1. Create copies of the main release file called ---w-z-03-09-a-y---.rel and store it in flash and USB media2. Set the Boot System current to a release file called ---w-z-03-09-a-y---.rel
+3. Set the default Boot Source to flash and to USB media with a reboot in between
+4. Check the release file ---w-z-03-09-a-y---.rel is used to boot from after each reboot
+
+TEST_CASE_LOGS
+2026-02-09 14:07:57: _PreRunThread-swi_a - Joined
+2026-02-09 14:07:57: !!FAIL: No USB media present, test unsupported
+2026-02-09 14:07:57: Save the current running configuration as swi_a_5700_2002_22.cfg on swi_a
+2026-02-09 14:08:03: _SaveConfigsThread-swi_a - Joined
+2026-02-09 14:08:03: _CheckRunningConfigsThread-swi_a - Joined
+2026-02-09 14:08:03: Skipping unsupported test
+2026-02-09 14:08:03: 
+2026-02-09 14:08:03: Set the swi_a boot configuration back to the TestSet configuration (flash:/swi_a_5700_2002.cfg)
+2026-02-09 14:08:06: Save the current running configuration as TestCase_tear_down.cfg on swi_a
+2026-02-09 14:08:10: Compare swi_a_5700_2002.cfg and TestCase_tear_down.cfg on swi_a
+2026-02-09 14:08:12: PASS: Configuration on swi_a after TestCase tear_down() is the same as the initial TestSet Configuration
+2026-02-09 14:08:12: _PostTearDownThread-swi_a - Joined
+2026-02-09 14:08:13: PASS: swi_a contains no exceptions
+2026-02-09 14:08:16: Moving *.pcap files across from /tmp
+TEST_CASE_DATETIME_ENDED
+2026-02-09 14:08:16
+<< test-5700.2002.22: UNSUPPORTED (numPassed: 2 numFailed: 1)
+
+>> test-5700.2002.30
+TEST_CASE_DATETIME_STARTED
+2026-02-09 14:08:16
+TEST_CASE_DESCRIPTION
+Try release for different platform
+TEST_CASE_REFERENCES
+AWP2684
+TEST_CASE_METHOD
+1. From the Boot Menu, perform a one off TFTP boot using a release intended for a different platform
+2. Check an error is reported
+
+TEST_CASE_LOGS
+2026-02-09 14:08:17: _PreRunThread-swi_a - Joined
+2026-02-09 14:11:39: Save the current running configuration as swi_a_5700_2002_30.cfg on swi_a
+2026-02-09 14:11:46: _SaveConfigsThread-swi_a - Joined
+2026-02-09 14:11:46: _CheckRunningConfigsThread-swi_a - Joined
+2026-02-09 14:11:47: Perform a one-off boot using a release intended for a different platform, should fail
+2026-02-09 14:11:47: Power-cycle swi_a and watch for <Ctrl+B> message
+2026-02-09 14:12:31: Turning swi on from thread, swi_a
+2026-02-09 14:15:03: Turning swi on from thread, swi_a
+2026-02-09 14:17:35: Turning swi on from thread, swi_a
+2026-02-09 14:20:06: Turning swi on from thread, swi_a
+2026-02-09 14:22:38: Turning swi on from thread, swi_a
+2026-02-09 14:24:28: PASS: correct error loading an invalid release
+2026-02-09 14:24:31: PASS: Current software is x230v2-tb101.rel
+2026-02-09 14:24:31: 
+2026-02-09 14:28:10: dir *.rel
+
+  31182003 -rw- Feb 09 2026 01:27:23  flash:/backuprelease.rel
+  31182003 -rw- Feb 09 2026 01:25:40  flash:/mainrelease.rel
+swi_a_5700_2002#
+2026-02-09 14:28:10: Set the swi_a boot configuration back to the TestSet configuration (flash:/swi_a_5700_2002.cfg)
+2026-02-09 14:28:12: Save the current running configuration as TestCase_tear_down.cfg on swi_a
+2026-02-09 14:28:17: Compare swi_a_5700_2002.cfg and TestCase_tear_down.cfg on swi_a
+2026-02-09 14:28:18: PASS: Configuration on swi_a after TestCase tear_down() is the same as the initial TestSet Configuration
+2026-02-09 14:28:18: _PostTearDownThread-swi_a - Joined
+2026-02-09 14:28:21: PASS: swi_a contains no exceptions
+2026-02-09 14:28:23: Moving *.pcap files across from /tmp
+TEST_CASE_DATETIME_ENDED
+2026-02-09 14:28:23
+<< test-5700.2002.30: PASS (numPassed: 4 numFailed: 0)
+
+>> test-5700.2002.41
+TEST_CASE_DATETIME_STARTED
+2026-02-09 14:28:23
+TEST_CASE_DESCRIPTION
+Boot default off sdcard
+TEST_CASE_REFERENCES
+AWP2707
+TEST_CASE_METHOD
+1. Set Boot System default current to sd card and backup to flash, then reboot
+2. Check Boot System to confirm device has booted from sd card
+
+TEST_CASE_LOGS
+2026-02-09 14:28:25: _PreRunThread-swi_a - Joined
+2026-02-09 14:28:25: Save the current running configuration as swi_a_5700_2002_41.cfg on swi_a
+2026-02-09 14:28:31: _SaveConfigsThread-swi_a - Joined
+2026-02-09 14:28:31: _CheckRunningConfigsThread-swi_a - Joined
+2026-02-09 14:28:31: Set Boot System current and backup
+2026-02-09 14:28:35: PASS: command 'delete force card:/mainreleasecard.rel' issued and output 'Successful operation' seen
+2026-02-09 14:31:11: PASS: command 'copy mainrelease.rel card:mainreleasecard.rel' issued and output 'Successful operation' seen
+2026-02-09 14:31:14: PASS: Current boot image is correct, card:/mainreleasecard.rel
+2026-02-09 14:31:16: PASS: Backup boot image is correct, backuprelease.rel
+2026-02-09 14:31:16: Reboot and check Boot System current and backup are as set
+2026-02-09 14:31:16: Set swi_a to boot from SD_CARD
+2026-02-09 14:31:16: Power-cycle swi_a and watch for <Ctrl+B> message
+2026-02-09 14:32:00: Turning swi on from thread, swi_a
+2026-02-09 14:34:32: Turning swi on from thread, swi_a
+2026-02-09 14:37:03: Turning swi on from thread, swi_a
+2026-02-09 14:39:35: Turning swi on from thread, swi_a
+2026-02-09 14:42:06: Turning swi on from thread, swi_a
+2026-02-09 14:44:38: Turning swi on from thread, swi_a
+2026-02-09 14:46:28: !!FAIL: Problem occurred whilst setting boot environment on swi_a, abort
+2026-02-09 14:46:28: ----------------------------------------
+2026-02-09 14:46:28: swi_a
+2026-02-09 14:46:28: ----------------------------------------
+2026-02-09 14:46:28: 
+2026-02-09 14:46:28: !!FAIL: Did not see recognized successful bootup message(s): Mounting, Booting, Initializing
+2026-02-09 14:46:28: --------------------------------------------------
+2026-02-09 14:46:28: ----------------------------------------
+2026-02-09 14:46:28: swi_a
+2026-02-09 14:46:28: ----------------------------------------
+2026-02-09 14:46:28: 
+2026-02-09 14:46:28: --------------------------------------------------
+2026-02-09 14:46:30: !!FAIL: Current software is x230v2-tb101.rel, expected mainreleasecard.rel
+2026-02-09 14:46:31: PASS: Current boot image is correct, card:/mainreleasecard.rel
+2026-02-09 14:46:33: PASS: Backup boot image is correct, backuprelease.rel
+2026-02-09 14:46:33: 
+2026-02-09 14:47:38: Set swi_a to boot from TFTP
+2026-02-09 14:47:38: Power-cycle swi_a and watch for <Ctrl+B> message
+2026-02-09 14:48:19: Turning swi on from thread, swi_a
+2026-02-09 14:50:50: Turning swi on from thread, swi_a
+2026-02-09 14:53:22: Turning swi on from thread, swi_a
+2026-02-09 14:55:54: Turning swi on from thread, swi_a
+2026-02-09 14:58:26: Turning swi on from thread, swi_a
+2026-02-09 15:00:58: Turning swi on from thread, swi_a
+2026-02-09 15:02:48: !!FAIL: Problem occurred whilst setting boot environment on swi_a, abort
+2026-02-09 15:02:48: ----------------------------------------
+2026-02-09 15:02:48: swi_a
+2026-02-09 15:02:48: ----------------------------------------
+2026-02-09 15:02:48: 
+2026-02-09 15:02:58: Set the swi_a boot configuration back to the TestSet configuration (flash:/swi_a_5700_2002.cfg)
+2026-02-09 15:03:00: Save the current running configuration as TestCase_tear_down.cfg on swi_a
+2026-02-09 15:03:04: Compare swi_a_5700_2002.cfg and TestCase_tear_down.cfg on swi_a
+2026-02-09 15:03:06: PASS: Configuration on swi_a after TestCase tear_down() is the same as the initial TestSet Configuration
+2026-02-09 15:03:06: _PostTearDownThread-swi_a - Joined
+2026-02-09 15:03:08: PASS: swi_a contains no exceptions
+2026-02-09 15:03:10: Setup is no longer reliable - all devices will be rebooted
+2026-02-09 15:03:11: Power cycle swi_a
+2026-02-09 15:04:17: Power cycle swi_a completed: Fail
+2026-02-09 15:04:17: _PowerCycleThread-swi_a - Joined
+2026-02-09 15:04:17: Wait for all ports to reach running state after power-cycle
+2026-02-09 15:04:18: All ports on swi_a that are used in this TestSet have been successfully brought up
+2026-02-09 15:04:18: wait_for_all_ports_running-swi_a - Joined
+2026-02-09 15:04:18: Moving *.pcap files across from /tmp
+TEST_CASE_DATETIME_ENDED
+2026-02-09 15:04:18
+<< test-5700.2002.41: FAIL (numPassed: 8 numFailed: 4)
+
+>> test-5700.2002.42
+TEST_CASE_DATETIME_STARTED
+2026-02-09 15:04:18
+TEST_CASE_DESCRIPTION
+Boot default off usb
+TEST_CASE_REFERENCES
+AWP2707
+TEST_CASE_METHOD
+1. Set Boot System default current to USB and backup to flash, then reboot
+2. Check Boot System to confirm device has booted from USB
+
+TEST_CASE_LOGS
+2026-02-09 15:04:20: _PreRunThread-swi_a - Joined
+2026-02-09 15:04:20: !!FAIL: No USB media present, test unsupported
+2026-02-09 15:04:20: Save the current running configuration as swi_a_5700_2002_42.cfg on swi_a
+2026-02-09 15:04:26: _SaveConfigsThread-swi_a - Joined
+2026-02-09 15:04:26: _CheckRunningConfigsThread-swi_a - Joined
+2026-02-09 15:04:26: Skipping unsupported test
+2026-02-09 15:04:26: 
+2026-02-09 15:04:26: Set the swi_a boot configuration back to the TestSet configuration (flash:/swi_a_5700_2002.cfg)
+2026-02-09 15:04:28: Save the current running configuration as TestCase_tear_down.cfg on swi_a
+2026-02-09 15:04:32: Compare swi_a_5700_2002.cfg and TestCase_tear_down.cfg on swi_a
+2026-02-09 15:04:34: PASS: Configuration on swi_a after TestCase tear_down() is the same as the initial TestSet Configuration
+2026-02-09 15:04:34: _PostTearDownThread-swi_a - Joined
+2026-02-09 15:04:36: PASS: swi_a contains no exceptions
+2026-02-09 15:04:39: Moving *.pcap files across from /tmp
+TEST_CASE_DATETIME_ENDED
+2026-02-09 15:04:39
+<< test-5700.2002.42: UNSUPPORTED (numPassed: 2 numFailed: 1)
+
+>> test-5700.2002.50
+TEST_CASE_DATETIME_STARTED
+2026-02-09 15:04:39
+TEST_CASE_DESCRIPTION
+Boot fails with no release set
+TEST_CASE_REFERENCES
+AWP2640
+TEST_CASE_METHOD
+1. Set Boot System current and backup
+2. Set Boot Menu Default Boot from Boot System current and backup and reboot
+3. Delete release file set as Boot System current
+4. Check Boot System current is blank  and reboot
+5. Check boot fails with appropriate error message
+
+TEST_CASE_LOGS
+2026-02-09 15:04:40: _PreRunThread-swi_a - Joined
+2026-02-09 15:04:40: Save the current running configuration as swi_a_5700_2002_50.cfg on swi_a
+2026-02-09 15:04:46: _SaveConfigsThread-swi_a - Joined
+2026-02-09 15:04:46: _CheckRunningConfigsThread-swi_a - Joined
+2026-02-09 15:04:46: Set Boot System current and backup
+2026-02-09 15:08:24: dir *.rel
+
+  31182003 -rw- Feb 09 2026 02:07:36  flash:/backuprelease.rel
+  31182003 -rw- Feb 09 2026 02:05:50  flash:/mainrelease.rel
+swi_a_5700_2002#
+2026-02-09 15:08:28: PASS: Current boot image is correct, mainrelease.rel
+2026-02-09 15:08:29: PASS: Backup boot image is correct, backuprelease.rel
+2026-02-09 15:08:29: Set Boot Menu Default Boot to boot from Boot System current and backup setting and reboot
+2026-02-09 15:08:29: Set swi_a to boot from CLI
+2026-02-09 15:08:29: Power-cycle swi_a and watch for <Ctrl+B> message
+2026-02-09 15:09:13: Turning swi on from thread, swi_a
+2026-02-09 15:11:45: Turning swi on from thread, swi_a
+2026-02-09 15:14:17: Turning swi on from thread, swi_a
+2026-02-09 15:16:49: Turning swi on from thread, swi_a
+2026-02-09 15:19:20: Turning swi on from thread, swi_a
+2026-02-09 15:21:52: Turning swi on from thread, swi_a
+2026-02-09 15:23:42: !!FAIL: Problem occurred whilst setting boot environment on swi_a, abort
+2026-02-09 15:23:42: ----------------------------------------
+2026-02-09 15:23:42: swi_a
+2026-02-09 15:23:42: ----------------------------------------
+2026-02-09 15:23:42: 
+2026-02-09 15:23:42: !!FAIL: Did not see recognized successful bootup message(s): Mounting, Booting, Initializing
+2026-02-09 15:23:42: --------------------------------------------------
+2026-02-09 15:23:42: ----------------------------------------
+2026-02-09 15:23:42: swi_a
+2026-02-09 15:23:42: ----------------------------------------
+2026-02-09 15:23:42: 
+2026-02-09 15:23:42: --------------------------------------------------
+2026-02-09 15:24:14: Set swi_a to boot from TFTP
+2026-02-09 15:24:14: Power-cycle swi_a and watch for <Ctrl+B> message
+2026-02-09 15:24:55: Turning swi on from thread, swi_a
+2026-02-09 15:27:27: Turning swi on from thread, swi_a
+2026-02-09 15:29:58: Turning swi on from thread, swi_a
+2026-02-09 15:32:30: Turning swi on from thread, swi_a
+2026-02-09 15:35:02: Turning swi on from thread, swi_a
+2026-02-09 15:37:33: Turning swi on from thread, swi_a
+2026-02-09 15:39:23: !!FAIL: Problem occurred whilst setting boot environment on swi_a, abort
+2026-02-09 15:39:23: ----------------------------------------
+2026-02-09 15:39:23: swi_a
+2026-02-09 15:39:23: ----------------------------------------
+2026-02-09 15:39:23: 
+2026-02-09 15:39:36: PASS: Current boot image is correct, mainrelease.rel
+2026-02-09 15:39:37: PASS: Backup boot image is correct, backuprelease.rel
+2026-02-09 15:39:37: Delete release file set as Boot System current
+2026-02-09 15:39:42: Check Boot System current is a non-existent file and reboot, boot should fail as release file should not be found
+2026-02-09 15:39:43: PASS: Current boot image is correct, mainrelease.rel (file not found)
+2026-02-09 15:39:43: Check boot fails with appropriate error message
+2026-02-09 15:49:48: 
+
+Warning: System has been forced to boot from a non-standard location
+To restore the system to default behaviour, enter the Boot Menu,
+	Choose option 2, then option 9
+
+Loading tftp://10.37.101.33/x230v2-tb101.rel via switchport 1...
+
+Verifying release... OK
+Booting...
+
+ [0;32m
+           ______________   ____ 
+        /\ \            / /______\ 
+      /   \ \_      __/ /| ______ |
+    /      \ |     |  /  | ______ |
+  /         \ \   / /     \ ____ /
+/______/\____\ \/ /____________/
+
+Allied Telesis Inc.
+AlliedWare Plus (TM) v0.0.0-0.0
+Built: Sun Feb  8 04:15:49 UTC 2026[0m
+
+[[0;32m  OK  [0m] Created slice [0;1;39mSlice /system/modprobe[0m.
+[[0;32m  OK  [0m] Started [0;1;39mDispatch Password Requests to Console Directory Watch[0m.
+[[0;32m  OK  [0m] Started [0;1;39mForward Password Requests to Wall Directory Watch[0m.
+[[0;32m  OK  [0m] Reached target [0;1;39mNetwork is Online[0m.
+[[0;32m  OK  [0m] Reached target [0;1;39mPreparation for Network[0m.
+[[0;32m  OK  [0m] Reached target [0;1;39mPath Units[0m.
+[[0;32m  OK  [0m] Reached target [0;1;39mSlice Units[0m.
+[[0;32m  OK  [0m] Reached target [0;1;39mSwaps[0m.
+[[0;32m  OK  [0m] Listening on [0;1;39mSyslog Socket[0m.
+[[0;32m  OK  [0m] Listening on [0;1;39mJournal Socket (/dev/log)[0m.
+[[0;32m  OK  [0m] Listening on [0;1;39mJournal Socket[0m.
+[[0;32m  OK  [0m] Listening on [0;1;39mudev Control Socket[0m.
+[[0;32m  OK  [0m] Listening on [0;1;39mudev Kernel Socket[0m.
+         Mounting [0;1;39mKernel Debug File System[0m...
+         Starting [0;1;39mSynchronise Hardware Clock to System Clock[0m...
+         Starting [0;1;39mLoad Kernel Module configfs[0m...
+         Starting [0;1;39mLoad Kernel Module fuse[0m...
+         Starting [0;1;39mJournal Service[0m...
+         Starting [0;1;39mLoad Kernel Modules[0m...
+         Starting [0;1;39mRemount Root and Kernel File Systems[0m...
+         Starting [0;1;39mColdplug All udev Devices[0m...
+         Starting [0;1;39mRule-based Manager for Device Events and Files[0m...
+[[0;32m  OK  [0m] Started [0;1;39mJournal Service[0m.
+[[0;32m  OK  [0m] Mounted [0;1;39mKernel Debug File System[0m.
+[[0;32m  OK  [0m] Finished [0;1;39mSynchronise Hardware Clock to System Clock[0m.
+[[0;32m  OK  [0m] Finished [0;1;39mLoad Kernel Module configfs[0m.
+[[0;32m  OK  [0m] Finished [0;1;39mLoad Kernel Module fuse[0m.
+[[0;32m  OK  [0m] Finished [0;1;39mRemount Root and Kernel File Systems[0m.
+[[0;32m  OK  [0m] Reached target [0;1;39mPreparation for Local File Systems[0m.
+         Mounting [0;1;39m/mnt[0m...
+         Mounting [0;1;39m/net[0m...
+         Mounting [0;1;39m/tmp[0m...
+         Starting [0;1;39mFlush Journal to Persistent Storage[0m...
+         Starting [0;1;39mRecord System Boot/Shutdown in UTMP[0m...
+[[0;32m  OK  [0m] Started [0;1;39mRule-based Manager for Device Events and Files[0m.
+[[0;32m  OK  [0m] Mounted [0;1;39m/mnt[0m.
+[[0;32m  OK  [0m] Mounted [0;1;39m/net[0m.
+[[0;32m  OK  [0m] Mounted [0;1;39m/tmp[0m.
+[[0;32m  OK  [0m] Finished [0;1;39mFlush Journal to Persistent Storage[0m.
+         Starting [0;1;39mMount logging FS[0m...
+[[0;32m  OK  [0m] Finished [0;1;39mRecord System Boot/Shutdown in UTMP[0m.
+[[0;32m  OK  [0m] Finished [0;1;39mColdplug All udev Devices[0m.
+[[0;32m  OK  [0m] Finished [0;1;39mMount logging FS[0m.
+         Starting [0;1;39mMount local FS[0m...
+[[0;32m  OK  [0m] Finished [0;1;39mLoad Kernel Modules[0m.
+         Starting [0;1;39mApply Kernel Variables[0m...
+[[0;32m  OK  [0m] Finished [0;1;39mApply Kernel Variables[0m.
+fs-local-setup[229]: /usr/bin/mtdoops_cp
+[[0;32m  OK  [0m] Finished [0;1;39mMount local FS[0m.
+         Starting [0;1;39mMount NVS FS[0m...
+         Starting [0;1;39mFirmware Env Service[0m...
+[[0;32m  OK  [0m] Finished [0;1;39mMount NVS FS[0m.
+[[0;32m  OK  [0m] Finished [0;1;39mFirmware Env Service[0m.
+[[0;32m  OK  [0m] Reached target [0;1;39mLocal File Systems[0m.
+         Starting [0;1;39mUpdate is Completed[0m...
+[[0;32m  OK  [0m] Finished [0;1;39mUpdate is Completed[0m.
+[[0;32m  OK  [0m] Reached target [0;1;39mSystem Initialization[0m.
+[[0;32m  OK  [0m] Started [0;1;39mDaily rotation of log files[0m.
+[[0;32m  OK  [0m] Started [0;1;39mMail queue flush timer[0m.
+[[0;32m  OK  [0m] Reached target [0;1;39mTimer Units[0m.
+[[0;32m  OK  [0m] Listening on [0;1;39mD-Bus System Message Bus Socket[0m.
+[[0;32m  OK  [0m] Reached target [0;1;39mSocket Units[0m.
+[[0;32m  OK  [0m] Reached target [0;1;39mBasic System[0m.
+         Starting [0;1;39mEarly OOM Daemon[0m...
+[[0;32m  OK  [0m] Started [0;1;39mappmond[0m.
+         Starting [0;1;39mapteryx[0m...
+         Starting [0;1;39mCheck the clock[0m...
+[[0;32m  OK  [0m] Started [0;1;39mcmsg_psd[0m.
+[[0;32m  OK  [0m] Started [0;1;39mcmsg_sld[0m.
+         Starting [0;1;39mcrond[0m...
+[[0;32m  OK  [0m] Started [0;1;39mexecd[0m.
+         Starting [0;1;39mhostname[0m...
+[[0;32m  OK  [0m] Started [0;1;39minetd[0m.
+         Starting [0;1;39mLinux settings[0m...
+         Starting [0;1;39mMail queue flush service[0m...
+[[0;32m  OK  [0m] Started [0;1;39mPAM Interim Accounting Daemon[0m.
+         Starting [0;1;39msyslog-ng[0m...
+[[0;32m  OK  [0m] Started [0;1;39mEarly OOM Daemon[0m.
+[[0;32m  OK  [0m] Started [0;1;39mapteryx[0m.
+[[0;32m  OK  [0m] Finished [0;1;39mCheck the clock[0m.
+[[0;32m  OK  [0m] Finished [0;1;39mhostname[0m.
+[[0;32m  OK  [0m] Finished [0;1;39mMail queue flush service[0m.
+[[0;32m  OK  [0m] Started [0;1;39mcrond[0m.
+         Starting [0;1;39mAlfred[0m...
+         Starting [0;1;39mearly_host_info[0m...
+[[0;32m  OK  [0m] Started [0;1;39mKernel Netlink Adaptor[0m.
+[[0;32m  OK  [0m] Started [0;1;39mProcess Monitor[0m.
+         Starting [0;1;39mSecure mode setup[0m...
+[[0;32m  OK  [0m] Started [0;1;39mSNMP Discovery[0m.
+[[0;32m  OK  [0m] Started [0;1;39mGeneric Storage[0m.
+         Starting [0;1;39mStrongSwan IPsec[0m...
+[[0;32m  OK  [0m] Finished [0;1;39mLinux settings[0m.
+[[0;32m  OK  [0m] Started [0;1;39mAlfred[0m.
+[[0;32m  OK  [0m] Started [0;1;39mStrongSwan IPsec[0m.
+[[0;32m  OK  [0m] Finished [0;1;39mearly_host_info[0m.
+         Starting [0;1;39mPlatform Hardware Management Service[0m...
+         Starting [0;1;39mPluggables Manager[0m...
+[[0;32m  OK  [0m] Started [0;1;39mPluggables Manager[0m.
+         Starting [0;1;39mPluggable checker daemon[0m...
+[[0;32m  OK  [0m] Finished [0;1;39mPluggable checker daemon[0m.
+[[0;32m  OK  [0m] Started [0;1;39mPlatform Hardware Management Service[0m.
+         Starting [0;1;39mExternal Media[0m...
+[[0;32m  OK  [0m] Started [0;1;39mhostcfg[0m.
+         Starting [0;1;39mPlatform Information Service[0m...
+[[0;32m  OK  [0m] Started [0;1;39mfilesysd[0m.
+[[0;32m  OK  [0m] Started [0;1;39mhostd[0m.
+         Starting [0;1;39miptables[0m...
+[[0;32m  OK  [0m] Finished [0;1;39mExternal Media[0m.
+[[0;32m  OK  [0m] Started [0;1;39mPlatform Information Service[0m.
+[[0;32m  OK  [0m] Started [0;1;39meventwatch[0m.
+[[0;32m  OK  [0m] Started [0;1;39mimi[0m.
+[[0;32m  OK  [0m] Started [0;1;39mhsl[0m.
+[[0;32m  OK  [0m] Started [0;1;39mLicensing Daemon[0m.
+[[0;32m  OK  [0m] Started [0;1;39mLink monitoring[0m.
+[[0;32m  OK  [0m] Started [0;1;39mnsm[0m.
+[[0;32m  OK  [0m] Started [0;1;39matmf agent[0m.
+         Starting [0;1;39matmfd[0m...
+[[0;32m  OK  [0m] Started [0;1;39mATMF file server daemon[0m.
+         Starting [0;1;39mauthd[0m...
+         Starting [0;1;39mlacpd[0m...
+         Starting [0;1;39mlldpd[0m...
+         Starting [0;1;39mloopprotd[0m...
+         Starting [0;1;39mmstpd[0m...
+[[0;32m  OK  [0m] Started [0;1;39mPlatform Event Handler[0m.
+         Starting [0;1;39mpoefw[0m...
+         Starting [0;1;39mrmond[0m...
+         Starting [0;1;39msflowd[0m...
+         Starting [0;1;39mTrigger[0m...
+         Starting [0;1;39mudldd[0m...
+[[0;32m  OK  [0m] Started [0;1;39msyslog-ng[0m.
+[[0;32m  OK  [0m] Finished [0;1;39mSecure mode setup[0m.
+[[0;32m  OK  [0m] Finished [0;1;39miptables[0m.
+[[0;32m  OK  [0m] Started [0;1;39matmfd[0m.
+[[0;32m  OK  [0m] Started [0;1;39mauthd[0m.
+[[0;32m  OK  [0m] Started [0;1;39mlacpd[0m.
+[[0;32m  OK  [0m] Started [0;1;39mlldpd[0m.
+[[0;32m  OK  [0m] Started [0;1;39mloopprotd[0m.
+[[0;32m  OK  [0m] Started [0;1;39mmstpd[0m.
+[[0;32m  OK  [0m] Started [0;1;39mrmond[0m.
+[[0;32m  OK  [0m] Started [0;1;39msflowd[0m.
+[[0;32m  OK  [0m] Finished [0;1;39mTrigger[0m.
+[[0;32m  OK  [0m] Started [0;1;39mudldd[0m.
+         Starting [0;1;39mContinuous reboot prevention[0m...
+         Starting [0;1;39mSecure mode enable[0m...
+[[0;32m  OK  [0m] Finished [0;1;39mSecure mode enable[0m.
+[[0;32m  OK  [0m] Finished [0;1;39mpoefw[0m.
+[[0;32m  OK  [0m] Started [0;1;39mpoehw[0m.
+[[0;32m  OK  [0m] Finished [0;1;39mContinuous reboot prevention[0m.
+[[0;32m  OK  [0m] Started [0;1;39mTPM 2.0 Server Daemon[0m.
+         Starting [0;1;39mTPM2 Access Broker and Resource Management Daemon[0m...
+[    [0;31m*[0;1;31m*[0m] A start job is running for TPM2 Acc…ement Daemon (1min 31s / 2min 59s)
+M
+[K[   [0;31m*[0;1;31m*[0m[0;31m*[0m] A start job is running for TPM2 Acc…ement Daemon (1min 32s / 2min 59s)
+M
+[K[  [0;31m*[0;1;31m*[0m[0;31m* [0m] A start job is running for TPM2 Acc…ement Daemon (1min 32s / 2min 59s)
+M
+[K         Starting [0;1;39mD-Bus User Message Bus[0m...
+[K[ [0;31m*[0;1;31m*[0m[0;31m*  [0m] (2 of 2) A start job is running for…ement Daemon (1min 33s / 2min 59s)
+M
+[K[[0;31m*[0;1;31m*[0m[0;31m*   [0m] (2 of 2) A start job is running for…ement Daemon (1min 33s / 2min 59s)
+M
+[K[[0;1;31m*[0m[0;31m*    [0m] (2 of 2) A start job is running for…ement Daemon (1min 34s / 2min 59s)
+M
+[K[[0;32m  OK  [0m] Started [0;1;39mD-Bus User Message Bus[0m.
+[K[[0m[0;31m*     [0m] A start job is running for TPM2 Acc…gement Daemon (1min 40s / 3min 8s)
+M
+[K[[0;1;31m*[0m[0;31m*    [0m] A start job is running for TPM2 Acc…gement Daemon (1min 40s / 3min 8s)
+M
+[K[[0;31m*[0;1;31m*[0m[0;31m*   [0m] A start job is running for TPM2 Acc…gement Daemon (1min 42s / 3min 8s)
+M
+[K         Starting [0;1;39mATMF SSHD[0m...
+[K[ [0;31m*[0;1;31m*[0m[0;31m*  [0m] (2 of 2) A start job is running for…gement Daemon (1min 43s / 3min 8s)
+M
+[K[[0;32m  OK  [0m] Started [0;1;39mATMF SSHD[0m.
+[K[  [0;31m*[0;1;31m*[0m[0;31m* [0m] A start job is running for TPM2 Acc…ement Daemon (1min 46s / 3min 13s)
+M
+[K[[0;32m  OK  [0m] Started [0;1;39mTPM2 Access Broker and Resource Management Daemon[0m.
+[K[[0;32m  OK  [0m] Reached target [0;1;39mMulti-User System[0m.
+         Starting [0;1;39mAWPlus[0m...
+
+Initializing HA processes:
+atmf_agentd, atmfd, auth, execd, hostd, hsl, imi
+lacp, lldpd, loopprot, mstp, nsm, rmon, sflowd
+udldd
+
+
+Assigning Active Workload to HA processes:
+hsl, nsm, lacpd, rmond, sflowd, lldpd, loopprotd
+mstpd, authd, imi
+
+
+Loading configuration file flash:/swi_a_5700_2002_50.cfg, please wait.
+......
+
+done!
+[m
+
+
+swi_a_5700_2002 login: 02:44:59 swi_a_5700_2002 root: WARNING: This device has a staging IDevID installed
+
+2026-02-09 15:49:48: !!FAIL: device is booting
+2026-02-09 15:49:48: Wait for DUT to boot backuprelease.rel
+2026-02-09 15:49:54: !!FAIL: Current software is x230v2-tb101.rel, expected backuprelease.rel
+2026-02-09 15:50:41: Check Boot System current is set to flash:mainrelease.rel and file exists
+2026-02-09 15:50:43: PASS: Current boot image is correct, mainrelease.rel (file exists)
+2026-02-09 15:50:43: 
+2026-02-09 15:51:45: Set swi_a to boot from TFTP
+2026-02-09 15:51:45: Power-cycle swi_a and watch for <Ctrl+B> message
+2026-02-09 15:52:26: Turning swi on from thread, swi_a
+2026-02-09 15:54:57: Turning swi on from thread, swi_a
+2026-02-09 15:57:29: Turning swi on from thread, swi_a
+2026-02-09 16:00:01: Turning swi on from thread, swi_a
+2026-02-09 16:02:32: Turning swi on from thread, swi_a
+2026-02-09 16:05:04: Turning swi on from thread, swi_a
+2026-02-09 16:06:54: !!FAIL: Problem occurred whilst setting boot environment on swi_a, abort
+2026-02-09 16:06:54: ----------------------------------------
+2026-02-09 16:06:54: swi_a
+2026-02-09 16:06:54: ----------------------------------------
+2026-02-09 16:06:54: 
+2026-02-09 16:07:05: Set the swi_a boot configuration back to the TestSet configuration (flash:/swi_a_5700_2002.cfg)
+2026-02-09 16:07:07: Save the current running configuration as TestCase_tear_down.cfg on swi_a
+2026-02-09 16:07:11: Compare swi_a_5700_2002.cfg and TestCase_tear_down.cfg on swi_a
+2026-02-09 16:07:13: PASS: Configuration on swi_a after TestCase tear_down() is the same as the initial TestSet Configuration
+2026-02-09 16:07:13: _PostTearDownThread-swi_a - Joined
+2026-02-09 16:07:15: PASS: swi_a contains no exceptions
+2026-02-09 16:07:17: Setup is no longer reliable - all devices will be rebooted
+2026-02-09 16:07:17: Power cycle swi_a
+2026-02-09 16:08:23: Power cycle swi_a completed: Fail
+2026-02-09 16:08:23: _PowerCycleThread-swi_a - Joined
+2026-02-09 16:08:23: Wait for all ports to reach running state after power-cycle
+2026-02-09 16:08:24: All ports on swi_a that are used in this TestSet have been successfully brought up
+2026-02-09 16:08:24: wait_for_all_ports_running-swi_a - Joined
+2026-02-09 16:08:24: Moving *.pcap files across from /tmp
+TEST_CASE_DATETIME_ENDED
+2026-02-09 16:08:24
+<< test-5700.2002.50: FAIL (numPassed: 8 numFailed: 6)
+
+>> test-5700.2002.60
+TEST_CASE_DATETIME_STARTED
+2026-02-09 16:08:25
+TEST_CASE_DESCRIPTION
+Boot with release, same name as cli
+TEST_CASE_REFERENCES
+AWP2682
+TEST_CASE_METHOD
+1. Set Boot System current and backup
+2. Set Boot Menu Default Boot to boot from TFTP and reboot
+3. Set Boot Menu Default Boot to boot from flash and reboot
+4. Set Boot Menu Default Boot to boot from SD card and reboot
+5. Set Boot Menu Default Boot to boot from USB and reboot
+
+TEST_CASE_LOGS
+2026-02-09 16:08:26: _PreRunThread-swi_a - Joined
+2026-02-09 16:08:26: Save the current running configuration as swi_a_5700_2002_60.cfg on swi_a
+2026-02-09 16:08:32: _SaveConfigsThread-swi_a - Joined
+2026-02-09 16:08:32: _CheckRunningConfigsThread-swi_a - Joined
+2026-02-09 16:08:32: Set Boot System current and backup
+2026-02-09 16:08:40: PASS: Current boot image is correct, x230v2-tb101.rel
+2026-02-09 16:08:40: Set Boot Menu Default Boot and reboot
+2026-02-09 16:08:40: Set swi_a to boot from CLI
+2026-02-09 16:08:40: Power-cycle swi_a and watch for <Ctrl+B> message
+2026-02-09 16:09:24: Turning swi on from thread, swi_a
+2026-02-09 16:11:56: Turning swi on from thread, swi_a
+2026-02-09 16:14:27: Turning swi on from thread, swi_a
+2026-02-09 16:16:59: Turning swi on from thread, swi_a
+2026-02-09 16:19:31: Turning swi on from thread, swi_a
+2026-02-09 16:22:02: Turning swi on from thread, swi_a
+2026-02-09 16:23:52: !!FAIL: Problem occurred whilst setting boot environment on swi_a, abort
+2026-02-09 16:23:52: ----------------------------------------
+2026-02-09 16:23:52: swi_a
+2026-02-09 16:23:52: ----------------------------------------
+2026-02-09 16:23:52: 
+2026-02-09 16:23:52: !!FAIL: Did not see recognized successful bootup message(s): Mounting, Booting, Initializing
+2026-02-09 16:23:52: --------------------------------------------------
+2026-02-09 16:23:52: ----------------------------------------
+2026-02-09 16:23:52: swi_a
+2026-02-09 16:23:52: ----------------------------------------
+2026-02-09 16:23:52: 
+2026-02-09 16:23:52: --------------------------------------------------
+2026-02-09 16:24:24: Set swi_a to boot from TFTP
+2026-02-09 16:24:24: Power-cycle swi_a and watch for <Ctrl+B> message
+2026-02-09 16:25:05: Turning swi on from thread, swi_a
+2026-02-09 16:27:36: Turning swi on from thread, swi_a
+2026-02-09 16:30:08: Turning swi on from thread, swi_a
+2026-02-09 16:32:40: Turning swi on from thread, swi_a
+2026-02-09 16:35:11: Turning swi on from thread, swi_a
+2026-02-09 16:37:43: Turning swi on from thread, swi_a
+2026-02-09 16:39:33: !!FAIL: Problem occurred whilst setting boot environment on swi_a, abort
+2026-02-09 16:39:33: ----------------------------------------
+2026-02-09 16:39:33: swi_a
+2026-02-09 16:39:33: ----------------------------------------
+2026-02-09 16:39:33: 
+2026-02-09 16:39:46: PASS: Current software is x230v2-tb101.rel
+2026-02-09 16:39:46: Set Boot Menu Default Boot to boot from Flash and reboot
+2026-02-09 16:39:46: Set swi_a to boot from FLASH
+2026-02-09 16:39:46: Power-cycle swi_a and watch for <Ctrl+B> message
+2026-02-09 16:40:29: Turning swi on from thread, swi_a
+2026-02-09 16:43:01: Turning swi on from thread, swi_a
+2026-02-09 16:45:33: Turning swi on from thread, swi_a
+2026-02-09 16:48:05: Turning swi on from thread, swi_a
+2026-02-09 16:50:36: Turning swi on from thread, swi_a
+2026-02-09 16:53:08: Turning swi on from thread, swi_a
+2026-02-09 16:54:58: !!FAIL: Problem occurred whilst setting boot environment on swi_a, abort
+2026-02-09 16:54:58: ----------------------------------------
+2026-02-09 16:54:58: swi_a
+2026-02-09 16:54:58: ----------------------------------------
+2026-02-09 16:54:58: 
+2026-02-09 16:54:58: !!FAIL: Did not see recognized successful bootup message(s): Mounting, Booting, Initializing
+2026-02-09 16:54:58: --------------------------------------------------
+2026-02-09 16:54:58: ----------------------------------------
+2026-02-09 16:54:58: swi_a
+2026-02-09 16:54:58: ----------------------------------------
+2026-02-09 16:54:58: 
+2026-02-09 16:54:58: --------------------------------------------------
+2026-02-09 16:55:00: PASS: Current software is x230v2-tb101.rel
+2026-02-09 16:55:00: 
+2026-02-09 16:56:09: Set swi_a to boot from TFTP
+2026-02-09 16:56:09: Power-cycle swi_a and watch for <Ctrl+B> message
+2026-02-09 16:56:50: Turning swi on from thread, swi_a
+2026-02-09 16:59:22: Turning swi on from thread, swi_a
+2026-02-09 17:01:54: Turning swi on from thread, swi_a
+2026-02-09 17:04:26: Turning swi on from thread, swi_a
+2026-02-09 17:06:58: Turning swi on from thread, swi_a
+2026-02-09 17:09:30: Turning swi on from thread, swi_a
+2026-02-09 17:11:20: !!FAIL: Problem occurred whilst setting boot environment on swi_a, abort
+2026-02-09 17:11:20: ----------------------------------------
+2026-02-09 17:11:20: swi_a
+2026-02-09 17:11:20: ----------------------------------------
+2026-02-09 17:11:20: 
+2026-02-09 17:11:30: Set the swi_a boot configuration back to the TestSet configuration (flash:/swi_a_5700_2002.cfg)
+2026-02-09 17:11:32: Save the current running configuration as TestCase_tear_down.cfg on swi_a
+2026-02-09 17:11:36: Compare swi_a_5700_2002.cfg and TestCase_tear_down.cfg on swi_a
+2026-02-09 17:11:38: PASS: Configuration on swi_a after TestCase tear_down() is the same as the initial TestSet Configuration
+2026-02-09 17:11:38: _PostTearDownThread-swi_a - Joined
+2026-02-09 17:11:40: PASS: swi_a contains no exceptions
+2026-02-09 17:11:42: Setup is no longer reliable - all devices will be rebooted
+2026-02-09 17:11:42: Power cycle swi_a
+2026-02-09 17:12:49: Power cycle swi_a completed: Fail
+2026-02-09 17:12:49: _PowerCycleThread-swi_a - Joined
+2026-02-09 17:12:49: Wait for all ports to reach running state after power-cycle
+2026-02-09 17:12:50: All ports on swi_a that are used in this TestSet have been successfully brought up
+2026-02-09 17:12:50: wait_for_all_ports_running-swi_a - Joined
+2026-02-09 17:12:50: Moving *.pcap files across from /tmp
+TEST_CASE_DATETIME_ENDED
+2026-02-09 17:12:50
+<< test-5700.2002.60: FAIL (numPassed: 5 numFailed: 6)
+
+>> test-5700.2002.61
+TEST_CASE_DATETIME_STARTED
+2026-02-09 17:12:50
+TEST_CASE_DESCRIPTION
+Boot with release, same name as cli - SD Card
+TEST_CASE_REFERENCES
+AWP2682
+TEST_CASE_METHOD
+1. Set Boot System current and backup
+4. Set Boot Menu Default Boot to boot from SD card and reboot
+
+TEST_CASE_LOGS
+2026-02-09 17:12:51: _PreRunThread-swi_a - Joined
+2026-02-09 17:12:51: Save the current running configuration as swi_a_5700_2002_61.cfg on swi_a
+2026-02-09 17:12:57: _SaveConfigsThread-swi_a - Joined
+2026-02-09 17:12:57: _CheckRunningConfigsThread-swi_a - Joined
+2026-02-09 17:12:57: Set Boot Menu Default Boot to boot from SD card and reboot
+2026-02-09 17:12:57: Set swi_a to boot from SD_CARD
+2026-02-09 17:12:57: Power-cycle swi_a and watch for <Ctrl+B> message
+2026-02-09 17:13:42: Turning swi on from thread, swi_a
+2026-02-09 17:16:13: Turning swi on from thread, swi_a
+2026-02-09 17:18:45: Turning swi on from thread, swi_a
+2026-02-09 17:21:17: Turning swi on from thread, swi_a
+2026-02-09 17:23:49: Turning swi on from thread, swi_a
+2026-02-09 17:26:20: Turning swi on from thread, swi_a
+2026-02-09 17:28:10: !!FAIL: Problem occurred whilst setting boot environment on swi_a, abort
+2026-02-09 17:28:10: ----------------------------------------
+2026-02-09 17:28:10: swi_a
+2026-02-09 17:28:10: ----------------------------------------
+2026-02-09 17:28:10: 
+2026-02-09 17:28:10: !!FAIL: Did not see recognized successful bootup message(s): Mounting, Booting, Initializing
+2026-02-09 17:28:10: --------------------------------------------------
+2026-02-09 17:28:10: ----------------------------------------
+2026-02-09 17:28:10: swi_a
+2026-02-09 17:28:10: ----------------------------------------
+2026-02-09 17:28:10: 
+2026-02-09 17:28:10: --------------------------------------------------
+2026-02-09 17:28:12: !!FAIL: Current software is x230v2-tb101.rel, expected mainreleasecard.rel
+2026-02-09 17:28:12: 
+2026-02-09 17:29:20: Set swi_a to boot from TFTP
+2026-02-09 17:29:20: Power-cycle swi_a and watch for <Ctrl+B> message
+2026-02-09 17:30:01: Turning swi on from thread, swi_a
+2026-02-09 17:32:32: Turning swi on from thread, swi_a
+2026-02-09 17:35:04: Turning swi on from thread, swi_a
+2026-02-09 17:37:35: Turning swi on from thread, swi_a
+2026-02-09 17:40:07: Turning swi on from thread, swi_a
+2026-02-09 17:42:39: Turning swi on from thread, swi_a
+2026-02-09 17:44:29: !!FAIL: Problem occurred whilst setting boot environment on swi_a, abort
+2026-02-09 17:44:29: ----------------------------------------
+2026-02-09 17:44:29: swi_a
+2026-02-09 17:44:29: ----------------------------------------
+2026-02-09 17:44:29: 
+2026-02-09 17:44:39: Set the swi_a boot configuration back to the TestSet configuration (flash:/swi_a_5700_2002.cfg)
+2026-02-09 17:44:41: Save the current running configuration as TestCase_tear_down.cfg on swi_a
+2026-02-09 17:44:45: Compare swi_a_5700_2002.cfg and TestCase_tear_down.cfg on swi_a
+2026-02-09 17:44:47: PASS: Configuration on swi_a after TestCase tear_down() is the same as the initial TestSet Configuration
+2026-02-09 17:44:47: _PostTearDownThread-swi_a - Joined
+2026-02-09 17:44:49: PASS: swi_a contains no exceptions
+2026-02-09 17:44:51: Setup is no longer reliable - all devices will be rebooted
+2026-02-09 17:44:51: Power cycle swi_a
+2026-02-09 17:45:57: Power cycle swi_a completed: Fail
+2026-02-09 17:45:57: _PowerCycleThread-swi_a - Joined
+2026-02-09 17:45:57: Wait for all ports to reach running state after power-cycle
+2026-02-09 17:45:58: All ports on swi_a that are used in this TestSet have been successfully brought up
+2026-02-09 17:45:58: wait_for_all_ports_running-swi_a - Joined
+2026-02-09 17:45:58: Moving *.pcap files across from /tmp
+TEST_CASE_DATETIME_ENDED
+2026-02-09 17:45:58
+<< test-5700.2002.61: FAIL (numPassed: 2 numFailed: 4)
+
+>> test-5700.2002.62
+TEST_CASE_DATETIME_STARTED
+2026-02-09 17:45:58
+TEST_CASE_DESCRIPTION
+Boot with release, same name as cli - USB Media
+TEST_CASE_REFERENCES
+AWP2682
+TEST_CASE_METHOD
+1. Set Boot System current and backup
+2. Set Boot Menu Default Boot to boot from USB and reboot
+
+TEST_CASE_LOGS
+2026-02-09 17:45:59: _PreRunThread-swi_a - Joined
+2026-02-09 17:45:59: !!FAIL: No USB media present, test unsupported
+2026-02-09 17:46:00: Save the current running configuration as swi_a_5700_2002_62.cfg on swi_a
+2026-02-09 17:46:05: _SaveConfigsThread-swi_a - Joined
+2026-02-09 17:46:05: _CheckRunningConfigsThread-swi_a - Joined
+2026-02-09 17:46:05: Skipping unsupported test
+2026-02-09 17:46:05: 
+2026-02-09 17:47:15: Set swi_a to boot from TFTP
+2026-02-09 17:47:15: Power-cycle swi_a and watch for <Ctrl+B> message
+2026-02-09 17:47:56: Turning swi on from thread, swi_a
+2026-02-09 17:50:27: Turning swi on from thread, swi_a
+2026-02-09 17:52:59: Turning swi on from thread, swi_a
+2026-02-09 17:55:31: Turning swi on from thread, swi_a
+2026-02-09 17:58:03: Turning swi on from thread, swi_a
+2026-02-09 18:00:35: Turning swi on from thread, swi_a
+2026-02-09 18:02:25: !!FAIL: Problem occurred whilst setting boot environment on swi_a, abort
+2026-02-09 18:02:25: ----------------------------------------
+2026-02-09 18:02:25: swi_a
+2026-02-09 18:02:25: ----------------------------------------
+2026-02-09 18:02:25: 
+2026-02-09 18:02:35: Set the swi_a boot configuration back to the TestSet configuration (flash:/swi_a_5700_2002.cfg)
+2026-02-09 18:02:37: Save the current running configuration as TestCase_tear_down.cfg on swi_a
+2026-02-09 18:02:41: Compare swi_a_5700_2002.cfg and TestCase_tear_down.cfg on swi_a
+2026-02-09 18:02:43: PASS: Configuration on swi_a after TestCase tear_down() is the same as the initial TestSet Configuration
+2026-02-09 18:02:43: _PostTearDownThread-swi_a - Joined
+2026-02-09 18:02:45: PASS: swi_a contains no exceptions
+2026-02-09 18:02:47: Moving *.pcap files across from /tmp
+TEST_CASE_DATETIME_ENDED
+2026-02-09 18:02:47
+<< test-5700.2002.62: UNSUPPORTED (numPassed: 2 numFailed: 2)
+
+>> test-5700.2002.70
+TEST_CASE_DATETIME_STARTED
+2026-02-09 18:02:47
+TEST_CASE_DESCRIPTION
+Check bootloader version
+TEST_CASE_REFERENCES
+AWP2718
+TEST_CASE_METHOD
+1. Show system information in Bootloader Menu and check the bootloader version
+2. Restart from Bootloader Menu and check bootloader version is seen at boot time
+
+TEST_CASE_LOGS
+2026-02-09 18:02:49: _PreRunThread-swi_a - Joined
+2026-02-09 18:02:49: Save the current running configuration as swi_a_5700_2002_70.cfg on swi_a
+2026-02-09 18:02:55: _SaveConfigsThread-swi_a - Joined
+2026-02-09 18:02:55: _CheckRunningConfigsThread-swi_a - Joined
+2026-02-09 18:02:55: Show system information in Bootloader Menu and check the bootloader version
+2026-02-09 18:02:55: Power-cycle swi_a and watch for <Ctrl+B> message
+2026-02-09 18:03:40: Turning swi on from thread, swi_a
+2026-02-09 18:06:12: Turning swi on from thread, swi_a
+2026-02-09 18:08:44: Turning swi on from thread, swi_a
+2026-02-09 18:11:15: Turning swi on from thread, swi_a
+2026-02-09 18:13:48: Turning swi on from thread, swi_a
+2026-02-09 18:15:44: 6
+ash: 6: not found
+[root@swi_a_5700_2002 ~]# 
+2026-02-09 18:15:44: !!FAIL: bootloader version, 6.2.37, not seen in system information
+2026-02-09 18:15:44: Restart from Bootloader Menu and check bootloader version is seen at boot time
+2026-02-09 18:45:45: Traceback (most recent call last):
+  File "/home/terrenceb/test_scripts/5700_bootloader/framework/ATTestCase.py", line 990, in __run
+    self._execute_if_not_aborted(self.main)(self)
+  File "/home/terrenceb/test_scripts/5700_bootloader/framework/ATTestCase.py", line 276, in wrapper
+    return fn(*args, **kwargs)
+  File "/home/terrenceb/test_scripts/5700_bootloader/test-5700.2002.py", line 648, in main
+    output = dut.send('0', strList=KEYWORDS_BOOTING)
+  File "/home/terrenceb/test_scripts/5700_bootloader/framework/ATDrivers/ATSwitch.py", line 428, in send
+    output = self.console.send(string, waitTime=waitTime, strList=strList, interval=interval, log=log, debug=debug)
+  File "/home/terrenceb/test_scripts/5700_bootloader/framework/ATDrivers/AWPConsoleCore.py", line 600, in send
+    raise Exception('WAITED TOO LONG')
+Exception: WAITED TOO LONG
+
+2026-02-09 18:45:45: 
+2026-02-09 18:45:45: !!FAIL: exception in TestCase main, aborting test
+2026-02-09 18:45:45: 
+2026-02-09 18:45:45: Set the swi_a boot configuration back to the TestSet configuration (flash:/swi_a_5700_2002.cfg)
+2026-02-09 18:45:48: Save the current running configuration as TestCase_tear_down.cfg on swi_a
+2026-02-09 18:45:52: Compare swi_a_5700_2002.cfg and TestCase_tear_down.cfg on swi_a
+2026-02-09 18:45:54: PASS: Configuration on swi_a after TestCase tear_down() is the same as the initial TestSet Configuration
+2026-02-09 18:45:54: _PostTearDownThread-swi_a - Joined
+2026-02-09 18:45:54: Setup is no longer reliable - all devices will be rebooted
+2026-02-09 18:45:54: Power cycle swi_a
+2026-02-09 18:47:00: Power cycle swi_a completed: Fail
+2026-02-09 18:47:00: _PowerCycleThread-swi_a - Joined
+2026-02-09 18:47:00: Wait for all ports to reach running state after power-cycle
+2026-02-09 18:47:02: All ports on swi_a that are used in this TestSet have been successfully brought up
+2026-02-09 18:47:02: wait_for_all_ports_running-swi_a - Joined
+2026-02-09 18:47:02: Moving *.pcap files across from /tmp
+TEST_CASE_DATETIME_ENDED
+2026-02-09 18:47:02
+<< test-5700.2002.70: FAIL (numPassed: 1 numFailed: 2)
+
+>> test-5700.2002.80
+TEST_CASE_DATETIME_STARTED
+2026-02-09 18:47:02
+TEST_CASE_DESCRIPTION
+Restart from boot menu
+TEST_CASE_REFERENCES
+AWP2670
+TEST_CASE_METHOD
+1. Enter Boot Menu and select option, 0. Restart and check the device boots
+
+TEST_CASE_LOGS
+2026-02-09 18:47:03: _PreRunThread-swi_a - Joined
+2026-02-09 18:47:03: Save the current running configuration as swi_a_5700_2002_80.cfg on swi_a
+2026-02-09 18:47:09: _SaveConfigsThread-swi_a - Joined
+2026-02-09 18:47:09: _CheckRunningConfigsThread-swi_a - Joined
+2026-02-09 18:47:09: Enter Boot Menu and select option 0. Restart and check the device boots
+2026-02-09 18:47:09: Power-cycle swi_a and watch for <Ctrl+B> message
+2026-02-09 18:47:54: Turning swi on from thread, swi_a
+2026-02-09 18:50:25: Turning swi on from thread, swi_a
+2026-02-09 18:52:58: Turning swi on from thread, swi_a
+2026-02-09 18:55:30: Turning swi on from thread, swi_a
+2026-02-09 18:58:02: Turning swi on from thread, swi_a
+2026-02-09 19:29:58: Traceback (most recent call last):
+  File "/home/terrenceb/test_scripts/5700_bootloader/framework/ATTestCase.py", line 990, in __run
+    self._execute_if_not_aborted(self.main)(self)
+  File "/home/terrenceb/test_scripts/5700_bootloader/framework/ATTestCase.py", line 276, in wrapper
+    return fn(*args, **kwargs)
+  File "/home/terrenceb/test_scripts/5700_bootloader/test-5700.2002.py", line 670, in main
+    output = dut.send('0', strList=KEYWORDS_BOOTING)
+  File "/home/terrenceb/test_scripts/5700_bootloader/framework/ATDrivers/ATSwitch.py", line 428, in send
+    output = self.console.send(string, waitTime=waitTime, strList=strList, interval=interval, log=log, debug=debug)
+  File "/home/terrenceb/test_scripts/5700_bootloader/framework/ATDrivers/AWPConsoleCore.py", line 600, in send
+    raise Exception('WAITED TOO LONG')
+Exception: WAITED TOO LONG
+
+2026-02-09 19:29:58: 
+2026-02-09 19:29:58: !!FAIL: exception in TestCase main, aborting test
+2026-02-09 19:29:58: 
+2026-02-09 19:29:58: Set the swi_a boot configuration back to the TestSet configuration (flash:/swi_a_5700_2002.cfg)
+2026-02-09 19:30:00: Save the current running configuration as TestCase_tear_down.cfg on swi_a
+2026-02-09 19:30:05: Compare swi_a_5700_2002.cfg and TestCase_tear_down.cfg on swi_a
+2026-02-09 19:30:06: PASS: Configuration on swi_a after TestCase tear_down() is the same as the initial TestSet Configuration
+2026-02-09 19:30:06: _PostTearDownThread-swi_a - Joined
+2026-02-09 19:30:07: Setup is no longer reliable - all devices will be rebooted
+2026-02-09 19:30:07: Power cycle swi_a
+2026-02-09 19:31:12: Power cycle swi_a completed: Fail
+2026-02-09 19:31:12: _PowerCycleThread-swi_a - Joined
+2026-02-09 19:31:13: Wait for all ports to reach running state after power-cycle
+2026-02-09 19:31:14: All ports on swi_a that are used in this TestSet have been successfully brought up
+2026-02-09 19:31:14: wait_for_all_ports_running-swi_a - Joined
+2026-02-09 19:31:14: Moving *.pcap files across from /tmp
+TEST_CASE_DATETIME_ENDED
+2026-02-09 19:31:14
+<< test-5700.2002.80: FAIL (numPassed: 1 numFailed: 1)
+
+>> test-5700.2002.90
+TEST_CASE_DATETIME_STARTED
+2026-02-09 19:31:14
+TEST_CASE_DESCRIPTION
+Boot from backup (b)
+TEST_CASE_REFERENCES
+AWP2654
+TEST_CASE_METHOD
+1. Enter Boot Menu and select option, B. Boot backup software
+2. Check that the current release loaded is the backup release
+
+TEST_CASE_LOGS
+2026-02-09 19:31:16: _PreRunThread-swi_a - Joined
+2026-02-09 19:31:16: Save the current running configuration as swi_a_5700_2002_90.cfg on swi_a
+2026-02-09 19:31:22: _SaveConfigsThread-swi_a - Joined
+2026-02-09 19:31:22: _CheckRunningConfigsThread-swi_a - Joined
+2026-02-09 19:31:22: Enter Boot Menu and select option, B. Boot backup software
+2026-02-09 19:31:28: PASS: Current boot image is correct, mainrelease.rel
+2026-02-09 19:31:29: PASS: Backup boot image is correct, backuprelease.rel
+2026-02-09 19:31:29: Power-cycle swi_a and watch for <Ctrl+B> message
+2026-02-09 19:32:13: Turning swi on from thread, swi_a
+2026-02-09 19:34:46: Turning swi on from thread, swi_a
+2026-02-09 19:37:18: Turning swi on from thread, swi_a
+2026-02-09 19:39:49: Turning swi on from thread, swi_a
+2026-02-09 19:42:21: Turning swi on from thread, swi_a

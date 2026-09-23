@@ -52,6 +52,8 @@ backups/
 *.bak
 *.tmp
 *.log
+# ...except the framework-run captures tests/test_framework_log_parsing.py reads
+!tests/fixtures/*.log
 
 # pytest
 .pytest_cache/
