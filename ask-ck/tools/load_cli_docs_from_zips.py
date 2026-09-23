@@ -225,9 +225,55 @@ def _cell_text(cell: str) -> str:
     return ", ".join(p for p in parts if p)
 
 
+# Any opening tag, so an element's class attribute can be read wherever it sits in a table.
+_OPEN_TAG_RX = re.compile(r"<([a-z][a-z0-9]*)\b([^>]*)>", re.I)
+
+
+def _none_only(attrs: str) -> bool:
+    """True when an element's `ss-on-*` classes name NO real product (only `ss-on-none`)."""
+    names = set(_SSON_RX.findall(attrs))
+    return bool(names) and names == {"none"}
+
+
+def _element_end(fragment: str, tag: str, pos: int) -> int:
+    """Index just past the `</tag>` that closes an element whose opening tag ends at `pos`
+    (same-name nesting counted). An unclosed element runs to the end of the fragment."""
+    rx = re.compile(rf"<(/?){tag}\b[^>]*>", re.I)
+    depth = 1
+    for m in rx.finditer(fragment, pos):
+        depth += -1 if m.group(1) else 1
+        if depth == 0:
+            return m.end()
+    return len(fragment)
+
+
+def _drop_none_only(fragment: str) -> str:
+    """The fragment with every element shown to no product removed, content and all.
+
+    The build keeps a parameter that ships on no current product in the table, tagged
+    `ss-on-none` and labelled "[Not available on any product]" — on a whole table, a row, or
+    a value inside a cell. Flattened, it read as a legal value, and three such tables reached
+    the prompt. Syntax blocks shown to no product were already dropped; this is the same rule
+    for tables."""
+    out: List[str] = []
+    i = 0
+    while True:
+        m = _OPEN_TAG_RX.search(fragment, i)
+        if not m:
+            out.append(fragment[i:])
+            return "".join(out)
+        if _none_only(m.group(2)):
+            out.append(fragment[i:m.start()])
+            i = _element_end(fragment, m.group(1).lower(), m.end())
+        else:
+            out.append(fragment[i:m.end()])
+            i = m.end()
+
+
 def extract_tables(region: str) -> List[List[List[str]]]:
     out: List[List[List[str]]] = []
     for tb in _TABLE_RX.findall(region):
+        tb = _drop_none_only(tb)
         rows = []
         for tr in _TR_RX.findall(tb):
             cells = [_cell_text(c) for c in _CELL_RX.findall(tr)]
@@ -311,8 +357,8 @@ def combined_page_rows(page: str, html: str) -> List[dict]:
     Grouping is by product-specific SYNTAX blocks only (`zccmdnamesyntax` + `ss-on-*`). Every
     group also carries the page's shared blocks (examples, device output, non-`ss-on` syntax)
     and the shared tables + notes; product-specific NON-syntax blocks and per-product table
-    cells are treated as shared (see the plan's deferred B2). A syntax block shown to no
-    product (`ss-on-none` only) is dropped.
+    cells are treated as shared — their visible "[On …]" label keeps the attribution (B2,
+    2026-09-24). A block or table element shown to no product (`ss-on-none` only) is dropped.
     """
     if H._SOFT404_RX.search(html[:4000]):
         return []

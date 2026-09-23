@@ -2,6 +2,12 @@
 
 > ## Status (read first)
 >
+> **B2 RESOLVED 2026-09-24 — not as a per-product split.** The per-product table markup
+> already carries visible "[On …]" labels, and `speed` has no per-product table at all. What
+> shipped instead: table elements shown to no product are dropped at load (live `ck.db`
+> reloaded), and the prompt renders legal-value tables in full, with no caps. See CHANGELOG
+> 2026-09-24.
+>
 > **COMPLETE 2026-09-09** (through step 6; uncommitted until this session's single commit).
 > Option B loaded to the live `ask-ck/var/ck.db` (duplex 8/25, 0 commands lost, service
 > stopped for the load); steps 2–6 all shipped and the gate is green (pytest 1424, vitest

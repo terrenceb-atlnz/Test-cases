@@ -580,7 +580,19 @@ per-device split, not less.
   `lookup(cmd, product)` returns only that family's.
 - `cli_commands_fts` — FTS5 over command/group/syntax/sample output.
 
-**Reloading the reference (stop → load → start):**
+**Tables (`tables`) and per-product markup (B2, 2026-09-24).** Tables are NOT split per
+product: a per-product row or value keeps the build's own visible label ("[On AR3050, AR4050,
+…] <parameter>"), which is the attribution, and ~97% of per-product table markup carries one.
+An element shown to **no** product (`ss-on-none`, "[Not available on any product]") — a whole
+table, a row or one value in a cell — is dropped at load, the same rule as a syntax block shown
+to no product. No-product markup OUTSIDE tables (prose in `notes`, 56 pages) is still kept.
+In the prompt (`cli_lookup.prompt_block`), every table `_value_tables` accepts as a legal-value
+matrix (≤3 columns, no cell over 90 chars once its product label is stripped) renders as
+`legal values:` **in full** — no row, cell or per-command cap (they hid e.g. 6 of `speed`'s 15
+port types).
+
+**Reloading the reference (stop → load → start):** the zip is not in any repo — Terrence keeps
+it outside them and supplies it for a load; delete the working copy afterwards.
 
 ```bash
 systemctl --user stop ask-ck.service

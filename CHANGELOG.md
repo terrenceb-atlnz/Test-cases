@@ -21,6 +21,34 @@ current working thread see
 > `ask-ck/ck-facelift/`, `pytest-create/` and `CK-main/` plan paths moved to `ask-ck/plans/` on 2026-09-11 and, once complete, to `archive/plans/`.
 > `js-tests/` → `tests/js/`, `e2e/` → `tests/e2e/`, `static/js/` → `ask-ck/frontend/ck-main/current/<page>/` (2026-09-11).
 
+## 2026-09-24 — B2 closed: no-product table rows dropped, and the legal-value tables reach the prompt in full
+
+Terrence supplied the 2026-09-24 docs build ("up to date as of today"). It parsed to the same
+3,535 content rows as the live corpus, byte for byte, so it brought no new content. Measuring
+B2 against it showed the deferred work was not the job the 2026-09-09 plan described:
+
+- **B2 is closed WITHOUT a per-product split.** About 97% of the per-product markup in tables
+  already carries a visible "[On AR3050, AR4050, …]" label, so the flattened rows are still
+  attributed. And `speed`, the case B2 was deferred for, has no per-product table at all: its
+  table is the same on every product. *Why keep the flat form:* scripts must run on every
+  platform, so the labelled flat table is the grounding they need.
+- **The loader drops table elements shown to no product** (`ss-on-none`, "[Not available on
+  any product]"): whole tables, rows, and values inside cells. Three such tables were reaching
+  the prompt as legal values, for parameters that ship on nothing. Syntax blocks already
+  followed this rule. The live `ck.db` was reloaded: 25 rows' tables changed and nothing else,
+  with 0 commands and 0 samples lost. The reload also restored one support-matrix row the
+  2026-09-08 load had missed (`egress-rate-limit overhead` on x980).
+- **No caps on the legal-value tables** (Terrence: *"there shouldnt BE caps"*). The prompt
+  cut each table at 10 rows, so `speed` showed 9 of its 15 port types, with no 10G copper
+  SFP+, DAC, 40G or 100G. It also cut every cell at 58 characters, ending 569 tables mid-sentence,
+  and kept two tables per command, hiding 3 of `show ip route`'s 5. Separately, a product label counted toward the
+  90-character prose test, which kept 123 rows' tables (98 commands) out of the prompt; the width
+  is now measured without the label. Cost: 602 of 2,787 commands render a longer block
+  (median +20 chars; the largest is `show ip route`, from 1.7k to 4.4k).
+- Not done: no-product markup outside tables (prose in `notes`, 56 pages) is still kept, and
+  `prompt_block`'s other limits (syntax lines, the 14-line output budget, examples, note length)
+  are untouched. Both were raised with Terrence.
+
 ## 2026-09-23 — negative tests, the stacked-DUT frame fix, run preflight, and five audit items closed
 
 Terrence answered the doc sweep's open list, and these are his rulings built (`dc2e501`).

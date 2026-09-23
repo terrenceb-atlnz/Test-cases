@@ -344,12 +344,23 @@ def _loads_list(raw) -> list:
     return v if isinstance(v, list) else []
 
 
+# The combined build prefixes a per-product row or value with its products, in its own text:
+# "[On AR3050, AR4050, ARX200, GS970EMX, …] <parameter> …". That label is attribution, not
+# prose, so it does not count toward a cell's width.
+_PRODUCT_LABEL_RX = re.compile(r"\[(?:On [^\]]*|Not available on any product)\]\s*")
+
+
 def _value_tables(tables: Optional[list]) -> List[list]:
     """The tables that are LEGAL-VALUE MATRICES, not prose laid out in cells.
 
     Doc pages use <table> for both. A value matrix is narrow (2–3 columns) and its cells
     are short; a prose table has one wide cell per row and would dump paragraphs into the
-    prompt, which is bulk rather than signal. Keeps at most two per command.
+    prompt, which is bulk rather than signal. Every value matrix is kept (2026-09-24,
+    Terrence: no caps on called information — the old two-per-command cap hid 3 of
+    `show ip route`'s 5).
+
+    A cell's width is measured without its "[On …]" product label: the label alone pushed
+    123 rows' tables (98 commands, e.g. `aaa authentication dot1x`) past the prose limit.
     """
     out: List[list] = []
     for tbl in tables or []:
@@ -361,12 +372,11 @@ def _value_tables(tables: Optional[list]) -> List[list]:
         widths = [len(r) for r in rows]
         if max(widths) > 3:
             continue
-        longest = max((len(str(c)) for r in rows for c in r), default=0)
+        longest = max((len(_PRODUCT_LABEL_RX.sub("", str(c))) for r in rows for c in r),
+                      default=0)
         if longest > 90:                    # a paragraph in a cell — prose, not values
             continue
         out.append(rows)
-        if len(out) == 2:
-            break
     return out
 
 
@@ -715,10 +725,13 @@ def prompt_block(commands: List[str], product: Optional[str] = None,
         # the grounding block exists to prevent, and which no hand-written prose in the
         # prompt supplies — see the note in the Phase 4 write-up about what `tables` does
         # and does not replace.
+        # Every row and every cell in full (2026-09-24). A 10-row cap showed `speed` 9 of its
+        # 15 port types (no 10G copper SFP+, DAC, 40G or 100G) and a 58-char cut ended cells
+        # mid-sentence ("… The default is 30 minutes." lost its default) in 569 tables.
         for tbl in _value_tables(v.get("tables")):
             chunk.append("  legal values:")
-            for row in tbl[:10]:
-                cells = " | ".join(str(x).strip()[:58] for x in row if str(x).strip())
+            for row in tbl:
+                cells = " | ".join(str(x).strip() for x in row if str(x).strip())
                 if cells:
                     chunk.append(f"    {cells}")
 

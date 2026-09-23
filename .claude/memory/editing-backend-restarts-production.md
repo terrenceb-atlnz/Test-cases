@@ -3,7 +3,7 @@ name: editing-backend-restarts-production
 description: ask-ck.service runs uvicorn --reload against the working tree, so ANY save to CK_server/*.py bounces the live server — and a reload can wedge on the agent long-polls
 metadata:
   type: project
-  verified: 2026-09-23
+  verified: 2026-09-24
 ---
 
 The hosted server (`systemd --user` unit `ask-ck.service`, LAN on :8000) runs:
@@ -15,6 +15,12 @@ python -m uvicorn CK_server.main:app --host 0.0.0.0 --port 8000 --reload
 `--reload` watches **this working tree**, and the working tree **is** production
 ([[askck-lan-hosting]]). So **every save to a `CK_server/*.py` file restarts the live server
 other people are using.** Editing the backend is not a local-only act here.
+
+**The watch covers `ask-ck/CK-main/` only** (verified 2026-09-24: `run.sh` does `cd
+"$SCRIPT_DIR"` and passes no `--reload-dir`). Modules the server imports from OUTSIDE it —
+`ask-ck/frontend/ck-main/current/pytest-creator/cli_lookup.py`, `ask-ck/tools/*` — do NOT
+bounce it when edited, and the live worker keeps the OLD code until its next restart. So an
+edit there is safe to make, but it has not shipped until the service restarts.
 
 **The reload can wedge rather than complete.** Observed 2026-09-17 09:24: an edit to `llm.py`
 tripped `StatReload`, uvicorn began a graceful shutdown ("Waiting for connections to close"),

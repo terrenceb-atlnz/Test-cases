@@ -4601,3 +4601,21 @@ Terrence still has to re-confirm and Re-chunk T33234, and apply the bench file t
 full ruling list, the D-24 to D-31 status and what is blocked are in `PROGRESS.md`'s
 2026-09-23 (later) entry. Gate on main: 1771 passed / 1 skipped, vitest 348, `ck.db`
 untouched by tests.
+
+## Session Close / Handoff (2026-09-24) — hygiene closed; B2 closed
+
+- **Hygiene:** the fixture logs are tracked (`82e88aa`); device-testing's `orient-dt` no longer
+  cites `ck_profile` (`7bea0b6`). Terrence pushed both. The backend plan citations stay as they
+  are, on his ruling.
+- **B2:** the 2026-09-24 docs build is byte-identical in content to the live corpus. B2 is closed
+  without a per-product split:
+  - The loader now drops table elements shown to no product, and the live `ck.db` was reloaded
+    (25 rows' tables changed, nothing else).
+  - `cli_lookup` renders the legal-value tables with no caps and measures a cell's width
+    without its product label.
+- **Open, for Terrence:** no-product prose in `notes` (56 pages; the zip is kept at the repo root
+  until he decides), and whether to remove `prompt_block`'s other limits. Everything else is
+  carried forward as in the 2026-09-23 entry above.
+- **Gate on main:** pytest 1777 passed / 1 skipped, vitest 348 in 30 files, both guards OK,
+  `ck.db` untouched by tests. It was dirtied only by the deliberate CLI-reference reload.
+- **Details:** `PROGRESS.md` 2026-09-24 entry; CHANGELOG 2026-09-24.

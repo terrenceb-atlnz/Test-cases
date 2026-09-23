@@ -325,9 +325,80 @@ def test_prose_tables_are_not_dumped_into_the_prompt():
     assert C._value_tables(prose) == []
 
 
-def test_value_tables_capped_at_two():
+def test_every_value_table_is_kept():
+    """No per-command cap (2026-09-24): two-per-command hid 3 of `show ip route`'s 5."""
     many = [[["a", "b"], ["1", "2"]] for _ in range(6)]
-    assert len(C._value_tables(many)) == 2
+    assert len(C._value_tables(many)) == 6
+
+
+def test_a_product_label_does_not_make_a_value_table_prose():
+    """The "[On …]" attribution is not prose. Counted toward the 90-char limit it pushed
+    123 rows' tables out of the prompt; the same cell text without a label must still be
+    rejected when it really is a paragraph."""
+    label = ("[On AR3050, AR4050, ARX200, GS970EMX, GS980EM, IE210, IE220, IE340, IE360, "
+             "IE560, SE240, SE250, x220, x240, x250] ")
+    labelled = [[["Parameter", "Description"],
+                 [label + "authmac", "Enable MAC authentication accounting."]]]
+    assert len(label + "authmac") > 90
+    assert C._value_tables(labelled) == labelled
+    prose = [[["Parameter", "Description"], [label + "x", "A" * 91]]]
+    assert C._value_tables(prose) == []
+
+
+def test_speed_shows_every_port_type_in_full(conn):
+    """No row or cell cap: the 10-row cut showed 9 of `speed`'s 15 port types, so no
+    10G copper SFP+, DAC, 40G QSFP+ or 100G QSFP28 value ever reached a prompt."""
+    block = C.prompt_block(["speed"], conn=conn)
+    for port_type in ("RJ-45 copper ports", "10000 Mbps copper SFP+",
+                      "40000 Mbps QSFP+", "100000 Mbps QSFP28"):
+        assert port_type in block, port_type
+    assert "auto (default), 10, 100, 1000, 2500, 5000, 10000" in block
+
+
+def test_long_cells_are_not_cut_mid_sentence(conn):
+    """The 58-char cell cut ended "… The default is 30 minutes." before its default."""
+    block = C.prompt_block(["aaa accounting update"], conn=conn)
+    assert "The default is 30 minutes." in block
+
+
+# ---------------------------------------------------------------------------
+# B2 (2026-09-24) — a table element shown to NO product is dropped at load
+# ---------------------------------------------------------------------------
+
+def _load_tables(html):
+    import load_cli_docs_from_zips as L
+    return L.extract_tables(html)
+
+
+def test_loader_drops_a_row_shown_to_no_product():
+    html = ('<table><tr><th>Parameter</th><th>Description</th></tr>'
+            '<tr><td>led</td><td>Fault LED</td></tr>'
+            '<tr class="row ss-block ss-on-none"><td><span class="ph ss-on-none">'
+            '[Not available on any product]</span> input-member</td><td>Stack member</td></tr>'
+            '<tr class="row ss-on-x930 ss-on-x950"><td><span class="ph ss-on-x930 ss-on-x950">'
+            '[On x930 and x950]</span> relay</td><td>Relay</td></tr></table>')
+    rows = _load_tables(html)[0]
+    text = json.dumps(rows)
+    assert "input-member" not in text and "Not available" not in text
+    assert ["led", "Fault LED"] in rows
+    assert any("[On x930 and x950] relay" in r[0] for r in rows)   # attribution kept
+
+
+def test_loader_drops_a_whole_table_and_a_value_shown_to_no_product():
+    html = ('<table class="table ss-on-none"><tr><td>output-member</td><td>x</td></tr></table>'
+            '<table><tr><td>speed</td><td><p>auto</p><p class="p ss-on-none">7</p>'
+            '<p class="p ss-on-x930">1000</p></td></tr></table>')
+    tables = _load_tables(html)
+    assert tables == [[["speed", "auto, 1000"]]]
+
+
+def test_live_prompts_carry_no_row_for_no_product(conn):
+    """The three tables that reached a prompt with such a row (measured 2026-09-24)."""
+    for page in ("alarm_cmd/alarm_facility_input-alarm_alarm-position.html",
+                 "awc_cmd/antenna_wireless_ap_prof_radio.html",
+                 "vlan_cmd/show_portvlanforwardingpriority_bd.html"):
+        for (tj,) in conn.execute("SELECT tables FROM cli_commands WHERE page = ?", (page,)):
+            assert "Not available on any product" not in (tj or ""), page
 
 
 def test_usage_examples_ground_a_command_with_no_output(conn):

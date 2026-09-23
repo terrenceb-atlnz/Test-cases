@@ -1,7 +1,7 @@
 ---
 name: atlnz-docs-cli-reference
 description: "AlliedWare Plus CLI reference in ck.db: since 2026-09-08 built from ONE combined docs zip (ss-on-<product> classes), not 37 per-device zips; renewable tables, stop→load→start"
-verified: 2026-09-23
+verified: 2026-09-24
 metadata: 
   node_type: memory
   type: reference
@@ -36,6 +36,13 @@ path, so a load under a running server strands it on the old probe set (~30 s LA
 The loader `DROP`s/recreates only `cli_commands`/`cli_command_products`/`cli_commands_fts` — the
 documented RENEWABLE tables, so this does NOT violate the ck.db invariant. Combined-zip SHA-256
 (2026-09-07 build): `d6abc0c13d821349afefb5457907a9634dbc55d9d44fc9d00b33d187b247c4a9`.
+The 2026-09-24 build (developer: "up to date as of today"; 7,323,003 bytes, SHA-256
+`34710c23d56572a2a0f9194f6d8bf3d9a2f893dfb3b1b8fec01a0eeeff53cc4e`) parses to the SAME
+3,535 content rows, every `content_sha` identical — no new content. It WAS loaded the same
+day, for a loader fix (B2): table elements shown to no product (`ss-on-none`, "[Not available
+on any product]") are now dropped — 25 rows' tables changed, nothing else. A load needs the
+zip; Terrence keeps it OUTSIDE the repos and supplies it on request. A newer zip is worth
+loading only if a census shows a content change or the loader changed.
 
 **Why it exists:** the generate/extract prompts demanded exact CLI fields while showing zero
 real output, so every model invented a `speed=1000`/`state=up` schema the switch never prints

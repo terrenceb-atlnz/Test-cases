@@ -5,13 +5,58 @@ verified: 2026-09-23
 
 **Purpose**: This file exists so future sessions can quickly understand exactly where we are, what has been built, what the priorities are, and how to continue seamlessly.
 
-**Last Updated**: 2026-09-23 (by Claude, with Terrence for every decision)
+**Last Updated**: 2026-09-24 (by Claude, with Terrence for every decision)
 
 > **Reading note (2026-09-23 doc sweep).** Entries are frozen as written. Where an entry's
 > claim has since stopped being true, a ⚠ line under its heading says what changed.
 > Newest first. Paths in older entries predate these moves (the same as in CHANGELOG): `tool/` → `ask-ck/tools/`, `ask-ck/var/` → `ask-ck/db/`, `objective-drafting/` → `ask-ck/functions/generator/`, `pytest-create/` → `ask-ck/functions/pytest-creator/`, `js-tests/` → `tests/js/`, `ask-ck/ck-facelift/` → `ask-ck/plans/`, root reports → `docs/`, and completed plans `ask-ck/plans/` → `archive/plans/` (2026-09-11, 2026-09-23). Also retired 2026-09-23: the demo notes → `archive/plans/demo-2026-09-11/`, and `HANDOFF-generate-token-efficiency.md` + `Fragments_prompt.md` → `archive/records/`.
 
+## Latest session (2026-09-24) — hygiene closed; B2 closed: no-product table rows dropped, legal-value tables uncapped
+
+**Hygiene** (Terrence: "perform all hygiene tasks"; both commits pushed by him):
+- `82e88aa`: `tests/fixtures/framework_run_*.log` are tracked through a `!tests/fixtures/*.log`
+  exception. A fresh clone no longer fails 5 parsing tests.
+- device-testing `7bea0b6`: `orient-dt`'s stacked-DUT bullet no longer cites the retired
+  `ck_profile`.
+- **Backend plan citations: left as they are, on Terrence's ruling (option 1).** The one dead
+  path (`agent_bridge.py:31`) had already been fixed in `dc2e501`. The remaining bare-name
+  citations still resolve by name, and the backend already cites archived plans that way.
+  This replaces "fix them the next time those files are edited".
+
+**B2** (details and the why: CHANGELOG 2026-09-24; SERVER-README "CLI command reference"):
+- **The 2026-09-24 docs build has no new content.** Every `content_sha` matched. Its SHA-256 is
+  in memory `atlnz-docs-cli-reference`. Terrence keeps the zip OUTSIDE the repos and supplies it
+  for a load.
+- **B2 is closed without a per-product split.** Per-product table rows carry their own
+  "[On …]" label, and `speed` has no per-product table.
+- **Built (Terrence chose (a), "fix the problems"):**
+  - The loader drops table elements shown to no product. The live `ck.db` was reloaded: 25
+    rows' tables changed, nothing else, and one support-matrix row that the 2026-09-08 load
+    missed was restored.
+  - `cli_lookup` measures a cell's width without its product label, and removes the 10-row,
+    58-character and two-per-command caps (*"there shouldnt BE caps"*). `speed` now shows all 15 port types.
+- **Checks:** a dry run on a scratch copy; 7 new tests in `test_cli_grounding_phase4.py`, each
+  shown red by a mutation that undid its change; and a pre-load snapshot in the session scratchpad.
+
+**Raised, awaiting Terrence:**
+1. **No-product markup outside tables** (prose in `notes`, 56 pages; `Default`/`Mode` reach the
+   prompt). The fix is the same loader rule plus a reload, which needs the zip. The zip's
+   working copy is kept at the repo root, untracked, until this is decided; then delete it.
+2. **`prompt_block`'s other limits:** `syntax[:4]`, the 14-line `max_output_lines` budget,
+   `examples[:3]`, `notes` at 160 characters, and the family-list trims (`[:6]`, `[:4]`). Terrence's
+   "no caps" was applied to the table caps only. Measure first, then decide per limit.
+
+**Carried forward, unchanged:** Terrence re-confirms and Re-chunks T33234, applies the bench file
+to tb470 and fits both SFPs; then Phase 11.4. D-24 to D-31 are still unreviewed. D-28 is the
+`speed` prompt sentence, and its table now reaches the prompt in full.
+
+**Gate on main at the wrap:** see SESSION_STATE's 2026-09-24 entry.
+
 ## Latest session (2026-09-23, later) — the open list, answered and built: negative tests, stacked-DUT frame, run preflight, T33234
+
+> ⚠ **Superseded in part (2026-09-24):** B2 was unblocked and closed; the fixture logs (item
+> 10) are tracked (`82e88aa`); `orient-dt`'s `ck_profile` line was fixed (device-testing
+> `7bea0b6`). See the entry above.
 
 Terrence walked the sweep's open list (the entry below) and ruled on every item. His
 direction: *"we are moving on to making real code and firing it asap"*. The work was built in
@@ -99,6 +144,10 @@ fits both SFPs. Then Phase 11.4 (the first hardware run of a generated script), 
 preflight now in the Run path.
 
 ## Latest session (2026-09-23) — doc freshness sweep: every doc verified, stamped or retired; no product change
+
+> ⚠ **Superseded in part (2026-09-24):** the dead `agent_bridge.py:31` citation was fixed in
+> `dc2e501`, and Terrence ruled that the bare-name backend citations stay as they are. They are
+> no longer "fix them the next time those files are edited".
 
 Terrence: *"scrub all other docs for freshness. Verify their contents if they are over 10 days
 old, or un-stamped. Timestamp them when you are done verifying their contents … Retire them if
