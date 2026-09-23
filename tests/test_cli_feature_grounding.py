@@ -117,11 +117,18 @@ def test_show_interface_does_report_lpi_on_some_families():
     per-family markup on this page — every output form is shown unattributed on a SINGLE
     variant (PLAN-cli-corpus-combined-followups finding 2), so that half is gone for good.
     What still matters, and is all relevance ranking needs, is that the field is PRESENT in
-    the sample the prompt uses."""
+    the sample the prompt uses.
+
+    RESTORED 2026-09-24: "gone for good" was wrong. The per-family markup was always in the
+    build, on the <div>/<section> CONTAINERS of the output blocks, and the loader read only a
+    block's own class. It now reads the container's scope too, so the page splits into eight
+    variants again and only the chassis variant prints LPI — the July shape, and the half this
+    test used to pin."""
     variants = cli_lookup.lookup("show interface", None)
     with_lpi = [v for v in variants
                 if "ecofriendly lpi" in (v["sample_output"] or "").lower()]
     assert with_lpi, "no show interface variant reports LPI; re-read the fix rationale"
+    assert len(with_lpi) < len(variants), "LPI is family-specific; the per-family split is lost"
 
 
 @needs_showif
@@ -210,22 +217,21 @@ def _two_variant_conn():
 def test_family_specific_field_is_flagged(monkeypatch):
     """Two truths, one code path.
 
-    NEGATIVE (real corpus): the combined build carries no per-family markup on
-    `show interface`, so it is a SINGLE variant — and prompt_block must NOT emit a
-    family-specific note, because a false flag is wrong grounding: it would tell the model a
-    field is missing on hardware the source cannot say any such thing about. See
-    PLAN-cli-corpus-combined-followups finding 2 / decision A2.
+    REAL CORPUS (since 2026-09-24, when the loader began reading container scope): `show
+    interface` splits by family again and only the chassis variant prints LPI, so the note
+    must fire — and must name only families whose variant lacks the field, never a chassis
+    family that has it (a false flag is wrong grounding). From 2026-09-09 to 2026-09-24 this
+    half asserted the opposite, because the page read as ONE unattributed variant.
 
-    POSITIVE (synthetic): the flag's code path — a model told to match formats exactly should
-    learn a field is not universal — still matters and would fire the moment a future corpus
-    splits the page again. Exercise it on a two-variant fixture where one variant prints LPI
-    and the other does not."""
-    # NEGATIVE — the live single-variant corpus must not raise a false flag
+    SYNTHETIC: the flag's code path on a minimal two-variant fixture, independent of the
+    corpus."""
     _, terms = cli_lookup.feature_commands("Disable EcoMode on the port.")
     block = cli_lookup.prompt_block(["show interface"], None,
                                     max_output_lines=14, feature_terms=terms)
-    assert "family-specific" not in block, (
-        "a family-specific note fired on a single-variant page — false grounding")
+    note = next((ln for ln in block.splitlines() if "family-specific" in ln), "")
+    assert note, "the family-specific note did not fire on the real per-family split"
+    named = note.split("not printed on", 1)[1]
+    assert "x930" in named and "x8100" not in named and "x908gen3" not in named, note
 
     # POSITIVE — the note returns when the page genuinely splits by family. The alias index
     # caches on str(DB), so point DB at a unique sentinel and clear the cache around the call

@@ -118,6 +118,9 @@ _PROMPT_ANY_RX = re.compile(
 _BARE_PROMPT_RX = re.compile(
     r"^[ \t]*[A-Za-z][\w.\-]{0,31}(?:\[\d{1,4}\])?(?:\([^)\n]{0,63}\))?(?:\[\d{1,4}\])?[ \t]*[#>][ \t]*$")
 
+# The start of a prompt whose mode paren never closes (`awplus(config-router# …`): a typo in
+# the docs, not a reply, so it is never attached to the example before it (2026-09-24).
+_PROMPT_FRAGMENT_RX = re.compile(r"^[ \t]*[A-Za-z][\w.\-]{0,31}(?:\[\d{1,4}\])?\(")
 # Placeholder metacharacters that mark a SYNTAX template rather than device output.
 _PLACEHOLDER_RX = re.compile(r"[<>{}|\[\]]")
 
@@ -178,12 +181,13 @@ def _in_syntax_sections(sections) -> bool:
 
 def _outside_syntax_is_output(lines: List[str], section: str) -> bool:
     """Copy of `harvest_cli_docs.outside_syntax_is_output` — a test pins that they agree.
-    Outside a Syntax section a promptless block is never syntax: output (>=3 lines; a
-    placeholder-dense one only under an Output heading), or dropped."""
+    Outside a Syntax section a promptless block is never syntax: output (anything under an
+    Output heading; elsewhere >=3 lines and not placeholder-dense), or dropped."""
+    if section.lower().startswith("output"):
+        return True
     if len(lines) < 3:
         return False
-    dense = sum(1 for ln in lines if _PLACEHOLDER_RX.search(ln)) / len(lines) > 0.4
-    return not dense or section.lower().startswith("output")
+    return sum(1 for ln in lines if _PLACEHOLDER_RX.search(ln)) / len(lines) <= 0.4
 
 
 def reclassify(pre_blocks: List[str], sections: Optional[List[Optional[str]]] = None) -> tuple:
@@ -202,6 +206,7 @@ def reclassify(pre_blocks: List[str], sections: Optional[List[Optional[str]]] = 
     examples: List[dict] = []
     best: Optional[str] = None
     use_sections = _in_syntax_sections(sections)
+    after_example = None            # the section of the example block just read, else None
 
     def _consider(text: Optional[str]) -> None:
         nonlocal best
@@ -211,24 +216,30 @@ def reclassify(pre_blocks: List[str], sections: Optional[List[Optional[str]]] = 
     for i, b in enumerate(pre_blocks or []):
         if not b or not b.strip():
             continue
+        sec = ((sections[i] if i < len(sections) else None) or "") if use_sections else ""
+        prev, after_example = after_example, None
         if _PROMPT_ANY_RX.search(b):
             lines = b.split("\n")
             cmd_line = lines[0].strip()
             reply = "\n".join(lines[1:]).rstrip()
             examples.append({"cmd": cmd_line, "output": reply or None})
             _consider(reply or None)
+            after_example = sec
             continue
 
         # No prompt anywhere. Output, or a syntax template?
         lines = [ln for ln in b.split("\n") if ln.strip()]
         if all(_BARE_PROMPT_RX.match(ln) for ln in lines):
             continue                               # a mode prompt on its own
-        if use_sections:
-            sec = (sections[i] if i < len(sections) else None) or ""
-            if "syntax" not in sec.lower():
-                if _outside_syntax_is_output(lines, sec):
-                    _consider(b.rstrip())
-                continue                           # outside a Syntax section: never syntax
+        if use_sections and "syntax" not in sec.lower():
+            # Right after a worked example in the same section: its reply (`reboot system?
+            # (y/n): y`). Same rule as harvest_cli_docs.classify.
+            if prev == sec and examples and not _PROMPT_FRAGMENT_RX.match(lines[0]):
+                ex = examples[-1]
+                ex["output"] = (ex["output"] + "\n" if ex["output"] else "") + b.rstrip()
+            if _outside_syntax_is_output(lines, sec):
+                _consider(b.rstrip())
+            continue                               # outside a Syntax section: never syntax
         if len(lines) < 3:
             syntax.append(b)                       # too short to judge — stays syntax
             continue

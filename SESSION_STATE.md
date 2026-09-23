@@ -4636,3 +4636,16 @@ untouched by tests.
   scope of `<pre>` blocks inside per-product containers.
 - **Gate on main:** pytest 1793 passed / 1 skipped, vitest 348, both guards OK, `ck.db`
   untouched by tests.
+
+## Session Close / Handoff (2026-09-24, latest) — ck.db code blocks split by container scope
+
+- **Shipped:**
+  - `<pre>` blocks use their container's product scope; rows split per product group (4,665 rows).
+  - `show interface` is per-family again.
+  - All-products pages keep every product: 0 pairs lost, 163 regained.
+  - Example replies are attached.
+  - Live `ck.db` reloaded; production restarted.
+- **Three questions are open for Terrence:** variant difference lines for examples/output, the
+  101 orphan blocks, and deleting the zip. See `PROGRESS.md` 2026-09-24 (latest).
+- **Next:** Terrence is authoring demo scripts (demo in about an hour).
+- **Gate:** pytest 1798 passed / 1 skipped, vitest 348, `ck.db` untouched by tests.

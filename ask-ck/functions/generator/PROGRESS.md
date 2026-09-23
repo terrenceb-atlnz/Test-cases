@@ -11,6 +11,26 @@ verified: 2026-09-23
 > claim has since stopped being true, a ⚠ line under its heading says what changed.
 > Newest first. Paths in older entries predate these moves (the same as in CHANGELOG): `tool/` → `ask-ck/tools/`, `ask-ck/var/` → `ask-ck/db/`, `objective-drafting/` → `ask-ck/functions/generator/`, `pytest-create/` → `ask-ck/functions/pytest-creator/`, `js-tests/` → `tests/js/`, `ask-ck/ck-facelift/` → `ask-ck/plans/`, root reports → `docs/`, and completed plans `ask-ck/plans/` → `archive/plans/` (2026-09-11, 2026-09-23). Also retired 2026-09-23: the demo notes → `archive/plans/demo-2026-09-11/`, and `HANDOFF-generate-token-efficiency.md` + `Fragments_prompt.md` → `archive/records/`.
 
+## Latest session (2026-09-24, latest) — ck.db: code blocks split by container scope; example replies
+
+Details and the why: CHANGELOG 2026-09-24 (latest); design: SERVER-README "CLI command reference".
+- **Container scope:** about 5,200 blocks now use their `<div>`/`<section>`'s product scope, and
+  rows split by every scoped block (3,535 → 4,665 rows). `show interface` is per-family again.
+  Memory `atlnz-docs-cli-reference` is corrected: the LPI fact was never gone.
+- **Product pairs:** 0 lost, 163 regained (a fix to the all-products universe).
+- **Example replies:** 58 attached; Output-heading one-liners count as output.
+- **Checks:** a dry run on a scratch copy, then the live reload; a pre-load snapshot in the scratchpad;
+  `ck restart`. 7 new tests; 6 mutations, all red.
+
+**Questions returned to Terrence (unanswered at the wrap; he moved to demo scripts):**
+1. Should other variants' examples/output get "(on …: has …)" difference lines? Today the prompt
+   shows the broadest variant and only syntax differences.
+2. 101 short orphan blocks (`% Error …` in Usage notes, a stray `(y/n)`) stay dropped. Surface them?
+3. Delete the zip's working copy (repo root, untracked)?
+
+**Gate at the wrap:** pytest 1798 passed / 1 skipped; vitest 348; both guards OK; `ck.db` untouched
+by tests.
+
 ## Latest session (2026-09-24, later) — CLI prompt block: no caps, differences not reprints, table scope, section-aware syntax
 
 Terrence ruled on the morning's two raised items and on each finding after it. Details and the

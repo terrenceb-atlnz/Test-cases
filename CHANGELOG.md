@@ -21,6 +21,29 @@ current working thread see
 > `ask-ck/ck-facelift/`, `pytest-create/` and `CK-main/` plan paths moved to `ask-ck/plans/` on 2026-09-11 and, once complete, to `archive/plans/`.
 > `js-tests/` → `tests/js/`, `e2e/` → `tests/e2e/`, `static/js/` → `ask-ck/frontend/ck-main/current/<page>/` (2026-09-11).
 
+## 2026-09-24 (latest) — code blocks split rows by their container's product scope; example replies kept
+
+Terrence asked whether `ck.db` was resolved, then: *"fix what you can and return any
+questions"*. The live `ck.db` was reloaded again: 4,665 rows (was 3,535), 3,415 commands, and
+1,442 rows with sample output (was 850). 0 page×product pairs were lost and 163 regained.
+
+- **A `<pre>`'s product scope now includes its container's.** About 5,200 blocks are scoped only by
+  a wrapping `<div>`/`<section>`, and the loader read only a block's own class. *Why it
+  mattered:* router-only examples and output (`eth1`) reached every switch.
+  - The per-family facts recorded as "gone from the source" were never gone.
+    `show interface` has 8 variants again, and only the chassis variant prints LPI.
+  - Rows now split by EVERY scoped block, not only scoped syntax; 648 commands gain variants.
+  - Blocks under a no-product container (33) are dropped.
+- **"Available on all products" pages keep every product.** The first dry run dropped 367
+  page×product pairs: products no block named. They are now kept, and the same fix restored
+  163 pairs an older rule had dropped (`ping` on ar1050, gs970emx, …).
+- **Example replies kept.** A short promptless block right after a worked example is its
+  reply (58 blocks: `reboot system? (y/n): y`, `% Port-Control not configured …`). Anything
+  under an Output heading is output. The other 101 short blocks stay dropped; that is a
+  question for Terrence.
+- **Tests that pinned the old premise were rewritten:** `show interface` single-variant, and the
+  exact `arp`/`duplex` "(on …)" strings (now general properties).
+
 ## 2026-09-24 (later) — the CLI prompt block: no caps, differences instead of reprints, table scope restored, syntax classified by page section
 
 Terrence measured each remaining limit with Claude, then ruled on them. The live `ck.db` was

@@ -380,10 +380,19 @@ def test_every_syntax_form_reaches_the_prompt(conn):
 
 
 def test_every_family_on_the_alternative_syntax_line(conn):
-    """The "(on …)" line named 6 families. `arp`'s router variant has 9; the 9th must be there."""
+    """The "(on …)" line named 6 families. Every family of every variant whose syntax differs
+    from the heading's must now be named on some line (`arp`: 5 variants, 35 families)."""
     block = C.prompt_block(["arp"], conn=conn)
-    alt = next(ln for ln in block.splitlines() if ln.strip().startswith("(on ar1050"))
-    assert "tq7613r, vfw:" in alt
+    named = set()
+    for ln in block.splitlines():
+        if ln.strip().startswith("(on "):
+            named |= {f.strip() for f in ln.strip()[4:].split(":", 1)[0].split(",")}
+    variants = C.lookup("arp", conn=conn)
+    head = max(variants, key=lambda x: (len(x["products"]), len(x["sample_output"] or "")))
+    head_keys = {C._syntax_key(s) for s in head["syntax"]}
+    differing = {p for v in variants if {C._syntax_key(s) for s in v["syntax"]} != head_keys
+                 for p in v["products"]}
+    assert differing and differing <= named, sorted(differing - named)
 
 
 def test_alternative_syntax_line_shows_only_the_difference(conn):
@@ -394,11 +403,18 @@ def test_alternative_syntax_line_shows_only_the_difference(conn):
     alt = [ln.strip() for ln in block.splitlines() if ln.strip().startswith("(on ")]
     assert alt == ["(on x8100, x908gen2, x908gen3, x930, x950, x950gen2, x980, xs900mx: "
                    "has duplex {auto|full} | lacks duplex {auto|full|half})"]
-    # A form the variant SHARES with the heading is never repeated on its line.
+    # A form under the heading is never repeated in a line's `has` part.
     arp = C.prompt_block(["arp"], conn=conn)
+    head_forms = []
+    for ln in arp.split("### ", 1)[1].splitlines()[1:]:
+        if not ln.startswith("    ") or ln.strip().startswith("(on "):
+            break
+        head_forms.append(C._syntax_key(ln))
     for ln in arp.splitlines():
-        if ln.strip().startswith("(on "):
-            assert "no arp <ip-addr>" not in ln and "[vrf <vrf-name>]" not in ln, ln
+        if ln.strip().startswith("(on ") and ": has " in ln:
+            has = ln.split(": has ", 1)[1].split(" | lacks ", 1)[0].rstrip(")")
+            for form in has.split("; "):
+                assert C._syntax_key(form) not in head_forms, (form, ln)
 
 
 def test_a_syntax_form_is_shown_once(conn):
@@ -558,6 +574,60 @@ def test_live_scoped_tables_show_their_products(conn):
     assert block.count("legal values:") == 1
     assert "[On ar3050, ar4050, arx200," in block and "160 | 160MHz bandwidth" in block
     assert "(on tq6702r: lacks 160 | 160MHz bandwidth)" in block, block
+
+
+def test_loader_splits_rows_by_a_blocks_container_scope():
+    """A <pre> scoped only by its wrapping <div> belongs to those products' row, not every
+    row (5,200 such blocks). One under a no-product container is dropped. On an "all
+    products" page the products no block names stay, as ALL_PRODUCTS for main() to expand."""
+    import load_cli_docs_from_zips as L
+    html = ('<article><p>This command is available on all products.</p>'
+            '<section><h2>Syntax</h2><pre>show thing</pre></section>'
+            '<section><h2>Output</h2>'
+            '<div class="ss-on-ar3050 ss-on-arx200"><pre>Interface eth1\n  up\n  x</pre></div>'
+            '<div class="ss-on-x930"><pre>Interface port1.0.1\n  up\n  x</pre></div>'
+            '<div class="ss-on-none"><pre>Interface ppp0\n  up\n  x</pre></div>'
+            '</section></article>')
+    rows = L.combined_page_rows("x_cmd/show_thing.html", html)
+    by = {tuple(r["products"]): r["pre_blocks"] for r in rows}
+    assert by[("ar3050", "arx200")] == ["show thing", "Interface eth1\n  up\n  x"]
+    assert by[("x930",)] == ["show thing", "Interface port1.0.1\n  up\n  x"]
+    assert by[(L.ALL_PRODUCTS,)] == ["show thing"]
+    assert not any("ppp0" in b for r in rows for b in r["pre_blocks"])
+
+
+def test_classify_attaches_a_reply_to_the_example_before_it():
+    """`awplus# reboot` then `reboot system? (y/n): y` is one example. A mistyped prompt
+    (`awplus(config-router# …`, no closing paren) is not a reply. Under an Output heading a
+    one-line block is output."""
+    blocks = ["reboot", "awplus# reboot", "reboot system? (y/n): y",
+              "awplus(config)# router bgp 100", "awplus(config-router# bgp x",
+              "Port-vlan Forwarding Priority: None"]
+    secs = ["Syntax", "Example", "Example", "Example", "Example", "Output"]
+    for f in (H.classify, C.reclassify):
+        syn, ex, best = f(blocks, secs)
+        assert ex[0] == {"cmd": "awplus# reboot", "output": "reboot system? (y/n): y"}, f
+        assert ex[1] == {"cmd": "awplus(config)# router bgp 100", "output": None}, f
+        assert best == "Port-vlan Forwarding Priority: None", f
+
+
+def test_harvester_prompt_fragment_regex_matches_the_reader():
+    assert H._PROMPT_FRAGMENT_RX.pattern == C._PROMPT_FRAGMENT_RX.pattern
+
+
+def test_live_show_interface_is_per_family_again(conn):
+    """The switch families see `port1.0.1` output, the TQ access points `eth1`."""
+    x930 = C.lookup("show interface", "x930", conn)
+    tq = C.lookup("show interface", "tq6702r", conn)
+    assert x930 and "Interface port1." in x930[0]["sample_output"]
+    assert "Interface eth1" not in x930[0]["sample_output"]
+    assert tq and "Interface eth1" in tq[0]["sample_output"]
+
+
+def test_live_ping_is_on_every_product_again(conn):
+    """`ping` is available on all products; a split page used to drop the families no
+    syntax block named (163 page×product pairs, `ping` on ar1050 among them)."""
+    assert C.lookup("ping", "ar1050", conn)
 
 
 def test_live_prompts_carry_no_row_for_no_product(conn):

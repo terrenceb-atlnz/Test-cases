@@ -106,25 +106,28 @@ def _pre_blocks_full(region: str) -> List[Tuple[str, bool, Optional[frozenset], 
     reply, a mode prompt or device output out of `syntax` (2026-09-24: ~500 such blocks were
     filed as syntax by the shape heuristic alone). A merged block keeps its first piece's.
 
-    `products` is a frozenset of the real product names the block's `ss-on-*` classes name
-    (with `none` removed), or None when the block carries no `ss-on` class at all — i.e. it
-    is shared by every product on the page. A block whose ONLY `ss-on` token was `none`
-    yields an EMPTY frozenset, so the caller can tell "shown to no product" from "shared".
+    `products` is a frozenset of the real product names in force for the block — its own
+    `ss-on-*` classes, else its nearest scoped container's — with `none` removed, or None when
+    neither is scoped, i.e. it is shared by every product on the page. A block whose only
+    token was `none` yields an EMPTY frozenset, so the caller can tell "shown to no product"
+    from "shared".
 
     The join rule is identical to `_pre_blocks_merged` (only non-prompt output merges across a
     table-cell break); merged pieces union their product sets and OR their syntax flag.
     """
     out: List[list] = []            # [text, is_syntax, products, section]
     heads = [(h.start(), _clean(h.group(1))) for h in _H2_RX.finditer(region)]
+    scopes = _element_scopes(region, "pre")
     prev_end: Optional[int] = None
     for m in H._PRE_RX.finditer(region):
         section = next((t for pos, t in reversed(heads) if pos <= m.start()), None)
         openm = _PRE_OPEN_RX.match(region, m.start())
         attrs = openm.group(1) if openm else ""
-        has_sson = "ss-on-" in attrs
-        names = set(_SSON_RX.findall(attrs))
-        names.discard("none")
-        prods = frozenset(names) if has_sson else None
+        # The block's own class, else its container's (2026-09-24): 5,200 blocks are scoped
+        # only by a wrapping <div>/<section>, and read as shared they put router-only examples
+        # and output in front of every product.
+        scope = scopes.get(m.start())
+        prods = frozenset(scope - {"none"}) if scope is not None else None
         is_syn = _SYNTAX_CLASS in attrs
         text = unescape(H._TAG_RX.sub("", m.group(1))).strip()
         # Only OUTPUT joins output. A block that is (or contains) a command line is an
@@ -288,11 +291,12 @@ _ANY_TAG_RX = re.compile(r"<(/?)([a-z][a-z0-9]*)\b([^>]*)>", re.I)
 _VOID_TAGS = {"br", "img", "col", "hr", "input", "meta", "link", "wbr", "area", "source"}
 
 
-def _table_scopes(region: str) -> Dict[int, Optional[frozenset]]:
-    """{start of each <table> -> the `ss-on-*` names in force there, or None if unscoped}.
+def _element_scopes(region: str, tag: str) -> Dict[int, Optional[frozenset]]:
+    """{start of each <tag> -> the `ss-on-*` names in force there, or None if unscoped}.
 
-    A table's product scope is its OWN class, else the nearest enclosing element's. 454
-    tables are scoped: 232 on the table itself, 222 through a wrapping <div> or <section>.
+    An element's product scope is its OWN class, else the nearest enclosing element's. The
+    loader used to read only the element's own class, and flattening lost the rest: 454 tables
+    and 5,200 <pre> blocks take their scope from a wrapping <div> or <section> (2026-09-24).
     """
     scopes: Dict[int, Optional[frozenset]] = {}
     stack: List[Tuple[str, Optional[frozenset]]] = []
@@ -307,10 +311,14 @@ def _table_scopes(region: str) -> Dict[int, Optional[frozenset]]:
                 stack.pop()
             continue
         own = frozenset(_SSON_RX.findall(attrs)) or None
-        if name == "table":
+        if name == tag:
             scopes[m.start()] = own or next((s for _, s in reversed(stack) if s), None)
         stack.append((name, own))
     return scopes
+
+
+def _table_scopes(region: str) -> Dict[int, Optional[frozenset]]:
+    return _element_scopes(region, "table")
 
 
 def product_label(products) -> str:
@@ -416,17 +424,18 @@ def parse_page(page: str, html: str) -> Optional[dict]:
 def combined_page_rows(page: str, html: str) -> List[dict]:
     """The combined build's rows for one page: ONE row per product-group.
 
-    A page whose syntax is uniform across its products yields a single row (the common case,
-    incl. `show interface`). A page that ships a different syntax form per product family
-    (`duplex`: `{auto|full}` on the chassis families, `{auto|full|half}` on the rest) yields
-    one row per distinct family group, so the per-family variant comparison the read path and
-    prompts rely on is preserved — the same shape the July per-device zips produced.
+    A page with no product-scoped block yields a single row (the common case). A page that
+    ships different content per product family (`duplex`: `{auto|full}` on the chassis
+    families, `{auto|full|half}` on the rest; `show interface`: `port1.0.1` vs `eth1` output)
+    yields one row per distinct family group, so the per-family variant comparison the read
+    path and prompts rely on is preserved — the same shape the July per-device zips produced.
 
-    Grouping is by product-specific SYNTAX blocks only (`zccmdnamesyntax` + `ss-on-*`). Every
-    group also carries the page's shared blocks (examples, device output, non-`ss-on` syntax)
-    and the shared tables + notes; product-specific NON-syntax blocks and per-product table
-    cells are treated as shared — their visible "[On …]" label keeps the attribution (B2,
-    2026-09-24). A block or table element shown to no product (`ss-on-none` only) is dropped.
+    Grouping is by EVERY product-scoped block (2026-09-24; syntax only before): each product
+    sees the shared blocks plus the scoped ones naming it, and products that see the same set
+    share a row. The scope is a block's own `ss-on-*` class or, for 5,200 blocks, its
+    container's. Before, a scoped example or output block was treated as shared, so a
+    router-only `eth1` example reached every switch. Shared tables + notes ride on every row.
+    A block or table element shown to no product (`ss-on-none` only) is dropped.
     """
     if H._SOFT404_RX.search(html[:4000]):
         return []
@@ -443,31 +452,49 @@ def combined_page_rows(page: str, html: str) -> List[dict]:
         return []
     notes = extract_notes(region)
 
-    # Indices of the product-specific syntax blocks, and the products they name.
-    spec = [(i, p) for i, (t, s, p) in enumerate(ann) if s and p]     # p is a non-empty set
+    # Every product-scoped block, split into syntax (the build's syntax class, or a block in a
+    # Syntax section) and the rest (examples, output).
+    spec = [(i, p) for i, (t, s, p) in enumerate(ann) if p]           # p is a non-empty set
     if not spec:
         blocks = [t for t, _, _ in ann]
         return [_row_from(page, blocks, tables, notes, avail, secs)]  # single row, unchanged
 
-    shared_idx = [i for i, (t, s, p) in enumerate(ann) if (i not in {j for j, _ in spec})]
+    def _syntaxy(i: int) -> bool:
+        return ann[i][1] or "syntax" in (secs[i] or "").lower()
+
+    spec_syn = [(i, p) for i, p in spec if _syntaxy(i)]
+    spec_oth = [(i, p) for i, p in spec if not _syntaxy(i)]
+    shared_idx = [i for i, (t, s, p) in enumerate(ann) if p is None]
     named = frozenset().union(*[p for _, p in spec])
-    # "available on all products" (or no sentence) alongside a split: the ss-on classes are
-    # the only concrete product list, so the named union IS the universe.
-    universe = named if (avail == [ALL_PRODUCTS] or not avail) else (frozenset(avail) | named)
+    # "Available on all products" alongside a split: every product the classes do not name
+    # sees the shared blocks, so they join as ALL_PRODUCTS and main() expands that to the
+    # build's products not already on another row of this page. (Taking only the named union,
+    # as before, dropped 367 page×product pairs once every scoped block split rows.) No
+    # sentence at all: the named union is the only product list there is.
+    if avail == [ALL_PRODUCTS]:
+        universe = named | {ALL_PRODUCTS}
+    elif not avail:
+        universe = named
+    else:
+        universe = frozenset(avail) | named
+
+    # Which scoped syntax form(s) each product sees. Products that NO scoped syntax block tags
+    # (thrash-limiting names 29 in its sentence, 25 on the block) take the commonest form: a
+    # syntax-less row for them would be worse than the default guess.
+    syn_named = frozenset().union(*[p for _, p in spec_syn]) if spec_syn else frozenset()
+    syn_vis = {prod: tuple(i for i, p in spec_syn if prod in p) for prod in universe}
+    if spec_syn:
+        counts: Dict[tuple, int] = {}
+        for prod in syn_named:
+            counts[syn_vis[prod]] = counts.get(syn_vis[prod], 0) + 1
+        common = max(counts, key=lambda v: (counts[v], v))
+        for prod in universe - syn_named:
+            syn_vis[prod] = common
 
     groups: Dict[tuple, set] = {}
-    for prod in named:
-        vis = tuple(i for i, p in spec if prod in p)                  # which variant(s) it sees
-        groups.setdefault(vis, set()).add(prod)
-
-    # Products the page lists as available but that NO syntax block tags (thrash-limiting
-    # names 29 in its sentence, 25 on the block). A syntax-less row for them would be worse
-    # than the common form, so fold them into the largest variant group — the best single
-    # guess at the default. Deferred refinement: attribute them from a per-product table.
-    extra = universe - named
-    if extra:
-        biggest = max(groups, key=lambda v: len(groups[v]))
-        groups[biggest] |= extra
+    for prod in sorted(universe):
+        oth = tuple(i for i, p in spec_oth if prod in p)
+        groups.setdefault(tuple(sorted(set(syn_vis[prod]) | set(oth))), set()).add(prod)
 
     rows: List[dict] = []
     for vis, prods in groups.items():
@@ -601,12 +628,19 @@ def main() -> int:
             print("no rows parsed — nothing written")
             return 1
         universe = sorted({p for r in rows for p in r.get("products") or [] if p != ALL_PRODUCTS})
+        # Products each page's rows name explicitly, so an ALL_PRODUCTS row can take the rest.
+        named_on: Dict[str, set] = {}
+        for r in rows:
+            named_on.setdefault(r["page"], set()).update(
+                p for p in r.get("products") or [] if p != ALL_PRODUCTS)
         pairs = []
         n_fallback = n_all = 0
         for r in rows:
             prods = r.get("products") or []
-            if prods == [ALL_PRODUCTS]:
-                prods, n_all = universe, n_all + 1
+            if ALL_PRODUCTS in prods:
+                explicit = [p for p in prods if p != ALL_PRODUCTS]
+                prods = sorted(set(explicit) | (set(universe) - named_on[r["page"]]))
+                n_all += 1
             elif not prods:
                 prods, n_fallback = [args.product_fallback], n_fallback + 1
             pairs += [(prod, r) for prod in prods]

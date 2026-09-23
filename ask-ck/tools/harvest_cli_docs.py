@@ -81,6 +81,9 @@ _PROMPT_ANY_RX = re.compile(
 # mode a command runs in. A block made only of these is neither syntax nor an example.
 _BARE_PROMPT_RX = re.compile(
     r"^[ \t]*[A-Za-z][\w.\-]{0,31}(?:\[\d{1,4}\])?(?:\([^)\n]{0,63}\))?(?:\[\d{1,4}\])?[ \t]*[#>][ \t]*$")
+# The start of a prompt whose mode paren never closes (`awplus(config-router# …`): a typo in
+# the docs, not a reply, so it is never attached to the example before it (2026-09-24).
+_PROMPT_FRAGMENT_RX = re.compile(r"^[ \t]*[A-Za-z][\w.\-]{0,31}(?:\[\d{1,4}\])?\(")
 # Placeholder metacharacters that mark a SYNTAX template rather than device output.
 _PLACEHOLDER_RX = re.compile(r"[<>{}|\[\]]")
 
@@ -183,14 +186,17 @@ def outside_syntax_is_output(lines: List[str], section: str) -> bool:
     """A promptless block OUTSIDE a Syntax section: device output, or dropped.
 
     Never syntax — that was the misfiling (2026-09-24: ~500 example replies, mode prompts,
-    `% …` errors and output tables stored as syntax). Output needs at least 3 lines, and a
-    placeholder-dense block counts only under an Output heading: there it is a routing-table
-    legend or a PoE table (`*>`, `|`); elsewhere it can be a config template, and a template
-    read as output is the fabrication Phase 4 exists to stop."""
+    `% …` errors and output tables stored as syntax). Under an Output heading it is output,
+    whatever its length or density (a one-line `Port-vlan Forwarding Priority: None`, a
+    routing-table legend full of `*>`). Elsewhere it needs at least 3 lines and must not be
+    placeholder-dense: there it can be a config template, and a template read as output is the
+    fabrication Phase 4 exists to stop. A short block right after a worked example is that
+    example's reply instead — see `classify`."""
+    if section.lower().startswith("output"):
+        return True
     if len(lines) < 3:
         return False
-    dense = sum(1 for ln in lines if _PLACEHOLDER_RX.search(ln)) / len(lines) > 0.4
-    return not dense or section.lower().startswith("output")
+    return sum(1 for ln in lines if _PLACEHOLDER_RX.search(ln)) / len(lines) <= 0.4
 
 
 def classify(blocks: List[str], sections: Optional[List[Optional[str]]] = None
@@ -224,10 +230,13 @@ def classify(blocks: List[str], sections: Optional[List[Optional[str]]] = None
     examples: List[dict] = []
     best = None
     use_sections = in_syntax_sections(sections)
+    after_example = None            # the section of the example block just read, else None
 
     for i, b in enumerate(blocks):
         if not b or not b.strip():
             continue
+        sec = ((sections[i] if i < len(sections) else None) or "") if use_sections else ""
+        prev, after_example = after_example, None
         if _PROMPT_ANY_RX.search(b):
             lines = b.split("\n")
             cmd_line = lines[0].strip()
@@ -236,17 +245,21 @@ def classify(blocks: List[str], sections: Optional[List[Optional[str]]] = None
             # the richest reply is the most useful thing to show a generator
             if reply and (best is None or len(reply) > len(best)):
                 best = reply
+            after_example = sec
             continue
 
         lines = [ln for ln in b.split("\n") if ln.strip()]
         if all(_BARE_PROMPT_RX.match(ln) for ln in lines):
             continue                                # a mode prompt on its own
-        if use_sections:
-            sec = (sections[i] if i < len(sections) else None) or ""
-            if "syntax" not in sec.lower():
-                if outside_syntax_is_output(lines, sec) and (best is None or len(b.rstrip()) > len(best)):
-                    best = b.rstrip()
-                continue                            # outside a Syntax section: never syntax
+        if use_sections and "syntax" not in sec.lower():
+            # Right after a worked example in the same section, a promptless block is its
+            # reply: `awplus# reboot` then `reboot system? (y/n): y` (58 blocks, 2026-09-24).
+            if prev == sec and examples and not _PROMPT_FRAGMENT_RX.match(lines[0]):
+                ex = examples[-1]
+                ex["output"] = (ex["output"] + "\n" if ex["output"] else "") + b.rstrip()
+            if outside_syntax_is_output(lines, sec) and (best is None or len(b.rstrip()) > len(best)):
+                best = b.rstrip()
+            continue                                # outside a Syntax section: never syntax
         if len(lines) < 3:
             syntax.append(b)
             continue

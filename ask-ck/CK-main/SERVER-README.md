@@ -565,7 +565,7 @@ product family in one place. Per-product differences are encoded as `ss-on-<prod
 classes on the `<pre>` blocks, so the combined build is *more* informative than the old
 per-device split, not less.
 
-- `cli_commands` — one row per **unique content hash** (3,535 rows; 850 carry sample output):
+- `cli_commands` — one row per **unique content hash** (4,665 rows; 1,442 carry sample output):
   `command`, `page`, `cmd_group`, `syntax` (JSON), `examples` (JSON), `sample_output`,
   `pre_blocks`, `pre_sections` (JSON: each block's page-section heading, since 2026-09-24),
   `tables`, `notes`. Content is content-addressed and stored once. A page that
@@ -580,6 +580,14 @@ per-device split, not less.
   ships which content row. `lookup(cmd)` returns every variant with its products;
   `lookup(cmd, product)` returns only that family's.
 - `cli_commands_fts` — FTS5 over command/group/syntax/sample output.
+
+**Per-product code blocks: rows split by scope (2026-09-24).** A `<pre>` block's product scope
+is its own `ss-on-*` class or, for ~5,200 blocks, its enclosing `<div>`/`<section>`'s. Products
+that see the same blocks share a `cli_commands` row (4,665 rows), so a router-only `eth1`
+example or output is on the routers' row only, and `show interface` has 8 per-family variants
+again (only the x8100/x908gen2/x908gen3 one prints `ecofriendly lpi`). On an "available on all
+products" page, the products no block names are kept (`main()` expands `ALL_PRODUCTS` to the
+build's products not on another row of that page).
 
 **Per-product markup in tables (2026-09-24).** Tables are not split per product; the
 attribution rides in the table.
@@ -596,8 +604,10 @@ attribution rides in the table.
 **Classification by page section (2026-09-24).** `harvest_cli_docs.classify` (what the loader
 stores) and `cli_lookup.reclassify` (what the reader re-derives) are two pinned copies of one
 rule. Given `pre_sections`, only a block in a section whose heading says Syntax can be syntax.
-Elsewhere a block with a prompt is an example; a promptless one is output (≥3 lines; one dense
-with placeholder characters only under an Output heading) or is dropped. The prompt matcher
+Elsewhere a block with a prompt is an example; a short promptless block right after an
+example in the same section is its reply (`reboot system? (y/n): y`) unless it starts like a
+mistyped prompt; anything under an Output heading is output; elsewhere a promptless block is
+output only with ≥3 lines and not placeholder-dense, else dropped. The prompt matcher
 reads AMF prompts (`ATMF_NETWORK[3]#`, `test(config)[10]#`) and mode names up to 63 chars; a
 bare mode prompt (`awplus(config-ip-ext-acl)#`) is never syntax. The 16 pages with no Syntax
 section keep the shape heuristic alone.

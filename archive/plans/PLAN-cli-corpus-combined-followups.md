@@ -9,7 +9,10 @@
 > 2026-09-24.
 > **Later the same day:** tables scoped to a product subset as a WHOLE (on the table or an
 > enclosing element — 454 of them, unlabelled since 2026-09-08) now carry an "[On …]" row, and the prompt shows one table plus each other scope's
-> difference. Still not done: product scope for `<pre>` blocks inside a per-product container.
+> difference. `<pre>` blocks inside a per-product container were done the same day (rows split by
+> container scope; CHANGELOG 2026-09-24 (latest)).
+> **Finding 2 below is WRONG** (disproved 2026-09-24): `show interface`'s per-family markup sits
+> on the output blocks' containers, and the page splits into 8 variants once the loader reads them.
 > See CHANGELOG 2026-09-24 (later).
 >
 > **COMPLETE 2026-09-09** (through step 6; uncommitted until this session's single commit).
