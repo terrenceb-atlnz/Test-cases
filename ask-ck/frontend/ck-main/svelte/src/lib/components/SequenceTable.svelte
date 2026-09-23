@@ -11,6 +11,7 @@
 
   let editingRowId = null;
   let draggedIndex = null;
+  let dropIndicator = null; // { index, position: 'above' | 'below' }
 
   function toggleEditRow(id) {
     editingRowId = editingRowId === id ? null : id;
@@ -25,21 +26,45 @@
     if (editingRowId === id) editingRowId = null;
   }
 
+  function addStep() {
+    const newRow = { id: `seq-${Date.now()}`, from: '', action: '', verify: '' };
+    rows = [...rows, newRow];
+    editingRowId = newRow.id;
+  }
+
   function handleDragStart(index) {
     draggedIndex = index;
   }
 
-  function handleDragOver(event) {
+  function handleDragOver(event, index) {
     event.preventDefault();
+    const rect = event.currentTarget.getBoundingClientRect();
+    const isAfter = event.clientY - rect.top > rect.height / 2;
+    dropIndicator = { index, position: isAfter ? 'below' : 'above' };
+  }
+
+  function handleDragLeave(index) {
+    if (dropIndicator?.index === index) dropIndicator = null;
   }
 
   function handleDrop(index) {
-    if (draggedIndex === null || draggedIndex === index) return;
+    if (draggedIndex === null) {
+      resetDrag();
+      return;
+    }
+    const position = dropIndicator?.position ?? 'above';
+    let desiredIndex = position === 'below' ? index + 1 : index;
     const updated = [...rows];
     const [moved] = updated.splice(draggedIndex, 1);
-    updated.splice(index, 0, moved);
+    if (desiredIndex > draggedIndex) desiredIndex -= 1;
+    updated.splice(desiredIndex, 0, moved);
     rows = updated;
+    resetDrag();
+  }
+
+  function resetDrag() {
     draggedIndex = null;
+    dropIndicator = null;
   }
 </script>
 
@@ -62,11 +87,15 @@
         class="sequence-editor-row"
         class:sequence-editor-row-dragging={draggedIndex === i}
         class:sequence-editor-row-editing={editingRowId === row.id}
+        class:drop-indicator-above={dropIndicator?.index === i && dropIndicator.position === 'above'}
+        class:drop-indicator-below={dropIndicator?.index === i && dropIndicator.position === 'below'}
         role="listitem"
         draggable="true"
         on:dragstart={() => handleDragStart(i)}
-        on:dragover={handleDragOver}
+        on:dragover={(event) => handleDragOver(event, i)}
+        on:dragleave={() => handleDragLeave(i)}
         on:drop={() => handleDrop(i)}
+        on:dragend={resetDrag}
       >
         <span class="col-handle drag-handle" aria-hidden="true">⠿</span>
         <div class="col-from">{row.from}</div>
@@ -80,7 +109,12 @@
         {/if}
         <div class="col-row-actions">
           {#if editingRowId === row.id}
-            <Button variant="primary" class="sequence-save-btn" on:click={saveRow}>Save Changes</Button>
+            <Button
+              variant="primary"
+              class="sequence-save-btn"
+              disabled={!row.action.trim() || !row.verify.trim()}
+              on:click={saveRow}
+            >Save Changes</Button>
           {:else}
             <button
               type="button"
@@ -105,6 +139,10 @@
   {/if}
 </div>
 
+<div class="sequence-table-actions">
+  <Button variant="outline" on:click={addStep}>+ Add Step</Button>
+</div>
+
 <style>
   .sequence-editor {
     width: 100%;
@@ -115,24 +153,54 @@
   }
 
   .sequence-editor-row {
+    position: relative;
     display: flex;
     align-items: center;
     gap: 12px;
     padding: 10px 16px;
   }
 
+  .sequence-editor-row:hover {
+    background: color-mix(in srgb, var(--color-accent) 8%, transparent);
+  }
+
   .sequence-editor-row:not(.sequence-editor-header):not(:last-child) {
-    border-bottom: 1px solid var(--color-border-surface);
+    border-bottom: 0px solid var(--color-border-surface);
+  }
+
+  .drop-indicator-above::before,
+  .drop-indicator-below::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--color-accent);
+    border-radius: 2px;
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  .drop-indicator-above::before {
+    top: -2px;
+  }
+
+  .drop-indicator-below::after {
+    bottom: -2px;
   }
 
   .sequence-editor-header {
     background: var(--color-table-header-bg);
-    border-bottom: 3px solid var(--color-border-surface);
+    border-bottom: 2px solid var(--color-border-surface);
     font-size: 0.72rem;
     font-weight: 700;
     letter-spacing: 0.06em;
     text-transform: uppercase;
     color: var(--color-text);
+  }
+
+  .sequence-editor-header:hover {
+    background: var(--color-table-header-bg);
   }
 
   .col-handle {
@@ -162,11 +230,16 @@
 
   .col-num {
     flex: 0 0 60px;
+    font-size: 0.8rem;
+
+    color: var(--color-text-muted);
   }
 
   .col-text {
     flex: 1;
     min-width: 0;
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
   }
 
   .sequence-editor-empty {
@@ -175,11 +248,11 @@
   }
 
   .col-row-actions {
-    flex: 0 0 auto;
+    flex: 0 0 130px;
     display: flex;
     align-items: center;
+    justify-content: flex-end;
     gap: 4px;
-    margin-left: auto;
     opacity: 0;
     transition: opacity 0.15s ease;
   }
@@ -232,5 +305,10 @@
     padding: 4px 12px;
     font-size: 0.78rem;
     white-space: nowrap;
+  }
+
+  .sequence-table-actions {
+    display: flex;
+    margin-top: 16px;
   }
 </style>

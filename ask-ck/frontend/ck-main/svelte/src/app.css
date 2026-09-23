@@ -32,7 +32,7 @@
   --color-tool-card-border: #bebfbf3d;
   --color-tool-card-border-hover: #00538f60;
   --color-tool-card-bg: rgba(255, 255, 255, 0.12);
-  --color-tool-card-bg-hover: rgba(128, 149, 206, 0.15);
+  --color-tool-card-bg-hover: rgba(195, 212, 255, 0.15);
   --color-tool-card-text: #818282;
 
   --color-code-bg: rgba(0, 83, 143, 0.08);
@@ -40,6 +40,7 @@
   --color-accent: #00538f;
   --color-success: #16a34a;
   --color-error: #dc2626;
+  --color-warning: #d97706;
 
   --icon-filter-arrow: invert(100%) opacity(12%);
   --icon-filter-arrow-hover: invert(0%) opacity(50%);
@@ -53,6 +54,21 @@
   --color-table-row-bg: #d7dee4;
 
   --color-stepper-outline: #cacaca;
+
+  --color-arrow-step-active-bg: var(--color-bg-surface);
+  --color-arrow-step-active-text: #000;
+  --color-arrow-step-active-border: #000;
+  --color-arrow-step-bg: #f3f5f6;
+  --color-arrow-step-text: #c0bdbd;
+  --color-arrow-step-border: #d4d4d4;
+  --color-arrow-step-complete-bg: #a9ffc8;
+  --color-arrow-step-complete-text: #00a33c;
+  --color-arrow-step-complete-border: rgb(137, 251, 139);
+  --color-arrow-step-review-bg: #fbdeb8;
+  --color-arrow-step-review-text: #ed8a00;
+  --color-arrow-step-review-border: #ffbc5e;
+
+  --arrow-filter-hover: brightness(1.05);
 
   color: var(--color-text);
   background: var(--color-bg-page);
@@ -103,6 +119,22 @@
 
   --color-table-header-bg: #131313;
   --color-table-row-bg: #1c1e1f;
+
+  --color-arrow-step-active-bg: var(--color-bg-surface);
+  --color-arrow-step-active-text: #fff;
+  --color-arrow-step-active-border: #fff;
+  --color-arrow-step-bg: #202020;
+  --color-arrow-step-text: #454545;
+  --color-arrow-step-border: #454545;
+  --color-arrow-step-complete-bg: #006726;
+  --color-arrow-step-complete-text: #16a34a;
+  --color-arrow-step-complete-border: #16a34a;
+  --color-arrow-step-review-bg: #9c5b00;
+  --color-arrow-step-review-text: #fb8e00;
+  --color-arrow-step-review-border: #fb8e00;
+
+  --arrow-filter-hover: invert(100%) brightness(0.85);
+
   }
 }
 
@@ -153,6 +185,21 @@
 
   --color-stepper-outline: #454545;
 
+  --color-arrow-step-active-bg: var(--color-bg-surface);
+  --color-arrow-step-active-text: #fff;
+  --color-arrow-step-active-border: #fff;
+  --color-arrow-step-bg: #202020;
+  --color-arrow-step-text: #454545;
+  --color-arrow-step-border: #454545;
+  --color-arrow-step-complete-bg: #006726;
+  --color-arrow-step-complete-text: #16a34a;
+  --color-arrow-step-complete-border: #16a34a;
+  --color-arrow-step-review-bg: #9c5b00;
+  --color-arrow-step-review-text: #fb8e00;
+  --color-arrow-step-review-border: #fb8e00;
+
+  --arrow-filter-hover: brightness(1.25);
+  --color-arrow-text-hover: #fff;
 }
 
 * {
