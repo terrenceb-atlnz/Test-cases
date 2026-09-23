@@ -3,7 +3,7 @@ name: demo-windows-seat
 description: The Windows demo seat for Ask-CK is 10.33.25.50 (TROLLEY3-N11) — the remote client on both demo days (2026-08-20, 2026-09-10) and the first §9 verification seat (2026-09-11); a second, fresh seat 10.33.22.18 confirmed the fixes the same morning
 metadata:
   type: project
-  verified: 2026-09-11
+  verified: 2026-09-23
 ---
 
 **The Ask-CK demo Windows seat is `10.33.25.50`.** Identified from the `ask-ck.service`
@@ -14,7 +14,7 @@ same address is the remote seat in `archive/plans/PLAN-llm-mode-selection.md` §
 (2026-08-20, "local agent unreachable"). Terrence confirmed it is the demo device and can
 remote into it.
 
-**Why:** the seat-setup plan (`ask-ck/plans/PLAN-seat-setup-and-per-seat-llm.md` §9)
+**Why:** the seat-setup plan (`archive/plans/PLAN-seat-setup-and-per-seat-llm.md` §9)
 needs a real Windows seat to verify the served one-liner, the PowerShell agent, login and
 autostart. This is that seat; no other Windows client has been seen hitting the server.
 

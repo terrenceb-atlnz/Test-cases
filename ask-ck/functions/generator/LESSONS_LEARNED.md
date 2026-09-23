@@ -1,6 +1,17 @@
+---
+verified: 2026-09-23
+---
 # Lessons Learned — Ask CK / Objective Drafting (Server-Backed)
 
 > Entries are chronological; paths in older entries reflect the pre-2026-07-13 layout (`drafting-tool/drafting_server/` → now `ask-ck/CK-main/CK_server/`; root `data/`+`refined-cases/` → now `ask-ck/functions/generator/`).
+>
+> **Superseded since written (checked 2026-09-23) — the lessons stand, these specifics do not:**
+> the adopted design system was archived 2026-09-11 (`archive/CK-main/`); file-based session
+> JSON became the `ck.db` `sessions` table on 2026-07-16 (`_workspace_llm.json` is a row there,
+> and the LLM choice is per seat since 2026-09-10); `LLM_API_KEY` / the `api_key` auth were
+> removed 2026-08-04; the server no longer shells out to `claude -p` (removed 2026-09-10 — only
+> the seat agents run it); the Grok CLI path was removed 2026-09-11; `_get_refined_group` no
+> longer exists.
 
 **Date:** 2026-07-01 (end of extended session)
 

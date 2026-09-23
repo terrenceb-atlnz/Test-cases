@@ -1,3 +1,6 @@
+---
+verified: 2026-09-23
+---
 # `.setup` File Reference — the testbox topology declaration
 
 > **Why this file exists.** The `.setup` is the one hard dependency of every ART run
@@ -103,8 +106,9 @@ device `tb` means **the testbox itself**, so `tb-swi_a = eth2-port1.0.15` declar
 testbox's `eth2` is cabled to that switch's `port1.0.15`. Nine `.setup` files in the corpus
 declare `tb-` links.
 
-This is what makes a generated script hardware-agnostic: `init_portlink()` resolves the real
-port names at run time, so the same source runs on an x930, an AR4050S or an x530 unchanged,
+This is what makes a script hardware-agnostic: the framework resolves the real port names at
+run time — legacy scripts through `init_portlink()`, the generated frame (since 2026-09-21)
+through `get_all_port_links()`, which reads these same lines — so the same source runs on an x930, an AR4050S or an x530 unchanged,
 and yields `port1.1.x` on a chassis. **Never hardcode a port name in a script** — take it
 from here.
 
@@ -143,9 +147,9 @@ management, boot_from_flash
 4. `[configured_stackport]` — only if the stack ports are non-default; place above `[portlink]`.
 5. `[portlink]` — `tb-swi_X` lines first, then inter-switch links.
 6. `[boot_from_flash]` — drop the entries when booting over TFTP.
-7. Live examples: `raw data/test_scripts/5712_Release_Testing_Transceivers/sample.*.setup`
+7. Live examples (lab home, read-only): `claude/raw-data/test_scripts/5712_Release_Testing_Transceivers/sample.*.setup`
    (single switch / multi-switch / stack-and-peer) and
-   `raw data/test_scripts/5053_validation_kochi/kochi_uni_tb105.setup` (large, no `tb-` links).
+   `claude/raw-data/test_scripts/5053_validation_kochi/kochi_uni_tb105.setup` (large, no `tb-` links).
 
 ## Where this is used
 
@@ -157,5 +161,5 @@ management, boot_from_flash
   `Setup.get_default_setup_file()`. `configs/tb470.setup` **exists** (it did from 2026-07-27,
   and Part 3b was unblocked on 2026-07-29 — an earlier version of this line said otherwise and
   was stale). For tb470 it is **generated** from
-  `~/claude/IE520-testing/bench-setup/bench-state.md`, which is the source of truth for that
+  `~/claude/device-testing/bench-setup/bench-state.md`, which is the source of truth for that
   bench; read that for state, and this document for the format.

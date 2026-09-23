@@ -1,6 +1,8 @@
 ---
 name: orient-ck
 description: Orient at the start of an Ask-CK session — ground-truth the live repo, read the newest handoff, confirm the invariants, and brief the user on what priorities remain. Use at session start, or whenever asked "where are we", "what's pending", "what priorities remain", or to get up to speed before touching the project. Pairs with /wrap-ck, which closes the loop at the end of the session.
+metadata:
+  verified: 2026-09-23
 ---
 
 # Orient (Ask-CK)
@@ -37,8 +39,10 @@ in the gate — do not run it as part of orienting.
 
 **Never start the real server just to look around** — it writes `ask-ck/db/ck.db`, the
 permanent source of truth. Use `ask-ck/tools/run_scratch_server.sh` for any exploratory or test
-traffic. Start the real one (`./run.sh --bg`, `--restart`, `--stop`) only when the user
-actually wants the running app; then `/health` should report `is_permanent_db: true`.
+traffic. Start the real one only when the user actually wants the running app; then `/health`
+should report `is_permanent_db: true`. On the LAN host the real server is the systemd unit
+`ask-ck.service` — manage it with `ck` or the admin panel, **never** `./run.sh --stop` / `--bg`
+(those flags are for a checkout run by hand).
 
 ## 2. Read newest-first, with a budget
 
@@ -64,7 +68,8 @@ plan" cannot be resolved; the plans total several thousand lines and reading the
 waste. Instead treat these as standing rules for later in the session:
 
 - **Before touching any subsystem, read its plan's status header first.** Find plans by glob,
-  never by a list written down here: `ls ask-ck/plans/PLAN-*.md`. Settled decisions in a status
+  never by a list written down here: `ls ask-ck/plans/PLAN-*.md` (completed plans are in
+  `archive/plans/`). Settled decisions in a status
   header are settled — do not re-litigate them.
 - **Before changing a prompt, a gate or a rule, read its DESIGN DOCUMENT — not just its code
   and tests.** A plan says what was done; a design doc says what the thing is *for*, and only
@@ -92,10 +97,11 @@ ls .claude/memory/*.md          # the directory IS the list
 ```
 
 Memories live **in the repo** at `.claude/memory/` as of 2026-07-30, and this repo's slugs
-under `~/.claude/projects/` are symlinks to it. **Since 2026-09-11 there are two stores by
-design** — this one and `../device-testing/.claude/memory/` — and sessions start **only from a
-repo root**, so each stream loads and writes its own set; 12 memories both need are relative
-symlinks from here into the sibling store. A slug linked to the *other* repo's store is
+under `~/.claude/projects/` are symlinks to it. **Since 2026-09-11 there is more than one store
+by design** — this one, `../device-testing/.claude/memory/`, and since 2026-09-16
+`../csg-tool/.claude/memory/` (which shares nothing) — and sessions start **only from a repo
+root**, so each stream loads and writes its own set; 12 memories Ask-CK and device-testing both
+need are relative symlinks from here into the device-testing store. A slug linked to the *other* repo's store is
 cross-pollution (`CROSS_LINK`); the checker names it. Before 2026-07-30 there were two stores by
 accident, keyed on launch directory, and each was invisible to the other — that, not stale
 names, produced most "I can't find that memory" reports.

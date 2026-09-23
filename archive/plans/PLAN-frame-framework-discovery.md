@@ -1,6 +1,17 @@
+---
+verified: 2026-09-23
+---
 # PLAN — The frame discovers its topology through the framework, never `[misc]`
 
 > ## Status (read first)
+>
+> **RETIRED 2026-09-23 → `archive/plans/`** (complete; the rule is
+> `archive/plans/PLAN-restructure-2026-09-11.md` §1). Re-checked the same day: `_ck_discover`,
+> `_ck_bind_link`, the role-specific far ports and `assert_role_media_now` are in the frame,
+> `pt_media.ROLE_REQUIRES` carries `cusfp`, and `pt_preflight` reads `_ck_bind_link` demands.
+> **Still true, and a separate ask:** the saved T33234 script
+> (`generated/9001_Port/test-9001.33234.py`) still carries the pre-discovery `misc` helper
+> (`_ck_bind_link(self, setup, dut, misc, role, …)`) — regenerating it was never done.
 >
 > **BUILT 2026-09-21** — step 1 `3116625` (frame, detection, media, lint, prompts; `pt_profiles`
 > retired here because it imported the deleted `parse_link_ref`) · step 2 `248e0c0` (preflight) ·

@@ -1,3 +1,6 @@
+---
+verified: 2026-09-23
+---
 <p align="center">
   <img src="ask-ck/frontend/ck-main/current/ckc.jpg" alt="Ask CK" width="140" style="border-radius:50%;" />
 </p>
@@ -54,6 +57,10 @@ After the first successful setup you almost always just want `run.sh`:
 
 Then open **`http://localhost:8000/`**. Root `./run.sh` is a thin wrapper around the real
 launcher at `ask-ck/CK-main/run.sh`; either works.
+
+> These flags are for a checkout you run yourself. The hosted LAN server of record runs as
+> the systemd unit `ask-ck.service` — manage it with `ck` or the admin panel, **never**
+> `run.sh --stop` / `--bg` (see SERVER-README → *Running the Server* → hosted deployment).
 
 > **Use `http://`, not `https://`.** Ask CK serves plain HTTP. Browsers with HTTPS-Only mode
 > (Firefox, HSTS) auto-upgrade and show a blank `SSL_ERROR_RX_RECORD_TOO_LONG` page — the
@@ -137,7 +144,7 @@ Tests, smoke checks and E2E must **not** write the permanent `ck.db` — use
 Run it before and after a change. Three layers: **backend** (`tests/`, in-process — no mocks,
 network or testbox; several are *structural*, e.g. an AST sweep proving no async handler calls
 a blocking function unwrapped), **frontend units** (`tests/js/`, Vitest + jsdom, with DOM
-fixtures lifted from the real `index.html` so they detect drift), and **E2E** (`e2e/`, one
+fixtures lifted from the real `index.html` so they detect drift), and **E2E** (`tests/e2e/`, one
 Playwright golden path) — which is deliberately **not** in the gate and is run sparingly via
 `npm run e2e`. There is no CI runner.
 
@@ -151,25 +158,28 @@ search, including literal script-code chunks):
 | Zephyr cases | 45,427 |
 | TestLink cases | 21,620 |
 | ATPyLib tests | 10,157 |
-| AlliedWare Plus CLI commands | 6,323 |
+| AlliedWare Plus CLI commands | 3,535 (one combined docs zip since 2026-09-08; renewable) |
 | Indexed scripts | 830 |
 | Semantic embeddings | 83,816 |
 
-The former on-disk courier corpora were retired into `ck.db` and **deleted** — do not look for
-them on disk. What remains under `ask-ck/functions/generator/data/` is the immutable Zephyr XML
-export (LFS) that `ck.db` was built from, enrichment *docs*, and review scratch.
+(Counts read from `ck.db` on 2026-09-23.) The former on-disk courier corpora were retired into
+`ck.db` and **deleted** — do not look for them on disk. The raw extracts that used to sit in
+`ask-ck/functions/generator/data/` were deleted in the 2026-09-11 restructure; that directory no
+longer exists.
 
 **Output:** refined cases are exported to
 `ask-ck/functions/generator/refined-cases/<Group>/AWPTCM-Txxxx/` as `traceability.md` +
-`zephyr_payload.json`. A case is **Complete** once that bundle exists. There are currently
-**53** across Port, IPv4, Switching, QoS, Sanity Check, Authentication & Security, Management,
-Bootloader and Other.
+`zephyr_payload.json`. A case is **Complete** once that bundle exists. On 2026-09-16 every case
+was rewound to square one (`e35bbb2`) and the bundles removed; they come back as cases are
+re-exported (4, all in Port, on 2026-09-23).
 
 ## The tools
 
-Pick a backend first under **LLM → Configure** — most tools need it: **Local LLM** (org vLLM,
-default; Fast/Thinking toggle, Health check button), **Claude Code CLI** (per-user local
-agent, Haiku/Sonnet/Opus selector, reports tokens + cost). Every LLM panel
+Pick a backend first under **LLM → Configure** — most tools need it: **Local LLM** (org vLLM;
+Fast/Thinking toggle, Health check button) or **Claude Code CLI (my local machine)** (your own
+seat through the per-user local agent; Haiku/Sonnet/Opus selector, reports tokens + cost). The
+choice is **per seat**; a seat that never chose starts from the site default, which every Apply
+rewrites (Claude via agent on 2026-09-23), and the org vLLM is the fallback when nothing is set. Every LLM panel
 exposes a **Provenance** block that copies the exact prompt, or re-renders it live without
 sending (`dry_run`, zero tokens) for use in a competing LLM.
 
@@ -233,7 +243,7 @@ Test-cases/
 | [`CHANGELOG.md`](CHANGELOG.md) | What changed, when, and **why** |
 | [`ask-ck/functions/generator/OBJECTIVE_DRAFTING_PROCESS.md`](ask-ck/functions/generator/OBJECTIVE_DRAFTING_PROCESS.md) | The Generator's authority (Steps 1–2) |
 | [`ask-ck/plans/PLAN-pytest-creator.md`](ask-ck/plans/PLAN-pytest-creator.md) | PyTest Creator plan + progress tracker |
-| [`ask-ck/functions/pytest-creator/TOPOLOGY-PROFILES.md`](ask-ck/functions/pytest-creator/TOPOLOGY-PROFILES.md) | Topology contract that generated scripts target |
+| [`ask-ck/functions/pytest-creator/TOPOLOGY-PROFILES.md`](ask-ck/functions/pytest-creator/TOPOLOGY-PROFILES.md) | What a bench must cable, and how a generated script discovers its topology (no `[misc]` contract since 2026-09-21) |
 | [`ask-ck/functions/pytest-creator/SETUP-FILE-REFERENCE.md`](ask-ck/functions/pytest-creator/SETUP-FILE-REFERENCE.md) | `.setup` topology schema + a worked example |
 | [`ask-ck/functions/generator/LESSONS_LEARNED.md`](ask-ck/functions/generator/LESSONS_LEARNED.md) | Prior decisions and pitfalls |
 | [`docs/resources.md`](docs/resources.md) | Links to TestLink, Zephyr, ART |
@@ -248,7 +258,8 @@ assistant if you are not using Claude Code.
 
 **Security posture:** designed for **localhost / single user**. The server binds `127.0.0.1`
 by default (LAN exposure is an explicit `HOST=0.0.0.0`) and there is still **no
-authentication**. **Per-case locking is DONE** (Phase 1, 2026-07-29): `CK_server/locks.py`
+authentication** — yet the hosted server of record has run with `HOST=0.0.0.0` on the LAN
+since 2026-08-26, used by several seats, so that exposure is real today. **Per-case locking is DONE** (Phase 1, 2026-07-29): `CK_server/locks.py`
 holds a lock per (tool, case) so a second tab gets a read-only view instead of silently
 overwriting the first — the whole-blob session write that made that possible is still there,
 with an optimistic `rev` compare-and-swap as backstop. The registry is **in-process on
@@ -262,5 +273,6 @@ gated on an organisational decision. Never commit credentials — `secrets.md`,
 
 > **Note:** primary development is on an internal machine; this GitHub tree is a published
 > copy. On 2026-07-13 the repo was restructured (`drafting-tool/` → `ask-ck/CK-main/`; root
-> `data/` and `refined-cases/` → `ask-ck/functions/generator/`), so historical documents may
-> still reference pre-move paths.
+> `data/` and `refined-cases/` → `ask-ck/functions/generator/`), and again on 2026-09-11
+> (`archive/plans/PLAN-restructure-2026-09-11.md`), so historical documents may still reference
+> pre-move paths.

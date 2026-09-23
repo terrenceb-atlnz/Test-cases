@@ -3,7 +3,7 @@ name: setup-unit-reindent-at-assembly
 description: Why the PyTest Creator's setup unit consistently comes back mis-indented (it's the only non-top-level unit) and where that's fixed — _assemble_units re-indents it
 metadata:
   type: project
-  verified: 2026-09-09
+  verified: 2026-09-23
 ---
 
 In the PyTest Creator's per-unit generate (step 6), the **`setup` unit** (the
@@ -35,4 +35,7 @@ sequence step numbers, and [[pytest-creator-askck]] for the flow.
 If you touch the setup unit again: a per-unit **fix** path (regenerate only the finding's units,
 splice the rest byte-exact) would make Fix-scope airtight — the current `fix_script` is a
 whole-script rewrite that, measured on T44297, only lightly drifted (comment-only touches on
-sibling cases a cross-unit finding named), but drift is possible in general.
+sibling cases a cross-unit finding named), but drift is possible in general. *(Done since:
+that per-unit fix path exists — `POST /fix_units`, 2026-09-07 — and has refused a fix that alters
+a frozen line or adds a lint error since 2026-09-14; the whole-script Fix remains for findings
+that name no unit.)*

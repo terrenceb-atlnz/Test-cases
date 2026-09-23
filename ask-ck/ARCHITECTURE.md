@@ -1,11 +1,14 @@
+---
+verified: 2026-09-23
+---
 # Ask CK — Architecture, Executive Summary
 
 **Audience:** anyone who needs the shape of the system without reading the code. For the deep
 technical reference see [`CK-main/SERVER-README.md`](CK-main/SERVER-README.md); for current
-status and backlog see [`objective-drafting/PROGRESS.md`](objective-drafting/PROGRESS.md).
+status and backlog see [`functions/generator/PROGRESS.md`](functions/generator/PROGRESS.md).
 
-**Figures below were measured on 2026-07-30**, not copied from prose. Re-measure before
-quoting them elsewhere.
+**Figures below were re-measured on 2026-09-23** (first measured 2026-07-30), not copied from
+prose. Re-measure before quoting them elsewhere.
 
 ---
 
@@ -15,9 +18,9 @@ Ask CK is a **test-engineering workbench** that turns sparse, human-written manu
 (AWPTCM cases in Zephyr) into two things: **refined, traceable test specifications**, and
 **runnable automated test scripts that execute on real switch hardware**.
 
-It is a single-user, locally-run web application — ~11,000 lines of Python behind a
-~5,300-line browser front end — sitting on top of a **436 MB read-only corpus database** and
-a **live LLM**. What makes it unusual is not the web app: it is that the pipeline ends at a
+It is a small web application — ~18,000 lines of Python behind a ~7,700-line browser front
+end — sitting on top of a **442 MiB read-only corpus database** and a **live LLM**. It was
+designed single-user and local; the server of record now runs on the LAN for several seats. What makes it unusual is not the web app: it is that the pipeline ends at a
 serial console on a switch in a lab, and that a large amount of the engineering is spent
 stopping a language model from producing test scripts that *look* correct.
 
@@ -30,19 +33,20 @@ TypeScript, no Java, and no build step anywhere.**
 
 | Layer | Language | Key libraries | Size |
 |---|---|---|---|
-| **Back end** | **Python** ≥ 3.10 (prefer **3.13**) | FastAPI, Uvicorn, Pydantic, Jinja2, `requests` | ~11,060 lines |
-| **Front end** | **Vanilla JavaScript** (ES modules, `type="module"`) | **none** | 20 modules, ~5,279 lines with HTML |
-| **Markup / styling** | HTML + CSS | none — one hand-written `styles.css` | 762 + 1,350 lines |
-| **Data layer** | **SQL** (SQLite) | FTS5 (built in) + `sqlite-vec` extension | 68 tables/views |
+| **Back end** | **Python** ≥ 3.10 (prefer **3.13**) | FastAPI, Uvicorn, Pydantic, Jinja2, `requests` | ~18,090 lines |
+| **Front end** | **Vanilla JavaScript** (ES modules, `type="module"`) | **none** | 22 modules, ~6,740 lines of JS |
+| **Markup / styling** | HTML + CSS | none — one hand-written `styles.css` | 959 + 1,638 lines |
+| **Data layer** | **SQL** (SQLite) | FTS5 (built in) + `sqlite-vec` extension | 69 tables/views |
 | **Semantic search** | Python | `sentence-transformers`, `torch` (CPU wheel) | bundled model, offline |
 | **Templating** | **Jinja2** | — | LLM prompts + the generated-script skeleton |
 | **Generated output** | **Python 3** | Allied Telesis `framework` (ATTestSet/ATTestCase) | the product of the tool |
 | **Automation / entry points** | **Bash** | — | `setup.sh`, `run.sh`, `ask-ck/tools/*.sh` |
 
-**The front end has no framework and no bundler by design.** `index.html` loads 20 ES modules
-directly; the browser resolves them natively. There is no JSX, TypeScript, Vue or Svelte
-anywhere in the tree, and no Vite/Webpack/Rollup/Babel config. The only JavaScript
-dependencies in `package.json` are **dev-only test tooling** — Vitest, jsdom,
+**The served front end has no framework and no bundler by design.** `index.html` loads 22 ES
+modules directly; the browser resolves them natively — no JSX, TypeScript or Vue, and nothing is
+compiled. (A separate Svelte rewrite, Vite + Svelte 5, was scaffolded on 2026-09-11 at
+`frontend/ck-main/svelte/`; it is not served.) The only JavaScript dependencies in the root
+`package.json` are **dev-only test tooling** — Vitest, jsdom,
 `@testing-library/dom`, Playwright — so nothing is compiled to ship, and editing a `.js` file
 is live on the next reload.
 
@@ -65,10 +69,10 @@ testbox and would have failed every generated script at import.
 ```mermaid
 flowchart TB
     subgraph browser["Browser — no build step"]
-        UI["index.html + 20 ES modules<br/>Generator · PyTest Creator · Composer · Zephyr Tool"]
+        UI["index.html + 22 ES modules<br/>Generator · PyTest Creator · Composer · Zephyr Tool"]
     end
 
-    subgraph server["FastAPI server (localhost, --reload)"]
+    subgraph server["FastAPI server (LAN-hosted, --reload)"]
         R["8 routers<br/>wizard · pytest-create · zephyr-tool · test-composer<br/>agent · llm · admin · locks"]
         CORE["Shared leaf modules<br/>llm_config · case_registry · session_store · locks<br/>generator/ (descriptions · gates · backfill)"]
         LLM["llm.py — provider abstraction"]
@@ -76,7 +80,7 @@ flowchart TB
     end
 
     subgraph data["Data layer"]
-        DB[("ck.db — 436 MB, 68 tables<br/>PERMANENT, read-only, Git LFS<br/>FTS5 + sqlite-vec")]
+        DB[("ck.db — 442 MiB, 69 tables<br/>PERMANENT, read-only, Git LFS<br/>FTS5 + sqlite-vec")]
         EMB["Bundled embedding model<br/>(loads offline)"]
     end
 
@@ -109,7 +113,7 @@ Three boundaries matter, and they are the three places things break:
 
 | Tool | State | What it does |
 |---|---|---|
-| **Objective / Test Case Generator** | **Complete** | 6-step gated flow: pick case → review historical TestLink cases → Zephyr cross-refs → ATPyLib automated coverage → synthesise objectives + steps → export bundle and push to Zephyr Scale (v2.0, idempotent). ~42 cases refined. |
+| **Objective / Test Case Generator** | **Complete** | 6-step gated flow: pick case → review historical TestLink cases → Zephyr cross-refs → ATPyLib automated coverage → synthesise objectives + steps → export bundle and push to Zephyr Scale (v2.0, idempotent). ~53 cases were refined before the 2026-09-16 rewind reset every case; 4 are Complete again. |
 | **PyTest Creator** | **Complete** | 7-step gated flow: refined case → extract an automatable sequence → search 830 reused scripts → select code fragments → **fill a fixed skeleton** → run on a testbox over SSH → LLM fix loop to final validation. |
 | **Test Composer** | Scaffolded | Not implemented. |
 | **Zephyr Templating Tool** | Scaffolded | Not implemented. |
@@ -134,10 +138,10 @@ refresh path. A fresh clone gets a working, fully-populated database with zero b
 | `testlink_cases` | 21,620 | Historical human-authored cases (context + overlap) |
 | `atp_tests` | 10,157 | Enriched automated suites — what automation actually tests *for* |
 | `scripts` / `script_chunks` | 830 / 5,782 | The reusable script corpus, **including full source text** |
-| `cli_commands` / `cli_command_products` | 6,323 / 68,301 | Authoritative AlliedWare Plus CLI reference; 1,250 commands carry real sample output |
+| `cli_commands` / `cli_command_products` | 3,535 / 77,588 | Authoritative AlliedWare Plus CLI reference, from one combined docs zip since 2026-09-08 (renewable); 847 commands carry real sample output |
 | `candidates` / `decisions` | 410 / 410 | Case triage state |
 | `embeddings_meta` | 83,816 | Vectors for semantic search |
-| `sessions` | 39 | Live workbench state (the one table users write) |
+| `sessions` | 9 | Live workbench state (the one table users write; all sessions were reset 2026-09-16) |
 
 **Search is hybrid**: SQLite **FTS5** keyword search fused with **sqlite-vec** nearest-neighbour
 search over bundled embeddings, merged by reciprocal-rank fusion. The embedding model ships with
@@ -152,13 +156,14 @@ the repo and loads offline, so search has no external dependency.
 control). The LLM choice is **per seat** (each browser sends its own as `X-CK-LLM`; a seat that
 has never chosen gets the site default). Two are load-bearing:
 
-- **Local LLM (default)** — the org vLLM, OpenAI-compatible, Fast/Thinking toggle. These are
+- **Local LLM** — the org vLLM (the fallback when neither the seat nor the site default names one), OpenAI-compatible, Fast/Thinking toggle. These are
   *reasoning* models: they emit chain-of-thought before content, and the transport **streams**
   so the read timeout bounds the gap between chunks rather than the whole response.
 - **Per-user Claude agent** — a tiny local agent on the engineer's own machine, reached by a
   long-poll bridge, shelling out to the `claude` CLI on their seat. Keeps per-seat entitlement
   out of the server.
-- **Mock** — deterministic, for tests.
+
+There is no mock mode: tests fake the transport in-process instead.
 
 Two features exist because model output cannot be taken on trust:
 
@@ -219,8 +224,8 @@ convention:
 
 ## 9. Quality mechanism
 
-One command, `./ask-ck/tools/run_tests.sh`, runs both invariant guards plus **719 backend tests and 92
-front-end tests**; a Playwright end-to-end test is run sparingly outside that gate. Test traffic
+One command, `./ask-ck/tools/run_tests.sh`, runs both invariant guards plus **1,742 backend tests and
+348 front-end tests** (2026-09-23); a Playwright end-to-end test is run sparingly outside that gate. Test traffic
 runs against a throwaway copy of the database, because polluting the permanent one with
 synthetic sessions produces worthless data.
 
@@ -239,7 +244,8 @@ non-deterministic pipeline honest:
 
 ## 10. Deployment posture, and the honest limits
 
-Designed for **localhost, single-user**: binds `127.0.0.1` (LAN exposure is an explicit opt-in),
+Designed for **localhost, single-user**: binds `127.0.0.1` by default (LAN exposure is an explicit
+opt-in — and the hosted server of record has run LAN-exposed with `HOST=0.0.0.0` since 2026-08-26),
 runs with `--reload` so code edits are picked up without a restart, and has a hidden admin panel
 for session resets. The front end is plain ES modules with **no build step**.
 
@@ -253,8 +259,10 @@ Known limits, stated plainly:
   grounding the prompts in the real command reference, and topology over-declaration was fixed
   structurally. The open defect is **sequence-step misclassification**: per-case reconfigurations
   collapsing into one-time setup, and physical cable-swap steps being satisfied with CLI commands
-  that only simulate them. That is the current cause of a bad grade on one of the three
-  reference cases, and it is a classification problem rather than a model-quality problem.
+  that only simulate them. That was the cause of a bad grade on one of the three reference
+  cases (as of 2026-07-30), and it is a classification problem rather than a model-quality
+  problem. Since 2026-09-21 Extract Sequence flags physically contradictory steps, but step
+  `kind` itself still has no deterministic check.
 - **Hardware validation is incomplete.** The execution-judging phase has not yet run on real
   hardware end to end.
 

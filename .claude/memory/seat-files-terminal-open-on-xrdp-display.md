@@ -1,7 +1,8 @@
 ---
 name: seat-files-terminal-open-on-xrdp-display
-description: RECURRING on terrenceb-dl — GNOME Files/Terminal "spin then nothing" (Thunar fine) because an xrdp login pushes DISPLAY=:10 (+PATH, XDG_DATA_DIRS) into the shared systemd --user env and D-Bus-activated apps open on the invisible remote display; fix = re-push GNOME's env + nautilus -q; ~/.xsession repair + sssd krb5 renewal applied 2026-09-14, both awaiting their first real test
+description: RECURRING on terrenceb-dl — GNOME Files/Terminal "spin then nothing" (Thunar fine) because an xrdp login pushes DISPLAY=:10 (+PATH, XDG_DATA_DIRS) into the shared systemd --user env and D-Bus-activated apps open on the invisible remote display; fix = re-push GNOME's env + nautilus -q; ~/.xsession repair + sssd krb5 renewal applied 2026-09-14; the renewal is VERIFIED (2026-09-23), the ~/.xsession repair still awaits an xrdp login
 metadata:
+  verified: 2026-09-23
   type: project
 ---
 
@@ -49,8 +50,9 @@ the running shell's own command line and kills it. gnome-shell is untouched.
 block before the final `exec dbus-launch … xfce4-session` reads the running gnome-shell's
 `DISPLAY`, `XAUTHORITY`, `PATH`, `XDG_DATA_DIRS` from `/proc` and re-pushes them `--systemd`. It
 runs at Xsession step 99, i.e. *after* the clobber, so it repairs rather than prevents; no-op if
-GNOME isn't running. **Unverified until his next xrdp login** — then `show-environment` must
-still say `DISPLAY=:1`. The original file was 10 lines ending in the `exec`; drop the block to
+GNOME isn't running. **Still unverified:** on 2026-09-23 the block is present and
+`show-environment` says `DISPLAY=:1`, but that cannot tell whether an xrdp login has happened since
+2026-09-14 — after the next one, `show-environment` must still say `DISPLAY=:1`. The original file was 10 lines ending in the `exec`; drop the block to
 revert. (`/etc/X11/Xsession.d` and `/etc/xrdp/startwm.sh` deliberately untouched —
 upgrade-fragile, and bypassing Xsession drops im-config/ssh-agent setup.)
 
@@ -58,8 +60,8 @@ upgrade-fragile, and bypassing Xsession drops im-config/ssh-agent setup.)
 consent):** `krb5_renew_interval = 30m`, `krb5_renewable_lifetime = 7d`; `sssctl config-check`
 clean, sssd restarted, Online. sssd (2.6.3, `auth_provider = krb5`, pam_sss issues the ticket at
 login/unlock) had NO renewal before, so the 10 h ticket died every night → the CIFS loop.
-**Takes effect from his next login/unlock; unverified** — `klist` renew-until should then be
-~7 days out; if it still says 24 h, the KDC capped it and this only bridges overnights.
+**VERIFIED 2026-09-23:** `klist` shows the krbtgt ticket renewable until 2026-09-30, ~7 days
+out — the KDC did not cap it, so the nightly expiry behind the CIFS loop is fixed.
 Root-only backup: `/etc/sssd/sssd.conf.bak-2026-09-14`. Never cat this file into a transcript —
 it may hold an LDAP bind secret; use `diff -U0` / key-only greps.
 

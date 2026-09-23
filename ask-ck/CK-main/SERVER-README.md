@@ -1,3 +1,6 @@
+---
+verified: 2026-09-23
+---
 # SERVER-README.md — Ask CK (Server-Backed Test Tooling Workbench)
 
 This document contains **all instructions for use, setup, configuration, architecture, and details** for **Ask CK** — the server-backed workbench whose first (and mature) tool is the **Objective/Test Case Generator** (formerly "Objective Drafting Tool").
@@ -32,7 +35,7 @@ The server-backed workbench fulfills the two main functions:
 
 This version replaces the original single-file static `index.html` approach.
 
-**Project state reference**: ~42 cases already processed using the overall workflow. The server version uses the same data sources and output formats (`ask-ck/functions/generator/refined-cases/<Group>/AWPTCM-Txxxx/{traceability.md, zephyr_payload.json}`).
+**Project state reference**: ~53 cases were processed with the overall workflow before the 2026-09-16 rewind reset every case (`e35bbb2`); 4 are Complete again as of 2026-09-23. The server version uses the same data sources and output formats (`ask-ck/functions/generator/refined-cases/<Group>/AWPTCM-Txxxx/{traceability.md, zephyr_payload.json}`).
 
 ## Architecture
 
@@ -42,7 +45,7 @@ This version replaces the original single-file static `index.html` approach.
 - Enforces the repeatable process state machine.
 - Direct LLM calls using templated prompts.
 - Post-processing of LLM output using templates/parsers for guaranteed repeatable structure.
-- REST API consumed by the frontend: `/api/wizard` (Generator) + stub routers `/api/zephyr-tool`, `/api/test-composer`, `/api/pytest-create`.
+- REST API consumed by the frontend: `/api/wizard` (Generator), `/api/pytest-create` (PyTest Creator), plus stub routers `/api/zephyr-tool` and `/api/test-composer`.
 - Serves the process documentation as interactive web pages.
 
 **Frontend**: Static web UI (vanilla JS + HTML, served by the backend) — `frontend/ck-main/current/index.html`
@@ -61,7 +64,7 @@ This version replaces the original single-file static `index.html` approach.
 **LLM Layer** (core of repeatability):
 - Prompt templates in `CK_server/templates/prompts/` including `generate_objectives.jinja`, `generate_steps.jinja`, **`generate_gaps.jinja`**, `suggest_*.jinja`, `analyze_atp_coverage.jinja` (rank only).
 - **Gaps analysis is LLM-generated at synthesize/export** for Traceability — not an editable review-step field.
-- UI login modes (radios, top→bottom): **Local LLM** (`local_llm`, default — the org vLLM, see below), **Claude Code CLI (my local machine)** (`claude_agent`, the per-user local agent — the only Claude path). See the **Local LLM** and **LLM request observability** subsections under *Running the Server*.
+- UI login modes (radios, top→bottom): **Local LLM** (`local_llm` — the org vLLM, and the fallback when neither the seat nor the site default names a backend; see below), **Claude Code CLI (my local machine)** (`claude_agent`, the per-user local agent — the only Claude path). See the **Local LLM** and **LLM request observability** subsections under *Running the Server*.
 - **The LLM choice is PER SEAT (2026-09-10; `PLAN-seat-setup-and-per-seat-llm.md` §5).** Apply/Login (sidebar **LLM → Configure**) sets the LLM for *this browser*: the page stores it (`localStorage.draftingLLMConfig`) and sends it on every `/api` call as `X-CK-LLM: auth;model;unit;match`; `llm_config.effective_llm_config` resolves seat → site default → session copy at dispatch and never writes a session. The same Apply also writes the **site default** (`_workspace_llm` row in the sessions table), which is what a seat that has never chosen starts from (D17, 2026-09-11 — one button; seats that chose keep their own). `POST /api/wizard/set_site_default_llm` writes the row alone, for headless callers; `GET /api/wizard/llm_config` returns it with `scope: site_default`. A header naming a backend outside `SUPPORTED_AUTH_METHODS` is a 400. Pinned by `tests/test_per_seat_llm.py`.
 - Full provenance (prompts/responses/provider/auth) captured per session, plus a per-request debug log — see **LLM request observability**.
 
@@ -85,19 +88,19 @@ This version replaces the original single-file static `index.html` approach.
   `decisions/*`, the enriched-suite corpus, `scripts_index*.json` / `scripts_sources.jsonl`,
   `framework_surface.json`) have been **deleted** — the DB is the only copy. `ask-ck/tools/build_db.py`
   remains only as provenance of how the DB was constructed and **refuses to run** (it would
-  delete the committed DB and cannot repopulate it). The one raw original kept is the Zephyr XML
-  export, as an immutable provenance root. There are no corpus APIs and no re-fetch — the corpus
+  delete the committed DB and cannot repopulate it). The one raw original kept until 2026-09-11 was the
+  Zephyr XML export; it was deleted in that restructure (`8e73d1c`) and is recoverable from git history. There are no corpus APIs and no re-fetch — the corpus
   data is a fixed snapshot. See **`archive/plans/PLAN-db-only-search.md`**.
 
 **Hosting**:
-- Intended to run behind nginx on a local IP.
+- The server of record runs on the LAN as the systemd user unit `ask-ck.service` (see *Running the Server* → hosted deployment) — no nginx in front.
 - Never offline.
-- Example nginx config provided.
+- The nginx examples were archived on 2026-09-11 (`archive/CK-main/`); see *Hosting Behind nginx* for the caveats.
 
 **Repeatability Guarantees**:
 - Process: Backend state machine enforces explicit user confirmation of TestLink/Zephyr/ATPyLib **selections** before synthesis. Gates are server-side.
 - LLM: Templated prompts + structured parsing + provenance; gaps for Traceability authored at completion (not mid-wizard free text).
-- Outputs: Fixed Jinja + post-processing; export auto-persists to `objective-drafting/refined-cases/<Group>/`.
+- Outputs: Fixed Jinja + post-processing; export auto-persists to `ask-ck/functions/generator/refined-cases/<Group>/`.
 - UI: Dual case lists, Search/Suggest on the review steps, CLI login radios, design-system components.
 
 ## Directory Structure
@@ -114,7 +117,7 @@ ask-ck/                              (layout of 2026-09-11 — PLAN-restructure-
 │       ├── data.py                  ← Data loading (three DBs + indices)
 │       ├── llm.py                   ← Prompt templating + LLM call + parser
 │       ├── models.py                ← Pydantic models
-│       ├── llm_config.py            ← workspace LLM login: active? same backend? apply  (shared)
+│       ├── llm_config.py            ← which LLM a request uses: seat X-CK-LLM, else site default (shared)
 │       ├── case_registry.py         ← which cases exist / are Complete / are hidden      (shared)
 │       ├── session_store.py         ← the `sessions` dict + its ck.db row                (shared)
 │       ├── generator/               ← the Generator's LOGIC, no FastAPI surface
@@ -148,11 +151,10 @@ ask-ck/                              (layout of 2026-09-11 — PLAN-restructure-
 │   ├── test-composer/               ← ART-EXECUTION-CHAIN.md + bench scripts
 │   └── zephyr-tool/                 ← stub
 ├── tools/                           ← every script not called by a page button: run_tests.sh (the gate), the two guards,
-│                                       ckdb_*, check_memory_*, db_wal_recover.sh, the CLI corpus loaders, pt_*, upload_refined.py
+│                                       ckdb_*, check_memory_*, db_wal_recover.sh, the CLI corpus loaders, pt_* (upload_refined.py is a page script, in frontend/…/generator/)
 ├── plans/                           ← PLAN-*.md (active) + DECISIONS-FOR-REVIEW.md; completed plans are in ../archive/plans/
 ├── agent/                           ← ck_agent.py / ck-agent.ps1 + setup scripts, served at /setup/
 └── db/                              ← ck.db (Git LFS, the permanent source of truth) + models/ (bundled embeddings)
-```
 ```
 
 All new server code lives under `ask-ck/CK-main/CK_server/`.
@@ -170,8 +172,8 @@ pip install -r ask-ck/CK-main/requirements.txt
 **Python 3.13 is preferred** (the testbox runs 3.13.5): the PyTest Creator `py_compile`s generated scripts with the venv's interpreter while they execute on the testbox, so a version mismatch lints the wrong language version — see root `README.md` → *Requirements, manual setup, and the Python-version rule*.
 
 `setup.sh` does this for you inside a repo-local `.venv` (see root `README.md` → *Quick
-start*). If using a real LLM provider you may need additional packages such as `litellm`
-or the official SDK.
+start*). No provider SDK is needed: the two backends are the org vLLM (plain HTTP) and the
+seat agents.
 
 **Two runtime deps exist because their absence FAILS POLITELY** — the feature switches off and
 the symptom points somewhere else, so neither had a failing test until 2026-08-03:
@@ -239,13 +241,16 @@ HOST=0.0.0.0 ./run.sh
 > touches a watched `.py` and `--reload` cycles the app **in-process**, so the
 > service MainPID never exits (verified 2026-08-26). Caveats: 10.33.22.17 is a DHCP
 > lease, and the exposure below is accepted and real — no auth, no firewall on this
-> host, and any LAN seat can switch the workspace onto this box's Claude seat.
+> host, and any LAN seat's Apply rewrites the site default that never-configured seats start
+> from (D17). Since 2026-09-10 no seat can reach this box's Claude seat: server-side Claude is
+> gone, and every seat's Claude calls run on its own agent.
 
 > **A plain restart needs only `run.sh`, not `setup.sh`.** `run.sh` starts the
 > server against the existing `ask-ck/db/ck.db` in seconds. `setup.sh` is for
 > first-time environment setup — venv/deps + `git lfs pull` to materialize the
 > committed DB, then a quick sanity-check (it does **not** rebuild the DB; the DB
-> is shipped). Day-to-day, use `run.sh --bg` / `--restart`. The server also runs
+> is shipped). Day-to-day on a checkout you run by hand, use `run.sh --bg` / `--restart` (the
+> hosted unit: `ck`). The server also runs
 > with `--reload`, so **code edits hot-reload without any restart** — you usually
 > only need to restart for env/dependency changes.
 
@@ -273,10 +278,11 @@ drop to a terminal. Actions (`/api/admin/*`, all confirmation-gated):
 > (built once; source couriers retired), so the panel intentionally has no
 > rebuild/re-ingest action — nothing in the product can wipe or refill corpora.
 > **Localhost/single-user only** — do not expose `/api/admin/*` on a shared
-> deployment without adding auth.
+> deployment without adding auth. (The hosted LAN server does expose it today, with no auth —
+> the accepted exposure described under the hosted deployment above.)
 
 The script automatically:
-- Uses `python3`
+- Uses the repo's `.venv` Python (falls back to `python3`)
 - Sets the correct `PYTHONPATH` for the `CK-main/CK_server` layout (data paths are absolute via `paths.py`, so working directory does not matter)
 - (No MOCK default; real LLM required)
 
@@ -296,7 +302,7 @@ PYTHONPATH=.. python3 -m uvicorn CK_server.main:app --host 127.0.0.1 --port 8000
 **Choosing the LLM backend**: on the Configure page, not in the environment.
 
 The permitted backends are an allowlist — `models.SUPPORTED_AUTH_METHODS`: `local_llm`
-(the org vLLM, the default) and `claude_agent`. The set is a
+(the org vLLM — the fallback when nothing else names a backend) and `claude_agent`. The set is a
 **governance control**, closed at two layers: `set_llm_config` 400s on anything else, and
 `_call_llm_raw` refuses to dispatch even if a stored session names a retired backend.
 
@@ -348,8 +354,8 @@ Notes:
 - The agent binds `127.0.0.1` only and restricts CORS to the Ask CK origin; no token (it can only spend that user's own seat).
 - Server-side, blocking LLM calls run in a threadpool so the agent long-poll stays serviceable (no event-loop deadlock). One job at a time per session; a job whose browser/agent never answers times out cleanly.
 - **Model selection (2026-07-22d):** the Haiku/Sonnet/Opus radio row sets `llm_config.model`, which flows `job.model` → ck-agent → `claude --model <name>`. It's a live toggle (persists immediately, like the vLLM Fast/Thinking one); a model typed in the free-text field still overrides. Values are CLI aliases (`haiku`/`sonnet`/`opus`).
-- **Per-task model routing (2026-09-07, token-efficiency decision 6):** two selects under the toggle route the fan-out call classes to a cheaper alias — *unit fills* (`unit_model`: per-unit generation and per-unit Fix) and *step matching* (`match_model`); blank = same as the toggle. Review, whole-script Fix and the single-call generate always follow the toggle. Stored on the workspace `_workspace_llm` row and applied at dispatch from it (`llm_config.cfg_for_task`), never from a per-case copy; a toggle POST that omits the fields preserves them. Claude aliases only — this is not a new backend. Evidence: `docs/TOKEN-EFFICIENCY-REPORT-2026-09-04.md` §5 (Sonnet 5 matched Opus on 4 of 5 sampled units at ~59% of the cost; same step-match shortlist at under half). The toggle handler posts the *checked* auth method, never a literal.
-- **Token usage + cost (2026-07-22d):** the ck-agent lifts `usage` + `total_cost_usd` from the `claude -p --output-format json` envelope and returns them from `/run`; the browser broker forwards them in the `/api/agent/result` POST; `registry.deliver()` stores them on the job result in the exact shape `llm_debug.normalize_usage` expects (usage sub-dict + top-level `total_cost_usd`), so token badges + the debug-log populate for this transport too. **Restart the ck-agent** after upgrading to enable this. When a transport reports nothing, the badge honestly shows "— tok" (never estimated).
+- **Per-task model routing (2026-09-07, token-efficiency decision 6):** two selects under the toggle route the fan-out call classes to a cheaper alias — *unit fills* (`unit_model`: per-unit generation and per-unit Fix) and *step matching* (`match_model`); blank = same as the toggle. Review, whole-script Fix and the single-call generate always follow the toggle. Carried per seat in the `X-CK-LLM` header (`auth;model;unit;match`), with the site-default `_workspace_llm` row as the fallback for a seat that never chose, and applied at dispatch by `llm_config.cfg_for_task` — never from a per-case copy; a toggle POST that omits the fields preserves them. Claude aliases only — this is not a new backend. Evidence: `docs/TOKEN-EFFICIENCY-REPORT-2026-09-04.md` §5 (Sonnet 5 matched Opus on 4 of 5 sampled units at ~59% of the cost; same step-match shortlist at under half). The toggle handler posts the *checked* auth method, never a literal.
+- **Token usage + cost (2026-07-22d):** the ck-agent lifts `usage` + `total_cost_usd` from the stream's `result` event (`--output-format stream-json`) and returns them from `/run`; the browser broker forwards them in the `/api/agent/result` POST; `registry.deliver()` stores them on the job result in the exact shape `llm_debug.normalize_usage` expects (usage sub-dict + top-level `total_cost_usd`), so token badges + the debug-log populate for this transport too. **Restart the ck-agent** after upgrading to enable this. When a transport reports nothing, the badge honestly shows "— tok" (never estimated).
 - Usage counts against each user's own Claude seat's limits. Keep the agent running and the tab open while working.
 - Endpoints: `GET /api/agent/next?session=…`, `POST /api/agent/result` (accepts `usage` + `total_cost_usd`), `GET /api/agent/status?session=…`.
 
@@ -433,9 +439,9 @@ job reports nothing until it returns). **Clicking the busy button is a TRUE canc
 woken abandoned. The endpoint then errors with
 "cancelled by user", so nothing persists, and the UI reports "⏹ stopped — nothing was
 kept" rather than a failure. A UI-only abort (server finishes and spends anyway) was
-explicitly rejected. Transport note: the CLI paths run via `llm._run_cli`
-(Popen + pump threads), which preserves `subprocess.run` semantics exactly — the
-transport-contract tests pin the boundary and pass unchanged; dry-runs never register.
+explicitly rejected. Transport note: `claude -p` runs only inside the seat agents (their own
+Popen, cancellable through `ck_agent._RUNNING`); the server-side runner `llm._run_cli` was removed
+with Grok on 2026-09-11. Dry-runs never register.
 
 ### LLM Provenance (portable prompts) + dry-run preview
 
@@ -451,14 +457,14 @@ Every LLM panel (Generator: objectives, steps, the 3 *Suggest* panels; PyTest Cr
 - Process as web-based page: `http://your-local-ip:8000/process`
 - Interactive API docs (Swagger): `http://your-local-ip:8000/docs`
 - Health: `http://your-local-ip:8000/health`
-- Tool stubs: `GET /api/zephyr-tool/status`, `GET /api/test-composer/status`, `GET /api/pytest-create/status` (and `POST /api/pytest-create/generate/{key}` → 501 until implemented)
+- Tool stubs: `GET /api/zephyr-tool/status`, `GET /api/test-composer/status`. PyTest Creator status: `GET /api/pytest-create/status`.
 
 ## Typical Workflow (Repeatable Process — Generator)
 
 UI step numbers below are the visible 1–6 Generator labels.
 
 1. **Step 1 – Cases**: select an AWPTCM case (dual dropdowns populated with real project cases) and click **Load**.
-2. Sidebar **LLM → Configure**: choose a login radio (**Local LLM** is default — pick Fast/Thinking and, first time, paste the key; or select Claude Code CLI (my local machine) after running the seat setup). Optionally check the local agent. **Apply / Login** — no case required; the workspace default persists across cases (and is also stored on the selected case, if any). Steps 1 and 2 can be done in either order.
+2. Sidebar **LLM → Configure**: choose a login radio (**Local LLM** — pick Fast/Thinking and, first time, paste the key; or **Claude Code CLI (my local machine)** after running the seat setup). Optionally check the local agent. **Apply / Login** — no case required; it sets the LLM for **this seat** (browser) and also rewrites the site default a never-configured seat starts from. Nothing is stored on the case. Steps 1 and 2 can be done in either order.
 3. **Step 2 – TestLink**  
    Review primary + candidates. Use **Search TestLink** / **Suggest with LLM** to expand or re-rank, then confirm selections.
 4. **Step 3 – Zephyr**  
@@ -480,7 +486,7 @@ UI step numbers below are the visible 1–6 Generator labels.
    - **A real push requires a confirmation token** (2026-08-03): `dry_run=false` is rejected with 400 unless the request body carries `{"confirm": "<case key>"}` matching the key in the path. `dry_run` is a query parameter, so without this a production write was one character from a preview for any non-browser client, and the browser-side `confirm()` is not executed by curl. It is not authentication — it is the second fact that has to be supplied deliberately.
    - **Nothing unvalidated reaches a live case** (2026-08-03). `upload_refined.py` imports `validate_zephyr_payload` from `llm.py` — the shape rules have one owner. The import is lazy and **fails closed**: if it cannot be loaded the case is refused, never passed. Validation also runs under `--dry-run`, so the preview reports what would be refused. `--skip-validation` is the deliberate override. A blocked case makes the process exit non-zero, so a refused push cannot read as success in the UI. **(2026-08-05: the added `expectedResult` content rule was removed — a Zephyr manual step is *designed* to leave `expectedResult` empty, so the field is forced empty at generation and never blocks a push. See memory `expected-results-deliberately-absent`.)**
    - **Every `--execute` is audited** to `ask-ck/db/zephyr-push-audit.jsonl` (gitignored; the server never reads it). A `push.intent` record is written **before the first network call** — who, when, key, argv, flags, the pre-push state including the full prior objective/testScript, and what it intends to change — then `push.version` and `push.outcome`. **A case whose audit record cannot be written is refused.** Zephyr keeps no version trail for these pushes (the process is capped at v2.0), so this log is the only local record of replaced content.
-   - **Loading a Complete case** rehydrates step4/step5 (objective+steps) from the on-disk `zephyr_payload.json` when the runtime session lacks them (`wizard._backfill_from_refined`), so previously-refined cases reflect correctly and can be pushed. The Zephyr instance is Jira Server / Adaptavist ATM; the internal `tests/1.0` API accepts the Bearer PAT.
+   - **Loading a Complete case** rehydrates step4/step5 (objective+steps) from the on-disk `zephyr_payload.json` when the runtime session lacks them (`generator/backfill.py: backfill_from_refined`), so previously-refined cases reflect correctly and can be pushed. The Zephyr instance is Jira Server / Adaptavist ATM; the internal `tests/1.0` API accepts the Bearer PAT.
 
 Tables are compact to fit on one page with no side-scroll. The Zephyr review contains only external cases (current Cases list entries, including the primary, are omitted).
 
@@ -541,9 +547,9 @@ vectors — everything.
 `ck.db` is the **permanent single source of truth**, built once and committed. The intermediate
 source/courier files it was originally built from have been **retired and deleted** — there are no
 JSON/JSONL corpora on disk and **no rebuild step**. `ask-ck/tools/build_db.py` remains only as provenance
-of how the DB was constructed and refuses to run. The one raw original kept, purely as a provenance
-root (not read by anything), is the Zephyr XML export at
-`ask-ck/functions/generator/data/zephyr_full/Zephyr-Database-*.xml`.
+of how the DB was constructed and refuses to run. The one raw original — the Zephyr XML export, kept purely as a
+provenance root and read by nothing — was deleted in the 2026-09-11 restructure (`8e73d1c`); git
+history holds it.
 
 ### CLI command reference (`cli_commands`, added 2026-07-27; combined source 2026-09-08)
 
@@ -663,7 +669,9 @@ MDI/MDI-X forced-polarity negative path (14 steps → 9).
 **Lint gate on Confirm, split by AUTHORITY (2026-08-04).** `confirm_step` also refuses
 **5. Generate** while the lint reports errors — it previously never looked at the lint at all,
 so a script with hard errors could be signed off and carried into the run and export stages.
-The 19 lint errors are two different kinds of thing, so they have two different authorities:
+The 19 lint errors (as of 2026-08-04 — the classes have grown since; `tests/test_lint_error_classes.py`
+is the authority, and enumerated 19 blocking + 9 policy on 2026-09-23) are two different kinds of
+thing, so they have two different authorities:
 
 - **blocking (14)** — the artefact provably cannot work: a syntax error, missing structure, a
   surviving `>>> FILL` marker, `self.` used before the assignment block, a device or port the
@@ -858,8 +866,9 @@ a clean sweep to every count-based check. Expected-case count comes from the scr
    devices detected") and the `.meta/**/history/iter-N/` snapshots of superseded iterations
    (a draft regenerated *because* it was wrong would redden the gate forever). It now
    excludes `.meta/` and selects on the skeleton's own shape — a `class X(ATTestSet |
-   ATTestCase)` — rather than on the filename, because the library's name comes from the
-   MODEL (`_persist_generated_files` validates it for safety, not for a prefix). That rule
+   ATTestCase)` — rather than on the filename, because the library's name came from the
+   MODEL (`_persist_generated_files` validates it for safety, not for a prefix) — until 2026-09-22,
+   when it became the server-named `library_<family>.py`. That rule
    also keeps the hand-made `.REVIEW.py` in scope, which a sidecar-meta rule would drop. An
    assertion fails loudly if the filter ever matches nothing, since a silently empty set
    would turn every assertion in the file into a vacuous pass.
@@ -976,9 +985,8 @@ retired and the courier files (`scripts_index*.json`, `scripts_sources.jsonl`,
 `framework_surface.json`) deleted. Kept only to document provenance; not part of the running
 system.
 ```bash
-cd tool
-./build_script_index.py --mechanical-only   # (historical) AST pass over the script mounts + framework surface
-./build_script_index.py                     # (historical) rebuild; the LLM enrichment tool was retired 2026-09-11
+ask-ck/tools/build_script_index.py --mechanical-only   # (historical) AST pass over the script mounts + framework surface
+ask-ck/tools/build_script_index.py                     # (historical) rebuild; the LLM enrichment tool was retired 2026-09-11
 ```
 `GET /api/pytest-create/status` reports the DB-backed script count + enrichment %.
 
@@ -1069,7 +1077,7 @@ Seven of the eight decisions in `docs/TOKEN-EFFICIENCY-REPORT-2026-09-04.md` §6
 
 ### Generate-state gating, Re-chunk, stale reviews, sequence sanity, library-aware review (2026-09-21)
 
-Plan: `ask-ck/plans/PLAN-generate-state-and-sequence-sanity.md` (slices D, reset, A, B, C; all
+Plan: `archive/plans/PLAN-generate-state-and-sequence-sanity.md` (slices D, reset, A, B, C; all
 BUILT 2026-09-21). Motivation: the AWPTCM-T33234 repair (2026-09-17/18), where a hand-repaired
 script sat one Assemble click from being reverted with every pill green, four of five review
 findings were false because the reviewer never saw the suite library, and two physics errors
@@ -1131,7 +1139,7 @@ born at Extract Sequence were only caught at the third review round.
 
 ### The frame DISCOVERS its topology through the framework — no `[misc]` (2026-09-21)
 
-Plan: `ask-ck/plans/PLAN-frame-framework-discovery.md` (BUILT; commits `3116625` frame,
+Plan: `archive/plans/PLAN-frame-framework-discovery.md` (BUILT; commits `3116625` frame,
 `248e0c0` preflight). Supersedes both the 2026-07-30 `[misc]` role contract and the same-day
 role-set commits `e022e1c` / `6ada916` (reverted in `b96255c` / `f354f14`).
 
@@ -1230,7 +1238,7 @@ and Terrence asked for all eight closed in one pass. What changed, and why each:
    under its provenance tag, with its source's imports; the frame imports it with `*`; it is
    stored as `files.library`, so `_persist_generated_files` writes it and the run ships it, and
    the lint compiles it. **One per mother folder since 2026-09-22** (`9001_Port/` →
-   `library_9001.py`; R1(b), `ask-ck/plans/PLAN-group-libraries.md`) — it was `library_<case>.py`
+   `library_9001.py`; R1(b), `archive/plans/PLAN-group-libraries.md`) — it was `library_<case>.py`
    until then, which gave every case its own copy of a shared helper, and `library_<group>` for
    one day. It is now ART's own `library_<suite>`: that convention was rejected only because
    every script shared suite 9000, and a family per group removes that reason
@@ -1281,15 +1289,15 @@ reach the model (`_head_and_tail`). CHANGELOG 2026-09-08 has the measurements.
 
 ## Adding a New Tool (Ask CK pattern)
 
-1. **Frontend** (`frontend/ck-main/current/index.html`): add a `.card.tool-panel` div with a unique panel id, a `PANEL_META` entry (title/desc), and a sidebar nav item with `data-panel="<panel-id>"` + `onclick="goToPanel('<panel-id>')"`.
+1. **Frontend** (`frontend/ck-main/current/index.html`): add a `.card.tool-panel` div with a unique panel id, a `PANEL_META` entry (title/desc), and a sidebar nav item with `data-panel="<panel-id>"` + `data-action="goToPanel" data-args='["<panel-id>"]'` (UI wiring goes through the action registry — `frontend/ck-main/current/README.md`).
 2. **Backend**: add `CK_server/routers/<tool>.py` (plain `APIRouter`), then `include_router(..., prefix="/api/<tool>")` in `main.py`.
-3. **Assets/data**: use the matching `ask-ck/<tool>/` directory (mirrors how `objective-drafting/` backs the Generator).
+3. **Assets/data**: use the matching `ask-ck/functions/<page>/` directory (mirrors how `functions/generator/` backs the Generator).
 4. Do not touch the Generator's numeric step scheme (`data-step`, `step-N` ids, `stepN` session keys, `confirm_step` 1–3).
 
 ## Development Notes
 
 - Most logic is in `CK_server/`.
-- To iterate on prompts: edit the `.jinja` files and restart (or use `--reload`).
+- To iterate on prompts: edit the `.jinja` files — Jinja's default `auto_reload` picks the change up on the next render; `--reload` watches only `.py`.
 - To iterate on the UI: edit `frontend/ck-main/current/index.html` (no rebuild step).
 - The wizard still supports manual editing of objectives/steps after LLM synthesis.
 - Session state lives in the ck.db `sessions` table (since 2026-07-16); the old `CK_server/sessions/*.json` are frozen under `archive/CK_server/sessions/`.
@@ -1298,7 +1306,8 @@ reach the model (`_head_and_tail`). CHANGELOG 2026-09-08 has the measurements.
 ## Security Posture (hardened 2026-07-27c–g)
 
 Ask CK is designed for **localhost / single-user** use (a shared multi-tenant deployment is
-explicitly out of contract — see *Known Issues*, and the multi-user plan at
+explicitly out of contract — see *Network posture* below; note the server of record has nonetheless
+run LAN-exposed since 2026-08-26 — and the multi-user plan at
 `ask-ck/plans/PLAN-auth-and-case-locking.md`). A full adversarial review (2026-07-27)
 hardened the boundaries so untrusted/LLM-derived input can't escape its lane even so.
 
@@ -1440,8 +1449,8 @@ identity decision.
 
 ## Testing
 
-Three test layers, one regular gate (established 2026-07-27). Design: `ask-ck/plans/`
-`PLAN-frontend-unit-tests.md` + `PLAN-playwright-e2e.md`.
+Three test layers, one regular gate (established 2026-07-27). Design: `archive/plans/PLAN-frontend-unit-tests.md` +
+`archive/plans/PLAN-playwright-e2e.md`.
 
 **1. Backend units** — repo-root `tests/` (pytest, in-process `TestClient` — no mocks, network, or
 testbox). Coverage centers on the security/correctness fixes (validator + export gate, the JSON
@@ -1454,8 +1463,8 @@ so they catch the *next* regression, not only the one filed. `PYTHONNOUSERSITE=1
 fastapi/starlette in `~/.local` can't shadow the venv's. Dev deps (`pytest`, `httpx`) in
 `ask-ck/CK-main/requirements-dev.txt` (runtime `requirements.txt` stays lean).
 
-**2. Frontend units** — `tests/js/` (Vitest + jsdom — no browser, server, or LLM; 85
-tests). Covers the pure-logic ~80% of the frontend: the DOM/button-feedback helpers
+**2. Frontend units** — `tests/js/` (Vitest + jsdom — no browser, server, or LLM; 348
+tests on 2026-09-23). Covers the pure-logic ~80% of the frontend: the DOM/button-feedback helpers
 (`setButtonBusy`/`flashButtonDone`/`showStatus`), the table renderers (`tables.js`), the
 chosen-list machinery (`chosen.js`), and the candidate-merge logic (`db-search.js` `merge*`, made
 `export` for this), plus the 2026-07-27g guards: the Step 4/5 "Stale" badge precedence and the
@@ -1463,7 +1472,7 @@ chosen-list machinery (`chosen.js`), and the candidate-merge logic (`db-search.j
 a container id is missing — drift-detection, the same "ground selectors in the real DOM" discipline as
 the E2E. Node dev deps in `package.json`.
 
-**3. E2E (sparingly-run, NOT in the regular gate)** — repo-root `e2e/` (Playwright, one Chromium
+**3. E2E (sparingly-run, NOT in the regular gate)** — `tests/e2e/` (Playwright, one Chromium
 project driving the real running app: boot → load a case → keyword-search TestLink/Zephyr/ATP →
 tick + choose → Export → assert the validation gate blocks it). Deterministic (no LLM on the asserted
 path — a green export needs synthesized objective+steps, so the honest assertion is the blocked
@@ -1488,8 +1497,8 @@ outcome). Run on demand, e.g. pre-release.
 > `tests/test_test_traffic_never_writes_the_real_db.py`.
 
 ```bash
-./ask-ck/tools/run_tests.sh        # THE GATE: guards + pytest (559) + Vitest (85), one command
-PYTHONNOUSERSITE=1 .venv/bin/pytest -q     # backend only (559 tests, Python 3.13)
+./ask-ck/tools/run_tests.sh        # THE GATE: guards + pytest + Vitest, one command (prints the counts)
+PYTHONNOUSERSITE=1 .venv/bin/pytest -q     # backend only (Python 3.13)
 npm test                                    # frontend units only (vitest run)
 npm run e2e                                 # Playwright E2E — sparingly, not the gate
 ```
@@ -1517,12 +1526,11 @@ The plan explicitly chose server-backed because:
 # Start server (easiest)
 ./ask-ck/CK-main/run.sh
 
-# With real key or different port
-LLM_API_KEY=sk-... ./ask-ck/CK-main/run.sh
+# Different port (the LLM backend is chosen in the UI; LLM_API_KEY was removed 2026-08-04)
 PORT=9000 ./ask-ck/CK-main/run.sh
 
 # Manual start (project root)
-LLM_API_KEY=sk-... PYTHONPATH=ask-ck/CK-main python3 -m uvicorn CK_server.main:app --host 127.0.0.1 --port 8000 --reload
+PYTHONPATH=ask-ck/CK-main python3 -m uvicorn CK_server.main:app --host 127.0.0.1 --port 8000 --reload
 
 # Test synthesis directly (Python)
 cd ask-ck/CK-main/CK_server
@@ -1548,6 +1556,10 @@ Cross-reference higher-level project docs every session:
 - `ask-ck/functions/generator/OBJECTIVE_DRAFTING_PROCESS.md` (the authoritative process this tool supports)
 
 ---
+
+> ⚠ **Historical from here down.** The *Session Summary* sections below are dated records
+> (2026-07-01 → 2026-07-27g). Their "current", "remaining" and "next steps" statements are as of
+> those dates. For current status read `ask-ck/functions/generator/PROGRESS.md`.
 
 ## Session Summary (2026-07-27g — adversarial review CLOSED: 19 fixes in 4 batches + network hardening)
 

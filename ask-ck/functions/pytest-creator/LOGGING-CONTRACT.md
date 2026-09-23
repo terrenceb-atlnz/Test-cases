@@ -1,3 +1,6 @@
+---
+verified: 2026-09-23
+---
 # PyTest Creator — Logging Contract (Part 0)
 
 > **Status: SPEC, verified against real hardware (2026-07-21).** This is the required
@@ -77,7 +80,8 @@ MUST:
 
 And each `TestCase_<n>` class MUST carry:
 - `testCaseDesc` — one-line description (mirrors the sequence step)
-- `testCaseRef  = '<AWPTCM-key>'` — traceability back to the case
+- `testCaseRef  = '<AWPTCM-key>, <family>.<case>.<n>'` — traceability back to the case, plus the
+  ART identity since 2026-09-22 (e.g. `'AWPTCM-T33234, 9001.33234.1'`)
 - `testCaseMethod` — the action+verify text
 - `main(self)` — the body above
 
@@ -92,8 +96,8 @@ Given a generated script (offline) and its run log (from tb470):
 - **offline (lint):** every `TestCase_<n>.main()` contains ≥1 `self.log(...)`, and
   ≥1 `self.passed(<non-empty>)` or `self.failed(<non-empty>)` with no empty-reason
   call; a TestCase's own `configure()`/`tear_down()` carry NO verdict (config only —
-  2026-09-07); each class has the four required attributes with `testCaseRef` = the
-  case key.
+  2026-09-07); each class has the four required attributes (`testCaseRef` carrying the case key
+  and, since 2026-09-22, the ART triple — the lint checks the attribute is present).
 - **post-run (parser):** `parse_framework_log()` returns exactly one case block per
   sequence step, each with a `PASS`/`FAIL` footer and ≥1 `PASS:`/`!!FAIL:` marker
   line — i.e. `len(cases) == len(sequence)` and no `ERROR`/unclosed blocks.

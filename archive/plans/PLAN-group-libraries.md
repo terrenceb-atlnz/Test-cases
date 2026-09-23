@@ -1,6 +1,14 @@
+---
+verified: 2026-09-23
+---
 # PLAN — R1(b): one library per GROUP, merged by provenance tag
 
 > ## Status (read first)
+>
+> **RETIRED 2026-09-23 → `archive/plans/`** (complete; the rule is
+> `archive/plans/PLAN-restructure-2026-09-11.md` §1). The merge contract below still describes
+> the live code — the merge is `_merge_library_code`, the stem is now `_family_library_stem`
+> (`_group_library_stem` survives only in a history comment).
 >
 > **BUILT 2026-09-22 — then PARTLY SUPERSEDED the same day.** Approved with the three decisions
 > below and shipped; gate at close EXIT=0, pytest 1683 / 1 skipped (+13), vitest 335.

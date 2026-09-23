@@ -1,11 +1,20 @@
+---
+verified: 2026-09-23
+---
 # HANDOFF — Generate-phase token efficiency & rework investigation
+
+> **Closed (checked 2026-09-23).** The decisions this handoff led to were built on 2026-09-07
+> (`PLAN-pytest-creator.md` §9.12, SERVER-README "Per-unit generation — token-efficiency
+> changes"); the report it points to now lives in `docs/`. The `pt_matrix_judge.py` "next step"
+> below is moot — that tool was retired 2026-09-11 and judging is done in-context. Kept as the
+> record of the investigation.
 
 **Created:** 2026-09-04 (by Claude, model Fable 5.1) · **Status:** INVESTIGATED AND PARTLY
 ACTED ON, same day, second session — see **§9** for what was measured, what shipped
 (transport fix + `device_note` move, both approved by Terrence), the whole-script vs per-unit
 judgement and the smaller-model comparison. The full write-up for review is
-[`TOKEN-EFFICIENCY-REPORT-2026-09-04.md`](../../../docs/TOKEN-EFFICIENCY-REPORT-2026-09-04.md) at the
-repo root. §§1, 3–5, 7–8 below are the morning's analysis and still read correctly; **§2 and
+[`TOKEN-EFFICIENCY-REPORT-2026-09-04.md`](../../docs/TOKEN-EFFICIENCY-REPORT-2026-09-04.md) (in
+`docs/` since 2026-09-11). §§1, 3–5, 7–8 below are the morning's analysis and still read correctly; **§2 and
 §6 were rewritten** in the afternoon because step one turned out to be aimed at the wrong
 backend.
 
@@ -241,7 +250,7 @@ never interchangeably.
 
 ## 9. What happened on 2026-09-04 (afternoon session) — measured, shipped, judged
 
-Full write-up: [`TOKEN-EFFICIENCY-REPORT-2026-09-04.md`](../../../docs/TOKEN-EFFICIENCY-REPORT-2026-09-04.md)
+Full write-up: [`TOKEN-EFFICIENCY-REPORT-2026-09-04.md`](../../docs/TOKEN-EFFICIENCY-REPORT-2026-09-04.md)
 (repo root). Headlines:
 
 - **No vLLM in this run**; all Opus 4.8 via the CLI. §2 above was rewritten accordingly.

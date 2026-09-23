@@ -1,4 +1,16 @@
+---
+verified: 2026-09-23
+---
 # PLAN — Deterministic CLI-bounded permutation-expander (DEFERRED — plan-only)
+
+> ⚠ **Data note, 2026-09-23 (checked read-only against `ck.db`):** the source this brief was
+> written against has changed shape. `cli_commands` was rebuilt on 2026-09-08 from ONE combined
+> docs zip, not the 37 per-device zips below: **3,535 rows** (not 68,301), and **no per-device
+> column** — a product-specific syntax difference is now its own row per syntax group (memory
+> `atlnz-docs-cli-reference`: `duplex` → `{auto|full}` on 8 chassis families,
+> `{auto|full|half}` on 25). `tables` and `notes` survive (2,907 rows carry `tables`). So "First
+> step when resumed" cannot be done per device as written; the unit to dump is the syntax-group
+> row. Also: rule 1a now lives in the shared `pt_fill_rules.jinja`, not `pt_generate_script.jinja`.
 
 **Status:** NOT STARTED. Design idea captured 2026-07-29 at Terrence's request ("I
 absolutely do want to plan building a deterministic permutation-expander subsystem, it is

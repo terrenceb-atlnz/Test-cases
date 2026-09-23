@@ -4,7 +4,7 @@ description: "Ask-CK's intended end-state is real multi-user (Terrence, 2026-07-
 metadata: 
   node_type: memory
   type: project
-  verified: 2026-09-09
+  verified: 2026-09-23
   modified: 2026-08-17T00:00:00.000Z
   originSessionId: 7daaa873-01d4-42ab-836d-65d158c2ca74
 ---
@@ -52,8 +52,12 @@ what holds a lock today; Phase 2 upgrades that to a real user id with **no schem
 is exactly why Phase 1 was sequenced first and was never gated on auth.
 
 **Still planned:** Phase 2 identity (SSO/proxy strongly preferred over app-managed credentials) ·
-Phase 3 attribution + TLS (both shipped nginx examples are plain `listen 80` with zero auth/TLS and
-need replacing, not extending). Sizing: 2 = M–L, 3 = S–M.
+Phase 3 attribution + TLS (the two nginx examples — archived 2026-09-11 to `archive/CK-main/` — are
+plain `listen 80` with zero auth/TLS and need replacing, not extending). Sizing: 2 = M–L, 3 = S–M.
+
+**The exposure is real today (checked 2026-09-23):** the hosted server of record has run with
+`HOST=0.0.0.0` on the LAN since 2026-08-26 ([[askck-lan-hosting]]), used by several seats, and
+Phases 2–3 are unbuilt — so it is an unauthenticated LAN service. The plan's status header records it.
 
 **How to apply:** Phase 1 is done — do not re-implement it, and **do not add a `case_locks` table**;
 that option was considered and deliberately rejected ([[db-is-permanent-source]]). Before starting

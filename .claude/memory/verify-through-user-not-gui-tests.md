@@ -2,6 +2,7 @@
 name: verify-through-user-not-gui-tests
 description: Never spawn GUI windows or other visible actions on Terrence's seat as a verification step; use non-intrusive checks or ask him, and once a question is asked WAIT for the answer before acting again
 metadata:
+  verified: 2026-09-23
   type: feedback
 ---
 

@@ -3,11 +3,11 @@ name: windows-seat-gotchas
 description: Four Windows/PowerShell facts the seat-setup demo (2026-09-11) paid for — a 32,767-char command line (pass big steers by --system-prompt-file), case-INSENSITIVE variable names ($Conf == $conf), a native command's stderr is TERMINATING under $ErrorActionPreference='Stop', and navigator.clipboard is undefined on plain http
 metadata:
   type: project
-  verified: 2026-09-11
+  verified: 2026-09-23
 ---
 
 **Four things a Linux gate cannot reach by running the code** — each cost a demo step on
-2026-09-11 (plan `ask-ck/plans/PLAN-seat-setup-and-per-seat-llm.md` §9):
+2026-09-11 (plan `archive/plans/PLAN-seat-setup-and-per-seat-llm.md` §9):
 
 1. **A Windows command line is capped at 32,767 chars.** The 61k unit steer as an inline
    `--system-prompt` made `Process.Start` fail with *"The filename or extension is too long"*

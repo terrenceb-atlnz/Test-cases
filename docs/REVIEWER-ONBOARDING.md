@@ -1,3 +1,6 @@
+---
+verified: 2026-09-23
+---
 # Ask CK — Orientation for a Code Reviewer
 
 **Scope of your review:** the database (`ask-ck/db/ck.db`) and every Python module that
@@ -8,7 +11,7 @@ feedback. You are not expected to ship changes yet.
 
 > **Proprietary and Confidential.** This repository and everything in it is the exclusive
 > property of the copyright holder. No license is granted. Do not copy, redistribute, or share
-> any part of it — including this document — outside the team. See [`COPYRIGHT`](COPYRIGHT).
+> any part of it — including this document — outside the team. See [`COPYRIGHT`](../COPYRIGHT).
 
 ---
 
@@ -53,7 +56,7 @@ be rebuilt.**
 
 The source files it was built from have been deleted. `ask-ck/tools/build_db.py` still exists purely as
 provenance and **refuses to run**. The database is committed to the repository via Git LFS —
-all 439 MB of it — so a fresh clone gets a complete, populated, semantically-searchable
+all ~440 MB of it — so a fresh clone gets a complete, populated, semantically-searchable
 database with no build step.
 
 This has consequences that will otherwise surprise you:
@@ -86,13 +89,16 @@ that run in the test gate.
 
 ## 3. The database
 
-### 3.1 It looks like 68 tables. It is really 13.
+### 3.1 It looks like 69 tables. It is really 13.
 
 ```
 13  content tables      the actual data
-30  FTS5 shadow tables   6 full-text indexes x 5 internal tables each
-25  sqlite-vec shadows   5 vector indexes x 5 internal tables each
+30  FTS5 tables          6 full-text indexes x 5 (the index + 4 internal tables)
+25  sqlite-vec tables    5 vector indexes x 5 (the index + 4 internal tables)
+ 1  sqlite_sequence      SQLite's own AUTOINCREMENT bookkeeping
 ```
+
+(Counted 2026-09-23.)
 
 Only the 13 are yours to reason about. The rest are machinery that SQLite and the `sqlite-vec`
 extension manage themselves — you never write them directly, and their contents are not
@@ -119,8 +125,8 @@ meaningful to read.
 
 | Table | Rows | What it is |
 |---|---|---|
-| `cli_commands` | 6,323 | Real command syntax, examples, and — critically — **real sample output**. |
-| `cli_command_products` | 68,301 | Which products support which command page. |
+| `cli_commands` | 3,535 | Real command syntax, examples, and — critically — **real sample output** (one combined docs build since 2026-09-08; a renewable table, unlike the corpora). |
+| `cli_command_products` | 77,588 | Which products support which command page (39 products). |
 
 **Project working data:**
 
@@ -128,7 +134,7 @@ meaningful to read.
 |---|---|---|
 | `candidates` | 410 | Per-case candidate matches, as a JSON payload. |
 | `decisions` | 410 | Which candidate was chosen for a case, with rationale. |
-| `sessions` | 51 | **The only table written at runtime.** One row per in-progress case. |
+| `sessions` | 9 | **The only table written at runtime.** One row per in-progress case (every session was reset on 2026-09-16). |
 | `embeddings_meta` | 83,816 | Bookkeeping for the vectors: which row, which model, what content hash. |
 | `meta` | 28 | Build provenance — when it was built, from what, with which embedding model. |
 | `json_docs` | 2 | A small key/value escape hatch for whole JSON documents. |
@@ -171,7 +177,7 @@ print(c.execute('select count(*) from zephyr_cases').fetchone())
 ```
 
 **Also note:** the `count:*` keys in the `meta` table are *build-time* provenance, not live
-counts. `meta` says 35 sessions; there are 51 today. That is correct behaviour, not drift.
+counts, so they will not match the live `sessions` row count. That is correct behaviour, not drift.
 
 ---
 
@@ -179,11 +185,13 @@ counts. `meta` says 35 sessions; there are 51 today. That is correct behaviour, 
 
 ### 4.1 One module owns SQL
 
-**`CK_server/db.py` (1,135 lines) is the only module in the entire server that opens a SQLite
-connection.** Everything else goes through its API. If you find a second module importing
-`sqlite3`, that is a finding.
+**`CK_server/db.py` (1,211 lines) owns SQL.** Everything else goes through its API, with one
+deliberate exception: `frontend/ck-main/current/pytest-creator/cli_lookup.py` opens `ck.db`
+read-only for CLI grounding, through the SAME `pysqlite3` library (`tests/test_sqlite_single_library.py`
+guards it — two SQLite libraries in one process once stripped the server's locks). Any other
+module importing `sqlite3` is a finding.
 
-Its public surface is 40 functions (plus 18 private helpers), in four groups:
+Its public surface is 44 functions (plus 18 private helpers), in four groups:
 
 | Group | Examples | Notes |
 |---|---|---|
@@ -194,26 +202,26 @@ Its public surface is 40 functions (plus 18 private helpers), in four groups:
 
 ### 4.2 The modules in your review scope
 
-Everything below reaches the database as part of an Ask CK function:
+Everything below reaches the database as part of an Ask CK function (sizes measured 2026-09-23):
 
 | Module | Lines | Role |
 |---|---|---|
-| `db.py` | 1,135 | **Sole SQL owner.** Connections, FTS5, vectors, sessions. Start here. |
-| `routers/wizard/reviews.py` | 910 | Wizard steps 1–4: load a case, search/suggest candidates, confirm selections. 10 endpoints. |
+| `db.py` | 1,211 | **SQL owner.** Connections, FTS5, vectors, sessions. Start here. |
+| `routers/wizard/reviews.py` | 904 | Wizard steps 1–4: load a case, search/suggest candidates, confirm selections. 10 endpoints. |
 | `routers/wizard/synthesis.py` | 341 | Wizard steps 5–6: LLM synthesis of objective + steps. 6 endpoints. |
-| `routers/wizard/export.py` | 536 | Writes the refined-case bundle to disk; pushes to live Zephyr. 2 endpoints. |
-| `routers/wizard/config.py` | 253 | Workspace LLM login and per-session config. 7 endpoints. |
-| `routers/pytest_create.py` | 3,663 | The whole PyTest Creator flow. 27 endpoints. Imports `db as dbx` — see below. |
-| `routers/admin.py` | 88 | Hidden admin panel: reset sessions, restart. |
-| `session_store.py` | 128 | The in-memory sessions dict and its `ck.db` row. |
+| `routers/wizard/export.py` | 532 | Writes the refined-case bundle to disk; pushes to live Zephyr. 2 endpoints. |
+| `routers/wizard/config.py` | 288 | LLM configuration (per seat since 2026-09-10; the site default), health. 6 endpoints. |
+| `routers/pytest_create.py` | 8,407 | The whole PyTest Creator flow. 43 endpoints. Imports `db as dbx` — see below. |
+| `routers/admin.py` | 87 | Hidden admin panel: reset sessions, restart. |
+| `session_store.py` | 129 | The in-memory sessions dict and its `ck.db` row. |
 | `case_registry.py` | 162 | Which cases exist, which are Complete, which are hidden, how they group. |
 | `generator/descriptions.py` | 215 | Builds display text and candidate queries; calls the shared scorer. |
 | `generator/gates.py` | 106 | The confirm gates — can this step be synthesized yet? Invalidation of downstream steps. |
 | `generator/backfill.py` | 96 | Rehydrates a Complete case from its on-disk bundle. |
 | `data.py` | 98 | Thin accessor layer the routers depend on. |
-| `llm_config.py` | 140 | Resolves which LLM backend a request uses; persists the workspace login. |
+| `llm_config.py` | 237 | Resolves which LLM backend a request uses — the seat's `X-CK-LLM` header, else the site default. |
 | `locks.py` | 248 | Per-case locking. Read its docstring in full — it is the best-written explanation in the repo. |
-| `models.py` | 256 | Pydantic session models. The shape of what gets stored in `sessions.payload`. |
+| `models.py` | 253 | Pydantic session models. The shape of what gets stored in `sessions.payload`. |
 
 **A trap worth knowing:** `pytest_create.py` imports the data layer as `import db as dbx`,
 because several of *its own* functions take a parameter called `db` (a script-database filter).
@@ -296,7 +304,7 @@ always tell which database a running server is on.
 ./ask-ck/tools/run_tests.sh     # both guards + backend pytest + frontend Vitest
 ```
 
-Currently 1,060 backend tests and 92 frontend tests, plus the two invariant guards. Run it
+1,742 backend tests and 348 frontend tests on 2026-09-23, plus the two invariant guards. Run it
 before and after any change. There is no CI runner, so this command is the entire safety net.
 
 Note that `setup.sh` installs the **runtime** dependencies only; `pytest` lives in
@@ -317,8 +325,8 @@ You will read better if you know what this codebase has already been burned by.
   does when its inputs are absent**, not just when they are present.
 - **The LLM fabricates confidently.** Every model tried — including the strongest — invented
   CLI output formats the switch never prints, because the prompts demanded "exact CLI fields"
-  while showing zero examples. The fix was grounding the prompts in 6,323 real harvested
-  commands with real sample output. Fabricated tokens went from 13 to 0 in extracted sequences
+  while showing zero examples. The fix was grounding the prompts in the real harvested command
+  reference (6,323 rows then; one combined 3,535-row build since 2026-09-08), with real sample output. Fabricated tokens went from 13 to 0 in extracted sequences
   and 57 to 0 in generated scripts. This is why `cli_commands` exists.
 - **Where prose and an example disagree, the model follows the example.** So the prompts' own
   code examples are executed as tests (`tests/test_prompt_examples.py`) against real data.
@@ -331,12 +339,12 @@ Each of these looks like a defect and is not. They are settled, with reasons.
 
 | Looks wrong | Why it is that way |
 |---|---|
-| **No authentication at all** | By design: localhost, single user. The server binds `127.0.0.1` by default; LAN exposure is an explicit opt-in. Real multi-user identity is planned (Phase 2 of `PLAN-auth-and-case-locking.md`) and gated on an organisational decision. |
+| **No authentication at all** | By design: localhost, single user. The server binds `127.0.0.1` by default; LAN exposure is an explicit opt-in — though the hosted server of record has run LAN-exposed since 2026-08-26, so the exposure is real today. Real multi-user identity is planned (Phase 2 of `PLAN-auth-and-case-locking.md`) and gated on an organisational decision. |
 | **Locks are an in-memory dict, not a table** | A durable `case_locks` table would have been the first in-place schema change to the permanent `ck.db`. The deliberate trade: locks live in memory, authoritative because the server is single-process, with an optimistic `rev` inside the session payload as backstop. `locks.py` documents the caveat prominently — going multi-worker silently reintroduces the bug. |
 | **`build_db.py` exists but refuses to run** | Kept as provenance of how `ck.db` was constructed. Not dead code to delete. |
 | **Session writes are whole-blob overwrites** | Known. That is precisely the problem `locks.py` solves. |
 | **`sessions` is written at runtime while everything else is read-only** | Correct. It is the only mutable table. |
-| **Generated test scripts name no devices** | Deliberate: generation targets a topology *contract*, never a specific bench, because a bench-reading generator silently weakens a test to fit whatever hardware is present. |
+| **Generated test scripts name no devices** | Deliberate: generation never reads a bench, because a bench-reading generator silently weakens a test to fit whatever hardware is present. At run time the script binds the framework's `swi_a` slot and discovers its cables (since 2026-09-21 — `ask-ck/functions/pytest-creator/TOPOLOGY-PROFILES.md`). |
 
 ---
 
@@ -367,8 +375,8 @@ the current state at the top.
   search path that returns empty instead of raising. This repo's worst bugs have all been this.
 - **Anywhere the database contract is bent** — a second SQLite connection, a write outside
   `save_session`, a query that assumes a column that isn't there.
-- **Where `pytest_create.py` should be decomposed.** At 3,663 lines it is the obvious
-  candidate; `routers/wizard.py` was already split this way and the plan for it
+- **Where `pytest_create.py` should be decomposed.** At 8,407 lines it is the obvious
+  candidate; the old `routers/wizard.py` was already split this way (into the `routers/wizard/` package) and the plan for it
   (`PLAN-backend-module-split.md`) is worth reading first so the same reasoning applies.
 - **Anything you had to read twice.** If the code confused you, that is data — say so. A
   newcomer's confusion is the only honest measure of how legible this is, and it stops being

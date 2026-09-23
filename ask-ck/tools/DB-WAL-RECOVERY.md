@@ -1,6 +1,14 @@
+---
+verified: 2026-09-23
+---
 # Recovering ck.db from a corrupt WAL — runbook
 
 **Tool:** [`ask-ck/tools/db_wal_recover.sh`](db_wal_recover.sh). **First used:** 2026-09-03.
+
+> **Cause found and fixed 2026-09-10:** two SQLite libraries in one server process (`db.py` on
+> `pysqlite3`, `cli_lookup` on the stdlib `sqlite3`) stripped the server's own locks, which is
+> what let the WAL be deleted or corrupted. `tests/test_sqlite_single_library.py` guards it.
+> This runbook stays for a recurrence from any other cause.
 
 ## Symptom
 
@@ -15,7 +23,7 @@ and `PRAGMA integrity_check` on `ask-ck/db/ck.db` reports structural damage
 
 ## First: is the *base* actually damaged, or only the WAL?
 
-`ck.db` runs in WAL mode ([db.py](../ask-ck/CK-main/CK_server/db.py) — `PRAGMA journal_mode=WAL`).
+`ck.db` runs in WAL mode ([db.py](../CK-main/CK_server/db.py) — `PRAGMA journal_mode=WAL`).
 `integrity_check` on `ck.db` reads **base + WAL together**. Check the base **alone** by copying
 only the main file (no `-wal`/`-shm` beside it) and checking the copy:
 

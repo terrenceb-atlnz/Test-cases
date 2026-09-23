@@ -1,11 +1,15 @@
+---
+verified: 2026-09-23
+---
 # PLAN — Self-healing generation: prevent, detect on arrival, correct bounded, measure
 
 > ## Status (read first)
 >
 > **BUILT 2026-09-15 — R1–R5 shipped and live on the hosted tree (see each section);
-> **R1(b) group libraries BUILT 2026-09-22** (merge + mark; PRUNE deferred — its own plan at
-> `PLAN-group-libraries.md`), **R5's two JS surfaces BUILT 2026-09-22**, R6's 4th bar awaits the
-> D6 re-measurement (Terrence's scratch-server Opus run).** Every decision made (D1–D6, §5); the §6.4 thresholds
+> **R1(b) group libraries BUILT 2026-09-22** (merge + mark in
+> `archive/plans/PLAN-group-libraries.md`; **PRUNE also built 2026-09-22**, explicit preview-then-
+> apply, `PLAN-art-family-numbering-and-prune.md` §4), **R5's two JS surfaces BUILT 2026-09-22**,
+> R6's 4th bar awaits the D6 re-measurement (Terrence's scratch-server Opus run).** Every decision made (D1–D6, §5); the §6.4 thresholds
 > accepted. Each step gated. **Refinement 2026-09-15 (the proof run's tc25):** a generation
 > refusal now KEEPS its parsed draft as `code` (`_fail(keep_code=True)`) — the refused-fix "keep
 > the unit" fix (PLAN-fix-units-guardrails) generalized to generation, so a refused unit is
@@ -16,6 +20,12 @@
 > person to read the summary, pick units, press Fix and re-assemble. Terrence's framing:
 > *"we are trying to make the tool robust enough to handle these errors without having to drive
 > a concurrent CLI session as well."* This plan is for every protocol, not LLDP.
+>
+> **§4 Acceptance — never completed (checked 2026-09-23).** The acceptance Generate ran on
+> 2026-09-16 (37/37 units; tc25 wrongly refused, fixed that day), leaving "re-gen tc25 →
+> Assemble + settle → Review" owed. The same day's rewind (`e35bbb2`) wiped every session, and
+> `ck.db` holds no T44297 session now — so the acceptance would be a fresh Generate from scratch.
+> Whether it is still wanted is Terrence's call.
 
 ## 1. The evidence — three runs on AWPTCM-T44297
 
@@ -88,7 +98,7 @@ pass in the future anyway"). Best done deliberately when the suite structure set
 above delivers the class-1 prevention now, into whatever library the case ships.
 
 **R1(b) — one library per group (Terrence, D4). ✅ COMPLETE 2026-09-22 — see
-`ask-ck/plans/PLAN-group-libraries.md`** (merge + mark) **and
+`archive/plans/PLAN-group-libraries.md`** (merge + mark) **and
 `ask-ck/plans/PLAN-art-family-numbering-and-prune.md`** (the numbering, and PRUNE — the part
 that can delete a reviewer's code, so it is an explicit preview-then-apply action). The naming
 settled as `library_<group>` for one day and is now `library_<family>` — ART's own

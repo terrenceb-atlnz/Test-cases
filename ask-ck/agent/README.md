@@ -1,3 +1,6 @@
+---
+verified: 2026-09-23
+---
 # ck-agent — Ask CK per-user local LLM agent
 
 Run this on **your own machine** so your Ask CK LLM requests use **your own**
@@ -83,10 +86,13 @@ ever runs here, on your machine, as you.
   setup script to replace a stale agent; the agent also runs `claude update` once at startup
   (`CK_AGENT_UPDATE_ON_START=0` disables that).
 - `POST /run` `{prompt, model?, timeout?, job_id?, system?}` → `{content, error, usage?, total_cost_usd?}` —
-  runs one `claude -p` completion exactly as the server's own transport does: `--tools ""`,
-  `--system-prompt <system>` (replacing the CLI's harness prompt so a fan-out's shared prefix
-  can hit the prompt cache), `--no-session-persistence`, `stream-json` with every assistant
-  message concatenated, from a neutral cwd with no CLAUDE.md above it (2026-09-04).
+  runs one `claude -p` completion. The two agents are the only place Ask CK runs `claude -p`
+  (server-side Claude was removed 2026-09-10): `--tools ""`, `--system-prompt <system>`
+  (replacing the CLI's harness prompt so a fan-out's shared prefix can hit the prompt cache;
+  the Windows agent writes it to a temp file and passes `--system-prompt-file`, because a
+  Windows command line is capped at 32,767 chars), `--no-session-persistence`,
+  `--max-thinking-tokens 2048` on long calls, `stream-json` with every assistant message
+  concatenated, from a neutral cwd with no CLAUDE.md above it (2026-09-04).
 
 ## Security
 

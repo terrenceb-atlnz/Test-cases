@@ -1,4 +1,11 @@
+---
+verified: 2026-09-23
+---
 # Token-efficiency investigation — report for review
+
+> A dated report (2026-09-04), kept as written. Since then decisions 2–8 were built
+> (2026-09-07, `PLAN-pytest-creator.md` §9.12), and the server-side `claude_code` transport it
+> measured was removed on 2026-09-10 — Claude now runs only through the seat agents.
 
 **Date:** 2026-09-04 · **Author:** Claude (Fable 5.1), afternoon session · **For:** Terrence
 **Scope:** the PyTest Creator's LLM spend, prompted by a ~$44 per-unit generate on AWPTCM-T44297

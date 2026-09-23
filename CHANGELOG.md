@@ -1,3 +1,6 @@
+---
+verified: 2026-09-23
+---
 # Changelog — Ask CK
 
 Feature history for the Ask CK workbench, newest first. This file was split out of
@@ -10,6 +13,13 @@ For session-by-session narrative see [`SESSION_STATE.md`](SESSION_STATE.md); for
 current working thread see
 [`ask-ck/functions/generator/PROGRESS.md`](ask-ck/functions/generator/PROGRESS.md).
 
+
+> **Reading note (2026-09-23 doc sweep).** Entries are frozen as written. Where an entry's
+> claim has since stopped being true, a ⚠ line under its heading says what changed.
+> plan paths — completed plans moved ask-ck/plans/ -> archive/plans/ (2026-09-11, 2026-09-23); a cited ask-ck/plans/PLAN-x.md that is missing is in archive/plans/.
+> entries before the 2026-09-11 (afternoon) restructure cite pre-move paths (`tool/` → `ask-ck/tools/`, `ask-ck/var/` → `ask-ck/db/`, `objective-drafting/` → `ask-ck/functions/generator/`, `pytest-create/` → `ask-ck/functions/pytest-creator/`, `CK_server/static/` → `ask-ck/frontend/ck-main/current/`); archive/plans/PLAN-restructure-2026-09-11.md has the full mapping.
+> `ask-ck/ck-facelift/`, `pytest-create/` and `CK-main/` plan paths moved to `ask-ck/plans/` on 2026-09-11 and, once complete, to `archive/plans/`.
+> `js-tests/` → `tests/js/`, `e2e/` → `tests/e2e/`, `static/js/` → `ask-ck/frontend/ck-main/current/<page>/` (2026-09-11).
 
 ## 2026-09-22 — ART family numbering `<family>.<case>.<TestCase>`, and library PRUNE
 
@@ -42,6 +52,8 @@ number — with per-group families the client cannot derive the filename, so it 
 back out of the name the server resolved.
 
 ## 2026-09-22 — R5's two lint-trend surfaces; the gate reaches vitest again
+
+> ⚠ **Superseded in part (checked 2026-09-23):** The "ONE PER GROUP" library bullet was superseded the same day: the library became `library_<family>.py` (`library_9001.py`) and PRUNE shipped — see the entry above.
 
 Plan `ask-ck/plans/PLAN-self-healing-generation.md` §6.4 (R5) and
 `ask-ck/plans/PLAN-pipeline-end-to-end.md` Phase −1.4.
@@ -201,6 +213,8 @@ same-day role-set commits `6ada916` / `e022e1c`), `3116625` (frame, detection, m
 
 ## 2026-09-21 — Generate-state gating + Re-chunk; Reset Generate; stale reviews; sequence sanity in Extract Sequence; library-aware Review/Fix
 
+> ⚠ **Superseded in part (checked 2026-09-23):** The "ROLE SET" bullet was reverted the same day (`b96255c`, `f354f14`) and replaced by framework discovery — see the 2026-09-21 (later) entry above.
+
 Plan `ask-ck/plans/PLAN-generate-state-and-sequence-sanity.md`; commits 56c7022 (D), fc8348b (A, B,
 reset), f75581b (C). All four designs came out of the AWPTCM-T33234 repair (2026-09-17/18).
 
@@ -252,6 +266,8 @@ reset), f75581b (C). All four designs came out of the AWPTCM-T33234 repair (2026
   carried a red for a week over a name.
 
 ## 2026-09-17 — Load Case & New Session; ART script identity (`test-9000.<case>`); objectives prompt scope guardrails; framework-log resolution
+
+> ⚠ **Superseded in part (checked 2026-09-23):** Two claims moved on: scripts are named `test-<family>.<case>.py` (family 9001+) since 2026-09-22, not `test-9000.<case>`; and the "recorded, not fixed" stale-chunks defect was fixed 2026-09-21 (units⇄script 409 gating, `fix_script` re-chunks itself).
 
 - **Load Case & New Session** (`load_case?fresh=true`). *Why:* Load Case & Continue reuses the
   stored `pt` session by design — that is what preserves step 2–8 work — so a case re-drafted and
@@ -407,6 +423,8 @@ hosted tree. Verified on the real tc25 draft: the reworked lint returns zero fin
 
 ## 2026-09-15 — Self-healing generation R1: fragment dependency closure (prevents the NameError class)
 
+> ⚠ **Superseded in part (checked 2026-09-23):** The deferred R1(b) group library was built 2026-09-22 (one `library_<family>.py` per mother folder, plus the explicit PRUNE).
+
 - **The library now ships the definitions its fragments depend on.** `_close_fragment_deps`
   resolves every shown fragment's free names against its source script and that suite's
   `library_<suite>.py` (new `db.get_suite_library`), ships each resolved module-level definition
@@ -441,6 +459,8 @@ hosted tree. Verified on the real tc25 draft: the reworked lint returns zero fin
   of `ask-ck/plans/PLAN-self-healing-generation.md`.
 
 ## 2026-09-15 — Self-healing generation R5: lint-trend measurement + prompt-defect alarms
+
+> ⚠ **Superseded in part (checked 2026-09-23):** The deferred Summary banner and admin "Lint trends" card were built 2026-09-22.
 
 - **A lint history per assembly** (`step6.lint_history`, rolling 50): counts by authority
   (blocking/policy/warning) and by CLASS (unbound, suite-owned, field, port-owner,
@@ -479,6 +499,8 @@ hosted tree. Verified on the real tc25 draft: the reworked lint returns zero fin
   `ask-ck/plans/PLAN-self-healing-generation.md`.
 
 ## 2026-09-15 — Fix: a refused fix keeps the current unit instead of wiping it
+
+> ⚠ **Superseded in part (checked 2026-09-23):** "On the GENERATION path it still records status: error with empty code" changed the next day: a generation refusal keeps its parsed draft (`_fail(keep_code=True)`, 2026-09-16 entry).
 
 - **`_unit_call_and_store._fail` is now guard-aware.** On the FIX path (a `guard` is present) a
   reply refused by the frozen-frame, evidence or lint-regression checks now KEEPS the current
@@ -519,6 +541,8 @@ hosted tree. Verified on the real tc25 draft: the reworked lint returns zero fin
   prompt and the lint now judge from one list. ~700 tokens more, in the cached shared half.
 
 ## 2026-09-14 — Fix units guardrails, tranche 1: `where` is authoritative, structural findings go to a person, the suite's setup is shown to every unit
+
+> ⚠ **Superseded in part (checked 2026-09-23):** The G8(b) rule described below (flag a re-issue OR an undo of a suite-owned command) was reworked on 2026-09-15/16: only an unset that is never re-set later is flagged (see the "Negative tests are legitimate" entry).
 
 `ask-ck/plans/PLAN-fix-units-guardrails.md` G1 + G5 + G8(a), plus follow-ups #4. **Why:** the
 T44297 pass (2026-09-09) cost six rework runs out of eight because the per-unit fixer could
@@ -580,6 +604,8 @@ verify-before-store, preview/approve) follow in order.
 
 ## 2026-09-11 (afternoon) — The Ask-CK tree restructured for the Svelte front-end branch
 
+> ⚠ **Superseded in part (checked 2026-09-23):** The "Open" items were closed the same day: batch 6b landed (`880cd5a`), and the root CLAUDE.md, the stray-script hook message and the device-testing memory no longer name the old locations (checked 2026-09-23).
+
 Terrence's brief (`ask-ck/plans/PLAN-restructure-2026-09-11.md`): tidy the root, archive or delete
 what is unused, one home for tests, one for tools, one for plans, one for each page's data, one
 for the front-end, and a name for the database directory that says what it holds — then scaffold
@@ -613,6 +639,8 @@ mapping. The hosted server was stopped for the whole run and nothing systemd or 
   still name the old locations — Terrence's files.
 
 ## 2026-09-11 (later) — Two memory stores by design: `check_memory_links.py` learns the sibling repo; sessions start only from a repo root; Claude commits, Terrence pushes
+
+> ⚠ **Superseded in part (checked 2026-09-23):** A third store arrived 2026-09-16 (csg-tool, which shares none); `check_memory_links.py` reports it as a sibling store.
 
 Terrence split the memory store the same day (`MEMORY-SPLIT-INVENTORY.md`; 88 → 60 here, 15
 lab-campaign memories to `../device-testing/.claude/memory/`, 12 shared ones kept here as relative
@@ -692,6 +720,8 @@ Gate at close: both guards OK; pytest 1448 passed / 1 skipped; vitest 280; live 
 hot-reloaded clean after each commit.
 
 ## 2026-09-10 — Seats set themselves up from the home page; the LLM choice is per seat; the per-user agent is the only Claude path
+
+> ⚠ **Superseded in part (checked 2026-09-23):** Two lines moved on the next day: the separate "Set as site default" control was removed (D17 — Apply now also writes the site default), and the §9 Windows-seat demo ran on 2026-09-11 (see that entry).
 
 Written after the second demo day (2026-09-10), which again ended in the RDP-to-localhost
 workaround. Root causes and decisions: `ask-ck/ck-facelift/PLAN-seat-setup-and-per-seat-llm.md`.
@@ -852,6 +882,8 @@ match on `portA.name` (`port1.0.1`) may miss on real hardware — a bench check.
 
 ## 2026-09-07 — the generated script now has the ART suite shape (frame, prompt, verdicts, library)
 
+> ⚠ **Superseded in part (checked 2026-09-23):** Superseded since: the library is `library_<family>.py`, one per mother folder (2026-09-22), not `library_<case>.py`; link binding is discovered through the framework since 2026-09-21 (the frame no longer binds from a role contract); and the first model pass on this shape ran on 2026-09-08.
+
 After the combined token-efficiency re-run, the Sonnet and Opus scripts for T44297 were judged
 in-context and the biggest defect was ours: 59 and 63 unbound-port lint errors, because every
 capture unit read `tb.ethA` and the DUT port as `dut.portA` — which is exactly what 111 of 188
@@ -892,6 +924,8 @@ censused; eight divergences came out and Terrence asked for all eight closed at 
   edited (`_dirty`); everything else is an id the server renders fresh at dispatch.
 
 ## 2026-09-07 — The shared half of every unit prompt becomes the system prompt; the fan-out is primed; units are self-contained; common fragments are hoisted; Fix is per-unit and Review is gated on lint; bench-integration lint; per-task model routing
+
+> ⚠ **Superseded in part (checked 2026-09-23):** Per-task routing is per SEAT since 2026-09-10 (the `X-CK-LLM` header carries `unit;match`; the site-default row is only the fallback), and "Claude Code CLI (this server)" was removed on 2026-09-10.
 
 **Why one entry for seven changes:** Terrence ordered the token-efficiency report's decisions
 (6, 8, 4, 3, 5, 7, 2) and asked for everything to land before one combined re-run — "I can't
@@ -938,6 +972,8 @@ which under "Claude Code CLI (this server)" silently moved the workspace to the 
 
 ## 2026-09-04 (afternoon) — The CLI transport stops paying for Claude Code's harness; the device note leaves the shared rules; memory links are checked
 
+> ⚠ **Superseded in part (checked 2026-09-23):** The server-side transport named here (`llm._call_claude_code_headless`) was removed on 2026-09-10; the contract now lives only in the seat agents (`ck_agent.py`, `ck-agent.ps1`).
+
 **Every `claude -p` call now replaces the CLI's harness prompt, starts in a neutral directory
 and keeps no session** (`llm._call_claude_code_headless`, mirrored in `ask-ck/agent/ck_agent.py`).
 *Why:* `claude -p` is a harness. Measured on the day's per-unit generate, it wrapped our ~16k-token
@@ -968,6 +1004,8 @@ the harness silently made an empty directory for the new slug, and every session
 on session hygiene.)
 
 ## 2026-09-04 — Setup unit re-indented at assembly; a reachable Fix and a clearer step-5 UI
+
+> ⚠ **Superseded in part (checked 2026-09-23):** "Re-Assembling after a Fix re-splices the units and discards it" no longer holds: since 2026-09-21 `fix_script` re-chunks itself, and every splice path refuses (409) while units and script diverge.
 
 **The `setup` unit no longer produces an IndentationError at assembly.** Per-unit generation
 hands the model the `configure()`/`tear_down()` pair as an indented **class-body fragment** —
@@ -1055,6 +1093,8 @@ from the button that was clicked, which is indistinguishable from nothing happen
 
 ## 2026-09-02 — tb470's `.setup` became a generated artifact, and the tree stopped holding rival copies of the bench
 
+> ⚠ **Superseded in part (checked 2026-09-23):** The bench record is now `~/claude/device-testing/bench-setup/bench-state.md` (the `IE520-testing` directory no longer exists).
+
 **What changed.** `/home/st-art/st-art/configs/tb470.setup` is no longer authored. It is
 generated from `~/claude/IE520-testing/bench-setup/bench-state.md` (NFS lab home, outside this
 repo) by `bench_setup.py apply`. Anything in this repo that told a reader to open the `.setup`
@@ -1129,6 +1169,8 @@ end by driving the real UI against the scratch server: the on-disk diff was exac
 line, with the original `tb470` key byte-identical.
 
 ## 2026-08-31 — The step-3 confirm gate, the naming that would not stick, and provenance that previewed the wrong call
+
+> ⚠ **Superseded in part (checked 2026-09-23):** Two things moved on: the Group / script-name inputs were removed on 2026-09-17 (the script name is derived — `test-<family>.<case>.py` since 2026-09-22), and the library is server-named `library_<family>.py` since 2026-09-22, not named by the model.
 
 Terrence drove a real case (`AWPTCM-T33351`, 802.1X single-host) through the per-step flow
 and hit three separate defects in sequence. All are fixed, each mutation-checked. The session
@@ -1219,6 +1261,8 @@ guards OK, `ck.db` untouched by tests.
 
 ## 2026-08-26b — Step-3 results became durable and context-bearing; every LLM button gained live progress and a true Stop
 
+> ⚠ **Superseded in part (checked 2026-09-23):** The server-side `claude_code` transport and its `_run_cli` runner were removed on 2026-09-10/11; Stop now closes the vLLM stream or abandons the agent job (the agent kills its own `claude` run). The per-step Suggest button was removed 2026-09-22 — "Suggest all steps" remains.
+
 Second session of the day, both features Terrence's explicit asks, both verified live in a
 real browser against the scratch server — the LLM half against a fake `claude` CLI on PATH,
 so not one token was spent proving it.
@@ -1271,6 +1315,8 @@ case's lock after `browser.close()` (pagehide/sendBeacon skipped), so consecutiv
 restart the scratch server or use distinct cases.
 
 ## 2026-08-26 — PyTest Creator UI conformance, refresh-safe UI state, the `claude_code` radio (a deliberate reversal), and LAN hosting
+
+> ⚠ **Superseded in part (checked 2026-09-23):** The "Claude Code CLI (this server)" radio was removed with server-side Claude on 2026-09-10, and the "§3c Apply trap" left open here was closed by per-seat LLM choice the same day (a seat that chose keeps its own; since D17, 2026-09-11, Apply also writes the site default on purpose).
 
 A Playwright exploratory sweep of the PyTest Creator pages (explicitly requested — the
 `user-prefers-manual-ui-testing` memory was exempted for this session by Terrence) found six
@@ -1350,6 +1396,8 @@ real browser against the scratch server**, not just by tests. Gate before and af
   `node_modules/rolldown`.
 
 ## 2026-08-20 — Multi-seat UX hardening (reconstructed 2026-08-26 from commit messages)
+
+> ⚠ **Superseded in part (checked 2026-09-23):** "Backend kept" no longer holds: `grok_cli` and the Grok HTTP provider were removed entirely on 2026-09-11 (now refused by name).
 
 Five commits landed on 2026-08-20 (four by Jacob McClure, one by Terrence) with no CHANGELOG
 entry; this entry reconstructs them **from their own commit messages** during the 08-26 wrap so
@@ -1477,6 +1525,8 @@ banner because it records **parser** output, not model output.
 
 ## 2026-08-03 — Zephyr push validates before it writes; preflight stops guessing
 
+> ⚠ **Superseded in part (checked 2026-09-23):** The preflight's `[misc]` role-contract reading described here was retired on 2026-09-21 — the preflight now reads the frame's `_ck_bind_link` role demands, and media is read from the DUT at run time.
+
 - The push now **validates before it writes** (server shape rules, imported from
   `validate_zephyr_payload` — one owner, no second copy) and **fails closed**. A real write
   requires a per-case `{"confirm": "<key>"}` token.
@@ -1489,6 +1539,8 @@ banner because it records **parser** output, not model output.
   confident wrong negative where the honest answer was "cannot determine".
 
 ## 2026-07-30 — Topology contract + minimality; pre-flight topology check
+
+> ⚠ **Superseded in part (checked 2026-09-23):** The `[misc]` role contract (`ck_role_dut`, `ck_link_<role>`) was retired on 2026-09-21 — the frame now discovers its cables through the framework — and `pt_profiles.py` was deleted. Minimality and the preflight still stand. See the 2026-09-21 (later) entry.
 
 Generated scripts no longer name devices or leave the port link to a FILL slot. `init()`
 resolves the DUT from the bench's own role contract (`[misc] ck_role_dut`, read at run time)
@@ -1628,6 +1680,8 @@ shape with a JSON-only steer (−35% tokens on real prompts). These are *reasoni
 they emit `reasoning_content` before `content`.
 
 ## 2026-07-20 — Local LLM, observability, provenance, strict DB-only search
+
+> ⚠ **Superseded in part (checked 2026-09-23):** Two lines moved on: the LLM choice is per seat since 2026-09-10 (the site default is currently Claude via agent; the org vLLM is the fallback when nothing is set), and the raw Zephyr XML "kept as a provenance root" was deleted in the 2026-09-11 restructure (git history holds it).
 
 - **Local LLM** login mode (org vLLM, OpenAI-compatible; Fast/Thinking toggle; server-stored
   key in gitignored `secrets.local.json`) became the default, with a **Health check** button.

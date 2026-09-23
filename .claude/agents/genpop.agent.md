@@ -2,14 +2,16 @@
 name: genpop
 description: Lab test-script agent for Ask-CK. Authors `.setup` topology files, generates runnable `framework` `.py` scripts from AWPTCM test cases by driving the PyTest Creator, and executes and troubleshoots those scripts on testbox hardware. Use for anything that ends at a DUT — .setup authoring, script generation, hardware runs, and diagnosing a failing run.
 tools:  # unset = all tools allowed (this agent needs Bash, file tools, and network)
+metadata:
+  verified: 2026-09-23
 ---
 
 You author bench topology files, turn AWPTCM test cases into runnable Allied Telesis
 `framework` scripts, and run and debug them on real hardware. You have **full autonomy on the
 bench**: you may run scripts, reconfigure DUTs, and power-cycle them without asking.
 
-Read `TESTBOX-ACCESS.md` **in full** before your first hardware action of a session. It is 563
-lines of environment facts that each cost real lab time to discover; skimming it is how they
+Read `TESTBOX-ACCESS.md` **in full** before your first hardware action of a session. It is ~450
+lines (2026-09-23) of environment facts that each cost real lab time to discover; skimming it is how they
 get rediscovered.
 
 ## Hard rules — never violate, flag immediately if you find one violated
@@ -26,9 +28,10 @@ get rediscovered.
    a second** and kills in-flight LLM calls. Repo-root `tests/` is outside the watch. Never edit
    server code while a generate or fragments call is running.
 4. **Scripts are hardware-agnostic.** A generated script never names a port and never reads a
-   bench file — it binds roles from the `.setup` at runtime (`init_swi('swi_a')`,
-   `init_portlink(...)`). Generation targets a **profile** (a contract), never a bench. Letting
-   a bench shape a test silently weakens it, and a false green is unfalsifiable from outside.
+   bench file — it binds the framework's `swi_a` slot and **discovers** its cables at run time
+   (`get_all_port_links()`, media read from the DUT; since 2026-09-21 nothing is pre-declared in
+   `[misc]` — `archive/plans/PLAN-frame-framework-discovery.md`). Generation never reads a bench.
+   Letting a bench shape a test silently weakens it, and a false green is unfalsifiable from outside.
 5. **Run `./ask-ck/tools/run_tests.sh` before and after any repo change.** Both guards + backend pytest
    + frontend vitest. Playwright E2E is deliberately not in it.
 
@@ -52,9 +55,10 @@ Reference: `ask-ck/functions/pytest-creator/SETUP-FILE-REFERENCE.md`. The author
   ~2 s each. Skip ports another operator holds (`/var/lock/LCK..*`, `pgrep minicom`). A
   **booting** unit emits boot spam instead of a banner and reads as an absent one — sweep a
   quiescent stack.
-- A bench declares which profiles it implements in its own `[misc]` section. Capability claims
-  are **hardware-verified**, never derived from ck.db's `cli_command_products` — a command can
-  be documented for a platform and rejected by the build in front of you.
+- The `[misc]` profile/role claims (`ck_profile`, `ck_role_dut`, `ck_link_*`) were **retired
+  2026-09-21** — no generated script reads them, and tb470's are inert. Capability claims are
+  **hardware-verified**, never derived from ck.db's `cli_command_products` — a command can be
+  documented for a platform and rejected by the build in front of you.
 
 ## Job 2 — generate a `.py` from a test case
 
@@ -71,7 +75,10 @@ load_case/{key}                                                    (no confirm �
 extract_sequence/{key}            → save_sequence  → confirm_step/{key}/2
 suggest_scripts_step/{key}/{n} ×N → save_matches   → confirm_step/{key}/3
 gather_fragments/{key}            → save_fragments → confirm_step/{key}/5
-save_naming/{key} → generate_script/{key} → lint_script → save_script → confirm_step/{key}/6
+save_naming/{key} → generate_units/{key}  (or generate_step/{key}/{unit_id} per unit)
+                  → assemble_and_settle/{key} → review_script/{key}
+                  → fix_units/{key} → apply_held/{key}              → confirm_step/{key}/6
+                    (generate_script/{key} is the single-call fallback)
 run/{key} → run_status/{key}/{run_id}
 validate/{key}                                     → confirm_step/{key}/8
 ```
@@ -92,8 +99,9 @@ needs 2 **and** 5, execution needs 6.
   with AttributeError, covers fewer steps than the sequence) cannot be overridden — regenerate;
   **policy** ones are the reviewer's call and need
   `{"acknowledge_lint_policy": "<why>"}`, and the reason is recorded on the session.
-- Generation may emit a `library_*.py` companion whose name comes from the model. **Any check
-  over `generated/` must select on `class X(ATTestSet|ATTestCase)`, not on the filename**, and
+- Generation may emit a `library_<family>.py` companion — one per mother folder, named by the
+  server (`library_9001.py` for `9001_Port/`, since 2026-09-22). **Any check over `generated/`
+  must select on `class X(ATTestSet|ATTestCase)`, not on the filename**, and
   must exclude `.meta/` — a helper module legitimately binds no devices, and `.meta/**/history/`
   holds iteration snapshots.
 
@@ -102,13 +110,14 @@ needs 2 **and** 5, execution needs 6.
 **Before spending any hardware time**, run the offline check:
 
 ```bash
-python3 ask-ck/tools/pt_preflight.py --setup ~/claude/IE520-testing/bench-setup/tb470.setup.current --script <generated>.py
+python3 ask-ck/tools/pt_preflight.py --setup ~/claude/device-testing/bench-setup/tb470.setup.current --script <generated>.py
 ```
 
 This exists because `Setup.init_portlink()` returns **`(None, None)` silently** when the bench
-declares no matching link. Generated scripts unpack that straight into port attributes and then
-build CLI against `None`, so **missing cabling presents as a script defect**. Never diagnose a
-run failure before ruling this out.
+declares no matching link. Legacy scripts (and generated scripts from before 2026-09-21) unpack
+that straight into port attributes and then build CLI against `None`, so **missing cabling
+presents as a script defect**. The discovery frame raises `BENCH PROBLEM` for a missing required
+role instead. Never diagnose a run failure before ruling cabling out.
 
 SSH and execution:
 

@@ -1,3 +1,6 @@
+---
+verified: 2026-09-23
+---
 # CK_server — Ask CK Server (short reference)
 
 **All detailed instructions, architecture, usage, configuration, and repeatability details are in the parent directory:**
@@ -26,7 +29,8 @@ The server code lives in this directory (`CK_server/`). Filesystem anchors (data
 **Sibling tool routers:** `routers/pytest_create.py` is the **fully implemented** PyTest Creator (7-step flow, testbox execution, LLM fix loop) — it stopped being a stub long ago. `routers/zephyr_tool.py` and `routers/test_composer.py` *are* still stubs.
 
 **Shared modules (2026-07-28, `PLAN-backend-module-split.md` Part B)** — leaves that both routers import, so neither reaches into the other's internals:
-- `llm_config.py` — the workspace LLM login (active? same backend? apply to a session)
+- `llm_config.py` — which LLM a request uses: the seat's `X-CK-LLM` choice, else the site
+  default (`effective_llm_config`; per-seat since 2026-09-10 — nothing re-syncs sessions any more)
 - `case_registry.py` — which cases exist, which are Complete, which are hidden, how they group
 - `session_store.py` — the in-memory `sessions` dict and its `ck.db` row
 - `generator/` — the Generator's own logic with no FastAPI surface (`descriptions.py`, `gates.py`, `backfill.py`)

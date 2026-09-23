@@ -1,3 +1,6 @@
+---
+verified: 2026-09-23
+---
 # Topology — what a bench cables, and how the generated frame finds it
 
 > **Status:** REWRITTEN 2026-09-21. The `[misc]` *role contract* this file specified from
@@ -7,7 +10,7 @@
 > a suite of 'show' commands that identify whatever we need to, the information shouldnt require
 > pre-loading variables to know it."* The old text is in git history (`f354f14^`); the retired
 > commits are `e022e1c` / `6ada916` (reverted in `b96255c` / `f354f14`). Plan:
-> `ask-ck/plans/PLAN-frame-framework-discovery.md`. Checker: `python3 ask-ck/tools/pt_preflight.py --setup <bench>.setup`.
+> `archive/plans/PLAN-frame-framework-discovery.md`. Checker: `python3 ask-ck/tools/pt_preflight.py --setup <bench>.setup`.
 
 ## The two facts a generated script must not carry
 
@@ -137,7 +140,11 @@ are real captured IE520 output.
 4. **A partner reached over its console only** (a case with no link at all) is still bound
    positionally as `swi_b`, because there is no cable to discover it from.
 
-## tb470 today (2026-09-21), for the record
+## tb470 on 2026-09-21, for the record
+
+> The bench has been rebuilt since — on 2026-09-23 it became a three-member stack plus a
+> standalone IE520, with new partner links (`bench-state.md` in device-testing is the current
+> shape). The preflight verdict below has not been re-run against it.
 
 `tb470.setup.current` declares three testbox links and two stack↔`swi_e` links, no `[misc]`
 that anything reads. The discovery frame rendered for AWPTCM-T33234's real sequence is

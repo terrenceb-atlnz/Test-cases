@@ -1,5 +1,11 @@
+---
+verified: 2026-09-23
+---
 # PLAN — The frame binds a ROLE SET (tb / copper / fibre / cusfp), not two booleans
 
+> **RETIRED 2026-09-23 → `archive/plans/`** (superseded and reverted; the reverts `f354f14` and
+> `b96255c` were confirmed in git the same day).
+>
 > ## ⚠ SUPERSEDED 2026-09-21 (same day) — REVERTED, do not build from this plan
 >
 > Terrence's ruling, 2026-09-21 afternoon: **the `[misc]` section is not a lookup layer.** The

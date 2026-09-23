@@ -1,8 +1,11 @@
+---
+verified: 2026-09-23
+---
 # Ask CK / AWPTCM test-case workbench
 
 Server-backed workbench that turns sparse manual test cases into refined Zephyr cases and then
 into runnable Allied Telesis `framework` test scripts. FastAPI backend at
-`ask-ck/CK-main/CK_server/`, browser-native ES modules in `frontend/ck-main/current/`, all corpora in SQLite.
+`ask-ck/CK-main/CK_server/`, browser-native ES modules in `ask-ck/frontend/ck-main/current/`, all corpora in SQLite.
 
 **Start a session with `/orient-ck`** — it ground-truths the repo, reads the newest handoff, and
 briefs you. **End with `/wrap-ck`.** Both live in `.claude/skills/`. Don't reimplement what they do.
@@ -88,11 +91,12 @@ scripts need a known fix set (including gate strings that no longer exist in the
 
 Memories live **in this repo** at `.claude/memory/`, with `MEMORY.md` as the index. The
 harness reads `~/.claude/projects/<slug>/memory`, and this repo's slugs are **symlinks** to
-that directory. **Since 2026-09-11 there are two stores, not one:** the sibling repo
-`../device-testing` has its own, and **sessions start only from a repo root** — never from the
-lab home or `~` — so the two streams stop polluting each other's memories (the 2026-09-11 split
-moved 28 lab-campaign and closed-work memories out; 12 memories both streams need are kept here
-as *relative* symlinks into the sibling store). Consequences:
+that directory. **Since 2026-09-11 there is more than one store:** the sibling repo
+`../device-testing` has its own (and since 2026-09-16 so does `../csg-tool`, which shares
+none), and **sessions start only from a repo root** — never from the lab home or `~` — so the
+streams stop polluting each other's memories (the 2026-09-11 split moved 28 lab-campaign and
+closed-work memories out; 12 memories both Ask-CK and device-testing need are kept here as
+*relative* symlinks into the device-testing store). Consequences:
 
 - Memory edits show up in `git status`; `/wrap-ck` commits them. That is intended.
 - **Never put a credential in a memory** — this directory is pushed. `secrets.md` (gitignored)
@@ -114,6 +118,6 @@ on one, and before reporting it missing.
 
 `ask-ck/functions/generator/PROGRESS.md` is the highest-value file in the repo (newest entry at
 the **top**). `SESSION_STATE.md` is long-form history; only its tail is current. Plans are
-`ask-ck/plans/PLAN-*.md` — read a plan's status header before touching its subsystem, and treat
-settled decisions there as settled. This tree is shared with a concurrent stream, so re-check
+`ask-ck/plans/PLAN-*.md` (completed ones move to `archive/plans/`) — read a plan's status header
+before touching its subsystem, and treat settled decisions there as settled. This tree is shared with a concurrent stream, so re-check
 `git status` before claiming it clean, and stage explicit paths.

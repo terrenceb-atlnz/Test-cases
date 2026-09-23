@@ -1,3 +1,6 @@
+---
+verified: 2026-09-23
+---
 # Objective Drafting Process (Repeatable Steps 1–4)
 
 > ⚠ **Historical / partially superseded (banner added 2026-07-27h).** The *method* below
@@ -7,7 +10,11 @@
 > permanent single source of truth and the server reads corpora only from it (`db.py`,
 > enforced by `ask-ck/tools/guard_db_only.py`); there is no rebuild step. Read the corpora via
 > `db.py` / the search endpoints instead, and treat every JSON/JSONL path in this document
-> as a historical reference to how the material was originally assembled.
+> as a historical reference to how the material was originally assembled. (2026-09-23: the
+> same now holds for the Zephyr XML export itself, deleted in the 2026-09-11 restructure, and
+> for `extract_zephyr_xml.py` / `build_refined_viewer.py`, archived to `archive/tool/` — the
+> "regenerate" and "rebuild `refined-viewer.html`" steps below can no longer be run. The
+> uploader, `ask-ck/frontend/ck-main/current/generator/upload_refined.py`, is current.)
 
 **Purpose**  
 This document captures the repeatable drafting steps (now 1–4) used to enrich thin AWPTCM manual test cases in Zephyr.  

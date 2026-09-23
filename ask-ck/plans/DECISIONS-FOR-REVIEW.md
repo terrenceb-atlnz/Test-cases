@@ -1,4 +1,15 @@
+---
+verified: 2026-09-23
+---
 # Decisions taken while executing PLAN-pipeline-end-to-end.md — FOR TERRENCE'S REVIEW
+
+> **Status 2026-09-23.** §1–§12 (D-01 … D-23) were reviewed with Terrence on 2026-08-04/05;
+> the outcomes are §9–§12 (D-12's expectedResult half reversed 2026-08-05; D-18, D-22 and D-23
+> withdrawn). **§13 (D-24 … D-31, Phase 4 CLI grounding) has no recorded review anywhere** — it
+> is still awaiting Terrence. The code every section describes was spot-checked and is still
+> live. §13's row counts (6,323 CLI rows) predate the 2026-09-08 rebuild of `cli_commands` from
+> one combined zip (3,535 rows now). This file is a record; the sentence below was true when
+> written.
 
 Every judgement call made without you, with the alternative that was rejected and what it
 would cost to overturn. Written as the work happened, newest phase last. Nothing here is

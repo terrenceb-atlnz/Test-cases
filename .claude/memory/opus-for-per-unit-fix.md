@@ -31,7 +31,7 @@ rework.
   framework contrib); the contrast case (a sibling that does the same thing correctly) is the
   fastest oracle. A structure-only check is how a regression reaches a paid review.
 - This is a per-*unit* question; it does not change which model generates or reviews. The
-  durable fix for the rework itself is `ask-ck/plans/PLAN-fix-units-guardrails.md`.
+  durable fix for the rework itself is `archive/plans/PLAN-fix-units-guardrails.md`.
 - **Self-healing generation (built 2026-09-15) inherits this knob, in the GENERATION direction.**
   The arrival-time auto-repair (R3, one turn) and the assemble-and-settle rounds (R4) both call
   `_llm_cfg_for(sess, "unit_fill")` — the SAME unit-model dropdown — so they run on whatever the

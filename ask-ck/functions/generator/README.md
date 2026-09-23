@@ -1,3 +1,6 @@
+---
+verified: 2026-09-23
+---
 # Objective Drafting (Objective/Test Case Generator)
 
 Data, process docs, and exported artefacts for the **Objective/Test Case Generator** — the first tool in the **Ask CK** workbench (`ask-ck/CK-main/`). The generator implements **`OBJECTIVE_DRAFTING_PROCESS.md`**: review TestLink → Zephyr → ATPyLib, then synthesize Objectives + testScript with a real LLM, and export drop-in `refined-cases/` artifacts.
@@ -9,7 +12,7 @@ Data, process docs, and exported artefacts for the **Objective/Test Case Generat
 | Doc | Purpose |
 |-----|---------|
 | **[PROGRESS.md](PROGRESS.md)** | Current status, backlog, technical debt, session handoff |
-| **[../CK-main/SERVER-README.md](../../CK-main/SERVER-README.md)** | Run, architecture, LLM CLI modes, nginx, workflow |
+| **[../../CK-main/SERVER-README.md](../../CK-main/SERVER-README.md)** | Run, architecture, LLM configuration, nginx, workflow |
 | [PLAN-server-backed.md](../../../archive/records/PLAN-server-backed.md) | Approved design and rationale (historical paths; archived 2026-09-11) |
 | [LESSONS_LEARNED.md](LESSONS_LEARNED.md) | Decisions and pitfalls from prior sessions |
 
@@ -24,13 +27,14 @@ From the **repository root**:
 # Process page: http://localhost:8000/process
 ```
 
-**LLM (required):** configure via the sidebar **LLM → Configure** panel — **Grok CLI** (default; SuperGrok / X Premium+ via `grok login --oauth`) or **Claude Code CLI** (Team via `claude /login`). MOCK/demo mode is removed.
+**LLM (required):** configure via the sidebar **LLM → Configure** panel. There are two
+backends: the **org vLLM** and **Claude Code CLI (my local machine)** — your own Claude seat,
+reached through the `ck-agent` on your PC (run the one-line seat setup on the home page first).
+The choice is per seat. Grok and server-side Claude were removed on 2026-09-11 and 2026-09-10;
+MOCK/demo mode is long gone.
 
-Dependencies (typical):
-
-```bash
-python3 -m pip install --user fastapi uvicorn jinja2 requests
-```
+Dependencies: a venv with `ask-ck/CK-main/requirements.txt` — see the root
+[`README.md`](../../../README.md) quick start (`setup.sh` does all of it).
 
 ## What it does (Generator steps, as shown in the UI)
 
@@ -47,26 +51,26 @@ Repeatability comes from **Jinja prompt templates** + structured parsing + proce
 
 ```
 ask-ck/
-├── CK-main/                        # Ask CK app (server + UI)
+├── CK-main/                        # Ask CK server
 │   ├── SERVER-README.md            # Full operational docs
-│   ├── run.sh
-│   └── CK_server/                  # FastAPI app
-│       ├── main.py / paths.py
-│       ├── data.py / llm.py / models.py
-│       ├── routers/                # wizard.py + tool stubs
-│       ├── frontend/ck-main/current/index.html       # Ask CK UI (all tools)
-│       ├── templates/prompts/      # LLM prompts
-│       ├── templates/outputs/      # Export templates
-│       └── sessions/               # Persisted wizard sessions
-├── objective-drafting/             # THIS DIRECTORY (generator data + docs)
-│   ├── PROGRESS.md                 # Handoff / backlog (read first)
-│   ├── OBJECTIVE_DRAFTING_PROCESS.md
-│   ├── data/                       # zephyr_master, candidates, decisions, suites, zephyr_full
-│   └── refined-cases/              # Exported artefacts
-├── pytest-create/                  # (future) PyTest Creator assets
-├── test-composer/                  # (future) Test Composer assets
-└── zephyr-tool/                    # (future) Zephyr Templating Tool assets
+│   ├── run.sh, requirements*.txt
+│   └── CK_server/                  # FastAPI app — main.py, paths.py, db.py, llm.py, models.py …
+│       ├── routers/                # wizard/ (this Generator), pytest_create.py, + tool stubs
+│       ├── generator/              # the Generator's logic with no FastAPI surface
+│       └── templates/              # prompts/ (LLM prompts), outputs/ (export templates)
+├── frontend/ck-main/current/       # the UI — index.html + ES modules by page
+├── db/ck.db                        # permanent single source of truth (corpora AND sessions)
+├── functions/
+│   ├── generator/                  # THIS DIRECTORY — PROGRESS.md, OBJECTIVE_DRAFTING_PROCESS.md,
+│   │                               #   refined-cases/ (exported artefacts, recreated on export)
+│   ├── pytest-creator/             # PyTest Creator docs + generated/ scripts
+│   ├── test-composer/              # Test Composer docs + bench scripts
+│   └── zephyr-tool/                # Zephyr Templating Tool (stub)
+├── plans/                          # live PLAN-*.md (completed ones: archive/plans/)
+└── tools/                          # the gate, guards, scratch server, CLI tools
 ```
+
+(The corpora that used to sit in a `data/` directory here live in `ck.db` since 2026-07-20.)
 
 ## Legacy single-file UI
 

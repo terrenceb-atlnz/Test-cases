@@ -1,9 +1,13 @@
+---
+verified: 2026-09-23
+---
 # PyTest Creator — Template Spec (Part 1)
 
 > The standardized ART script skeleton, its slots, and the conformance rules that make
 > Part 3 criteria 1–3 and 6 mechanically checkable. Template file:
 > `CK_server/templates/pt_script_template.py.jinja`. Logging rules:
-> `LOGGING-CONTRACT.md`. Anchor exemplar: `art/1363_ipv6/test-1363.1002.py`.
+> `LOGGING-CONTRACT.md`. Anchor exemplar: `art/1363_ipv6/test-1363.1002.py` (a script id in
+> `ck.db`'s `scripts` table, not a repo path).
 
 ## Why a template (not just a style anchor)
 
@@ -45,13 +49,16 @@ hygiene with zero script code (see `../test-composer/ART-EXECUTION-CHAIN.md`).
   `init()` bound: `tb = self.testSet.tb`, `<dut> = self.testSet.<dut>`, `ethA = tb.ethA`,
   `portA = <dut>.portA`, `peer = self.testSet.peer`, `portPeer = <dut>.portPeer` (158 of 188
   ART tests open this way). It is the complete list of names that exist.
-- **Topology, ART shape (2026-09-07):** `init()` binds up to two links from the bench's
-  role contract — the TESTBOX link `(<dut>.portA, tb.ethA)` (profile `tblink`; captures and
-  injected frames live on `tb.ethA`) and the NEIGHBOUR link `(<dut>.portPeer, peer.portDut)`
-  (profile `base`/`fibre`). The neighbour handle is `peer`, never `dut`: ART reserves `dut`
-  for the DUT's own stack, and a partner called `dut` made every model read `dut.portA` as
-  the DUT port. Which links a case gets is text-driven (`_detect_links`); an unneeded link
-  costs one bench-file line, a missing one dies on `interface None`.
+- **Topology (ART shape 2026-09-07; discovered since 2026-09-21):** `init()` binds one link per
+  role the case needs — `tb` `(<dut>.portA, tb.ethA)` (captures and injected frames live on
+  `tb.ethA`), `copper` `(<dut>.portPeer, peer.portDut)`, and the optional pluggable roles
+  `fibre` (`portFibre`, `fibre_peer.portFibre`) and `cusfp` (`portCuSfp`,
+  `cusfp_peer.portCuSfp`) — **discovered** through `get_all_port_links()` and the DUT's own
+  show output, never from a `[misc]` role contract (`TOPOLOGY-PROFILES.md`). The neighbour
+  handle is `peer`, never `dut`: ART reserves `dut` for the DUT's own stack, and a partner
+  called `dut` made every model read `dut.portA` as the DUT port. Which roles a case gets is
+  text-driven (`_detect_links`); a missing required role raises `BENCH PROBLEM` at `init()`,
+  a missing optional one reports UNSUPPORTED.
 - **The suite library** `library_<family>.py` — ART's `library_<suite>.py`, one per mother
   folder since 2026-09-22 (`9001_Port/library_9001.py`) — holds
   every selected fragment that is a stand-alone function, class or constant, verbatim under
@@ -68,15 +75,16 @@ conventions (switches `swi_a/b/c…`, stacks `stk_a…`; 353 `init_swi` / 114 `i
 834 `init_portlink` uses across ART):
 - **switches** — every `swi_<x>` referenced (default `['swi_a']` when none seen).
 - **stacks** — every `stk_<x>` referenced (`init_stk`).
-- **portlink** — if the case/fragments mention a port link, a single `init_portlink`
-  FILL slot is rendered (links are too case-specific to auto-generate, but the need is
-  detected so the slot is present). 
+- **links** — *(superseded 2026-09-21)* this used to render a single `init_portlink` FILL
+  slot; links are now the discovered role set above, bound by the frame's `_ck_bind_link`,
+  and a direct `init_portlink()` in a unit is a lint error.
 This keeps `init()` a generated frame rather than a free-form slot, preserving the
 fixed-frame guarantee for topology.
 
 ## Free fill-slots (the LLM completes)
 
-- `TestSet.init` device list, `configure()`/`tear_down()` command bodies.
+- `configure()`/`tear_down()` command bodies (`TestSet.init` is fully rendered by the frame —
+  the model fills no device list).
 - Each `main()`: the action (device I/O) and the verification condition, keeping the
   three mandatory logging-contract calls.
 
@@ -104,7 +112,8 @@ Run against a generated script offline:
 - **C6 logging contract** (criterion 6, offline half): every `TestCase_<n>.main()` has
   ≥1 `self.log(...)` AND ≥1 non-empty `self.passed(...)`/`self.failed(...)` with no
   empty-reason call (was "exactly one" until 2026-09-07);
-  each class has the three `testCase*` attrs with `testCaseRef` == the case key.
+  each class has the three `testCase*` attrs (`testCaseRef` = the case key plus, since
+  2026-09-22, the ART triple `<family>.<case>.<n>`).
 - **C2/C3 snippet reuse/order** (criteria 2–3): compare the filled `main()` bodies
   against the approved step-5 fragments (substring/normalized match) and check fragment
   order matches sequence order. (Computed by the Part 3 offline judge, not lint.)
@@ -116,6 +125,6 @@ supplies the on-hardware half of C6 (one parsed block per step).
 ## What we standardize AWAY from the exemplar
 
 `art/1363_ipv6/test-1363.1002.py` has `testCaseRef = 'None'`; the template fixes
-`testCaseRef` to the AWPTCM case key for traceability. Otherwise the exemplar's shape
+`testCaseRef` to the AWPTCM case key plus the ART triple (since 2026-09-22) for traceability. Otherwise the exemplar's shape
 (inline TestCase classes, `self.log(output)` evidence, non-empty asserts, per-case
 tear_down) IS the target.

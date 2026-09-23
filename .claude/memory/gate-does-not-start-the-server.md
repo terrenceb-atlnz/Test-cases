@@ -3,7 +3,7 @@ name: gate-does-not-start-the-server
 description: The gate (guards + pytest + Vitest) never starts the server, so a broken launch path, static mount or shell tool stays green — after any layout/anchor change, smoke-test on the SCRATCH server (ask-ck/tools/run_scratch_server.sh --bg, port 8123, throwaway DB copy) and probe /health, /, the modules and the routers; never the real one
 metadata:
   type: feedback
-  verified: 2026-09-11
+  verified: 2026-09-23
 ---
 
 **What happened (2026-09-11, the restructure):** nine batches of moves, gate green after every

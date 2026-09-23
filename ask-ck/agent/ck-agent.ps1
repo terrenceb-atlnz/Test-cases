@@ -8,8 +8,8 @@
   never runs `claude`; the user's browser tab brokers prompts from the server to this agent
   and posts completions back. This is the Windows implementation of the SAME contract as
   ck_agent.py (Ubuntu): same endpoints, same payloads, same `claude -p` flags, same
-  stream-json parsing, same failure reporting. Design: ask-ck/CK-main/PLAN-per-user-agent.md
-  and ask-ck/ck-facelift/PLAN-seat-setup-and-per-seat-llm.md (§4).
+  stream-json parsing, same failure reporting. Design: archive/plans/PLAN-per-user-agent.md
+  and archive/plans/PLAN-seat-setup-and-per-seat-llm.md (§4).
 
   No dependencies beyond Windows PowerShell 5.1 (present on every Windows 10/11 machine).
 

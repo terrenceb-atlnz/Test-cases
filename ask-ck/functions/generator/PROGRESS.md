@@ -1,8 +1,83 @@
+---
+verified: 2026-09-23
+---
 # PROGRESS.md — Ask CK Workbench (Server-Backed)
 
 **Purpose**: This file exists so future sessions can quickly understand exactly where we are, what has been built, what the priorities are, and how to continue seamlessly.
 
-**Last Updated**: 2026-09-22 (by Claude, with Terrence for every decision)
+**Last Updated**: 2026-09-23 (by Claude, with Terrence for every decision)
+
+> **Reading note (2026-09-23 doc sweep).** Entries are frozen as written. Where an entry's
+> claim has since stopped being true, a ⚠ line under its heading says what changed.
+> Newest first. Paths in older entries predate these moves (the same as in CHANGELOG): `tool/` → `ask-ck/tools/`, `ask-ck/var/` → `ask-ck/db/`, `objective-drafting/` → `ask-ck/functions/generator/`, `pytest-create/` → `ask-ck/functions/pytest-creator/`, `js-tests/` → `tests/js/`, `ask-ck/ck-facelift/` → `ask-ck/plans/`, root reports → `docs/`, and completed plans `ask-ck/plans/` → `archive/plans/` (2026-09-11, 2026-09-23). Also retired 2026-09-23: the demo notes → `archive/plans/demo-2026-09-11/`, and `HANDOFF-generate-token-efficiency.md` + `Fragments_prompt.md` → `archive/records/`.
+
+## Latest session (2026-09-23) — doc freshness sweep: every doc verified, stamped or retired; no product change
+
+Terrence: *"scrub all other docs for freshness. Verify their contents if they are over 10 days
+old, or un-stamped. Timestamp them when you are done verifying their contents … Retire them if
+required."* His scoping calls: this repo's docs, plans and memories; the shared memories (they
+live in and commit to device-testing); the lab-home `CLAUDE.md` checked and reported, with its
+write left to his consent; `archive/` banners out of scope. Stamp = YAML frontmatter
+`verified: 2026-09-23` (`metadata.verified` where a file already had frontmatter). Done by hand,
+not by cheaper sub-agents (he asked whether detail would survive; judged it would not).
+
+- **Nine plans retired** to `archive/plans/` (status header said complete): t44297-pass-followups,
+  durable-agent-review, fix-units-guardrails, frame-role-set, frame-framework-discovery,
+  generate-state-and-sequence-sanity, group-libraries, restructure-2026-09-11,
+  seat-setup-and-per-seat-llm. Each carries a retirement line naming whatever is still open.
+  Eight live plans had their status headers corrected (details in each).
+- **Reference docs** (README, CLAUDE.md, ARCHITECTURE, SERVER-README, the READMEs, runbooks,
+  design docs, both skills, the genpop agent, TESTBOX-ACCESS in device-testing) were checked
+  against the code and a read-only `ck.db`, then corrected and stamped. Not stamped, on purpose:
+  the Vite boilerplate README, `Fragments_prompt.md` (a raw capture),
+  `demo-2026-09-11/seat-notes.txt` (Terrence's notes) and `TB470-HOST-NETWORKING.md` (its host
+  facts need SSH to verify; only its pointers were fixed).
+- **Retired on Terrence's answer:** `ask-ck/plans/demo-2026-09-11/` → `archive/plans/`;
+  `HANDOFF-generate-token-efficiency.md` and `docs/Fragments_prompt.md` → `archive/records/`
+  (links into and out of them re-pointed). `/wrap-ck` §4 gained the rule that a plan whose
+  status header says complete moves to `archive/plans/` in that wrap (his yes, 2026-09-23). The
+  lab-home `CLAUDE.md` was stamped with his consent for that one write.
+- **Dated logs:** every entry of CHANGELOG, this file and SESSION_STATE read. A ⚠ line under a
+  heading now says what changed wherever an old claim went false, and a reading note at the top
+  lists the path moves. Old text untouched: the diffs are insert-only (+54 / +127 / +149, 0 deleted).
+- **Memories:** 23 of this repo's 56 and 10 of the 12 shared were older than 10 days; all
+  re-verified and stamped. The other 35 were stamped within the last 10 days and left alone.
+- **Seat-agent files re-pointed** (Terrence: "re-point them now"): `setup.sh`, `setup.ps1`,
+  `ck_agent.py` and `ck-agent.ps1` had plan paths in comments. They are served with a sha256
+  manifest, so their bytes changed and a seat's next check re-downloads them; there is no
+  behaviour change.
+- **Backend plan citations left untouched on Terrence's call**, since any `CK_server/*.py` save
+  restarts production:
+  - **One path-qualified citation is now dead:** `routers/agent_bridge.py:31` names
+    `ask-ck/plans/PLAN-seat-setup-and-per-seat-llm.md` (now `archive/plans/`).
+  - **Bare-name citations whose plan moved today** (still findable by name):
+    `agent_jobs.py:171` durable-agent-review; `llm_config.py:3`, `main.py:147`,
+    `routers/pytest_create.py:459`, `routers/wizard/config.py:128,252` seat-setup;
+    `routers/pytest_create.py:940,1777` group-libraries.
+  - Fix them the next time those files are edited for a real reason.
+
+**Found while verifying, raised and not acted on:** Phase 11.4 (the first hardware run of a
+generated script) has still never happened. The T44297 acceptance proof was never re-run after
+the 2026-09-16 rewind wiped the session. The LAN server has no auth and `/api/admin` is reachable.
+`DECISIONS-FOR-REVIEW.md` §13 (D-24–D-31) was never reviewed. The saved `test-9001.33234.py`
+still uses the legacy helper. Also still open:
+- D5-1 (ck.db off NFS) is still deferred.
+- The seat-setup §9 step 6 has never been observed.
+- `_apply_fix`'s code comment is stale against SERVER-README's recorded decision.
+- Pipeline items 5.1, 8.1, 9.1c, 10.4 and 12.4 (the guard's `# ` bypass) are open.
+- The cost figures disagree ($4.30 vs $4.37).
+- The `bench_probe.py` copy here is stale against device-testing's.
+- device-testing's `bench-state.md` still has a TOPOLOGY PROFILES section.
+- `tests/fixtures/framework_run_*.log` are gitignored but read by a test.
+- R5 has no minimum-runs guard.
+- The fix-path "allow unsets" decision is still open.
+
+**Gate at close:** EXIT=0 — pytest 1742 / 1 skipped; vitest 348 in 30 files; both guards OK;
+`ck.db` untouched. Memory link check OK (only pre-existing UNLINKED scratchpad-slug warnings);
+`check_memory_refs.py` clean.
+
+**Pick up here:** the open list above, walked through with Terrence. The pre-sweep list is unchanged: (2a) a read-only look at the framework's
+argument parsing on tb470 for single-TestCase runs, and (3) the R5 minimum-runs guard.
 
 ## Latest session (2026-09-22, later) — the ART numbering `900x.yyyy.zzzz`, and PRUNE closed
 
@@ -56,6 +131,8 @@ prune is **explicit only**.
 Gate: EXIT=0 — pytest **1742 / 1 skipped**, vitest **348 in 30 files**, `ck.db` untouched.
 
 ## Session (2026-09-22, earlier) — R5's two lint-trend surfaces SHIPPED; the gate reaches vitest again
+
+> ⚠ **Superseded in part (checked 2026-09-23):** Overtaken later the same day: the group library became `library_<family>.py` (not `library_<group>`), PRUNE was built, and t44297 #6 was completed — see the entry above.
 
 Terrence: *"ok, lets continue some plans. whats easiest?"* → the easiest was ranked from the code,
 not guessed, and he picked **R5's two JS surfaces**, then the zephyr gate red.
@@ -152,6 +229,8 @@ not guessed, and he picked **R5's two JS surfaces**, then the zephyr gate red.
 
 ## Latest session (2026-09-21, afternoon) — `[misc]` role contract RETIRED; the frame discovers its topology through the framework
 
+> ⚠ **Superseded in part (checked 2026-09-23):** The saved script is now `generated/9001_Port/test-9001.33234.py` (renamed 2026-09-22); it still carries the legacy `misc` helper (checked 2026-09-23). tb470 was rebuilt on 2026-09-23, so the `swi_e` LAG question needs re-asking against the new cabling.
+
 Terrence, on the closing report of the role-set work: *"Why are these variables created when we
 identify these things in other ways using the existing framework?"* Then two corrections, both
 verified against the 827-script corpus in `ck.db` (read-only): `init_swi('swi_b')` IS the
@@ -188,6 +267,8 @@ empty cage is not a role. Plan written first: `ask-ck/plans/PLAN-frame-framework
 
 ## Earlier session (2026-09-21, morning) — The four deferred PyTest Creator designs BUILT (A–D + reset_generate)
 
+> ⚠ **Superseded in part (checked 2026-09-23):** The ROLE SET bullet was reverted that afternoon and replaced by framework discovery, so the `[misc]`/`ck_link_*` "open" item is moot — `[misc]` is no longer read.
+
 Terrence: "Please build them." Plan written first (`ask-ck/plans/PLAN-generate-state-and-sequence-sanity.md`,
 approved with four decisions: in-place edits with production reloads accepted; Re-chunk snapshots the
 FRAME; facts live in a prompt include; sanity flags warn, never block). Three feature commits, gate
@@ -219,6 +300,8 @@ green apart from the two known reds (preflight name test; zephyr corpus floor): 
   the frame would abort at init on that bench (by design).
 
 ## Earlier session (2026-09-17/18) — Port family (T33233–36): objectives, steps, script identity; T33234 repaired and saved
+
+> ⚠ **Superseded in part (checked 2026-09-23):** Overtaken since: scripts are `test-<family>.<case>.py` (family 9001+, 2026-09-22), so this is now `generated/9001_Port/test-9001.33234.py`; designs A–D were built 2026-09-21; the per-suite library question closed as `library_<family>.py` (2026-09-22); both gate reds were re-aimed (2026-09-21/22). The step-5 "decision for Terrence" was taken in the 2026-09-18 sequence rewrite ("Do A and B"), recorded in the DONE block above it.
 
 Wrapped mid-task at Terrence's request (usage cap); the wrap commit landed 2026-09-18 when the
 same session resumed and finished the T33234 repair on 2026-09-18 (block below).
@@ -294,6 +377,8 @@ Terrence wants this repaired next session); `configured-vs-current-show-interfac
 
 ## Latest session (2026-09-16, cont.³) — clean-slate reset to square one
 
+> ⚠ **Superseded in part (checked 2026-09-23):** "Draft the first case" happened: the four Port cases (T33233–36) were re-drafted from 2026-09-16/17. Note this reset also removed the T44297 session that the acceptance proof below needed.
+
 Terrence wanted every case re-run through the improved pipeline from scratch. Rewound both
 persistence layers; corpora untouched.
 
@@ -333,6 +418,8 @@ rules; left descriptive strings long by design.
 
 ## Latest session (2026-09-16, cont.) — seat access over VPN + agent on a non-8765 port
 
+> ⚠ **Superseded in part (checked 2026-09-23):** "The acceptance items still stand" stopped being actionable later that day: the rewind (cont.³, above) wiped the T44297 session, and the acceptance run was never redone (checked 2026-09-23).
+
 Support tail after the suite-owned work; two small commits + housekeeping, all pushed:
 
 - **`?agent-port=` override (`3447dac`, feat).** The page hard-coded the local ck-agent at
@@ -355,6 +442,8 @@ Support tail after the suite-owned work; two small commits + housekeeping, all p
 Nothing new is pending from this tail. The acceptance items from the entry below still stand.
 
 ## Latest session (2026-09-16) — negative tests made legitimate; suite-owned lint reworked; drafts kept
+
+> ⚠ **Superseded in part (checked 2026-09-23):** Since: R1(b) and R5's two surfaces were built on 2026-09-22 (D6 is still open); the acceptance proof was never run — the same day's rewind wiped the T44297 session; the fix-path "allow all unsets" question has no recorded answer.
 
 Ran the self-healing acceptance Generate on **T44297** (37/37 `tc` units returned; several
 arrived dirty and self-repaired in one turn, exactly as R2/R3 intend). One unit, **tc25**, was
@@ -390,6 +479,8 @@ ck.db untouched):
 
 ## Latest session (2026-09-15, cont.) — SELF-HEALING GENERATION built (R1–R5), plus the refused-fix bug fix
 
+> ⚠ **Superseded in part (checked 2026-09-23):** Since: R1(b) and the R5 UI were built 2026-09-22; D6 is still open; the acceptance proof was never completed (the T44297 session was wiped on 2026-09-16).
+
 `ask-ck/plans/PLAN-self-healing-generation.md` is BUILT end to end and live on the hosted server —
 six commits, each gated (final gate pytest 1541 / vitest 292, ck.db untouched) and smoke-tested:
 - **Precondition bug fix** — a fix REFUSED by G2/G6 was wiping the reviewed unit (`_fail` zeroed the
@@ -417,6 +508,8 @@ Assemble+settle → Review on T44297 with everything live; (3) **R1(b)** group-l
 commits (Claude cannot push).
 
 ## Latest session (2026-09-15) — D4 BUILT and LIVE: known-field lint, surface harvest, declared fields in the prompt
+
+> ⚠ **Superseded in part (checked 2026-09-23):** Since: the proof run happened the same day (it led to the self-healing plan), and follow-up #6 was completed on 2026-09-22.
 
 **Update (2026-09-15, later): the plan REVIEWED and a precondition bug FIXED.**
 `ask-ck/plans/PLAN-self-healing-generation.md` is written and reviewed with Terrence (all six
@@ -459,6 +552,8 @@ guardrail in; (2) follow-up #6 (headless review transport); (3) the manual UI ch
 held-fix flow; (4) `ask-ck/db/ck.db` shows modified after the reload — Terrence's to commit.
 
 ## Session (2026-09-14, night) — D4 SCOPED, not built; paused by Terrence
+
+> ⚠ **Superseded in part (checked 2026-09-23):** Decisions (a)–(d) were taken on 2026-09-15 and D4 was built that day; Terrence removed the `framework` symlink (decision c) the same morning.
 
 **Where it stands.** D4 of `ask-ck/plans/PLAN-fix-units-guardrails.md` (the scapy known-field
 check that would have caught tc6's phantom `port_desc` / `sys_name` / `sys_desc`) was costed and
@@ -534,6 +629,8 @@ held-fix flow; the plan's proof run on T44297; follow-up #6.
 
 ## Session (2026-09-14) — hygiene pass, then guardrails TRANCHE 1 shipped (G1 + G5 + #4 + G8(a))
 
+> ⚠ **Superseded in part (checked 2026-09-23):** Pick-up items since: D4 built 2026-09-15; the proof ran 2026-09-15; #6 completed 2026-09-22. The 8 "still unstamped" shared memories were verified and stamped on 2026-09-23.
+
 **Where it stands.** Orientation found the tree clean and level with origin, gate green (pytest
 1457 / 1 skipped, vitest 280). Nothing shipped in the product; Terrence asked for every hygiene
 find from the briefing to be acted on, then this wrap, then the guardrails.
@@ -603,6 +700,8 @@ Review → Fix on T44297 is the proof once the plan is complete; (4) the design 
 
 ## Previous session (2026-09-11, afternoon) — the Ask-CK tree RESTRUCTURED (PLAN-restructure-2026-09-11, batches 0–9); this file now lives at ask-ck/functions/generator/PROGRESS.md
 
+> ⚠ **Superseded in part (checked 2026-09-23):** Pick-up items since: batch 6b closed that afternoon (recorded in this entry); guardrails tranche 1 shipped 2026-09-14.
+
 **Where it stands.** Terrence set the target layout in conversation (every decision his; the
 plan records them) and stopped the hosted server; nine batches ran as pure-move commit + sweep
 commit, gate green after each (19 commits, last `60aafcc`). The tree now reads: `docs/`, `tests/`
@@ -644,6 +743,8 @@ design branch starts from `ask-ck/frontend/ck-main/svelte/`.
 ---
 
 ## Previous session (2026-09-11, midday) — guardrails plan DECIDED (D4 costed, open); T44297 review dropped; skills renamed orient-ck/wrap-ck; memory store split 88 → 60
+
+> ⚠ **Superseded in part (checked 2026-09-23):** D4 was decided and built on 2026-09-15; `MEMORY-SPLIT-INVENTORY.md` now lives in `docs/`.
 
 **Where it stands.** Terrence pushed the morning's six commits himself, then set the thread:
 **`PLAN-fix-units-guardrails.md` is the work, whole plan (G1–G8), and the proof is a fresh
@@ -733,6 +834,8 @@ the three stray links, if Terrence wants them gone.
 
 ## Previous session (2026-09-11, morning) — D8–D15 reviewed and resolved; Grok removed, creation-time tools retired, one-time notice shipped (plan §11)
 
+> ⚠ **Superseded in part (checked 2026-09-23):** The live-traffic race in `test_db_isolation` was fixed since: the snapshot cache key now sees a WAL write (`test_the_snapshot_cache_key_sees_a_wal_write`). §9 step 6 (reboot with autostart on) has still never been observed.
+
 **Where it stands.** Terrence reviewed the eight decisions the autonomous run had recorded
 (`PLAN-seat-setup-and-per-seat-llm.md` §8b) one prompt at a time. Outcomes, all written into
 §8b: D8 he drives the Windows demo, Claude watches the server side; D9 the §6 removal stands;
@@ -809,6 +912,8 @@ eight `file:LINE` citations, none from this session.
 
 ## Previous session (2026-09-10, afternoon → evening) — demo-day #2 root-caused; the seat-setup plan written, decided and EXECUTED (§3–§6); only the Windows-seat demo remains
 
+> ⚠ **Superseded in part (checked 2026-09-23):** Since: the §9 Windows demo ran on 2026-09-11, and D8–D15 were decided that morning. The plan is now `archive/plans/PLAN-seat-setup-and-per-seat-llm.md`.
+
 **Where it stands.** Terrence reported three demo-day failures (installer PATH; a Windows
 seat's Claude "not picked up"; "(this server)" green on Apply then failing every call). All
 three are root-caused in `ask-ck/ck-facelift/PLAN-seat-setup-and-per-seat-llm.md` §1 — the
@@ -880,6 +985,8 @@ Gate at this wrap: guards OK, pytest 1429 passed / 1 skipped, vitest 252, ck.db 
 
 ## Latest session (2026-09-10, morning) — ck.db corruption ROOT-CAUSED and FIXED (two SQLite libraries in one process, not NFS); tc1 D5 resolved; G8 added
 
+> ⚠ **Superseded in part (checked 2026-09-23):** The T44297 session state described here (rev 467, tc1 hand-fixed) was wiped by the 2026-09-16 rewind (`e35bbb2`); `ck.db` holds no T44297 session now. D5-1 (ck.db off NFS) is still deferred.
+
 **Where it stands.** One code fix + one guard test landed, gate green (**1429 passed / 1 skipped**,
 vitest 252, ck.db signature unchanged); the live server was soft-reloaded (`ck reload`, 08:55) and
 verified holding its `ck.db`/`ck.db-shm` locks in `/proc/locks`. AWPTCM-T44297 is at **rev 467,
@@ -933,6 +1040,8 @@ remaining plan decisions (follow-ups D4, D6, D1, D3, D-UI; guardrails D1–D4, D
 "commit review copies?" ruling (de facto yes since `180752c`).
 
 ## Latest session (2026-09-09, evening) — T44297 through the full generate→review→fix loop on the ART frame; ck.db WAL corrupted on NFS; two plans written, nothing implemented
+
+> ⚠ **Superseded in part (checked 2026-09-23):** "Nothing implemented" no longer holds: both plans were built (the guardrails between 2026-09-14 and 2026-09-15; the follow-ups by 2026-09-22, with D5-1 deferred) and both are retired to `archive/plans/`. The T44297 state described here was wiped on 2026-09-16.
 
 **Where it stands.** No code changed in this stretch (the last code commit is `6abec4b`, this
 morning). The session *operated* the PyTest Creator end-to-end on AWPTCM-T44297 to judge the new
@@ -1002,6 +1111,8 @@ either plan is started — read their status headers before touching `fix_units`
 prompt, or the step-5 UI.
 
 ## Pending fixes (deferred, not started) — PyTest Creator
+
+> ⚠ **Superseded in part (checked 2026-09-23):** Items 1–4, 6 and 7 were built later (follow-ups plan, then the guardrails plan). Both plans are retired to `archive/plans/`, and only D5-1 is still deferred.
 
 **Planned 2026-09-09 — the authority is now `ask-ck/plans/PLAN-t44297-pass-followups.md`
 (items 1–6, with order + decisions) and `PLAN-fix-units-guardrails.md` (item 7).** The list
@@ -1074,6 +1185,8 @@ Review step; **item 5 is a data-safety hazard** and outranks the rest.
 
 ## Latest session (2026-09-09, later) — plan A–F COMPLETE; option B loaded to live ck.db; D/E/F/F2 shipped; gate green
 
+> ⚠ **Superseded in part (checked 2026-09-23):** The combined zip has since been deleted from the repo root, as planned. B2 is still deferred. The plan is now `archive/plans/PLAN-cli-corpus-combined-followups.md`.
+
 **Where it stands.** The CLI-corpus combined follow-up plan
 (`ask-ck/ck-facelift/PLAN-cli-corpus-combined-followups.md`) is done through step 6, uncommitted
 until this session's single commit. Terrence gave the go-ahead for the live load and worked
@@ -1115,6 +1228,8 @@ for provenance); B2 — still deferred.
 it); watch F2 on the next real generation pass. **No push** this session (Terrence pushes).
 
 ## Latest session (2026-09-09) — plan A–F started; STEP 1 (option B) built + dry-run green, NOT yet loaded — PAUSED before the live reload
+
+> ⚠ **Superseded in part (checked 2026-09-23):** Completed later the same day (see the entry above): option B was loaded live, and every decision except B2 was resolved.
 
 **Pick up here.** Terrence committed + pushed the combined-corpus swap (`b854e4c`) and the
 follow-up plan `ask-ck/ck-facelift/PLAN-cli-corpus-combined-followups.md`, then said "start the
@@ -1171,6 +1286,8 @@ the unnamed-product fold heuristic; A2; E1; F2; C. Backup `ck.db.pre-combined-cl
 in the session scratchpad under `/tmp` (will not survive a reboot).
 
 ## Latest session (2026-09-08, afternoon → evening) — CLI corpus REPLACED from the combined docs zip; live and verified; gate red on 5 corpus-premise tests, decisions pending
+
+> ⚠ **Superseded in part (checked 2026-09-23):** Decisions A–F were resolved on 2026-09-09 (B2 deferred). The gate went green, and the SERVER-README CLI section, the CHANGELOG entry and the memory were all updated.
 
 **Where it stands.** Terrence dropped `awplus-cmdref-combined.zip` (15.9 MB, docs build dated
 2026-09-07, ONE `<group>_cmd/<page>.html` tree, no per-device split) in the repo root and asked
@@ -1247,6 +1364,8 @@ scratchpad under `/tmp` and will not survive a reboot; the committed ck.db + a f
 fallback.
 
 ## Latest session (2026-09-07, later) — the combined re-run judged; the frame and prompt now emulate the ART suite shape
+
+> ⚠ **Superseded in part (checked 2026-09-23):** The bench item (`ck_link_tb` in `[misc]`) is obsolete. The `[misc]` role contract was retired on 2026-09-21, and the frame now discovers cables through the framework.
 
 **Where it stands.** The Sonnet-routed 38-unit pass on the seven decisions returned 38/38 at
 $6.31 vs the morning's Opus $12.15, with 74% of input read from cache (only the primed unit
@@ -1348,6 +1467,8 @@ was deliberate and did not get an answer; it is still set that way.
 
 ## Latest session (2026-09-07) — the re-run found zero cache reads; seven token-efficiency decisions built for ONE combined re-run
 
+> ⚠ **Superseded in part (checked 2026-09-23):** `test_shared_modules_decoupling` no longer references any secrets file. The fixture problem is **still open**: `tests/fixtures/framework_run_*.log` remain gitignored (`*.log`) but `test_framework_log_parsing.py` reads them.
+
 Terrence re-ran the 38-unit T44297 generate on the 2026-09-04 transport. **Input fell 30%
 (23,278 → 16,396 median tokens/call), cost 18% ($0.369 → $0.304), and the cache read nothing** —
 every call at the cache-WRITE rate although the prompts shared 52% of their text. A $0.25 probe
@@ -1375,6 +1496,8 @@ fresh clone fails 5 tests; and `test_shared_modules_decoupling` depends on the u
 `secrets.local.json` existing.
 
 ## Previous session (2026-09-04, afternoon) — memories had not loaded for three weeks; the CLI transport was the token sink; per-unit vs whole-script judged
+
+> ⚠ **Superseded in part (checked 2026-09-23):** Since: the server-side `claude -p` transport in `llm.py` was removed on 2026-09-10 (`claude_agent` only). Most of the report-§6 items were built on 2026-09-07. §9.9 question 5 (is the manifest authoritative for coverage?) is still open in `PLAN-pytest-creator.md`.
 
 Three threads. Full detail for the second and third is in
 [TOKEN-EFFICIENCY-REPORT-2026-09-04.md](../../TOKEN-EFFICIENCY-REPORT-2026-09-04.md) (repo root,
@@ -1422,6 +1545,8 @@ Fix / two-tier Review. **Also open, unchanged:** Tier A/B import cleanup; IE520 
 morning session ran it, twice.
 
 ## Latest session (2026-09-04) — the setup unit's flush-left `def` fixed at assembly, a reachable Fix, and a clearer step-5 UI
+
+> ⚠ **Superseded in part (checked 2026-09-23):** Since: the token-efficiency pickup was done that afternoon and on 2026-09-07. The per-unit fix path now exists as `fix_units` (built 2026-09-07, `39fea38`; guardrailed 2026-09-14/15). The T44297 artefact named here was removed by the 2026-09-16 rewind.
 
 Stress-tested the per-unit generate on **AWPTCM-T44297** and found a **consistent, reproducible**
 generator defect plus a workflow deadlock; both fixed.
@@ -1474,6 +1599,8 @@ the org vLLM discounts the ~27% shared prefix, or we pay it 38×) gates everythi
 
 ## Latest session (2026-09-03) — a corrupt ck.db WAL recovered without a checkpoint, and the setup unit's false indent flag moved to the Summary step
 
+> ⚠ **Superseded in part (checked 2026-09-23):** The underlying cause (two SQLite libraries in one server process) was found and fixed on 2026-09-10.
+
 Two unrelated threads, both on the PyTest Creator side of the tree. The IE520/tb470 bench
 stream's `.claude/memory/ie520-*` is untouched and left uncommitted for its own wrap.
 
@@ -1511,6 +1638,8 @@ syntax to Summary. TestCase units are unchanged. Terrence: *"its a false error a
 belong at that step."* PLAN-pytest-creator §9.7 wording corrected to match.
 
 ## Latest session (2026-09-02) — the whole-script generate became 30 per-unit calls, and the prompt was reordered so caching can see it
+
+> ⚠ **Superseded in part (checked 2026-09-23):** Since: pick-up 1 (the fan-out E2E) ran on 2026-09-04, and the `device_note` decision was taken the same day (moved below the fill rules). The Tier A/B import cleanup and §9.9 question 5 are still open.
 
 **PyTest Creator step 6 (Generate).** Ran alongside the IE520/tb470 bench stream, which owns
 `.claude/memory/ie520-*`; none of that is touched here.
@@ -1591,6 +1720,8 @@ no glyph, a screen-height away from the button, which read as "nothing happened"
    objective coverage.
 
 ## Latest session (2026-09-01b) — tb470's bench state got a single source of truth, and the tree stopped contradicting itself
+
+> ⚠ **Superseded in part (checked 2026-09-23):** `bench-state.md` is now in the device-testing repo (`claude/device-testing/bench-setup/`), so it is under version control. The `orient-ie520` skill is now device-testing's `orient-dt`. The `pt_profiles.py` / `[misc]` profile model was retired on 2026-09-21.
 
 **Bench/infrastructure work; no test-case content, no server code.** Ran alongside the same
 parallel session (its files: `agent_jobs.py`, `agent_bridge.py`, `ck_agent.py`, `agent.js`,
@@ -1682,6 +1813,8 @@ a `[portlink]`.
 
 ## Latest session (2026-09-01) — the Testboxes panel made honest, and the bench learned to describe itself
 
+> ⚠ **Superseded in part (checked 2026-09-23):** `PLAN-pytest-creator.md` §8 is still design-only, but its `[misc]` profile-claims premise was retired on 2026-09-21 (framework discovery). The pilot-trio and T33351 state was wiped by the 2026-09-16 rewind. `ask-ck/test-composer/bench_probe.py` is behind device-testing's copy.
+
 **Code + tests + docs + a hardware probe; no test-case content. The pilot trio did NOT
 advance.** Ran alongside a second session working the same tree (its commits: `eb1f66d`,
 `ae6b9c1`) — see the note at the end about one shared file.
@@ -1743,6 +1876,8 @@ untouched by tests.**
 
 ## Latest session (2026-08-31) — the PyTest Creator's step-3 gate opened, and its provenance stopped lying
 
+> ⚠ **Superseded in part (checked 2026-09-23):** The T33351 script and every other generated artefact were removed by the 2026-09-16 rewind (`e35bbb2`), which also removed `.REVIEW.py`. Requirements upper bounds landed on 2026-09-22 (`0f1f65b`). `PLAN-llm-mode-selection` is now in `archive/plans/`.
+
 **Code + tests + docs; no test-case content.** Terrence drove a real case end to end and hit
 three walls in a row; each one was a different defect and all are fixed. The pilot trio did
 NOT advance, but a NEW case did: **`pt-AWPTCM-T33351`** (802.1X single-host,
@@ -1803,6 +1938,8 @@ matching tests confirmed failing.
 
 ## Latest session (2026-08-26b) — step-3 results made durable + context-bearing; live progress and a TRUE Stop on every LLM button
 
+> ⚠ **Superseded in part (checked 2026-09-23):** `llm._run_cli` was removed on 2026-09-11 (the server runs no LLM CLI). The per-step Suggest button was removed on 2026-09-22. The pilot-trio state was wiped on 2026-09-16.
+
 **Code + tests; no test-case content; the pilot trio did NOT advance.** Terrence confirmed the
 morning's persistence work live ("results and context information appear to be properly
 retained now"). Two explicit asks shipped and verified — full why-record in CHANGELOG
@@ -1853,6 +1990,8 @@ by tests** (baseline 1060 + 5 persistence + 6 cancel/progress tests).
   question from 08-17b.
 
 ## Latest session (2026-08-26) — Playwright found the PyTest Creator's lies, everything found was fixed, Option A shipped, and the app went LAN-hosted
+
+> ⚠ **Superseded in part (checked 2026-09-23):** Option A was reversed on 2026-09-10: `claude_code` (the server's own Claude) was removed, and the LLM choice became per seat (`X-CK-LLM`). The "Apply trap" became deliberate under D17 (Apply also writes the site default). The server **still has no auth**. `static/js/README.md` is now `ask-ck/frontend/ck-main/current/README.md`. The plans are in `archive/plans/`.
 
 **Code, docs, host config — no test-case content; the pilot trio did NOT advance.** Four
 tasks in sequence: a requested Playwright sweep of the PyTest Creator pages ("i found ui
@@ -1942,6 +2081,8 @@ cache-busters bumped (main.js v28, styles.css v27).
 
 ## Latest session (2026-08-17b) — a short orientation session: one forward-looking doc claim had gone false, and the unpinned-dependency observation got a sharper edge
 
+> ⚠ **Superseded in part (checked 2026-09-23):** Requirements upper bounds landed on 2026-09-22 (`0f1f65b`). `.REVIEW.py` was removed by the 2026-09-16 rewind. `claude_code` was removed on 2026-09-10. The pilot-trio sessions were wiped on 2026-09-16.
+
 **No code, no test-case content.** An `/orient` that found one real defect, corrected it, and
 answered a question. The pilot trio did **not** advance — see "pick up here" below.
 
@@ -2004,6 +2145,8 @@ unchanged — identical to the session-open baseline, as expected for a docs-onl
 - **T33233 confirm+save of step6 remains deferred**, unchanged.
 
 ## Latest session (2026-08-17) — the gate was dead and `setup.sh` was silently worse; then the README was split into a navigational entry point + CHANGELOG
+
+> ⚠ **Superseded in part (checked 2026-09-23):** Since: requirements upper bounds landed on 2026-09-22 (`0f1f65b`). The pilot-trio sessions were wiped by the 2026-09-16 rewind, and the Port family (T33233–36) was re-drafted from 2026-09-17.
 
 **No test-case content this session — environment, docs and memory only.** Started as
 `/orient` and immediately found the gate unrunnable.
@@ -2087,6 +2230,8 @@ signature unchanged. All three commits pushed by Terrence; tree clean and level 
 
 ## Latest session (2026-08-06) — T33234 + T33235 tightened via the hybrid method; the pilot trio started through PyTest Creator (T33233 generated, lint-clean)
 
+> ⚠ **Superseded in part (checked 2026-09-23):** Every session and generated script described here (including `.REVIEW.py`) was removed by the 2026-09-16 rewind. The Port family was re-drafted from 2026-09-17. `claude_code` was removed on 2026-09-10.
+
 **Two threads this session, both continuations of the 2026-08-05b work.**
 
 **(A) Finished the pilot trio's wizard content (hybrid + scope-filtered, same method as T33233).**
@@ -2166,6 +2311,8 @@ Opus/`claude_code`).
 
 ## Latest session (2026-08-05b) — T33233 through the whole tool: grounding is not the objective, and the tool has no scope boundary
 
+> ⚠ **Superseded in part (checked 2026-09-23):** On pushing: since 2026-09-10 Claude cannot push at all (company permissions); Terrence pushes. Phase 2.4 is still not done beyond the Port family, and **Phase 11.4 has still never run**.
+
 **The arc.** Picked up Phase 2.4 by regenerating **T33233 (Port - Auto Negotiation)**. It became a
 working demonstration of *how* the tool should be used and where it fails — four findings, each
 proven against the case, ending in a tightened hybrid output that passes the design doc.
@@ -2216,6 +2363,8 @@ language); (2) decide whether Phase 2.4's "regenerate all 53" needs re-scoping t
 (3) Phase 11.4 first hardware run; (4) push the local commits.
 
 ## Latest session (2026-08-05) — the Test Case Generator's step layer was drifting toward the script layer; four rules reversed, three safeguards added
+
+> ⚠ **Superseded in part (checked 2026-09-23):** The pilot wizard sessions named here were wiped on 2026-09-16. On pushing: Claude cannot push (company permissions, 2026-09-10). **Phase 11.4 has still never run.**
 
 **The through-line:** a design review of the step-generation prompt (against
 `OBJECTIVE_DRAFTING_PROCESS.md`, not just the code) found it had accumulated **PyTest-script
@@ -2338,6 +2487,8 @@ hardware run rather than assuming the bench is as 2026-08-04a left it.
 
 ## Latest session (2026-08-04) — the decisions got reviewed, and review changed 6 of them
 
+> ⚠ **Superseded in part (checked 2026-09-23):** Pick-up 2 was done on 2026-08-05 (both pre-2.4 reviews). **Phase 11.4 has still never run.** `DECISIONS-FOR-REVIEW.md` §13 (D-24–D-31) has never been reviewed.
+
 **Terrence reviewed the autonomous run's decisions as a blind experiment**: I presented 12 of
 them as neutral questions without revealing my choices, he answered, and we compared. **5 of 12
 matched.** Of the 7 that differed, review moved 1 my way, 2 his way, and **4 landed on an option
@@ -2414,6 +2565,8 @@ sections 9–12. Gate **895 → 944** pytest (+92 Vitest); 4 commits, all pushed
 
 ## Latest session (2026-08-03c) — the ceiling is dead in code, and the run path is unblocked
 
+> ⚠ **Superseded in part (checked 2026-09-23):** Since: pick-up 3 was reviewed on 2026-08-04 (`DECISIONS-FOR-REVIEW.md` §9–12), and the steps prompt was signed off on 2026-08-05. **Phase 11.4 has still never run**, so Phase 11.0 is still unproven on hardware.
+
 **Ask: "perform as many Phases as possible, leave all decisions for me until the very end,
 make a best-effort guess to bypass blockers and record them."** Autonomous run against
 [`PLAN-pipeline-end-to-end.md`](../ck-facelift/PLAN-pipeline-end-to-end.md). Every judgement
@@ -2476,6 +2629,8 @@ evidence rather than heuristic.
 4. Phases 0, 1, 3, 4, 5, 6, 8, 9, 10, 12 are untouched.
 
 ## Latest session (2026-08-03b) — full-pipeline audit (284 findings): the output ceiling is a PARSER BUG, and Phase −1 ships
+
+> ⚠ **Superseded in part (checked 2026-09-23):** The push rule "every non-note step must carry an `expectedResult`" was **reversed** on 2026-08-05 (`bab4e35`): manual steps are meant to have an empty expected result, and that push-gate rule was deleted. Pick-ups 1–3 were done on 2026-08-03c. `pytest_create.py:883` citations are long stale.
 
 **Focus: "no objectives is never OK" through to "we have never executed a single test case" —
 one plan, in pipeline order, leave no stone unturned.** Deliverable is
@@ -2555,6 +2710,8 @@ Built from a 27-agent adversarially-verified audit — **284 findings, 206 CONFI
 
 ## Session (2026-08-03) — 10 refined cases via Opus; generation hits a hard OUTPUT CEILING; 12 transport defects fixed
 
+> ⚠ **Superseded in part (checked 2026-09-23):** Since: `pt_autopilot.py` and `pt_judge.py` were retired on 2026-09-11, the server-side `claude -p` transport was removed on 2026-09-10, `_size_overflow` is gone (deleted 2026-08-03c), and the refined cases listed here were removed by the 2026-09-16 rewind.
+
 > **⚠ Superseded in part by 2026-08-03b (above): the "OUTPUT CEILING" in this entry is a
 > fence-parser defect, not a model limit. The measurements below are parser output.**
 
@@ -2614,6 +2771,8 @@ pytest (+92 Vitest unchanged). Full record: `archive/pytest-create/autopilot/RES
   to disk. No hardware run happened: preflight correctly refused, so no bench time was spent.
 
 ## Latest session (2026-07-30) — tb470 de-stacked and cabled, and generation now targets a TOPOLOGY CONTRACT
+
+> ⚠ **Superseded in part (checked 2026-09-23):** The topology-contract model described here was **retired on 2026-09-21**: there are no more `ck_role_dut` or `[misc]` claims, `pt_profiles.py` is gone, and `_ck_bind_link` now *discovers* the link through the framework. `pt_media.py`/`ck_media` survive. tb470 was re-stacked on 2026-08-18; `bench-state.md` in device-testing is the current record. The CLI reference has held 3,535 rows since 2026-09-08.
 
 **Focus: make Part 3b actually runnable, and fix the reason it wasn't.** Started as
 ".setup housekeeping", turned into a hardware fix plus the biggest change to generation since
@@ -2688,6 +2847,8 @@ the skeleton landed. Gate **612 → 719** pytest (+92 Vitest unchanged). Nothing
 
 ## Latest session (2026-07-29c) — objective→Generate (Thread B), Part 3b unblocked, model-matrix judging
 
+> ⚠ **Superseded in part (checked 2026-09-23):** `pt_matrix_judge.py` was retired on 2026-09-11. `tb470.setup` has been generated from device-testing's `bench-state.md` since 2026-09-01.
+
 **Focus: shore up PyTest Creator generation so objective context reaches the `.py` output, then finish the Part 3 blockers.** (Ran alongside the reboot-scripts stream; commits interleave on `main`.)
 
 - **Thread B (commit `81bc972`):** the objective now flows into the Generate prompt AND is baked into the emitted `.py` as a `# ==== OBJECTIVE ====` header (single source: it rides into both the artifact and the prompt via the embedded skeleton). New generate-prompt rule 1a grounds each verdict in the objective slice. Tests + gate green.
@@ -2696,6 +2857,8 @@ the skeleton landed. Gate **612 → 719** pytest (+92 Vitest unchanged). Nothing
 - **Result:** T33233/T33235 → "good" (sonnet/opus) = generation half fixed. **T33234 = 10/10 "bad"** = the next shit-in is **sequence-extraction `kind` misclassification** (per-case reconfig→setup collapse; physical cable-swap→verify fake), not model quality. Folded into `ask-ck/ck-facelift/PLAN-permutation-expander.md` (deferred subsystem).
 
 ## Latest session (2026-07-29) — commit 10 lands; the module split is COMPLETE
+
+> ⚠ **Superseded in part (checked 2026-09-23):** Since: `PLAN-auth-and-case-locking` Phase 1 (in-memory locks) shipped the same day; Part 3b was unblocked in 2026-07-29c; and since 2026-09-10 Claude cannot push at all (Terrence pushes).
 
 **Focus: the one straggler from `PLAN-backend-module-split.md` — commit 10, the atomic
 `routers/wizard.py` → `routers/wizard/` move. All 11 commits are now done (6 stays dropped).**
@@ -2735,6 +2898,8 @@ the skeleton landed. Gate **612 → 719** pytest (+92 Vitest unchanged). Nothing
   `commit-and-push-on-session-end` for pushing from a Mac-attached SSH session.
 
 ## Latest session (2026-07-28f) — the wizard module split, all but one commit
+
+> ⚠ **Superseded in part (checked 2026-09-23):** `llm_config.apply_workspace_llm` was removed on 2026-09-10, when the per-seat LLM choice arrived (`effective_llm_config`).
 
 **Focus: `PLAN-backend-module-split.md` Part B. 7 commits, `591dbb9`→`e0886c0`.
 `routers/wizard.py` 2515 → 1971 lines, and `pytest_create.py` no longer imports anything
@@ -2824,6 +2989,8 @@ was to read its process environment.
 
 ## Latest session (2026-07-28d) — first real CLI session on hardware; it falsified a documented rule
 
+> ⚠ **Superseded in part (checked 2026-09-23):** `configs/tb470.setup` was written in 2026-07-29c, and it has been generated from device-testing's `bench-state.md` since 2026-09-01.
+
 > **Note on this log:** `SESSION_STATE.md` already uses `2026-07-28c` for the Generator
 > deferred-per-step-loading work (`PLAN-backend-module-split.md` A1). PROGRESS has **no**
 > entry for A1-A5 (`0c06586`…`0b47926`) — those six commits are recorded in SESSION_STATE
@@ -2882,6 +3049,8 @@ headline is that a rule stated in three places was simply wrong, and only hardwa
   Vitest, both guards green.
 
 ## Latest session (2026-07-28b) — the prompts were the defect, ~14 fixes, venv on 3.13
+
+> ⚠ **Superseded in part (checked 2026-09-23):** Part 3b was unblocked in 2026-07-29c. The T33234 script named here (TestCase_8) was removed by the 2026-09-16 rewind.
 
 **Focus: "prioritize improving the prompts, the judges are a symptom not the cause"
 (Terrence). Confirmed emphatically — every defect found this session came from our own
@@ -2947,6 +3116,8 @@ guidance or measurement, none from model weakness. 12 commits, `ed419aa`→`8699
 
 ## Latest session (2026-07-28) — two "model defects" that were both OUR bugs
 
+> ⚠ **Superseded in part (checked 2026-09-23):** The T33234 script named in "still open" was removed by the 2026-09-16 rewind.
+
 **Focus: the two items left open at the end of 27h. Both turned out to be defects in our own
 tooling rather than LLM quality — the reported diagnosis was wrong in each case.**
 
@@ -3006,6 +3177,8 @@ tooling rather than LLM quality — the reported diagnosis was wrong in each cas
 
 ## Latest session (2026-07-27h) — CLI grounding: the generator was starved, not stupid
 
+> ⚠ **Superseded in part (checked 2026-09-23):** The CLI reference no longer comes from this harvest: since 2026-09-08 it is loaded from one combined docs zip by `load_cli_docs_from_zips.py` (3,535 rows). The "HTTP 200 but no write" debt was fixed in 2026-07-28b (stale cache), and its ck.db-lock side was root-caused on 2026-09-10 (two SQLite libraries in one process).
+
 **Focus: root-cause the "all 9 gap-fill blocks graded bad" result from Part 3a. Answer: a
 RESOURCING gap, not model quality. Harvested the real AlliedWare Plus CLI reference into
 `ck.db` and grounded both LLM prompts; added an objective-coverage gate. Uncommitted at
@@ -3061,6 +3234,8 @@ time of writing — see the commit that follows.**
   new externally-sourced reference, not a corpus rebuild).
 
 ## Latest session (2026-07-27g) — adversarial review CLOSED (19 fixes, 4 batches) + network hardening + multi-user plan
+
+> ⚠ **Superseded in part (checked 2026-09-23):** `run.sh` still defaults to `127.0.0.1`, but the hosted server of record runs with `HOST=0.0.0.0` and has been on the LAN since 2026-08-26, **still without auth**. `PLAN-auth-and-case-locking` Phase 1 (in-memory locks) shipped on 2026-07-29.
 
 **Focus: finish the verification that was paused at ~50% in 27c, fix everything real that it
 found, then take the two accepted-risk security items to a decision. All committed + pushed to
@@ -3306,6 +3481,8 @@ fixed 4 real defects. Uncommitted at write time — Terrence commits himself.**
 
 ## Latest session (2026-07-27) — PyTest Creator D1/D3: fragment resolver boundaries + Py2→Py3 pre-translation
 
+> ⚠ **Superseded in part (checked 2026-09-23):** `lib2to3` was removed in Python 3.13, so D3 now falls back to `fissix` (fixed 2026-08-03).
+
 **Focus: resolved the three open PyTest Creator decisions (D1/D2/D3, from the now-deleted
 `NEXT_SESSION_DECISIONS.md`), then implemented D1+D3 and adversarially tested them against the
 live `ck.db`. Uncommitted at write time — Terrence commits himself.** All decision rationale is
@@ -3376,6 +3553,8 @@ preserved in memory (`d1-fragment-resolver-boundaries`, `d3-py2-fragment-transla
 
 ## Latest session (2026-07-22c) — Push-to-Zephyr button + all 43 refined cases pushed to Zephyr v2.0
 
+> ⚠ **Superseded in part (checked 2026-09-23):** The on-disk refined-case bundles were removed by the 2026-09-16 rewind (the copies in Zephyr are untouched); since then, only the re-drafted Port family (T33233–36) is back in `refined-cases/`.
+
 **Focus: built a "Push to Zephyr" button in the Generator's export step (shells out to `tool/upload_refined.py`), added title-cleanup + version-2 handling, then pushed all 43 Complete cases to the live Zephyr Scale (Server/DC) instance and audited them for consistency. Uncommitted at write time; committing + pushing to main this session.**
 
 - **`tool/upload_refined.py` — new Zephyr-write capabilities:**
@@ -3392,6 +3571,8 @@ preserved in memory (`d1-fragment-resolver-boundaries`, `d3-py2-fragment-transla
 
 ## Latest session (2026-07-22b) — vLLM streaming transport + stale-`llm_config` re-sync
 
+> ⚠ **Superseded in part (checked 2026-09-23):** The workspace re-sync model was replaced on 2026-09-10: the LLM choice is now per seat (`X-CK-LLM`, `effective_llm_config`), and `apply_workspace_llm` is gone.
+
 **Focus: (1) built the streaming transport that Part 2B §7.7 named as the real fix for `vllm-thinking` read-timing-out on `generate_script`; (2) fixed the §7.3 stale-`llm_config` root cause in both routers. Committed at session close; push to main pending (this environment lacks GitHub SSH auth — Terrence to push).** Living doc: `ask-ck/plans/PLAN-pytest-testing.md` §8 (streaming) + §9 (re-sync).
 
 - **Streaming the vLLM path (`llm.py`).** The OpenAI-compatible branch of `_call_llm_raw` now sends `stream: true` + `stream_options: {include_usage: true}` and consumes the SSE body, accumulating `content`/`reasoning_content` deltas + final `finish_reason`/usage into the **same triplet** the non-streamed path produced — so every guard (length/null/truncation) and the token-usage badges are unchanged. **Why structural, not a bigger ceiling:** with a streamed body the HTTP `read` timeout is the gap *between* chunks, not the whole-response wall clock; vLLM streams `reasoning_content` throughout the thinking phase, so a reasoning pass of any length completes as long as chunks keep flowing. The prior static 600s floor could still be exceeded (§7.7: it was); this removes the ceiling. Anthropic native path left non-streaming (no such failure).
@@ -3401,6 +3582,8 @@ preserved in memory (`d1-fragment-resolver-boundaries`, `d3-py2-fragment-transla
 - **Still deferred:** Part 3a/3b (the `wizard.py` twin bug is now fixed).
 
 ## Latest session (2026-07-22) — vLLM read-timeout fix + §1.5 provenance tags + Part 2B model matrix
+
+> ⚠ **Superseded in part (checked 2026-09-23):** `pt_model_matrix.py` was retired on 2026-09-11, and Grok was removed that day.
 
 **Focus: continued the plan after the standing "fix next session" vLLM read-timeout note. All work uncommitted at session end — Terrence commits himself.** Living doc: `ask-ck/plans/PLAN-pytest-testing.md` §7 (full bug-by-bug log with rationale).
 
@@ -3461,6 +3644,8 @@ preserved in memory (`d1-fragment-resolver-boundaries`, `d3-py2-fragment-transla
 
 ## Latest session (2026-07-20) — LLM observability + Local LLM + admin panel + fast restart
 
+> ⚠ **Superseded in part (checked 2026-09-23):** Since: the admin panel's Rebuild-DB/embeddings were removed on 2026-07-20c; `setup.sh` verifies `ck.db` and never builds it; the site default is Claude agent (D15, 2026-09-11), not `local_llm`; and the server has been LAN-hosted since 2026-08-26 — still with no auth.
+
 **All committed + pushed (`47833de`, on top of `66fb289`).** Nothing pending.
 
 - **LLM observability (`PLAN-llm-observability.md`, DONE).** Per-panel "Last LLM request" debug footer + token badges (honest `— tok` where a transport reports no usage); per-session JSONL log in gitignored `CK_server/debug-log/`; `GET /api/llm/recent` + `/log`. Backend: `llm._call_llm_with_meta` split into `_call_llm_raw` + instrumented wrapper; ContextVars `current_panel_id`/`current_request_path` set by main.py middleware from `X-CK-Panel`/path; recorder in `llm_debug.py` (credential-whitelisted). New: `CK_server/llm_debug.py`, `routers/llm_debug.py`, `static/js/llm-debug.js`.
@@ -3470,6 +3655,8 @@ preserved in memory (`d1-fragment-resolver-boundaries`, `d3-py2-fragment-transla
 - Also: earlier this window, an adversarial review (verify agents died on a session limit → findings adjudicated by hand) drove 6 fixes; see the plan's handoff header.
 
 ## Latest session (2026-07-16) — SQLite migration DONE + DB-only-search direction planned
+
+> ⚠ **Superseded in part (checked 2026-09-23):** "`ck.db` gitignored, rebuildable" was **superseded on 2026-07-20c**: `ck.db` is the permanent, committed source of truth (Git LFS, not gitignored, not rebuildable).
 
 **Read next:** `ask-ck/ck-facelift/PLAN-db-only-search.md` — the phased plan + testbox checklist for the next session.
 
@@ -3481,6 +3668,8 @@ preserved in memory (`d1-fragment-resolver-boundaries`, `d3-py2-fragment-transla
 - **Pending single rebuild:** the two branches + the real extractions (Zephyr XML re-extract, scripts on the testbox) all land in ONE coordinated `build_db --fresh --verify` (+ `--embed`) — see the plan's testbox checklist.
 
 ## Latest session (2026-07-14) — PyTest Creator built + UI polish
+
+> ⚠ **Superseded in part (checked 2026-09-23):** The flow is now 7 steps (Fit Decision removed on 2026-07-23). `enrich_script_index.py` was retired on 2026-09-11.
 
 - **PyTest Creator fully implemented** (was a 501 stub). 8-step gated flow turning a Complete refined case into a runnable Allied Telesis `framework` (ATTestSet/ATTestCase) test script, executed on a real testbox, iterated via an LLM fix loop to Final Validation. Plan + living tracker: **`ask-ck/plans/PLAN-pytest-creator.md`** (start there for PyTest Creator work).
   - Sidebar steps: 1. Cases / 2. Sequence / 3. Script Search / 4. Fit Decision / 5. Fragments / 6. Generate / 7. Run / 8. Validate, plus a **Testboxes** panel.
@@ -3507,6 +3696,8 @@ preserved in memory (`d1-fragment-resolver-boundaries`, `d3-py2-fragment-transla
 ---
 
 ## 1. High-Level Status
+
+> ⚠ **Superseded in part (checked 2026-09-23):** Sections 1–11 below are a static status block last reconciled on 2026-07-27. Much of it is now false, including: Grok and server-side Claude (removed 2026-09-10/11); file-based sessions (in `ck.db` since 2026-07-16); `ck.db` rebuildable (never, since 2026-07-20c); "localhost/single-user" (LAN-hosted since 2026-08-26); the §3 tree (restructured 2026-09-11); and the Part 3b blocker (cleared 2026-07-29c). For current state, read the newest entry at the top of this file.
 
 | Area | Status | Notes |
 |------|--------|-------|
@@ -3659,6 +3850,8 @@ ask-ck/
 
 ## 6. How to Resume Work (For Future Sessions)
 
+> ⚠ **Superseded in part (checked 2026-09-23):** **Do not follow this procedure.** Start with `/orient-ck`. The server of record is the hosted `ask-ck.service`, so never start it or `run.sh --stop` it for a look around — use `ask-ck/tools/run_scratch_server.sh`. The LLM choice is per seat.
+
 1. Read this **PROGRESS.md** completely.  
 2. Read **`ask-ck/CK-main/SERVER-README.md`** (run + workflow).  
 3. Skim **LESSONS_LEARNED.md** (esp. 2026-07-13 entries).  
@@ -3740,6 +3933,8 @@ ask-ck/
 ---
 
 ## 11. Session Handoff Checklist
+
+> ⚠ **Superseded in part (checked 2026-09-23):** **Superseded by the `/orient-ck` and `/wrap-ck` skills.** Do not run `./ask-ck/CK-main/run.sh` against the hosted server.
 
 When starting a new session:
 - [ ] Read `ask-ck/functions/generator/PROGRESS.md` (this file)

@@ -1,3 +1,6 @@
+---
+verified: 2026-09-23
+---
 # `ask-ck/frontend/ck-main/current/` — the current Ask CK front-end
 
 **Layout (2026-09-11):** `index.html`, `styles.css` and the assets sit here; the ES modules are
@@ -10,8 +13,10 @@ It is now browser-native ES modules — **no bundler, no build step, no
 package.json**. `index.html` loads a single entry point:
 
 ```html
-<script type="module" src="/static/shared/main.js?v=1"></script>
+<script type="module" src="/static/shared/main.js?v=N"></script>
 ```
+
+(`N` is the cache-busting number — see convention 4; it was 39 on 2026-09-23.)
 
 `type="module"` is deferred by default, so end-of-body DOM is ready when the
 graph evaluates.
@@ -26,6 +31,7 @@ graph evaluates.
 | `shared/` | `actions.js` | Action registry (`registerActions`) + delegated click/keydown dispatch |
 | `shared/` | `dom-helpers.js` | `escapeHtml`, `truncateText`, `dataArgs`, `showStatus` (in-page `.status-banner` helper), `setButtonBusy`/`flashButtonDone` (LLM-button press/spinner/disable + ✓/✗ feedback) |
 | `generator/` | `tables.js` | Candidate-table renderers shared by Generator + DB-search |
+| `generator/` | `chosen.js` | Chosen-list mechanics for the two-table review (TestLink/Zephyr/ATP): insertion-ordered picks with justification, read by Confirm |
 | `generator/` | `generator.js` | Objective / Test Case Generator wizard |
 | `llm-config/` | `llm.js` | LLM Configure panel + status |
 | `llm-config/` | `agent.js` | Local ck-agent bridge (broker long-poll, CLI status probes) |
@@ -38,6 +44,9 @@ graph evaluates.
 | `shared/` | `llm-debug.js` | LLM observability: per-panel "last LLM request" footer + token badges (`/api/llm/recent`) |
 | `admin/` | `admin.js` | Hidden admin panel (double-click CK's face): reset sessions, restart server (`/api/admin/*`), and the read-only **Lint trends** card (R5; `GET /api/pytest-create/lint_trends`). (DB/embeddings rebuild was removed once `ck.db` became the permanent committed source of truth.) |
 | `shared/` | `theme.js` | Light/dark toggle (side-effect) |
+| `shared/` | `locks.js` | Per-case lock UX (auth plan Phase 1): heartbeat + release-on-close when this tab holds the lock; read-only banner + "Take over" when another does |
+| `shared/` | `provenance.js` | The "LLM Provenance" block: renders the exact prompt a panel would send via the endpoint's `dry_run`, for copying into another LLM — no tokens spent |
+| `shared/` | `version.js` | Stale-tab guard: records the build id at load and asks the user to refresh when it moves — never reloads on its own |
 
 ## Conventions
 

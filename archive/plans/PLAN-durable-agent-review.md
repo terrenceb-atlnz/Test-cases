@@ -1,6 +1,17 @@
+---
+verified: 2026-09-23
+---
 # PLAN — A review that survives the tab (t44297 #6)
 
 > ## Status (read first)
+>
+> **RETIRED 2026-09-23 → `archive/plans/`** (complete; the rule is
+> `archive/plans/PLAN-restructure-2026-09-11.md` §1). Checked against the code the same day:
+> the failure taxonomy, `current_late_handler`, `_late_review_handler`, `exclude_job_id` and the
+> ck-agent caller watchdog are all live. D6b was scoped to assembly: the whole-script Fix path
+> (`_apply_fix`) still drops `step6.review`, which SERVER-README records as deliberate ("the
+> 2026-09-04 decision stands") — though that code's comment still says it mirrors assembly,
+> which stopped dropping it here.
 >
 > **BUILT 2026-09-22 — A, C, D and E all shipped. The item is COMPLETE.** Terrence answered D6a–D6c in conversation and confirmed the
 > reshaped scope (§4). The item is NOT the "durable jobs collected on reconnect" of 2026-09-09:

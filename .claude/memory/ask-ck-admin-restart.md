@@ -6,7 +6,7 @@ metadata:
   type: project
   originSessionId: b69a0140-ff36-4d22-bc3a-819e30838064
   modified: 2026-07-20T01:01:57.863Z
-  verified: 2026-09-11
+  verified: 2026-09-23
 ---
 
 **SUPERSEDED FOR THE HOSTED SERVER (2026-08-26): manage it with `ck`, never `run.sh --stop`.**
@@ -24,12 +24,12 @@ Ask CK server restart/admin was streamlined 2026-07-20 (uncommitted working tree
 
 **Fast restart — `run.sh` only, NOT `setup.sh`.** A plain restart starts against the existing `ask-ck/db/ck.db` in seconds. Flags: `run.sh --bg` (prompt-free background start), `run.sh --restart` (stop+start), `run.sh --stop`. `setup.sh` is ONLY for first-time setup (toolchain/venv/LFS pull + a DB sanity-check). **It does NOT rebuild the DB** — verified 2026-07-30, `setup.sh` contains no `build_db` call at all; `ck.db` is shipped, see [[db-is-permanent-source]]. The server runs with `--reload`, so code edits hot-reload without any restart. **2026-07-20: a root `./run.sh` wrapper now exists** (forwards to `ask-ck/CK-main/run.sh`, which self-anchors) — so `./run.sh --bg` from the repo root is the shortest path; either location works. README has a `setup.sh` vs `run.sh` decision table.
 
-**Hidden admin panel:** **double-click CK's face** (`.sidebar-logo`, top-left) opens `#panel-admin` (single-click still goes Home). Module `frontend/ck-main/current/admin/admin.js`, backend `routers/admin.py` mounted at `/api/admin`. Actions (all confirm-gated): reset current-case / workspace-LLM / ALL sessions (session state only — corpora untouched); restart server (touches a watched `.py` so `--reload` fires, page reconnects ~2s). **Localhost/single-user only — no auth on `/api/admin/*`.**
+**Hidden admin panel:** **double-click CK's face** (`.sidebar-logo`, top-left) opens `#panel-admin` (single-click still goes Home). Module `frontend/ck-main/current/admin/admin.js`, backend `routers/admin.py` mounted at `/api/admin`. Actions (all confirm-gated): reset current-case / workspace-LLM / ALL sessions (session state only — corpora untouched); restart server (touches a watched `.py` so `--reload` fires, page reconnects ~2s). **Localhost/single-user only — no auth on `/api/admin/*`.** (The hosted LAN server exposes it anyway — an accepted exposure, checked 2026-09-23; see [[askck-lan-hosting]].)
 
-**Why:** Terrence was running full `setup.sh` on every restart and wanted the vector-build + launch prompts gone, plus an in-page reset. **How to apply:** for a restart tell Terrence `run.sh --restart`; the admin panel covers session resets without a terminal.
+**Why:** Terrence was running full `setup.sh` on every restart and wanted the vector-build + launch prompts gone, plus an in-page reset. **How to apply:** for the HOSTED server a restart is `ck restart` or the admin panel's Restart (never `run.sh --restart` — see the banner above); `run.sh --restart` is only for a checkout run by hand. The admin panel covers session resets without a terminal.
 
-**Corrected 2026-07-30:** this file used to list "rebuild embeddings" + "rebuild DB" as admin actions and called `setup.sh` a DB rebuild. Both were retired when `ck.db` became the permanent committed source — `routers/admin.py` and `frontend/ck-main/current/admin/admin.js` now carry explicit "DB REBUILD IS DELIBERATELY ABSENT" comments. Never restore a rebuild button; see [[db-is-permanent-source]].
+**Corrected 2026-07-30:** this file used to list "rebuild embeddings" + "rebuild DB" as admin actions and called `setup.sh` a DB rebuild. Both were retired when `ck.db` became the permanent committed source — `routers/admin.py` ("DB REBUILD IS DELIBERATELY ABSENT") and `frontend/ck-main/current/admin/admin.js` ("DB rebuild is intentionally absent") both say so explicitly. Never restore a rebuild button; see [[db-is-permanent-source]].
 
 **Caveat noted:** during testing the `reset-session scope=workspace` endpoint was curl'd against the REAL `ck.db`, clearing Terrence's workspace LLM default — he re-applied it. Future admin-endpoint testing should target a throwaway DB copy, not the live one.
 
-**VERIFIED BY TERRENCE 2026-07-20:** admin panel works and "massively speeds the process"; radio reorder (Local LLM first + default, Grok de-parenthesized) confirmed; LLM config re-applied; live Fast/Thinking toggle confirmed working. All changes still uncommitted in the working tree — Terrence commits himself.
+**VERIFIED BY TERRENCE 2026-07-20:** admin panel works and "massively speeds the process"; radio reorder (Local LLM first + default, Grok de-parenthesized — Grok itself was removed 2026-09-11) confirmed; LLM config re-applied; live Fast/Thinking toggle confirmed working. All changes still uncommitted in the working tree — Terrence commits himself.

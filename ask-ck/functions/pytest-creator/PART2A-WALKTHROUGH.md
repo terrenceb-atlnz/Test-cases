@@ -1,4 +1,12 @@
+---
+verified: 2026-09-23
+---
 # Part 2A — First real end-to-end walkthrough (T33234)
+
+> A dated record (2026-07-21). Its "blocked only on the tb470 profile + `.setup`" is as of that
+> day: the `.setup` has existed since 2026-07-27, and Part 3b — the first run of a generated
+> script on tb470 — has still never happened (checked 2026-09-23). The §1.5 provenance tagging
+> listed below as "not yet implemented" shipped on 2026-07-22.
 
 **Case:** `AWPTCM-T33234` — *Port - Auto MDI/MDI-X* (Zephyr `is_target`, group "Port").
 **Date:** 2026-07-21.

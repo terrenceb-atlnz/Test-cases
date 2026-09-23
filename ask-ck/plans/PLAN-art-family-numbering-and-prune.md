@@ -1,10 +1,17 @@
+---
+verified: 2026-09-23
+---
 # PLAN — ART family numbering (`900x.yyyy.zzzz`) + the deferred library PRUNE
 
 > ## Status (read first)
 >
-> **IN BUILD 2026-09-22.** Two things ship together because the prune's unit of work — a
-> group's library — is exactly the thing the numbering renames. Doing them separately would
-> migrate the same files twice.
+> **BUILT 2026-09-22 (`dbb407d`) — §1–§5 shipped as written; §6 (the single-case operand) is
+> still OPEN and needs the bench.** Verified against the code 2026-09-23: `_family_for_group`,
+> `PT_LIBRARY_SUITE`/`PT_FAMILY_MIN`, `FAMILY_REGISTRY` and `POST /library_prune` are in
+> `routers/pytest_create.py`; `generated/9001_Port/` and `.families.json` are committed.
+> Two things shipped together because the prune's unit of work — a group's library — is
+> exactly the thing the numbering renames. Doing them separately would have migrated the same
+> files twice.
 >
 > | decision | answer |
 > |---|---|

@@ -1,8 +1,16 @@
+---
+verified: 2026-09-23
+---
 # PLAN — Restructure the Ask-CK tree ahead of the Svelte front-end branch (2026-09-11)
 
 > ## Status (read first)
 >
-> **EXECUTED 2026-09-11, batches 0–9 incl. 6b ✅ (21 commits, gate green after every sweep). `pt_media.py` stays in `ask-ck/tools/` (Terrence, §7); `upload_refined.py` and `cli_lookup.py` sit in their page directories. Also done the same day, Terrence's files: the root lab `CLAUDE.md` (two paths), the stray-script hook's message, and device-testing's `grep-shim-honors-gitignore` memory still name `tool/` / `ask-ck/var/`.** Originally IN PROGRESS from 2026-09-11 (server stopped by Terrence's go). Every decision below is
+> **RETIRED 2026-09-23 → `archive/plans/`** (executed). This file still holds the retirement
+> rule in §1 — *"plans whose status header says complete → `archive/plans/`"* — which is how
+> it and eight other plans moved on 2026-09-23. Q-a is confirmed in git: `TESTBOX-ACCESS.md`
+> and `TB470-HOST-NETWORKING.md` are symlinks into `../device-testing/`.
+>
+> **EXECUTED 2026-09-11, batches 0–9 incl. 6b ✅ (21 commits, gate green after every sweep). `pt_media.py` stays in `ask-ck/tools/` (Terrence, §7); `upload_refined.py` and `cli_lookup.py` sit in their page directories. Also done the same day, Terrence's files: the root lab `CLAUDE.md` (two paths), the stray-script hook's message, and device-testing's `grep-shim-honors-gitignore` memory — none of the three names `tool/` or `ask-ck/var/` any more, except as marked history (checked 2026-09-23).** Originally IN PROGRESS from 2026-09-11 (server stopped by Terrence's go). Every decision below is
 > Terrence's, taken in conversation on 2026-09-11 from a full inventory (git last-commit dates,
 > live references, server anchors). §6's three questions were answered: Q-a move + symlink,
 > Q-b `functions/test-composer/`, Q-c the batch-7 table as written. Batch progress is marked
@@ -71,7 +79,7 @@
 ### ✅ Batch 5 — `ask-ck/functions/<page>/`
 `objective-drafting/` → `functions/generator/`; `pytest-create/` → `functions/pytest-creator/`; `test-composer/` → `functions/test-composer/`; new empty `functions/zephyr-tool/` (with a README stub). Sweep: `paths.py` (5 anchors), `main.py` comments, `models.py:205`, the PROGRESS.md path in CLAUDE.md / both skills / README / memories, the process-doc path in the `pipeline-layer-contract` memory.
 
-### Batch 6 — `ask-ck/tools/` and the page script dirs  *(server stopped)*
+### ✅ Batch 6 — `ask-ck/tools/` and the page script dirs  *(server stopped)*
 | from `tool/` | to |
 |---|---|
 | `upload_refined.py` | `frontend/ck-main/current/generator/` (Export/Upload button → `wizard/export.py` subprocess) |
@@ -100,7 +108,7 @@ Sweep: relative imports in all 23 modules and `index.html`'s `<script type=modul
 ### ✅ Batch 9 — Svelte scaffold
 `cd ask-ck/frontend/ck-main && npm create vite@latest svelte -- --template svelte && cd svelte && npm install`. Adds `svelte` 5.57, `vite` 8.3, `@sveltejs/vite-plugin-svelte` in its own `package.json`; `.gitignore` gets `ask-ck/frontend/ck-main/svelte/node_modules/` and `dist/`. Serving the built `dist/` from FastAPI is the design branch's first task, not this plan's.
 
-### Final sweep
+### ✅ Final sweep
 `check_memory_refs.py`, both skills, CLAUDE.md, README doc map, `ARCHITECTURE.md`, SERVER-README paths, `paths.py` docstring tree, CHANGELOG entry, PROGRESS entry. Then Terrence restarts the server (`ck`) and pushes.
 
 ## 4. Order and the server window

@@ -1,6 +1,16 @@
+---
+verified: 2026-09-23
+---
 # PLAN — Seat setup served from Ask-CK, a Windows-capable agent, and per-seat LLM mode
 
 > ## Status (read first)
+>
+> **RETIRED 2026-09-23 → `archive/plans/`** (executed; the rule is
+> `archive/plans/PLAN-restructure-2026-09-11.md` §1). Re-checked the same day: the `X-CK-LLM`
+> resolver, the two-backend allowlist (`claude_code` and `grok_cli` retired by name),
+> `set_site_default_llm`, the `/setup/` router, the Windows-agent fixes from §9 and the
+> retired-choice notice are all live, and `claude-update.timer` is still active on the host
+> (D10). **Never observed:** §9 step 6, a reboot of a seat with autostart on.
 >
 > **Archive note (2026-09-11):** the result directories and records this plan cites — `autopilot/`, `comparison/`, `judging/`, `FINDINGS-*.md`, `NEXT-SESSION-REVIEW.md`, `ADVERSARIAL-REVIEW-BACKLOG.md`, `SURVEY-step4-step5.md`, the nginx examples — now live under `archive/` (PLAN-restructure-2026-09-11, batch 1). Paths in the body are pre-move.
 >
@@ -481,7 +491,7 @@ each is in the last column, marked *Resolved*.
 > credentials survived; `claude auth logout` + re-run then prompted and passed (step 3 ✔).
 > "update skipped: job in flight (1)" appeared during a live call (step 3b ✔). Step 6 (reboot)
 > not run — autostart was declined. Terrence's raw notes and the failure screenshot:
-> `ask-ck/plans/demo-2026-09-11/` (`seat-notes.txt`, `unit-failures.png`).
+> `archive/plans/demo-2026-09-11/` (`seat-notes.txt`, `unit-failures.png`).
 >
 > **Second seat, 09:25–09:32 (10.33.22.18, fresh browser, autostart = yes).** With the fixes
 > above served: setup fetched 09:26:22, agent 09:27:45, **the page opened itself with

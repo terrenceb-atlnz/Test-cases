@@ -1,3 +1,6 @@
+---
+verified: 2026-09-23
+---
 # PLAN — Authentication + per-case session locking (multi-user Ask-CK)
 
 > ## Status (read first)
@@ -49,6 +52,12 @@
 > today is zero. That converts this from a live risk into a **prerequisite for the next
 > hosting step** — nothing here is urgent, but nothing here is optional either if the tool
 > is going to be used by more than one engineer.
+>
+> > ⚠ **Superseded 2026-09-23 (checked on the host):** the next hosting step has happened.
+> > `run.sh` still defaults to `127.0.0.1`, but the hosted `ask-ck.service` sets
+> > `Environment=HOST=0.0.0.0` and the server listens on `0.0.0.0:8000` — LAN-exposed since
+> > 2026-08-26 (memory `askck-lan-hosting`) and used by several seats. Phases 2–3 are still
+> > unbuilt, so that LAN deployment has **no authentication**. Phase 1's locking holds either way.
 
 ---
 

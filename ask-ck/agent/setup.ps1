@@ -13,7 +13,7 @@ What it does, every time it runs (re-running is how you update or repair):
              optionally register it to start at logon, and confirm it is up + logged in
 then it opens Ask CK, which runs the final, authoritative check itself.
 
-Contract + design: ask-ck/ck-facelift/PLAN-seat-setup-and-per-seat-llm.md §3.3.
+Contract + design: archive/plans/PLAN-seat-setup-and-per-seat-llm.md §3.3.
 
 Knobs (environment variables, because `irm | iex` cannot take parameters):
   $env:CK_SERVER = 'http://host:port'    the Ask CK server (the served copy has it filled in)

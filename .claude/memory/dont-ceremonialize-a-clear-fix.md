@@ -4,7 +4,7 @@ description: When removing a false/misplaced check, fix it plainly — don't fra
 metadata:
   node_type: memory
   type: feedback
-  verified: 2026-09-03
+  verified: 2026-09-23
 ---
 
 Removing the setup unit's arrival parse (a false `IndentationError` reported against a

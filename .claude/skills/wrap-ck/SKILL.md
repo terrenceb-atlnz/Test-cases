@@ -1,6 +1,8 @@
 ---
 name: wrap-ck
 description: Close out an Ask-CK session — reconcile the docs against what actually shipped, sweep for staleness, confirm the gate and invariants, then commit to main (Terrence pushes). Use at the end of a work session, or when asked to "sync the docs", "wrap up", "close the loop", or to record what shipped before finishing. Pairs with /orient-ck, which establishes state at the start of the session.
+metadata:
+  verified: 2026-09-23
 ---
 
 # Wrap (Ask-CK)
@@ -68,12 +70,19 @@ Convert relative dates to absolute ("last Tuesday" is useless in three months).
 Find them by glob, never by a list written down here:
 
 ```bash
-ls ask-ck/plans/PLAN-*.md
+ls ask-ck/plans/PLAN-*.md          # live plans; completed ones are in archive/plans/
 ```
 
 If a plan advanced or a decision changed, update its **status header** (mark phases done, add
 a superseded / final-state note). Leave the historical body intact — add banners rather than
-deleting. Any doc describing a retired pipeline or deleted file must carry a
+deleting.
+
+**A plan whose status header now says complete moves to `archive/plans/` in the same wrap**
+(`git mv`; Terrence, 2026-09-23). Add one retirement line to its header naming anything still
+open (a deferred decision, an unobserved step), then grep for its old path and re-point the live
+docs that cite it. Leave backend `CK_server/*.py` citations alone — a save restarts production —
+and list them in the `PROGRESS.md` entry instead. The 2026-09-23 sweep found nine completed plans
+still sitting in `ask-ck/plans/`, which is why this is a rule and not a judgement call. Any doc describing a retired pipeline or deleted file must carry a
 "⚠ Historical / superseded" banner pointing at the current source of truth (`ask-ck/db/ck.db`).
 
 ## 5. Memory — reconcile only durable facts
@@ -101,7 +110,7 @@ record what only mattered inside this conversation.
 ### 5a. Re-verify the memories you actually USED — this is the important half
 
 **For every memory you read or relied on this session, confirm its claims still hold, and
-stamp it.** Not all 64 — you have no basis to judge the ones you never touched. The ones you
+stamp it.** Not all of them — you have no basis to judge the ones you never touched. The ones you
 leaned on are exactly the ones where you have just been in the code and *can* tell.
 
 A memory is meant to read as **current truth**. That is what separates it from `SESSION_STATE.md`

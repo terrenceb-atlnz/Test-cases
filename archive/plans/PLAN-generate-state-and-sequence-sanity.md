@@ -1,6 +1,18 @@
+---
+verified: 2026-09-23
+---
 # PLAN — Generate state gating, review↔code binding, sequence sanity, library-aware review
 
 > ## Status (read first)
+>
+> **RETIRED 2026-09-23 → `archive/plans/`** (complete; the rule is
+> `archive/plans/PLAN-restructure-2026-09-11.md` §1). Re-checked the same day: `_code_hash`,
+> `_gen_state`, `_require_units_current`, `_rechunk_from_script`, `/rechunk`, `/reset_generate`
+> and the `_pt_domain_facts.jinja` include are live. **The tests landed under different names
+> than the slices below propose:** reset_generate in `tests/test_pt_gen_state.py` and
+> `tests/js/pt-gen-state.spec.js`; slice C in `tests/test_pt_sequence_sanity.py` and
+> `tests/js/pt-seq-claims.spec.js`. `test_pt_reset_generate.py`, `pt-reset-generate.spec.js`,
+> `test_pt_sequence_sanity_prompt.py` and `test_pt_extract_sequence_claims.py` never existed.
 >
 > **BUILT 2026-09-21 — every slice shipped the same day** (D `56c7022`; A + B + reset_generate `fc8348b`; C `f75581b`; docs in the wrap commit). Gate 1634 passed / 2 known reds. One deviation from the order below: A, B and reset_generate landed in ONE backend save and ONE commit, to bounce production once instead of three times. Found and fixed on the way: `save_sequence` dropped `kind` on every Save Edits.
 >

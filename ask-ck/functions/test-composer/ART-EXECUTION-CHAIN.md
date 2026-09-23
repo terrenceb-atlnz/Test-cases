@@ -1,3 +1,6 @@
+---
+verified: 2026-09-23
+---
 # ART Execution Chain — how ATPyLib runs, in dependency order
 
 > **Purpose.** Test Composer will automate execution of the PyTest files produced by
@@ -6,7 +9,8 @@
 > works — *first X so we can do Y* — from run-control config down to a single testset.
 >
 > **Status:** traced from the live framework on tb470 (`/home/st-art/framework/`,
-> READ-ONLY — see [[testbox-framework-readonly]]) on 2026-07-21: `config_gen.py`,
+> READ-ONLY — invariant 3 in the repo's `CLAUDE.md`) on 2026-07-21 (the functions named below were
+> re-checked against the NFS clone `DeviceSkrips/framework/` on 2026-09-23): `config_gen.py`,
 > `Setup.py`, `runAll.py`, `runTestSuite.py`, `ATTestSet.py`, `ATTestCase.py`, plus a
 > real 101-case run log. Where something is inferred rather than read, it says so.
 >
@@ -136,8 +140,10 @@ chain collapses to:
 3. *(optional)* firmware already loaded (skip build-load unless testing a build).
 4. `sudo python3 test-<suite>.<set>.py -s <setup> -v` → log → SFTP back → parse.
 
-**On tb470 right now:** neither `configs/tb470.setup` nor `configs/tb470.cfg` exists —
-both are Terrence-side prerequisites (topology = physical wiring). The tool generates
+**On tb470 (2026-09-23):** `configs/tb470.setup` exists — since 2026-07-27, and it is
+*generated* from `bench-state.md` in the device-testing repo, never hand-edited. Whether
+`configs/tb470.cfg` exists has not been checked. Both are environment inputs (topology = physical
+wiring), not something this tool writes. The tool generates
 the test SCRIPT only; setup/config are environment inputs.
 
 ## What Test Composer should reuse vs emulate
@@ -157,6 +163,7 @@ the test SCRIPT only; setup/config are environment inputs.
       **[`ask-ck/functions/pytest-creator/SETUP-FILE-REFERENCE.md`](../pytest-creator/SETUP-FILE-REFERENCE.md)**:
       a real worked example plus every section `Setup.py` accepts, including `[stack]`,
       `[configured_stackport]`, and the `tb-swi_X = ethN-portA.B.C` cabling convention.
-      Writing `configs/tb470.setup` still needs tb470's device list and cabling.
+      `configs/tb470.setup` has existed since 2026-07-27 (generated from device-testing's
+      `bench-setup/bench-state.md`).
 - [ ] Whether `noconf` behavior matters for our generated tests (do we want the
       framework's default-config/power-cycle hygiene, or skip it for speed?).

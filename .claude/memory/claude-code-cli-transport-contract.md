@@ -3,7 +3,7 @@ name: claude-code-cli-transport-contract
 description: The Claude CLI contract the two AGENTS implement (ck_agent.py / ck-agent.ps1; pinned against tests/fixtures/cli_stream_*.jsonl, pwsh in the gate) — --tools "" + stream-json + --system-prompt (REPLACE; by FILE on Windows — 32,767-char command line) + neutral cwd + --no-session-persistence + thinking cap on long calls + failure detail from the result event; shared text must be the SYSTEM prompt or the cache never hits
 metadata:
   type: project
-  verified: 2026-09-11
+  verified: 2026-09-23
 ---
 
 **Re-scoped 2026-09-10 — this contract lives in the AGENTS.** The server-side transport that
@@ -59,6 +59,11 @@ same >64 KiB stdin safety, same CompletedProcess shape. **Tests that fake the CL
 monkeypatch `llm._run_cli` (kwargs `input_text`, `timeout`), not `llm.subprocess.run`** —
 all 25 transport-contract pins passed unchanged after the fixture repoint. Everything below
 still binds: it is about what reaches the CLI and how its reply parses, not how it is spawned.
+*(Superseded 2026-09-11, checked 2026-09-23: `llm._run_cli`, `_parse_cli_stream` and
+`_cli_neutral_cwd` are gone — nothing server-side spawns a CLI any more. Server tests fake the
+agent bridge instead (`agent_jobs.registry.submit`, `tests/test_claude_agent_dispatch.py`); the
+agents' own spawn, `ck_agent.run_claude`, is pinned against the captures by
+`tests/test_ck_agent_transport.py`.)*
 
 `claude -p` is the Claude **Code** CLI — an agent, not a completion endpoint. Four things must
 be true or it silently corrupts output (all found + fixed 2026-07-30, `llm.py`):

@@ -1,6 +1,17 @@
+---
+verified: 2026-09-23
+---
 # PLAN — Guardrail `fix_units` so it can only touch what a finding actually names
 
 > ## Status (read first)
+>
+> **RETIRED 2026-09-23 → `archive/plans/`** (complete; the rule is
+> `archive/plans/PLAN-restructure-2026-09-11.md` §1). Every guardrail symbol named below was
+> re-checked in `routers/pytest_create.py` the same day. **"Remaining: the proof" is closed as
+> far as this plan goes:** the proof ran on 2026-09-15 (Generate → Assemble produced the 9 lint
+> errors that became `PLAN-self-healing-generation.md`; the manual fix run exposed the
+> refused-fix bug, fixed that day). The follow-on acceptance run moved to the self-healing plan,
+> and the T44297 session it would have finished on was wiped by the 2026-09-16 rewind (`e35bbb2`).
 >
 > **TRANCHE 1 SHIPPED 2026-09-14 — G1 ✅, G5 ✅ (with follow-ups #4, the `kind` enum), G8(a) ✅;
 > G4 ✅ the same day (`_resync_chunks`: only a unit whose on-screen text differs from its stored

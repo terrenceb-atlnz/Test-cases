@@ -1,3 +1,6 @@
+---
+verified: 2026-09-23
+---
 # PLAN — End-to-end pipeline repair: from "no objective" to "a test actually ran"
 
 > ## Status (read first)
@@ -22,6 +25,28 @@
 > | **Phase 4** (CLI grounding) | ✅ **DONE 2026-08-04** — all of 4.1–4.6, read-time in `ask-ck/frontend/ck-main/current/pytest-creator/cli_lookup.py` (`ck.db` untouched). Over the 53 refined cases: zero-detection **15 → 10**, commands-but-no-output **19 → 0**, real output/usage **19 → 43**; 5 cases fixed, 0 regressed. Both verification targets pass. 40 tests, 11 mutations all caught. **4.4 deviates** — `tables` cannot replace the speed-forms prose, only one false sentence in it; see `DECISIONS-FOR-REVIEW.md` §13 D-28. |
 > | **Phases 0, 1, 3, 5, 6, 8, 9, 10, 12** | Not started. |
 > | **Phase 11.3 – 11.5** | Not started. 11.4 needs hardware. |
+>
+> **Status check 2026-09-23 (spot-checked against the code).** The rows above still hold, with
+> these shifts since they were written:
+> - **Still undone, confirmed:** 5.1 (`_extract_first_balanced` still walks inward to the first
+>   inner element when the outer object is broken); 8.1 (a fragment's `stk_*` name still reaches
+>   `_detect_topology` and renders `setup.init_stk(...)` into the frame); 9.1c (Lint still writes
+>   the textarea to disk — `ptPushCodeEdits`' `writeFiles` is still dead); 10.4 (preflight is
+>   still not called from the run path); 12.4's `# ` bypass in `guard_db_only.py`; 0.1 (no
+>   coverage register). **11.4 — no generated script has ever run on hardware.**
+> - **7.6 "withdrawn" was overtaken:** per-unit ("chunked") generation was BUILT 2026-09-02 on
+>   different grounds — wall clock per call, partial progress, review quality
+>   (`PLAN-pytest-creator.md` §9). The withdrawal's premise, that there is no output ceiling,
+>   still stands.
+> - **Moot by later retirements:** 11.3 (a `pt_autopilot` hardware phase) and 12.0 / 12.2's
+>   "re-target `pt_matrix_judge`" — `pt_autopilot` and the judge harnesses were retired
+>   2026-09-11, and judging is in-context by Terrence's preference. 10.1 / 10.3 / 10.5 / 10.7
+>   assume the `[misc]` contract and `pt_profiles.py`, both retired 2026-09-21
+>   (`archive/plans/PLAN-frame-framework-discovery.md`); 10.2's "cannot determine" is partly
+>   there — the discovery preflight states that media is unknowable offline.
+> - **Phase 9's intent landed for PER-UNIT fixes only** (a unit fix that alters a frozen line
+>   or adds a lint error is refused — `archive/plans/PLAN-fix-units-guardrails.md`, 2026-09-14).
+>   The whole-script `fix_script` still has no worse-than check.
 >
 > ### 2026-08-04 — decisions reviewed with Terrence; six changed
 >

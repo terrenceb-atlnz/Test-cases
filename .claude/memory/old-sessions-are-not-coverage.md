@@ -3,7 +3,7 @@ name: old-sessions-are-not-coverage
 description: A green suite over a corpus of STORED sessions proves nothing about a new flow — every session predating the change still carries the old shape, so a gate that broke for new work stays green
 metadata:
   type: feedback
-  verified: 2026-08-31
+  verified: 2026-09-23
 ---
 
 **A corpus of stored sessions is fixture data frozen at the moment each was written. It is not

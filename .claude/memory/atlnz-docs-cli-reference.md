@@ -1,7 +1,7 @@
 ---
 name: atlnz-docs-cli-reference
 description: "AlliedWare Plus CLI reference in ck.db: since 2026-09-08 built from ONE combined docs zip (ss-on-<product> classes), not 37 per-device zips; renewable tables, stop→load→start"
-verified: 2026-09-09
+verified: 2026-09-23
 metadata: 
   node_type: memory
   type: reference

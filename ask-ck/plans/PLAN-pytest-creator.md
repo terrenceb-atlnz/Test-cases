@@ -1,5 +1,23 @@
+---
+verified: 2026-09-23
+---
 # PyTest Creator — Implementation Plan & Progress Tracker
 
+> **Status check 2026-09-23 (verified against the code and the logs).** Read this before the
+> checklist and "Remaining" list below, which predate most of it:
+> - **Done since written:** "Remaining" #1 (enrichment finished 2026-07-15; the tool was retired
+>   2026-09-11), #2 (real walkthroughs, many times over), #4 (moot — the index files were deleted
+>   and live in `ck.db`), #6 (§9, per-unit generation, BUILT 2026-09-02). The unticked Phase B
+>   milestone is met: lint-clean scripts exist (`generated/9001_Port/test-9001.33234.py`).
+> - **Real-model runs have happened:** §9.8/§9.10/§9.12/§9.13's "not yet run against a real
+>   model" lines are dated — per-unit generation, Pass C review and Fix ran on T44297
+>   (2026-09-08/09/15/16) and T33234 (2026-09-17/18).
+> - **Still open:** Phase C's first execution on a real testbox (see `PLAN-pytest-testing.md` —
+>   it has never happened); §8 server-side setup templates (not built — and §8.4's `[misc]`
+>   claims and `pt_profiles.check_profile` were retired 2026-09-21, so its matching half needs
+>   re-design before it is built); `.setup` parsing inside `CK_server` (still only
+>   `ask-ck/tools/pt_preflight.py` reads one).
+>
 > Living tracker for the PyTest Creator build-out. Update the checklist and Progress Log
 > as milestones land (same convention as `archive/plans/PLAN-facelift.md`).
 > Approved: 2026-07-14.
@@ -18,7 +36,7 @@
 > harnesses (`ask-ck/tools/pt_model_matrix.py`, `ask-ck/tools/pt_judge.py`, `ask-ck/tools/pt_matrix_judge.py`) and the headless batch
 > driver (`ask-ck/tools/pt_autopilot.py`) were **retired** as creation-time tooling — every LLM call now starts in a
 > browser and runs on the org vLLM or the user's own Claude seat. See
-> `plans/PLAN-seat-setup-and-per-seat-llm.md` §11. Their result directories stay as records.
+> `archive/plans/PLAN-seat-setup-and-per-seat-llm.md` §11. Their result directories stay as records.
 >
 > **Objective-in-Generate note (2026-07-29)**: the Generate step now bakes the refined objective
 > into the skeleton as a `# ==== OBJECTIVE ====` header (rides into both the emitted `.py` and the

@@ -3,7 +3,7 @@
 prompts and lints read from ck.db (`json_docs.framework_surface`) — and add the one thing the
 original harvest never recorded: the FIELDS of every scapy layer in `framework.ATPackets`.
 
-WHY (D4 of ask-ck/plans/PLAN-fix-units-guardrails.md, 2026-09-15): fix run 5's tc6 read
+WHY (D4 of archive/plans/PLAN-fix-units-guardrails.md, 2026-09-15): fix run 5's tc6 read
 `getattr(basicLayer, 'port_desc', None)` off `lldp_basic`, a layer with no such field. The
 default made the read silently None and the test passed on nothing. The surface doc knew the
 layer only as a class with one `guess_payload_class` method, so no check could tell a real

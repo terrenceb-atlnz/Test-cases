@@ -4,7 +4,7 @@ description: "Server returns HTTP 200 for a write that outside readers never see
 metadata: 
   node_type: memory
   type: project
-  verified: 2026-09-10
+  verified: 2026-09-23
   originSessionId: da9b3bee-f2e0-4c80-972d-0db43518083d
   modified: 2026-07-27T04:08:16.561Z
 ---
@@ -69,11 +69,12 @@ the service first or use a copy; read-only URI opens are safe); verify a write f
 base+`-wal`+`-shm`, never a live open. Runbook: `.nfs*` orphans in `ask-ck/db/` + zero server
 locks = find the second opener, snapshot the cache-held session via
 `GET /api/pytest-create/session/<key>` if you need its rows, then `ck reload`/restart. Plan record:
-`ask-ck/plans/PLAN-t44297-pass-followups.md` #5; WAL triage: [[ckdb-corrupt-wal-recovery]];
+`archive/plans/PLAN-t44297-pass-followups.md` #5; WAL triage: [[ckdb-corrupt-wal-recovery]];
 the isolation authority: [[ckdb-wal-and-test-isolation]].
 
 **Still open (the original symptom's other half):** the thread-local connection cache with no
 staleness check, and `_pt_persist` — it now raises (2026-07-28) but the reload-on-newer-DB path
-still prints. Related debt: PLAN-pytest-testing §9.4 dual-instance sessions.
+still prints (it logs a reload line; checked 2026-09-23). The related PLAN-pytest-testing §9.4
+dual-instance debt was closed by the case-locking `rev` compare-and-swap (2026-07-29).
 
 See [[part3-grading-session]].

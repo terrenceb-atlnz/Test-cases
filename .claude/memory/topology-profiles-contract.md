@@ -31,7 +31,7 @@ retired and what replaced it — do not rebuild it.
   the file.
 
 **What the frame does now** (`pt_script_template.py.jinja`, plan
-`ask-ck/plans/PLAN-frame-framework-discovery.md`, spec `TOPOLOGY-PROFILES.md` rewritten):
+`archive/plans/PLAN-frame-framework-discovery.md`, spec `TOPOLOGY-PROFILES.md` rewritten):
 `dut = init_swi('swi_a')`, then `init_stk(_stk.name)` when `get_stack()` reports one (ports
 belong to members, commands go to the master); `_ck_discover` walks `get_all_port_links()`,
 skips stack members, takes the TestBox far end as `tb`, and classifies each partner link from

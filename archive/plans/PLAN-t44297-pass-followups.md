@@ -1,11 +1,25 @@
+---
+verified: 2026-09-23
+---
 # PLAN — T44297 pass follow-ups: the seven issues one full fix loop exposed
 
 > ## Status (read first)
 >
-> **PROPOSED 2026-09-09 — #5 ROOT-CAUSED AND FIXED 2026-09-10; #4 BUILT 2026-09-14 (with
-> guardrails tranche 1: the 7-value enum with `structural`, off-enum → `other` + `kind_raw`, the
-> template/server enum pinned identical); **#1–#3 BUILT 2026-09-14** with guardrails G7 (one step-5 UI
-> pass, per D6): error/held timestamps, the per-unit Generate cue, the legend rewritten; #6 unimplemented.**
+> **RETIRED 2026-09-23 → `archive/plans/`** (complete; the rule is
+> `archive/plans/PLAN-restructure-2026-09-11.md` §1). One decision was deferred rather than
+> taken and outlives this file: **D5-1**, whether to move `ck.db` off NFS. Since the 2026-09-10
+> root cause it is a hosting/performance question only, not data safety, and it was left
+> "defer; not urgent".
+>
+> **COMPLETE 2026-09-22 — all seven items closed** (verified 2026-09-23). #5 ROOT-CAUSED AND
+> FIXED 2026-09-10; #4 BUILT 2026-09-14 (with guardrails tranche 1: the 7-value enum with
+> `structural`, off-enum → `other` + `kind_raw`, the template/server enum pinned identical);
+> **#1–#3 BUILT 2026-09-14** with guardrails G7 (one step-5 UI pass, per D6): error/held
+> timestamps, the per-unit Generate cue, the legend rewritten; **#6 COMPLETE 2026-09-22**
+> (`c0d6a3e`, `49bd3d4`), split out to `PLAN-durable-agent-review.md`, now its authority;
+> **#7 COMPLETE** via `PLAN-fix-units-guardrails.md`.**
+>
+> Originally PROPOSED 2026-09-09.
 > Written at Terrence's request as the plan
 > for the issues found while driving AWPTCM-T44297 through generate → review → fix on
 > 2026-09-09 (the first full loop on the ART-frame shape). This file is the **authority for
@@ -129,7 +143,7 @@ server's — the two must not drift. → **D4**.
 
 ## #6 — Review(LLM) must not depend on a live SSH/browser session
 
-> **2026-09-22 — SPLIT OUT to `ask-ck/plans/PLAN-durable-agent-review.md`, which is now the
+> **2026-09-22 — SPLIT OUT to `archive/plans/PLAN-durable-agent-review.md`, which is now the
 > authority for this item.** D6 was answered there (D6a: no TTL; D6b: keep the review, marked
 > stale; D6c: name what broke). **COMPLETE 2026-09-22** — the failure taxonomy, the stale-review
 > keep, the ck-agent caller watchdog, and saving a result that arrives after the caller gave up.
