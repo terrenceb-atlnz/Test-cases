@@ -21,6 +21,37 @@ current working thread see
 > `ask-ck/ck-facelift/`, `pytest-create/` and `CK-main/` plan paths moved to `ask-ck/plans/` on 2026-09-11 and, once complete, to `archive/plans/`.
 > `js-tests/` → `tests/js/`, `e2e/` → `tests/e2e/`, `static/js/` → `ask-ck/frontend/ck-main/current/<page>/` (2026-09-11).
 
+## 2026-09-24 (later) — the CLI prompt block: no caps, differences instead of reprints, table scope restored, syntax classified by page section
+
+Terrence measured each remaining limit with Claude, then ruled on them. The live `ck.db` was
+reloaded once for this entry: 3,535 rows, 3,415 commands, 850 with sample output (was 847),
+and none lost.
+
+- **No caps except the output budget.** The limits on syntax lines, families, usage examples
+  and Default/Mode notes, and `detect_commands`' default of 12, are gone. *Why:* each hid
+  called information, e.g. 9,062 example lines (often the `no` form), 367 syntax forms, and 273
+  notes' tails. The 8/14-line output budgets stay: *"that's different"*. They carry the
+  documented prompt-size reason.
+- **Differences, not reprints.** Uncapped, the "(on …)" line reprinted every other variant's
+  whole syntax: `show ip route database` spent 11.5k chars to say one bracket differs. It now
+  reads `(on <families>: has … | lacks …)`. Terrence asked for the other commands to be swept
+  for the same repetition. That sweep deduped repeated syntax forms (51 commands) and found
+  near-duplicate tables.
+- **Table scope restored.** The loader never read a TABLE's own per-product class, so since the
+  combined build (2026-09-08) 454 tables have had no product context. `bandwidth` (wireless AP
+  radio) showed two tables with nothing to say which products lack 160 MHz. Scoped tables now
+  carry an "[On …]" row, and the prompt renders one table plus the other scope's difference:
+  `(on tq6702r: lacks 160 | 160MHz bandwidth)`.
+- **Syntax classified by page section.** About 330 blocks were stored as syntax by shape alone:
+  AMF-prompt examples, bare mode prompts, `% …` errors, `(y/n)` confirmations and output
+  tables. The loader now stores each block's section (`pre_sections`), and only a Syntax
+  section can yield syntax. The prompt matcher reads AMF prompts and 63-char mode names.
+  *Why sections, not the build's `zccmdnamesyntax` class:* 1,381 pages carry no such class at
+  all. Wrapped syntax forms now render on one line.
+- **Kept, on Terrence's ruling:** no-product prose in `notes` (*"keep it"*; it labels itself).
+- **Not measured:** `<pre>` blocks inside a per-product `<div>`/`<section>` may have lost their
+  scope the same way the tables did. The loader reads only a block's own class.
+
 ## 2026-09-24 — B2 closed: no-product table rows dropped, and the legal-value tables reach the prompt in full
 
 Terrence supplied the 2026-09-24 docs build ("up to date as of today"). It parsed to the same

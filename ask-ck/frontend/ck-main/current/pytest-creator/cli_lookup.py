@@ -106,8 +106,17 @@ def _conn() -> sqlite3.Connection:
 # Anchored and length-bounded so it cannot fire on prose containing '>' (a syntax
 # alternation like `{a|b} > c` has no leading bare hostname token) and requires something
 # after the sigil, so a bare `awplus#` trailing line is not read as a command.
+# `(?:\[\d{1,4}\])?` (2026-09-24): an AMF node's prompt carries its node count,
+# `ATMF_NETWORK[3]#` / `test[10](config)#` / `test(config)[10]#`; without it those examples
+# were filed as syntax.
+# The mode name may run to 63 chars (was 31): `(config-wireless-network-passpoint-hs20)#`
+# is 38, and its example lines were filed as syntax too.
 _PROMPT_ANY_RX = re.compile(
-    r"^[ \t]*[A-Za-z][\w.\-]{0,31}(?:\([^)\n]{0,31}\))?[ \t]*[#>][ \t]*(?=\S)", re.M)
+    r"^[ \t]*[A-Za-z][\w.\-]{0,31}(?:\[\d{1,4}\])?(?:\([^)\n]{0,63}\))?(?:\[\d{1,4}\])?[ \t]*[#>][ \t]*(?=\S)", re.M)
+# A prompt with NOTHING after it (`awplus(config-ip-ext-acl)#`): the docs show it to name the
+# mode a command runs in. A block made only of these is neither syntax nor an example.
+_BARE_PROMPT_RX = re.compile(
+    r"^[ \t]*[A-Za-z][\w.\-]{0,31}(?:\[\d{1,4}\])?(?:\([^)\n]{0,63}\))?(?:\[\d{1,4}\])?[ \t]*[#>][ \t]*$")
 
 # Placeholder metacharacters that mark a SYNTAX template rather than device output.
 _PLACEHOLDER_RX = re.compile(r"[<>{}|\[\]]")
@@ -162,23 +171,44 @@ def real_command_name(command: str, syntax: List[str]) -> Optional[str]:
     return None
 
 
-def reclassify(pre_blocks: List[str]) -> tuple:
+def _in_syntax_sections(sections) -> bool:
+    """Copy of `harvest_cli_docs.in_syntax_sections` — a test pins that they agree."""
+    return bool(sections) and any(s and "syntax" in s.lower() for s in sections)
+
+
+def _outside_syntax_is_output(lines: List[str], section: str) -> bool:
+    """Copy of `harvest_cli_docs.outside_syntax_is_output` — a test pins that they agree.
+    Outside a Syntax section a promptless block is never syntax: output (>=3 lines; a
+    placeholder-dense one only under an Output heading), or dropped."""
+    if len(lines) < 3:
+        return False
+    dense = sum(1 for ln in lines if _PLACEHOLDER_RX.search(ln)) / len(lines) > 0.4
+    return not dense or section.lower().startswith("output")
+
+
+def reclassify(pre_blocks: List[str], sections: Optional[List[Optional[str]]] = None) -> tuple:
     """Re-split raw <pre> blocks into (syntax, examples, sample_output).
 
     Supersedes `harvest_cli_docs.classify()` at read time. Two differences, both defects
     2 and 3 above: any hostname counts as a prompt, and a promptless block that looks like
     device output is treated as output instead of syntax.
+
+    `sections` (2026-09-24, the row's `pre_sections`): when given, only a block in a Syntax
+    section can be syntax. ~500 blocks — example replies, AMF-prompt examples, bare mode
+    prompts, `% …` errors, output tables — were filed as syntax by shape alone. A bare mode
+    prompt is dropped either way.
     """
     syntax: List[str] = []
     examples: List[dict] = []
     best: Optional[str] = None
+    use_sections = _in_syntax_sections(sections)
 
     def _consider(text: Optional[str]) -> None:
         nonlocal best
         if text and (best is None or len(text) > len(best)):
             best = text
 
-    for b in pre_blocks or []:
+    for i, b in enumerate(pre_blocks or []):
         if not b or not b.strip():
             continue
         if _PROMPT_ANY_RX.search(b):
@@ -191,6 +221,14 @@ def reclassify(pre_blocks: List[str]) -> tuple:
 
         # No prompt anywhere. Output, or a syntax template?
         lines = [ln for ln in b.split("\n") if ln.strip()]
+        if all(_BARE_PROMPT_RX.match(ln) for ln in lines):
+            continue                               # a mode prompt on its own
+        if use_sections:
+            sec = (sections[i] if i < len(sections) else None) or ""
+            if "syntax" not in sec.lower():
+                if _outside_syntax_is_output(lines, sec):
+                    _consider(b.rstrip())
+                continue                           # outside a Syntax section: never syntax
         if len(lines) < 3:
             syntax.append(b)                       # too short to judge — stays syntax
             continue
@@ -201,6 +239,16 @@ def reclassify(pre_blocks: List[str]) -> tuple:
         _consider(b.rstrip())                      # multi-line, plain: device output
 
     return syntax, examples, best
+
+
+def _sections_col(conn: sqlite3.Connection, alias: str = "") -> str:
+    """`pre_sections` as a select expression, or NULL where the column does not exist (a
+    database loaded before 2026-09-24, or a test's minimal in-memory corpus)."""
+    try:
+        cols = {r[1] for r in conn.execute("PRAGMA table_info(cli_commands)")}
+    except sqlite3.Error:
+        cols = set()
+    return f"{alias}pre_sections" if "pre_sections" in cols else "NULL"
 
 
 def _alias_index(conn: sqlite3.Connection) -> dict:
@@ -217,19 +265,19 @@ def _alias_index(conn: sqlite3.Connection) -> dict:
     idx: Dict[str, dict] = {}
     try:
         rows = conn.execute(
-            "SELECT command, syntax, pre_blocks FROM cli_commands "
+            f"SELECT command, syntax, pre_blocks, {_sections_col(conn)} FROM cli_commands "
             "WHERE command IS NOT NULL").fetchall()
     except sqlite3.OperationalError:
         return {}
 
-    for cmd, syn, pre in rows:
+    for cmd, syn, pre, secs in rows:
         try:
             syn_list = json.loads(syn or "[]")
         except Exception:
             syn_list = []
         if pre:
             try:
-                syn_list = reclassify(json.loads(pre))[0] or syn_list
+                syn_list = reclassify(json.loads(pre), _loads_list(secs) or None)[0] or syn_list
             except Exception:
                 pass
         n = norm_cmd(cmd)
@@ -288,7 +336,7 @@ def lookup(command: str, product: Optional[str] = None,
     if product:
         rows = c.execute(
             "SELECT k.content_sha, k.command, k.page, k.cmd_group, k.syntax, "
-            "       k.examples, k.sample_output, k.pre_blocks, k.tables, k.notes "
+            f"       k.examples, k.sample_output, k.pre_blocks, k.tables, k.notes, {_sections_col(c, 'k.')} "
             "FROM cli_commands k JOIN cli_command_products p "
             "  ON p.content_sha = k.content_sha "
             f"WHERE k.command IN ({ph}) AND p.product = ?",
@@ -296,11 +344,11 @@ def lookup(command: str, product: Optional[str] = None,
     else:
         rows = c.execute(
             "SELECT content_sha, command, page, cmd_group, syntax, examples, "
-            "       sample_output, pre_blocks, tables, notes FROM cli_commands "
+            f"       sample_output, pre_blocks, tables, notes, {_sections_col(c)} FROM cli_commands "
             f"WHERE command IN ({ph})", tuple(targets)).fetchall()
 
     out = []
-    for sha, cmd, page, group, syn, ex, sample, pre, tbls, nts in rows:
+    for sha, cmd, page, group, syn, ex, sample, pre, tbls, nts, secs in rows:
         prods = [r[0] for r in c.execute(
             "SELECT product FROM cli_command_products WHERE content_sha = ? "
             "ORDER BY product", (sha,))]
@@ -314,7 +362,7 @@ def lookup(command: str, product: Optional[str] = None,
         # recovery that finds nothing from erasing what was already stored.
         if pre:
             try:
-                r_syn, r_ex, r_sample = reclassify(json.loads(pre))
+                r_syn, r_ex, r_sample = reclassify(json.loads(pre), _loads_list(secs) or None)
                 syntax = r_syn or syntax
                 examples = r_ex or examples
                 sample = sample or r_sample
@@ -378,6 +426,130 @@ def _value_tables(tables: Optional[list]) -> List[list]:
             continue
         out.append(rows)
     return out
+
+
+def _syntax_key(form: str) -> str:
+    """A syntax form with its whitespace removed. The docs space the same form differently
+    across families (`<list-name>{deny|permit}` vs `<list-name> {deny|permit}`); that is not a
+    difference in the CLI."""
+    return re.sub(r"\s+", "", form)
+
+
+def _one_line(form: str) -> str:
+    """A syntax form the docs wrapped over several lines, on one line (2026-09-24). Rendered
+    as stored, the continuation (`{default|disable|enable}`) arrived unindented, reading as a
+    stray line after what looked like a duplicate of the form's first half."""
+    return " ".join(ln.strip() for ln in form.split("\n") if ln.strip())
+
+
+def _row_text(row: list) -> str:
+    return " | ".join(str(x).strip() for x in row if str(x).strip())
+
+
+# A table's first row when the loader labelled the table's product scope (2026-09-24).
+_LABEL_ROW_RX = re.compile(r"\[On ([^\]]*)\]")
+
+
+def _table_label(tbl: list) -> Optional[str]:
+    """The table's product label ("[On ar3050, arx200]") when its first row is one, else None."""
+    if tbl and len(tbl[0]) == 1 and _LABEL_ROW_RX.fullmatch(str(tbl[0][0]).strip()):
+        return str(tbl[0][0]).strip()
+    return None
+
+
+def _label_products(label: Optional[str]) -> List[str]:
+    if not label:
+        return []
+    return [p.strip() for p in _LABEL_ROW_RX.fullmatch(label).group(1).split(",") if p.strip()]
+
+
+def _table_lines(tables: List[list]) -> List[str]:
+    """The `legal values:` lines for a command's value tables, each shown ONCE (2026-09-24).
+
+    The build ships a table per product scope: `bandwidth` (wireless AP radio) had a
+    20/40/80 MHz table and a 20/40/80/160 MHz one. Tables with the same header row are one
+    table: the broadest (unscoped, else the one naming most products) is shown in full, and
+    each other scope gets one line with only what differs — `has` rows it adds, `lacks` rows
+    it does not have — the same convention as the syntax "(on …)" line. Scopes with identical
+    rows share their products."""
+    groups: Dict[tuple, List[tuple]] = {}
+    for tbl in tables:
+        label = _table_label(tbl)
+        body = tbl[1:] if label else tbl
+        if not body:
+            continue
+        groups.setdefault(tuple(_row_text(r) for r in body[:1]), []).append((label, body))
+    out: List[str] = []
+    for members in groups.values():
+        base_label, base = min(members, key=lambda m: (m[0] is not None,
+                                                        -len(_label_products(m[0]))))
+        base_rows = [_row_text(r) for r in base]
+        same = [p for lab, body in members if [_row_text(r) for r in body] == base_rows
+                for p in _label_products(lab)]
+        out.append("  legal values:")
+        if base_label:
+            shown = sorted(set(_label_products(base_label)) | set(same))
+            out.append(f"    [On {', '.join(shown)}]")
+        out += [f"    {r}" for r in base_rows if r]
+        diffs: Dict[tuple, List[str]] = {}
+        for lab, body in members:
+            rows = [_row_text(r) for r in body]
+            if rows == base_rows:
+                continue
+            has = tuple(r for r in rows if r and r not in base_rows)
+            lacks = tuple(r for r in base_rows if r and r not in rows)
+            diffs.setdefault((has, lacks), [])
+            diffs[(has, lacks)] += [p for p in (_label_products(lab) or ["?"])
+                                    if p not in diffs[(has, lacks)]]
+        for (has, lacks), prods in diffs.items():
+            parts = ([f"has {'; '.join(has)}"] if has else []) + \
+                    ([f"lacks {'; '.join(lacks)}"] if lacks else [])
+            out.append(f"    (on {', '.join(prods)}: {' | '.join(parts)})")
+    return out
+
+
+def _unique_forms(forms: List[str]) -> List[str]:
+    """`forms` in order, each form once (by `_syntax_key`; the first spelling is kept)."""
+    seen, out = set(), []
+    for s in forms:
+        k = _syntax_key(s)
+        if k not in seen:
+            seen.add(k)
+            out.append(s)
+    return out
+
+
+def _syntax_difference_lines(chosen: dict, variants: List[dict]) -> List[str]:
+    """The "(on …)" lines for the variants whose syntax differs from `chosen`, showing ONLY the
+    difference (2026-09-24, Terrence).
+
+    Each line names the families and the forms they have that the heading's syntax does not
+    (`has`) and the heading's forms they lack (`lacks`). Variants with the same difference share
+    one line. The old line reprinted the other variant's whole syntax: uncapped, `show ip route
+    database` repeated its 9 forms for 3 more variants (11.5k chars) to convey one or two
+    differences.
+    """
+    mine = {_syntax_key(s) for s in chosen["syntax"]}
+    groups: Dict[tuple, List[str]] = {}
+    for other in variants:
+        if other is chosen:
+            continue
+        theirs = {_syntax_key(s) for s in other["syntax"]}
+        has = tuple(s for s in _unique_forms(other["syntax"]) if _syntax_key(s) not in mine)
+        lacks = tuple(s for s in _unique_forms(chosen["syntax"]) if _syntax_key(s) not in theirs)
+        if not has and not lacks:
+            continue                                # same syntax (or spacing only)
+        groups.setdefault((has, lacks), [])
+        groups[(has, lacks)] += [p for p in other["products"] if p not in groups[(has, lacks)]]
+    lines = []
+    for (has, lacks), fams in groups.items():
+        parts = []
+        if has:
+            parts.append("has " + "; ".join(_one_line(s) for s in has))
+        if lacks:
+            parts.append("lacks " + "; ".join(_one_line(s) for s in lacks))
+        lines.append(f"    (on {', '.join(fams) or '?'}: {' | '.join(parts)})")
+    return lines
 
 
 def _loads_obj(raw) -> dict:
@@ -663,18 +835,19 @@ def prompt_block(commands: List[str], product: Optional[str] = None,
         # prompt says "match these formats exactly", so showing `lldp tlvselect` above
         # syntax that reads `lldp tlv-select` hands the model two spellings and blesses the
         # wrong one.
+        # No caps on called information outside the output budget (2026-09-24, Terrence):
+        # every syntax form, every family, every example, every note in full. The old limits
+        # hid 367 syntax forms (`access-list extended named` showed 4 of 8), 369 family names,
+        # 9,062 example lines (often the `no` form) and 273 notes' tails. Only
+        # `max_output_lines` stays: it has the prompt-size reason, and its own tests.
         chunk = [f"### {v.get('display') or v['command']}"]
-        for s in v["syntax"][:4]:
-            chunk.append(f"    {s}")
+        # Each form once: the docs repeat a form on 51 pages, sometimes differing only in
+        # spacing (`area virtual-link ipv6 ospf` listed `no area … virtual-link …` twice).
+        for s in _unique_forms(v["syntax"]):
+            chunk.append(f"    {_one_line(s)}")
         # flag genuine per-product syntax differences rather than silently picking one
         if not product and len(variants) > 1:
-            alts = {tuple(x["syntax"]) for x in variants}
-            if len(alts) > 1:
-                for other in variants:
-                    if other is v or tuple(other["syntax"]) == tuple(v["syntax"]):
-                        continue
-                    fams = ", ".join(other["products"][:6]) or "?"
-                    chunk.append(f"    (on {fams}: {'; '.join(other['syntax'][:2])})")
+            chunk += _syntax_difference_lines(v, variants)
         if v["sample_output"]:
             all_lines = v["sample_output"].rstrip("\n").split("\n")
             head, omitted, tail = _head_and_tail(all_lines, max_output_lines)
@@ -702,11 +875,10 @@ def prompt_block(commands: List[str], product: Optional[str] = None,
                                           for t in terms)
                                and x["sample_output"]]
                     if missing:
-                        fams = ", ".join(
-                            f for x in missing[:4] for f in x["products"][:2])
+                        fams = ", ".join(f for x in missing for f in x["products"])
                         chunk.append(
                             f"    (NOTE: this field is family-specific — not printed on "
-                            f"{fams}…; prefer the feature-specific show command there)")
+                            f"{fams}; prefer the feature-specific show command there)")
 
         # No device output for this command? Then the worked examples ARE the grounding.
         # `lldp tlv-select` — the command the flagship LLDP case is entirely about — has
@@ -714,7 +886,7 @@ def prompt_block(commands: List[str], product: Optional[str] = None,
         # 12 real example lines showing the correct form. prompt_block rendered NEITHER, so
         # the one command that mattered reached the model with no evidence at all.
         elif v["examples"]:
-            shown = [e.get("cmd") for e in v["examples"] if e.get("cmd")][:3]
+            shown = [e.get("cmd") for e in v["examples"] if e.get("cmd")]
             if shown:
                 chunk.append("  real usage:")
                 chunk += [f"    {s}" for s in shown]
@@ -728,12 +900,7 @@ def prompt_block(commands: List[str], product: Optional[str] = None,
         # Every row and every cell in full (2026-09-24). A 10-row cap showed `speed` 9 of its
         # 15 port types (no 10G copper SFP+, DAC, 40G or 100G) and a 58-char cut ended cells
         # mid-sentence ("… The default is 30 minutes." lost its default) in 569 tables.
-        for tbl in _value_tables(v.get("tables")):
-            chunk.append("  legal values:")
-            for row in tbl:
-                cells = " | ".join(str(x).strip() for x in row if str(x).strip())
-                if cells:
-                    chunk.append(f"    {cells}")
+        chunk += _table_lines(_value_tables(v.get("tables")))
 
         # 4.6 — `Default` and `Mode` from the release notes. Deliberately only those two:
         # they are short, factual and directly assertable ("what does this read before I
@@ -743,7 +910,7 @@ def prompt_block(commands: List[str], product: Optional[str] = None,
         nts = v.get("notes") or {}
         facts = [(k, nts.get(k)) for k in ("Default", "Mode") if (nts.get(k) or "").strip()]
         for k, val in facts:
-            chunk.append(f"  {k.lower()}: {' '.join(str(val).split())[:160]}")
+            chunk.append(f"  {k.lower()}: {' '.join(str(val).split())}")
 
         parts.append("\n".join(chunk))
     if not parts:
@@ -786,7 +953,7 @@ def _head_and_tail(all_lines: List[str], budget: int):
     return all_lines[:head_n], all_lines[head_n:n - tail_n], all_lines[n - tail_n:]
 
 
-def detect_commands(text: str, limit: int = 12,
+def detect_commands(text: str, limit: Optional[int] = None,
                     conn: Optional[sqlite3.Connection] = None) -> List[str]:
     """Which harvested commands does this text actually reference?
 
@@ -828,7 +995,7 @@ def detect_commands(text: str, limit: int = 12,
             spans.append((m.start(), m.end()))
             hits.append(stored)
             break
-        if len(hits) >= limit:
+        if limit is not None and len(hits) >= limit:
             break
     return hits
 
@@ -910,7 +1077,7 @@ def _probes(conn: sqlite3.Connection) -> list:
     return out
 
 
-def detect(text: str, limit: int = 12,
+def detect(text: str, limit: Optional[int] = None,
            conn: Optional[sqlite3.Connection] = None) -> dict:
     """`detect_commands` plus the correct spellings and what could NOT be resolved.
 

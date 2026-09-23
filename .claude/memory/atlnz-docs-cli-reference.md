@@ -44,6 +44,16 @@ on any product]") are now dropped — 25 rows' tables changed, nothing else. A l
 zip; Terrence keeps it OUTSIDE the repos and supplies it on request. A newer zip is worth
 loading only if a census shows a content change or the loader changed.
 
+**Since the second 2026-09-24 load** (details in the SERVER-README "CLI command reference" section):
+- `cli_commands` has a `pre_sections` column (each block's page-section heading). Only a
+  Syntax-titled section yields syntax; `harvest_cli_docs.classify` and `cli_lookup.reclassify`
+  are pinned to agree.
+- Tables scoped to a product subset carry an "[On …]" first row. Scope comes from the table or
+  an enclosing div/section — 454 tables had lost it.
+- Rows with sample output: 850.
+- `prompt_block` has no caps except `max_output_lines`, and shows per-variant and per-scope
+  DIFFERENCES ("has … | lacks …"), never reprints.
+
 **Why it exists:** the generate/extract prompts demanded exact CLI fields while showing zero
 real output, so every model invented a `speed=1000`/`state=up` schema the switch never prints
 (real: `current duplex full, current speed 1000, current polarity mdix`; ports are `port1.0.1`).

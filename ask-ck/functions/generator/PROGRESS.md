@@ -11,7 +11,41 @@ verified: 2026-09-23
 > claim has since stopped being true, a ⚠ line under its heading says what changed.
 > Newest first. Paths in older entries predate these moves (the same as in CHANGELOG): `tool/` → `ask-ck/tools/`, `ask-ck/var/` → `ask-ck/db/`, `objective-drafting/` → `ask-ck/functions/generator/`, `pytest-create/` → `ask-ck/functions/pytest-creator/`, `js-tests/` → `tests/js/`, `ask-ck/ck-facelift/` → `ask-ck/plans/`, root reports → `docs/`, and completed plans `ask-ck/plans/` → `archive/plans/` (2026-09-11, 2026-09-23). Also retired 2026-09-23: the demo notes → `archive/plans/demo-2026-09-11/`, and `HANDOFF-generate-token-efficiency.md` + `Fragments_prompt.md` → `archive/records/`.
 
+## Latest session (2026-09-24, later) — CLI prompt block: no caps, differences not reprints, table scope, section-aware syntax
+
+Terrence ruled on the morning's two raised items and on each finding after it. Details and the
+why are in CHANGELOG 2026-09-24 (later); the current design is in SERVER-README "CLI command
+reference".
+- **No-product prose in `notes`: kept** (*"keep it"*, after seeing `ip pim dense-mode`'s Mode note).
+- **Every `prompt_block` limit dropped except the 8/14-line output budgets** (*"drop all of them
+  except the budgets, thats different"*), and `detect_commands`' default of 12 (*"for consistency"*).
+- **The "(on …)" line shows differences only** (*"i do want the fix … sweep the other commands"*).
+  The sweep deduped repeated syntax forms, and found near-duplicate unattributed tables and misfiled syntax.
+- **Tables regain their product scope.** Terrence: *"so removing the products removed the context
+  … funny"*. Correction on the record: this session removed nothing. The loader never read a
+  table's own scope, so 454 tables had lacked it since 2026-09-08. The loader now labels them, and the prompt renders one table plus a difference line.
+- **Misfiled syntax fixed by page section** (`pre_sections` column, `classify`/`reclassify`
+  pinned alike), AMF prompts and 63-char modes recognised, and wrapped forms on one line
+  (*"fix it"* ×2). About 330 blocks left syntax; 12 sample outputs improved; nothing lost.
+- **Checks:** a dry run on a scratch copy; the live `ck.db` reloaded, with a pre-load snapshot in
+  the session scratchpad; and `ck restart`. 15 new tests; every change mutation-checked (13
+  mutations, all red).
+
+**Open, raised to Terrence:**
+- The zip's working copy is still at the repo root, untracked. He has not said whether to delete it.
+- Not measured: `<pre>` blocks inside a per-product `<div>`/`<section>` may have lost their scope
+  the way the tables did.
+
+**Carried forward, unchanged:** T33234 re-confirm + Re-chunk, the bench file to tb470, both SFPs
+fitted; then Phase 11.4. D-24 to D-31 are still unreviewed.
+
+**Gate on main at the wrap:** pytest 1793 passed / 1 skipped; vitest 348 in 30 files; both guards
+OK; `ck.db` untouched by tests. It was changed only by the deliberate CLI-reference reload.
+
 ## Latest session (2026-09-24) — hygiene closed; B2 closed: no-product table rows dropped, legal-value tables uncapped
+
+> ⚠ **Superseded in part (2026-09-24, later):** both "Raised" items were ruled on. No-product
+> prose is KEPT; every limit except the output budgets was dropped. See the entry above.
 
 **Hygiene** (Terrence: "perform all hygiene tasks"; both commits pushed by him):
 - `82e88aa`: `tests/fixtures/framework_run_*.log` are tracked through a `!tests/fixtures/*.log`

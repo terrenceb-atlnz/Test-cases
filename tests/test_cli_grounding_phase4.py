@@ -258,13 +258,14 @@ def test_stored_output_agrees_with_reclassify(conn):
     reclassification never DISAGREE, and that a meaningful number of rows carry output — the
     read path's `sample or reclassify` fallback then can only ever confirm, never contradict."""
     checked = disagreements = 0
-    for so, pre in conn.execute(
-            "SELECT sample_output, pre_blocks FROM cli_commands WHERE pre_blocks IS NOT NULL"):
+    for so, pre, secs in conn.execute(
+            f"SELECT sample_output, pre_blocks, {C._sections_col(conn)} FROM cli_commands "
+            "WHERE pre_blocks IS NOT NULL"):
         if not so:
             continue
         checked += 1
         try:
-            derived = C.reclassify(json.loads(pre))[2]
+            derived = C.reclassify(json.loads(pre), json.loads(secs) if secs else None)[2]
         except Exception:
             continue
         if derived is not None and derived.rstrip() != so.rstrip():
@@ -362,6 +363,92 @@ def test_long_cells_are_not_cut_mid_sentence(conn):
 
 
 # ---------------------------------------------------------------------------
+# 2026-09-24 — no caps on called information outside the output budget
+# ---------------------------------------------------------------------------
+
+def test_every_syntax_form_reaches_the_prompt(conn):
+    """`syntax[:4]` showed 4 of `access-list extended named`'s 8 forms: no ip/proto form."""
+    block = C.prompt_block(["access-list extended named"], conn=conn)
+    # Only the syntax lines under the heading — the "(on …)" line repeats the forms.
+    syntax = []
+    for ln in block.split("### ", 1)[1].splitlines()[1:]:
+        if not ln.startswith("    ") or ln.strip().startswith("(on "):
+            break
+        syntax.append(ln.strip())
+    assert len(syntax) == 8, syntax
+    assert any("{proto <ip-protocol>|any|ip}" in s for s in syntax)
+
+
+def test_every_family_on_the_alternative_syntax_line(conn):
+    """The "(on …)" line named 6 families. `arp`'s router variant has 9; the 9th must be there."""
+    block = C.prompt_block(["arp"], conn=conn)
+    alt = next(ln for ln in block.splitlines() if ln.strip().startswith("(on ar1050"))
+    assert "tq7613r, vfw:" in alt
+
+
+def test_alternative_syntax_line_shows_only_the_difference(conn):
+    """The "(on …)" line carries what DIFFERS from the heading's syntax, not a reprint of the
+    other variant's whole syntax (uncapped, that reprint cost `show ip route database` 11.5k
+    chars to convey one bracket's contents)."""
+    block = C.prompt_block(["duplex"], conn=conn)
+    alt = [ln.strip() for ln in block.splitlines() if ln.strip().startswith("(on ")]
+    assert alt == ["(on x8100, x908gen2, x908gen3, x930, x950, x950gen2, x980, xs900mx: "
+                   "has duplex {auto|full} | lacks duplex {auto|full|half})"]
+    # A form the variant SHARES with the heading is never repeated on its line.
+    arp = C.prompt_block(["arp"], conn=conn)
+    for ln in arp.splitlines():
+        if ln.strip().startswith("(on "):
+            assert "no arp <ip-addr>" not in ln and "[vrf <vrf-name>]" not in ln, ln
+
+
+def test_a_syntax_form_is_shown_once(conn):
+    """`area virtual-link ipv6 ospf` stores `no area <area-id>  virtual-link <router-id>` twice
+    and `area <area-id> virtual-link <router-id>` in two spacings; each reaches the prompt once."""
+    block = C.prompt_block(["area virtual-link ipv6 ospf"], conn=conn)
+    syntax = []
+    for ln in block.split("### ", 1)[1].splitlines()[1:]:
+        if not ln.startswith("    ") or ln.strip().startswith("(on "):
+            break
+        syntax.append(ln.strip())
+    keys = [C._syntax_key(s) for s in syntax]
+    assert len(keys) == len(set(keys)), syntax
+    assert C._syntax_key("no area <area-id> virtual-link <router-id>") in keys
+
+
+def test_alternative_syntax_ignores_spacing_and_merges_equal_differences():
+    """Spacing-only differences are not differences; two variants with the SAME difference
+    share one line."""
+    head = {"syntax": ["x <a> {b|c}", "no x"], "products": ["p1"]}
+    spaced = {"syntax": ["x <a>{b|c}", "no  x"], "products": ["p2"]}
+    v3 = {"syntax": ["x <a> {b}", "no x"], "products": ["p3"]}
+    v4 = {"syntax": ["x <a> {b}", "no x"], "products": ["p4", "p3"]}
+    lines = C._syntax_difference_lines(head, [head, spaced, v3, v4])
+    assert lines == ["    (on p3, p4: has x <a> {b} | lacks x <a> {b|c})"]
+
+
+def test_every_usage_example_reaches_the_prompt(conn):
+    """`examples[:3]` cut `2fa allow-reuse` before its `no` form."""
+    block = C.prompt_block(["2fa allow-reuse"], conn=conn)
+    assert "awplus(config)# no 2fa allow-reuse" in block
+
+
+def test_default_and_mode_notes_are_not_cut(conn):
+    """The 160-char cut ended `arp-loose-check`'s Mode before the vFW and router forms."""
+    block = C.prompt_block(["arp-loose-check"], conn=conn)
+    assert "[On vFW only]" in block and "[On all other products]" in block
+
+
+def test_detect_commands_has_no_default_count_cap(conn):
+    """The default of 12 is gone: a text naming 15 distinct commands finds all 15."""
+    names = ["show interface status", "speed", "duplex", "show lldp interface",
+             "show spanning-tree", "show vlan", "show ip route", "show arp",
+             "show ecofriendly", "show system", "show running-config", "show version",
+             "show clock", "show users", "show startup-config"]
+    found = C.detect_commands(". ".join(names), conn=conn)
+    assert len(found) > 12, found
+
+
+# ---------------------------------------------------------------------------
 # B2 (2026-09-24) — a table element shown to NO product is dropped at load
 # ---------------------------------------------------------------------------
 
@@ -392,6 +479,87 @@ def test_loader_drops_a_whole_table_and_a_value_shown_to_no_product():
     assert tables == [[["speed", "auto, 1000"]]]
 
 
+# ---------------------------------------------------------------------------
+# 2026-09-24 — table product scope, section-aware classification, wrapped forms
+# ---------------------------------------------------------------------------
+
+def test_loader_labels_a_table_scoped_by_an_enclosing_element():
+    """222 tables take their product scope from a wrapping <div>/<section>; flattening lost
+    it. A table scoped to the page's whole availability gets no label; one under a
+    no-product ancestor is dropped."""
+    import load_cli_docs_from_zips as L
+    html = ('<div class="ss-on-ar3050 ss-on-arx200"><table><tr><td>a</td><td>1</td></tr></table></div>'
+            '<table class="t ss-on-x930 ss-on-x950"><tr><td>b</td><td>2</td></tr></table>'
+            '<section class="ss-on-none"><table><tr><td>gone</td><td>3</td></tr></table></section>')
+    assert L.extract_tables(html) == [[["[On ar3050, arx200]"], ["a", "1"]],
+                                      [["[On x930, x950]"], ["b", "2"]]]
+    assert L.extract_tables(html, ["x930", "x950"])[1] == [["b", "2"]]
+
+
+def test_same_header_tables_render_once_with_the_difference():
+    """`bandwidth`'s two tables: the broad one in full, the other scope as a difference."""
+    t1 = [["[On x220, x230, x240]"], ["Parameter", "Description"], ["20", "20MHz"], ["40", "40MHz"]]
+    t2 = [["[On tq6702r]"], ["Parameter", "Description"], ["20", "20MHz"], ["40", "40MHz"],
+          ["160", "160MHz"]]
+    other = [["Mode", "Meaning"], ["a", "b"]]
+    lines = [ln.strip() for ln in C._table_lines([t1, t2, other])]
+    assert lines == ["legal values:", "[On x220, x230, x240]", "Parameter | Description",
+                     "20 | 20MHz", "40 | 40MHz", "(on tq6702r: has 160 | 160MHz)",
+                     "legal values:", "Mode | Meaning", "a | b"]
+
+
+def test_classify_uses_the_page_section():
+    """Outside a Syntax section a block is never syntax. An AMF-prompt line is an example; a
+    bare mode prompt is dropped; a dense block is output only under an Output heading; a
+    short promptless one is dropped. Inside Syntax, the old shape rules stand."""
+    blocks = ["duplex {auto|full}", "awplus(config-ip-ext-acl)#",
+              "ATMF_NETWORK[3]# atmf reboot-rolling",
+              "Codes: C - connected\n> - selected\n* - FIB route",
+              "atmf area <name>\natmf master\natmf area <n> <id> local",
+              "% Container does not exist"]
+    secs = ["Syntax", "Syntax", "Example", "Output", "Usage notes", "Usage notes"]
+    for f in (H.classify, C.reclassify):
+        syn, ex, best = f(blocks, secs)
+        assert syn == ["duplex {auto|full}"], f
+        assert [e["cmd"] for e in ex] == ["ATMF_NETWORK[3]# atmf reboot-rolling"], f
+        assert best.startswith("Codes:"), f
+    # No Syntax section on the page: the shape heuristic alone, as before.
+    assert C.reclassify(["duplex {auto|full}"], ["Overview"])[0] == ["duplex {auto|full}"]
+
+
+def test_a_long_mode_name_is_still_a_prompt():
+    """`(config-wireless-network-passpoint-hs20)` is 38 chars; the old 31-char bound filed
+    its example lines as syntax."""
+    line = "awplus(config-wireless-network-passpoint-hs20)# operating-class 51"
+    for f in (H.classify, C.reclassify):
+        syn, ex, _ = f([line], ["Example"])
+        assert syn == [] and [e["cmd"] for e in ex] == [line], f
+
+
+def test_misfiled_blocks_are_gone_from_live_syntax(conn):
+    """Measured misfilings: a bare mode prompt and a reboot confirmation stored as syntax."""
+    acl = C.prompt_block(["access-list extended ip filter"], conn=conn)
+    head = acl.split("  real usage:")[0]
+    assert "awplus(config-ip-ext-acl)#" not in head
+    clr = C.lookup("clear atmf secure-mode certificates", conn=conn)
+    assert clr and not any("(y/n)" in s for v in clr for s in v["syntax"])
+
+
+def test_a_wrapped_syntax_form_renders_on_one_line(conn):
+    block = C.prompt_block(["bfd peer"], conn=conn)
+    assert ("no bfd peer <peer-address> [multihop] [local-address <local-address>] "
+            "[interface <interface-name>] [vrf <vrf-name>]") in block
+
+
+def test_live_scoped_tables_show_their_products(conn):
+    """`bandwidth` (wireless AP radio): one table, and the product without 160 MHz is named.
+    The build scopes the 160 MHz table to 16 products and the 20/40/80 one to tq6702r."""
+    block = C.prompt_block(["bandwidth wireless ap prof radio"], conn=conn)
+    assert block.count("legal values:") == 1
+    assert "[On ar3050, ar4050, arx200," in block and "160 | 160MHz bandwidth" in block
+    assert "(on tq6702r: lacks 160 | 160MHz bandwidth)" in block, block
+
+
 def test_live_prompts_carry_no_row_for_no_product(conn):
     """The three tables that reached a prompt with such a row (measured 2026-09-24)."""
     for page in ("alarm_cmd/alarm_facility_input-alarm_alarm-position.html",
@@ -416,7 +584,23 @@ def test_usage_examples_ground_a_command_with_no_output(conn):
 def test_harvester_prompt_regex_matches_the_reader():
     """Two copies of one rule. If they drift, a future harvest re-strands the output."""
     assert H._PROMPT_ANY_RX.pattern == C._PROMPT_ANY_RX.pattern
+    assert H._BARE_PROMPT_RX.pattern == C._BARE_PROMPT_RX.pattern
     assert H._PLACEHOLDER_RX.pattern == C._PLACEHOLDER_RX.pattern
+
+
+def test_harvester_and_reader_classify_alike_with_sections(conn):
+    """`classify` (what the loader stores) and `reclassify` (what the reader re-derives) are
+    two copies of one section-aware rule; on every stored row they must split alike."""
+    n = 0
+    for pre, secs in conn.execute(
+            f"SELECT pre_blocks, {C._sections_col(conn)} FROM cli_commands "
+            "WHERE pre_blocks IS NOT NULL"):
+        blocks, sections = json.loads(pre), (json.loads(secs) if secs else None)
+        h_syn, h_ex, h_best = H.classify(blocks, sections)
+        r_syn, r_ex, r_best = C.reclassify(blocks, sections)
+        assert (h_syn, h_ex, (h_best or "").rstrip()) == (r_syn, r_ex, (r_best or "").rstrip()), blocks[:2]
+        n += 1
+    assert n > 3000
 
 
 def test_harvester_classify_agrees_with_reclassify():

@@ -93,7 +93,18 @@ _SYNTAX_CLASS = "zccmdnamesyntax"
 
 
 def _pre_blocks_annotated(region: str) -> List[Tuple[str, bool, Optional[frozenset]]]:
-    """Merged <pre> blocks as (text, is_syntax, products).
+    """Merged <pre> blocks as (text, is_syntax, products) — `_pre_blocks_full` without the
+    section."""
+    return [(t, s, p) for t, s, p, _ in _pre_blocks_full(region)]
+
+
+def _pre_blocks_full(region: str) -> List[Tuple[str, bool, Optional[frozenset], Optional[str]]]:
+    """Merged <pre> blocks as (text, is_syntax, products, section).
+
+    `section` is the heading of the page section the block sits in ("Syntax", "Example",
+    "Output", …), or None before any heading. It is what `classify` uses to keep an example
+    reply, a mode prompt or device output out of `syntax` (2026-09-24: ~500 such blocks were
+    filed as syntax by the shape heuristic alone). A merged block keeps its first piece's.
 
     `products` is a frozenset of the real product names the block's `ss-on-*` classes name
     (with `none` removed), or None when the block carries no `ss-on` class at all — i.e. it
@@ -103,9 +114,11 @@ def _pre_blocks_annotated(region: str) -> List[Tuple[str, bool, Optional[frozens
     The join rule is identical to `_pre_blocks_merged` (only non-prompt output merges across a
     table-cell break); merged pieces union their product sets and OR their syntax flag.
     """
-    out: List[list] = []            # [text, is_syntax, products]
+    out: List[list] = []            # [text, is_syntax, products, section]
+    heads = [(h.start(), _clean(h.group(1))) for h in _H2_RX.finditer(region)]
     prev_end: Optional[int] = None
     for m in H._PRE_RX.finditer(region):
+        section = next((t for pos, t in reversed(heads) if pos <= m.start()), None)
         openm = _PRE_OPEN_RX.match(region, m.start())
         attrs = openm.group(1) if openm else ""
         has_sson = "ss-on-" in attrs
@@ -136,9 +149,9 @@ def _pre_blocks_annotated(region: str) -> List[Tuple[str, bool, Optional[frozens
             out[-1][2] = merged
             out[-1][1] = out[-1][1] or is_syn
         else:
-            out.append([text, is_syn, prods])
+            out.append([text, is_syn, prods, section])
         prev_end = m.end()
-    return [(t, s, p) for t, s, p in out]
+    return [(t, s, p, sec) for t, s, p, sec in out]
 
 
 def _pre_blocks_merged(region: str) -> List[str]:
@@ -188,6 +201,7 @@ CREATE TABLE cli_commands (
   examples      TEXT,               -- JSON array of {cmd, output}
   sample_output TEXT,               -- richest output block, for prompt injection
   pre_blocks    TEXT,               -- JSON array: every <pre> block, verbatim
+  pre_sections  TEXT,               -- JSON array: the page-section heading of each block (2026-09-24)
   n_blocks      INTEGER,
   tables        TEXT,               -- NEW: JSON array of tables (rows of cell text) — validity/parameter tables
   notes         TEXT,               -- NEW: JSON object {section heading: prose text}
@@ -270,15 +284,64 @@ def _drop_none_only(fragment: str) -> str:
             i = m.end()
 
 
-def extract_tables(region: str) -> List[List[List[str]]]:
+_ANY_TAG_RX = re.compile(r"<(/?)([a-z][a-z0-9]*)\b([^>]*)>", re.I)
+_VOID_TAGS = {"br", "img", "col", "hr", "input", "meta", "link", "wbr", "area", "source"}
+
+
+def _table_scopes(region: str) -> Dict[int, Optional[frozenset]]:
+    """{start of each <table> -> the `ss-on-*` names in force there, or None if unscoped}.
+
+    A table's product scope is its OWN class, else the nearest enclosing element's. 454
+    tables are scoped: 232 on the table itself, 222 through a wrapping <div> or <section>.
+    """
+    scopes: Dict[int, Optional[frozenset]] = {}
+    stack: List[Tuple[str, Optional[frozenset]]] = []
+    for m in _ANY_TAG_RX.finditer(region):
+        close, name, attrs = m.group(1), m.group(2).lower(), m.group(3)
+        if name in _VOID_TAGS or attrs.rstrip().endswith("/"):
+            continue
+        if close:
+            while stack and stack[-1][0] != name:
+                stack.pop()
+            if stack:
+                stack.pop()
+            continue
+        own = frozenset(_SSON_RX.findall(attrs)) or None
+        if name == "table":
+            scopes[m.start()] = own or next((s for _, s in reversed(stack) if s), None)
+        stack.append((name, own))
+    return scopes
+
+
+def product_label(products) -> str:
+    """The build's own attribution style: "[On ar3050, ar4050, arx200]"."""
+    return "[On " + ", ".join(sorted(products)) + "]"
+
+
+def extract_tables(region: str, available: Optional[List[str]] = None) -> List[List[List[str]]]:
+    """Every table as rows of cell text.
+
+    A table the build scopes to a subset of products gets a first row holding a product label
+    (2026-09-24). Flattening had dropped that scope: `bandwidth` (wireless AP radio) showed a
+    20/40/80 MHz table and a 20/40/80/160 MHz table with nothing to say which products take
+    160. No label when the scope is the page's whole availability (`available`), and none when
+    the table's first cell already carries one. A table scoped to no product is dropped."""
     out: List[List[List[str]]] = []
-    for tb in _TABLE_RX.findall(region):
-        tb = _drop_none_only(tb)
+    scopes = _table_scopes(region)
+    page_set = frozenset(available or []) - {ALL_PRODUCTS}
+    for m in _TABLE_RX.finditer(region):
+        scope = scopes.get(m.start())
+        real = (scope or frozenset()) - {"none"}
+        if scope and not real:
+            continue                                # shown to no product
+        tb = _drop_none_only(m.group(0))
         rows = []
         for tr in _TR_RX.findall(tb):
             cells = [_cell_text(c) for c in _CELL_RX.findall(tr)]
             if any(cells):
                 rows.append(cells)
+        if rows and real and real != page_set and not rows[0][0].startswith("[On "):
+            rows.insert(0, [product_label(real)])
         if rows:
             out.append(rows)
     return out
@@ -303,13 +366,15 @@ def extract_notes(region: str) -> Dict[str, str]:
 
 
 def _row_from(page: str, blocks: List[str], tables: list, notes: dict,
-              products: List[str]) -> dict:
+              products: List[str], sections: Optional[List[Optional[str]]] = None) -> dict:
     """Assemble one cli_commands row from a set of <pre> blocks + tables + notes.
 
     `content_sha` is over [blocks, tables, notes], so two product-groups that differ only in
     their syntax block get distinct rows (and distinct shas), while identical content across
-    products still dedupes to one row in `store()`."""
-    syntax, examples, sample = H.classify(blocks)
+    products still dedupes to one row in `store()`. `sections` (one heading per block) is
+    stored as `pre_sections` and steers `classify`; it is not part of the sha — a page's
+    blocks always sit in the same sections."""
+    syntax, examples, sample = H.classify(blocks, sections)
     body = json.dumps([blocks, tables, notes], sort_keys=True, ensure_ascii=False)
     return {
         "content_sha": hashlib.sha256(body.encode("utf-8")).hexdigest(),
@@ -321,6 +386,7 @@ def _row_from(page: str, blocks: List[str], tables: list, notes: dict,
         "examples": examples,
         "sample_output": sample,
         "pre_blocks": blocks,
+        "pre_sections": list(sections) if sections is not None else None,
         "tables": tables,
         "notes": notes,
     }
@@ -337,12 +403,14 @@ def parse_page(page: str, html: str) -> Optional[dict]:
         return None
     m = _ARTICLE_RX.search(html)
     region = m.group(0) if m else html   # /data/ pages are lean; article is the whole content
-    blocks = _pre_blocks_merged(region)
-    tables = extract_tables(region)
+    full = _pre_blocks_full(region)
+    blocks = [t for t, _, _, _ in full]
+    avail = _available_on(region)
+    tables = extract_tables(region, avail)
     if not blocks and not tables:
         return None
     notes = extract_notes(region)
-    return _row_from(page, blocks, tables, notes, _available_on(region))
+    return _row_from(page, blocks, tables, notes, avail, [s for _, _, _, s in full])
 
 
 def combined_page_rows(page: str, html: str) -> List[dict]:
@@ -364,20 +432,22 @@ def combined_page_rows(page: str, html: str) -> List[dict]:
         return []
     m = _ARTICLE_RX.search(html)
     region = m.group(0) if m else html
-    ann = _pre_blocks_annotated(region)
+    full = _pre_blocks_full(region)
     # Drop blocks shown to no product (an ss-on class that was `none`-only -> empty set).
-    ann = [(t, s, p) for (t, s, p) in ann if not (p is not None and len(p) == 0)]
-    tables = extract_tables(region)
+    full = [b for b in full if not (b[2] is not None and len(b[2]) == 0)]
+    ann = [(t, s, p) for t, s, p, _ in full]
+    secs = [sec for _, _, _, sec in full]
+    avail = _available_on(region)
+    tables = extract_tables(region, avail)
     if not ann and not tables:
         return []
     notes = extract_notes(region)
-    avail = _available_on(region)
 
     # Indices of the product-specific syntax blocks, and the products they name.
     spec = [(i, p) for i, (t, s, p) in enumerate(ann) if s and p]     # p is a non-empty set
     if not spec:
         blocks = [t for t, _, _ in ann]
-        return [_row_from(page, blocks, tables, notes, avail)]        # single row, unchanged
+        return [_row_from(page, blocks, tables, notes, avail, secs)]  # single row, unchanged
 
     shared_idx = [i for i, (t, s, p) in enumerate(ann) if (i not in {j for j, _ in spec})]
     named = frozenset().union(*[p for _, p in spec])
@@ -403,7 +473,8 @@ def combined_page_rows(page: str, html: str) -> List[dict]:
     for vis, prods in groups.items():
         idxs = sorted(set(vis) | set(shared_idx))
         blocks = [ann[i][0] for i in idxs]
-        rows.append(_row_from(page, blocks, tables, notes, sorted(prods)))
+        rows.append(_row_from(page, blocks, tables, notes, sorted(prods),
+                              [secs[i] for i in idxs]))
     return rows
 
 
@@ -478,11 +549,13 @@ def store(conn: sqlite3.Connection, rows: List[Tuple[str, dict]]) -> Tuple[int, 
             seen.add(p["content_sha"])
             conn.execute(
                 "INSERT OR REPLACE INTO cli_commands (content_sha, command, page, cmd_group, "
-                "syntax, examples, sample_output, pre_blocks, n_blocks, tables, notes, "
-                "harvested_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
+                "syntax, examples, sample_output, pre_blocks, pre_sections, n_blocks, tables, "
+                "notes, harvested_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)",
                 (p["content_sha"], p["command"], p["page"], p["cmd_group"],
                  json.dumps(p["syntax"]), json.dumps(p["examples"]), p["sample_output"],
-                 json.dumps(p["pre_blocks"]), len(p["pre_blocks"]),
+                 json.dumps(p["pre_blocks"]),
+                 json.dumps(p["pre_sections"]) if p.get("pre_sections") is not None else None,
+                 len(p["pre_blocks"]),
                  json.dumps(p["tables"], ensure_ascii=False),
                  json.dumps(p["notes"], ensure_ascii=False), now))
             n_content += 1

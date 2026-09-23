@@ -565,9 +565,10 @@ product family in one place. Per-product differences are encoded as `ss-on-<prod
 classes on the `<pre>` blocks, so the combined build is *more* informative than the old
 per-device split, not less.
 
-- `cli_commands` — one row per **unique content hash** (3,535 rows; 847 carry sample output):
+- `cli_commands` — one row per **unique content hash** (3,535 rows; 850 carry sample output):
   `command`, `page`, `cmd_group`, `syntax` (JSON), `examples` (JSON), `sample_output`,
-  `pre_blocks`, `tables`, `notes`. Content is content-addressed and stored once. A page that
+  `pre_blocks`, `pre_sections` (JSON: each block's page-section heading, since 2026-09-24),
+  `tables`, `notes`. Content is content-addressed and stored once. A page that
   ships **different syntax to different families** stores one row per distinct SYNTAX group
   (from the `ss-on-*` classes), e.g. `duplex` → `{auto|full}` on 8 chassis families
   (x8100/x908gen2/x908gen3/x930/x950/x950gen2/x980/xs900mx), `{auto|full|half}` on the other
@@ -580,16 +581,38 @@ per-device split, not less.
   `lookup(cmd, product)` returns only that family's.
 - `cli_commands_fts` — FTS5 over command/group/syntax/sample output.
 
-**Tables (`tables`) and per-product markup (B2, 2026-09-24).** Tables are NOT split per
-product: a per-product row or value keeps the build's own visible label ("[On AR3050, AR4050,
-…] <parameter>"), which is the attribution, and ~97% of per-product table markup carries one.
-An element shown to **no** product (`ss-on-none`, "[Not available on any product]") — a whole
-table, a row or one value in a cell — is dropped at load, the same rule as a syntax block shown
-to no product. No-product markup OUTSIDE tables (prose in `notes`, 56 pages) is still kept.
-In the prompt (`cli_lookup.prompt_block`), every table `_value_tables` accepts as a legal-value
-matrix (≤3 columns, no cell over 90 chars once its product label is stripped) renders as
-`legal values:` **in full** — no row, cell or per-command cap (they hid e.g. 6 of `speed`'s 15
-port types).
+**Per-product markup in tables (2026-09-24).** Tables are not split per product; the
+attribution rides in the table.
+- A per-product ROW or value keeps the build's own visible label ("[On AR3050, AR4050, …]
+  <parameter>").
+- A whole TABLE scoped to a product subset — on the `<table>` itself, or through an enclosing
+  `<div>`/`<section>` (454 tables) — gets a first row holding a product label
+  (`load_cli_docs_from_zips.extract_tables`). There is no label when the scope equals the page's
+  own availability.
+- An element shown to **no** product (`ss-on-none`, "[Not available on any product]") — a
+  table, a row or a value — is dropped at load, the same rule as a syntax block shown to no
+  product. No-product PROSE in `notes` is kept on Terrence's ruling: it labels itself.
+
+**Classification by page section (2026-09-24).** `harvest_cli_docs.classify` (what the loader
+stores) and `cli_lookup.reclassify` (what the reader re-derives) are two pinned copies of one
+rule. Given `pre_sections`, only a block in a section whose heading says Syntax can be syntax.
+Elsewhere a block with a prompt is an example; a promptless one is output (≥3 lines; one dense
+with placeholder characters only under an Output heading) or is dropped. The prompt matcher
+reads AMF prompts (`ATMF_NETWORK[3]#`, `test(config)[10]#`) and mode names up to 63 chars; a
+bare mode prompt (`awplus(config-ip-ext-acl)#`) is never syntax. The 16 pages with no Syntax
+section keep the shape heuristic alone.
+
+**The prompt block (`cli_lookup.prompt_block`): no caps except the output budget** (Terrence,
+2026-09-24: *"there shouldnt BE caps"*).
+- **Shown in full:** every syntax form (each once, wrapped forms on one line), every family,
+  every usage example, every Default/Mode note, and every legal-value table (`_value_tables`: ≤3
+  columns, no cell over 90 chars once a product label is stripped). `detect_commands` has no
+  default count limit.
+- **The one limit kept:** `max_output_lines` (14 in Generate, 8 in Sequence Extraction), which
+  has the prompt-size reason.
+- **Differences are shown, not reprints.** An "(on <families>: has … | lacks …)" line carries
+  only what a variant's syntax adds to or lacks from the heading's. Tables that share a header
+  row render once, the broadest in full, and each other scope gets one difference line.
 
 **Reloading the reference (stop → load → start):** the zip is not in any repo — Terrence keeps
 it outside them and supplies it for a load; delete the working copy afterwards.

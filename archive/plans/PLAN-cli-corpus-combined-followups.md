@@ -7,6 +7,10 @@
 > shipped instead: table elements shown to no product are dropped at load (live `ck.db`
 > reloaded), and the prompt renders legal-value tables in full, with no caps. See CHANGELOG
 > 2026-09-24.
+> **Later the same day:** tables scoped to a product subset as a WHOLE (on the table or an
+> enclosing element — 454 of them, unlabelled since 2026-09-08) now carry an "[On …]" row, and the prompt shows one table plus each other scope's
+> difference. Still not done: product scope for `<pre>` blocks inside a per-product container.
+> See CHANGELOG 2026-09-24 (later).
 >
 > **COMPLETE 2026-09-09** (through step 6; uncommitted until this session's single commit).
 > Option B loaded to the live `ask-ck/var/ck.db` (duplex 8/25, 0 commands lost, service

@@ -4619,3 +4619,20 @@ untouched by tests.
 - **Gate on main:** pytest 1777 passed / 1 skipped, vitest 348 in 30 files, both guards OK,
   `ck.db` untouched by tests. It was dirtied only by the deliberate CLI-reference reload.
 - **Details:** `PROGRESS.md` 2026-09-24 entry; CHANGELOG 2026-09-24.
+
+## Session Close / Handoff (2026-09-24, later) — CLI prompt block: no caps, differences, table scope, section-aware syntax
+
+- **Shipped:** the morning's two raised items and the findings after them. Everything is in
+  `PROGRESS.md`'s 2026-09-24 (later) entry and CHANGELOG 2026-09-24 (later).
+  - Only the output budgets still limit `prompt_block`.
+  - The "(on …)" line and the tables show differences, not reprints.
+  - 454 scoped tables are labelled again.
+  - Syntax is classified by page section (new `pre_sections` column); AMF prompts and long mode
+    names are read.
+  - No-product prose is kept, on Terrence's ruling.
+- **Reload:** the live `ck.db` was reloaded once, with 0 commands, samples or display names
+  lost; production restarted.
+- **Open:** whether to delete the zip's working copy (repo root, untracked), and the unmeasured
+  scope of `<pre>` blocks inside per-product containers.
+- **Gate on main:** pytest 1793 passed / 1 skipped, vitest 348, both guards OK, `ck.db`
+  untouched by tests.

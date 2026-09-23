@@ -70,8 +70,17 @@ _PROMPT_RX = re.compile(r"^\s*awplus[^\n]*[#>]", re.M)
 # Phase 4.5: ANY hostname, not just `awplus`. Doc pages use `Node_1(config)#`, `master_1#`
 # and `controller-1(config)#`, and the awplus-only form filed all of those as syntax.
 # Kept byte-identical to cli_lookup._PROMPT_ANY_RX — a test pins that they agree.
+# `(?:\[\d{1,4}\])?` (2026-09-24): an AMF node's prompt carries its node count,
+# `ATMF_NETWORK[3]#` / `test[10](config)#` / `test(config)[10]#`; without it those examples
+# were filed as syntax.
+# The mode name may run to 63 chars (was 31): `(config-wireless-network-passpoint-hs20)#`
+# is 38, and its example lines were filed as syntax too.
 _PROMPT_ANY_RX = re.compile(
-    r"^[ \t]*[A-Za-z][\w.\-]{0,31}(?:\([^)\n]{0,31}\))?[ \t]*[#>][ \t]*(?=\S)", re.M)
+    r"^[ \t]*[A-Za-z][\w.\-]{0,31}(?:\[\d{1,4}\])?(?:\([^)\n]{0,63}\))?(?:\[\d{1,4}\])?[ \t]*[#>][ \t]*(?=\S)", re.M)
+# A prompt with NOTHING after it (`awplus(config-ip-ext-acl)#`): the docs show it to name the
+# mode a command runs in. A block made only of these is neither syntax nor an example.
+_BARE_PROMPT_RX = re.compile(
+    r"^[ \t]*[A-Za-z][\w.\-]{0,31}(?:\[\d{1,4}\])?(?:\([^)\n]{0,63}\))?(?:\[\d{1,4}\])?[ \t]*[#>][ \t]*$")
 # Placeholder metacharacters that mark a SYNTAX template rather than device output.
 _PLACEHOLDER_RX = re.compile(r"[<>{}|\[\]]")
 
@@ -163,8 +172,34 @@ def command_name(page: str) -> str:
     return stem.replace("_", " ").strip()
 
 
-def classify(blocks: List[str]) -> Tuple[List[str], List[dict], Optional[str]]:
+def in_syntax_sections(sections) -> bool:
+    """True when `sections` can steer classification: given, and naming at least one section
+    whose heading says Syntax ("Syntax", "Command Syntax", "Syntax [BGP]"…). 16 pages have no
+    such section; they keep the shape heuristic alone."""
+    return bool(sections) and any(s and "syntax" in s.lower() for s in sections)
+
+
+def outside_syntax_is_output(lines: List[str], section: str) -> bool:
+    """A promptless block OUTSIDE a Syntax section: device output, or dropped.
+
+    Never syntax — that was the misfiling (2026-09-24: ~500 example replies, mode prompts,
+    `% …` errors and output tables stored as syntax). Output needs at least 3 lines, and a
+    placeholder-dense block counts only under an Output heading: there it is a routing-table
+    legend or a PoE table (`*>`, `|`); elsewhere it can be a config template, and a template
+    read as output is the fabrication Phase 4 exists to stop."""
+    if len(lines) < 3:
+        return False
+    dense = sum(1 for ln in lines if _PLACEHOLDER_RX.search(ln)) / len(lines) > 0.4
+    return not dense or section.lower().startswith("output")
+
+
+def classify(blocks: List[str], sections: Optional[List[Optional[str]]] = None
+             ) -> Tuple[List[str], List[dict], Optional[str]]:
     """Split <pre> blocks into syntax lines, worked examples, and the best sample output.
+
+    `sections` (2026-09-24) is each block's page-section heading. When given, only a block in
+    a Syntax section can be syntax (`in_syntax_sections`, `outside_syntax_is_output`). A block
+    that is nothing but a bare mode prompt is dropped either way.
 
     Shapes observed on real pages:
       - syntax:  `duplex {auto|full|half}`            (no prompt line)
@@ -188,8 +223,9 @@ def classify(blocks: List[str]) -> Tuple[List[str], List[dict], Optional[str]]:
     syntax: List[str] = []
     examples: List[dict] = []
     best = None
+    use_sections = in_syntax_sections(sections)
 
-    for b in blocks:
+    for i, b in enumerate(blocks):
         if not b or not b.strip():
             continue
         if _PROMPT_ANY_RX.search(b):
@@ -203,6 +239,14 @@ def classify(blocks: List[str]) -> Tuple[List[str], List[dict], Optional[str]]:
             continue
 
         lines = [ln for ln in b.split("\n") if ln.strip()]
+        if all(_BARE_PROMPT_RX.match(ln) for ln in lines):
+            continue                                # a mode prompt on its own
+        if use_sections:
+            sec = (sections[i] if i < len(sections) else None) or ""
+            if "syntax" not in sec.lower():
+                if outside_syntax_is_output(lines, sec) and (best is None or len(b.rstrip()) > len(best)):
+                    best = b.rstrip()
+                continue                            # outside a Syntax section: never syntax
         if len(lines) < 3:
             syntax.append(b)
             continue
