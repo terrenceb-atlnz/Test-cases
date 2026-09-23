@@ -58,6 +58,9 @@ plain `listen 80` with zero auth/TLS and need replacing, not extending). Sizing:
 **The exposure is real today (checked 2026-09-23):** the hosted server of record has run with
 `HOST=0.0.0.0` on the LAN since 2026-08-26 ([[askck-lan-hosting]]), used by several seats, and
 Phases 2–3 are unbuilt — so it is an unauthenticated LAN service. The plan's status header records it.
+**Terrence accepted this on 2026-09-23:** *"Its fine as-is. im the only one using it. we will
+incorporate LDAP or something later."* So don't raise it again as an open risk. When auth comes
+back, the likely route is LDAP (or similar), which fits the SSO/proxy preference above.
 
 **How to apply:** Phase 1 is done — do not re-implement it, and **do not add a `case_locks` table**;
 that option was considered and deliberately rejected ([[db-is-permanent-source]]). Before starting

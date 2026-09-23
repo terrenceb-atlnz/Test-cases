@@ -2,10 +2,10 @@
 
 - [Generator steps: uniform deferred load](generator-steps-uniform-deferred-load.md) — all 3 data steps load identically & on-demand, never at case-load; use db.* search + shared _relevance_score
 - [Permutation-expander (deferred)](permutation-expander-deferred.md) — WANTED subsystem: CLI-bounded permutation cross-product; brief at plans/PLAN-permutation-expander.md
-- [Topology: framework discovery, [misc] contract RETIRED](topology-profiles-contract.md) — 2026-09-21: the frame binds swi_a, discovers cables via get_all_port_links(), reads media from the DUT (show interface status / show system pluggable); NEVER pre-declare ck_link_*/ck_role_dut in [misc]; empty cage = no role
+- [Topology: framework discovery, [misc] contract RETIRED](topology-profiles-contract.md) — 2026-09-21: the frame binds swi_a, discovers cables via get_all_port_links(), reads media from the DUT (show interface status / show system pluggable); NEVER pre-declare ck_link_*/ck_role_dut in [misc]; empty cage = no role; stacked DUT = swi_a for cmds + dut_stack for ports (ART shape, never re-assign dut); LAG members are partner ports
 - [Preflight topology check](preflight-topology-check.md) — ask-ck/tools/pt_preflight.py: can this bench run this script? init_portlink fails SILENTLY, so a missing cable reads as a script defect
 - [tb470 routing memory](tb470-topology-and-setup.md) — WHERE each tb470 fact lives (one fact, one home): bench-state.md GENERATES tb470.setup; mechanics → orient-dt skill; always `show stack`
-- [Auth + case-locking plan](auth-and-case-locking-plan.md) — multi-user is the end-use; Phase 1 locking SHIPPED 2026-07-29 as an IN-MEMORY registry — do NOT add a case_locks table
+- [Auth + case-locking plan](auth-and-case-locking-plan.md) — multi-user is the end-use; Phase 1 locking SHIPPED 2026-07-29 as an IN-MEMORY registry — do NOT add a case_locks table; no-auth LAN accepted by Terrence 2026-09-23 (LDAP later)
 - [Shared tree — status has a short shelf life](shared-tree-status-has-short-shelf-life.md) — a concurrent stream edits this repo; re-run gate + git status before stating either; stage explicit paths
 - [Gate does not start the server](gate-does-not-start-the-server.md) — after layout/anchor changes smoke-test on the SCRATCH server (run_scratch_server.sh --bg, port 8123); grep slash-prefixed old paths too; `npm install` + a .py name trips the hook
 - [3-layer test suite](testing-suite-3-layer.md) — pytest + Vitest/jsdom run by ./ask-ck/tools/run_tests.sh; it is `set -euo pipefail` so a pytest red means vitest NEVER RUNS; Playwright E2E sparingly-run, NOT in the gate
@@ -16,6 +16,7 @@
 - [ck.db WAL + test isolation](ckdb-wal-and-test-isolation.md) — md5/mtime can't see WAL writes (ckdb_signature); tests never dirty ck.db; ONE SQLite lib per server process; no RW outside opens
 - [Old sessions are not coverage](old-sessions-are-not-coverage.md) — a green suite over STORED sessions proves nothing about a new flow; build the new shape explicitly, pin legacy + fresh + reject
 - [Mutate before you claim](mutate-before-you-claim.md) — run mutation checks BEFORE writing the diagnosis; a mutation that stays green = an overclaim or dead code
+- [Negative tests may unset suite config](negative-tests-may-unset-suite-config.md) — `negative`-flagged step → Generate/Fix may unset any suite-owned cmd, no pushback; anywhere else it is a BLOCKING lint ban; Review checks only a later case's need to restore
 - [Scoped directives stay scoped](scoped-directives-stay-scoped.md) — a one-line ruling binds to the layer under discussion, not every layer it could touch; name the others instead of assuming
 - [Checks must not match their own advice](checks-must-not-match-their-own-advice.md) — a grep for a bad pattern finds it in the text forbidding it; use the tests/_prose.py helpers
 - [Scripts must be hardware-agnostic](scripts-must-be-hardware-agnostic.md) — run on ALL platforms; don't pass `product=` to grounding; .setup binding is two layers, locals not self. in init()

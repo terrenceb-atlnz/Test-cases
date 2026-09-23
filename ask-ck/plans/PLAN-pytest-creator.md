@@ -925,6 +925,7 @@ So the revised sequence:
    so far. `manifest_check` (registered vs defined) and the coverage check (TestCase count vs
    non-setup sequence steps) answer different questions, and folding one into the other loses
    a signal. Worth revisiting only if they ever disagree in practice.
+   **Decided 2026-09-23 (Terrence): the manifest stays advisory.**
 
 ### 9.10 What is still unmeasured
 

@@ -34,6 +34,15 @@ verified: 2026-09-23
 >   the textarea to disk — `ptPushCodeEdits`' `writeFiles` is still dead); 10.4 (preflight is
 >   still not called from the run path); 12.4's `# ` bypass in `guard_db_only.py`; 0.1 (no
 >   coverage register). **11.4 — no generated script has ever run on hardware.**
+> - **Update 2026-09-23 (later, `dc2e501`, Terrence: "Fix them all"):** **5.1 DONE**:
+>   `llm.extract_json_result` tells "no JSON" from "malformed", and a malformed reply is a 502.
+>   **8.1 DONE**: topology comes from the sequence text only, and a fragment-only `stk_*` is
+>   aliased to the DUT. **9.1c DONE**: Lint writes files only when sent `write_files`.
+>   **10.4 DONE**: Run calls `pt_preflight` before upload; UN-RUNNABLE gives `preflight_failed`
+>   with a "Run anyway" override. **12.4, the `# ` bypass only, DONE**: comments are stripped by
+>   the tokenizer, and `tests/test_guard_db_only_detects.py` proves detection. **12.4's other
+>   sub-bullets are still open**: `StrictUndefined`, the prose helpers, the `pt_autopilot` 409,
+>   and a detection test for `guard_framework_readonly`.
 > - **7.6 "withdrawn" was overtaken:** per-unit ("chunked") generation was BUILT 2026-09-02 on
 >   different grounds — wall clock per call, partial progress, review quality
 >   (`PLAN-pytest-creator.md` §9). The withdrawal's premise, that there is no output ceiling,

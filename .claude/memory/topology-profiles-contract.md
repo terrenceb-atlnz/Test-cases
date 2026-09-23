@@ -4,9 +4,9 @@ description: "RETIRED 2026-09-21 — the [misc] role contract (ck_profile / ck_r
 metadata:
   node_type: memory
   type: project
-  verified: 2026-09-21
+  verified: 2026-09-23
   originSessionId: 55f64c5f-6b57-4d85-9f09-b5090301f55a
-  modified: 2026-09-21
+  modified: 2026-09-23
 ---
 
 **Terrence's ruling, 2026-09-21:** *"I dont want the [misc] section to be callable as a
@@ -32,8 +32,12 @@ retired and what replaced it — do not rebuild it.
 
 **What the frame does now** (`pt_script_template.py.jinja`, plan
 `archive/plans/PLAN-frame-framework-discovery.md`, spec `TOPOLOGY-PROFILES.md` rewritten):
-`dut = init_swi('swi_a')`, then `init_stk(_stk.name)` when `get_stack()` reports one (ports
-belong to members, commands go to the master); `_ck_discover` walks `get_all_port_links()`,
+`dut = init_swi('swi_a')` stays the command handle, and when `get_stack()` reports a stack the
+frame ALSO binds `dut_stack = init_stk(_stk.name)` for ports. This is ART's own shape: 103 of 239
+ART scripts bind both, and Terrence's rule is *"Copy what they do, because it works."* **Never
+re-assign `dut` to the Stack.** The framework's `Stack` has no `cmd`. The frame did exactly that
+until 2026-09-23, which would have killed every command on tb470's stacked DUT.
+`_ck_discover(dut, unit)` walks the ports' owner's `get_all_port_links()`,
 skips stack members, takes the TestBox far end as `tb`, and classifies each partner link from
 the DUT's show output — twisted pair in a cage (`show system pluggable` lists it) = `cusfp`,
 fixed twisted pair = `copper`, `fibre`, `not present` = `absent`. **An empty cage is no role**
@@ -59,9 +63,14 @@ no-op) so a media-specific test must classify the port it binds and refuse `unkn
 "BENCH PROBLEM, not a product defect"; minimality — the partner IS the far end of a discovered
 link, extras are `# NOT BOUND`.
 
-**Bench decisions that are Terrence's, not the tool's:** whether tb470's two stack↔`swi_e` LAG
-member links may serve as plain partner ports (the preflight reports them as takeable because
-the file says nothing else); the inert `[misc] ck_*` lines in `tb470.setup` (his file).
+**LAG member links ARE partner ports (Terrence, 2026-09-23):** *"the LAG member links can
+absolutely be partner ports."* The preflight already treats them that way, so no change was
+needed. **T33234 differs from the frame on empty cages.** It was hand-edited on 2026-09-23
+(Terrence: no regenerate) to bind an empty cage for its insertion case. It prefers a matching
+fitted module, and falls back to a declared link with an empty cage, whose media the insertion
+case checks. The frame template still treats an empty cage as no role.
+**Still Terrence's:** the inert `[misc] ck_*` lines in `tb470.setup` (his file, via
+device-testing's `bench-state.md` §2).
 
 See [[preflight-topology-check]], [[art-suite-shape]], [[frame-binds-two-roles-only]],
 [[scripts-must-be-hardware-agnostic]], [[tb470-topology-and-setup]].

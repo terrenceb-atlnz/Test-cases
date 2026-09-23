@@ -4580,3 +4580,18 @@ trigger); each was asked with the fact that bore on it already established.
   guard, so a thin window turns one 2-unit blip into a prompt alarm. **Pre-existing, not mine:**
   `awplus-service-gated-routing-daemons.md:41` cites an AW+ wiki page that does not resolve —
   that memory is a symlink into the *device-testing* store, so fixing it is a cross-repo write.
+
+## Session Close / Handoff (2026-09-23, later — the open list answered and built)
+
+Terrence ruled on every item of the doc sweep's open list (the entry above). The rulings are
+built on branch `sweep-fixes-2026-09-23`:
+- `dc2e501`: negative tests, the stacked-DUT frame fix, Run preflight, audit items 5.1, 8.1,
+  9.1c, 10.4 and 12.4's `# ` bypass, the import tidy, and the R5 floor.
+- `5bb2162`: T33234 hand-edited.
+- One docs commit.
+
+**Main was NOT fast-forwarded:** the merge was blocked as a production deploy and waits for
+Terrence. After it, the T33234 session is re-saved through the server, Terrence re-confirms, and
+device-testing's `bench-state.md` §2 is edited (it has two open questions). The full ruling list,
+the D-24 to D-31 status and what is blocked are in `PROGRESS.md`'s 2026-09-23 (later) entry.
+Gate on the branch: 1770 passed / 2 skipped, vitest 348, `ck.db` untouched.

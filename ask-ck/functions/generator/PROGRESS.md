@@ -11,6 +11,80 @@ verified: 2026-09-23
 > claim has since stopped being true, a ⚠ line under its heading says what changed.
 > Newest first. Paths in older entries predate these moves (the same as in CHANGELOG): `tool/` → `ask-ck/tools/`, `ask-ck/var/` → `ask-ck/db/`, `objective-drafting/` → `ask-ck/functions/generator/`, `pytest-create/` → `ask-ck/functions/pytest-creator/`, `js-tests/` → `tests/js/`, `ask-ck/ck-facelift/` → `ask-ck/plans/`, root reports → `docs/`, and completed plans `ask-ck/plans/` → `archive/plans/` (2026-09-11, 2026-09-23). Also retired 2026-09-23: the demo notes → `archive/plans/demo-2026-09-11/`, and `HANDOFF-generate-token-efficiency.md` + `Fragments_prompt.md` → `archive/records/`.
 
+## Latest session (2026-09-23, later) — the open list, answered and built: negative tests, stacked-DUT frame, run preflight, T33234
+
+Terrence walked the sweep's open list (the entry below) and ruled on every item. His
+direction: *"we are moving on to making real code and firing it asap"*. The work was built in
+one worktree (branch `sweep-fixes-2026-09-23`: `dc2e501` code, `5bb2162` T33234, plus this docs
+commit), so production reloads once when main fast-forwards to it. **That merge had not
+happened at the time of writing**: the fast-forward was blocked as a production deploy, and it
+waits for Terrence.
+
+**Built** (details in CHANGELOG 2026-09-23 and SERVER-README "Negative tests, run preflight, and
+the 2026-09-23 fixes"):
+- **Negative tests** (item 7): the `negative` step flag, a blocking ban everywhere else, and
+  the Review restore check. Memory `negative-tests-may-unset-suite-config`.
+- **Stacked-DUT frame bug, found while building 8.1.** The frame re-assigned `dut` to the
+  `Stack`, which has no `cmd`. It now uses the ART shape (Terrence: *"Copy what they do"*).
+- **Audit items closed:** 5.1, 8.1, 9.1c, 10.4 (Run preflight with a Run-anyway override), and
+  12.4's `# ` bypass with a detection test.
+- **Smaller fixes:** unused-import tidy at assembly (Tier B); the R5 floor of 5 runs; the stale
+  `_apply_fix` comment; the dead `agent_bridge` citation; `pt_preflight`'s stale `.setup` path;
+  `bench_probe.py` replaced by `bench_probe.md` pointing at device-testing's copy (item 9).
+- **T33234 hand-edited** to discovery plus the ART stack shape; no regenerate, on Terrence's
+  ruling. Empty SFP cages are bound: a matching fitted module is preferred, otherwise a
+  declared link with an empty cage, whose media the insertion case checks. Lint shows 0
+  blocking. One E127 indent warning is inherited from the frame's own code. `pt_preflight` on
+  `tb470.setup.current`: RUNNABLE 4/4.
+
+**Recorded, no build needed:**
+- **§9 step 6:** dropped (*"drop it until we need it"*).
+- **T44297 acceptance:** waived (*"we are moving on"*).
+- **LAN auth:** accepted as it is (single user; LDAP later).
+- **Cost $4.30 vs $4.37:** irrelevant.
+- **D5-1:** ignored.
+- **D6 re-measurement:** dropped (*"useless"*). `cost-comparison.html`'s fourth bar now reads
+  "not measured".
+- **§9.9 Q5:** the manifest stays advisory.
+- **LAG member links:** may be partner ports. The preflight already allows it.
+- **Phase 11.4:** *"we will do that shortly."*
+
+**Answered, no change (item 10):** `tests/fixtures/framework_run_*.log` are caught by
+`.gitignore`'s blanket `*.log` rule (the 2026-07-02 overhaul). They were never committed, so a
+fresh clone fails 5 tests in `test_framework_log_parsing.py`. Terrence thinks it is irrelevant.
+The fix, if ever wanted, is a `!tests/fixtures/*.log` exception.
+
+**For Terrence to sort: D-24 to D-31** (`DECISIONS-FOR-REVIEW.md` §13). All eight are still in
+the code, in `ask-ck/frontend/ck-main/current/pytest-creator/cli_lookup.py`:
+- **D-24:** now redundant, but harmless.
+- **D-25:** its data premise holds (`pre_blocks` is on all 3,535 rows).
+- **D-26:** moot.
+- **D-27 to D-31:** still apply. **D-28** (the prompt's speed "legal values" text) is the one
+  most worth his eye.
+
+**Blocked:**
+- **Merge of `sweep-fixes-2026-09-23` into main.** It needs Terrence: either he runs
+  `git merge --ff-only sweep-fixes-2026-09-23` in the repo, or he allows it. That causes one
+  production reload; then check `/health`.
+- **After the merge, the T33234 session:**
+  - `ck.db`'s `pt-AWPTCM-T33234` still holds pre-2026-09-22 code (name `test-9000.33234`).
+  - Re-save it through `POST /api/pytest-create/save_script/AWPTCM-T33234` (group Port, name
+    `test-9001.33234`, `library_name: library_9001.py`).
+  - Terrence then re-confirms and Re-chunks.
+- **bench-state.md §2** (device-testing): the `[misc] ck_profile` / `ck_role_dut` block and its
+  TOPOLOGY PROFILES prose. It is sequenced after T33234 lands. Open questions: whether to drop
+  `ck_cap_*` (nothing reads it), and whether to update `bench_topology.py`, which still emits
+  all three. Applying it to the box is Terrence's job.
+- **B2** (the per-product CLI classes): `awplus-cmdref-combined.zip` is on neither the host nor
+  the share. Terrence needs to supply it.
+
+**Gate** (worktree, after the code commit): pytest 1770 passed / 2 skipped; vitest 348 in 30
+files; both guards OK; `ck.db` untouched. The worktree used local copies of the gitignored
+fixture logs (not committed).
+
+**Pick up here:** the merge, then the T33234 re-save and Terrence's re-confirm, then Phase 11.4
+(the first hardware run of a generated script) with the preflight now in the Run path.
+
 ## Latest session (2026-09-23) — doc freshness sweep: every doc verified, stamped or retired; no product change
 
 Terrence: *"scrub all other docs for freshness. Verify their contents if they are over 10 days

@@ -10,7 +10,8 @@ verified: 2026-09-23
 > resolver, the two-backend allowlist (`claude_code` and `grok_cli` retired by name),
 > `set_site_default_llm`, the `/setup/` router, the Windows-agent fixes from §9 and the
 > retired-choice notice are all live, and `claude-update.timer` is still active on the host
-> (D10). **Never observed:** §9 step 6, a reboot of a seat with autostart on.
+> (D10). **Never observed:** §9 step 6, a reboot of a seat with autostart on. Terrence dropped that
+check on 2026-09-23: *"drop it until we need it"*.
 >
 > **Archive note (2026-09-11):** the result directories and records this plan cites — `autopilot/`, `comparison/`, `judging/`, `FINDINGS-*.md`, `NEXT-SESSION-REVIEW.md`, `ADVERSARIAL-REVIEW-BACKLOG.md`, `SURVEY-step4-step5.md`, the nginx examples — now live under `archive/` (PLAN-restructure-2026-09-11, batch 1). Paths in the body are pre-move.
 >

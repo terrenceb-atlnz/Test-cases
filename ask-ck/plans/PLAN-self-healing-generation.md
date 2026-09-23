@@ -26,6 +26,17 @@ verified: 2026-09-23
 > Assemble + settle → Review" owed. The same day's rewind (`e35bbb2`) wiped every session, and
 > `ck.db` holds no T44297 session now — so the acceptance would be a fresh Generate from scratch.
 > Whether it is still wanted is Terrence's call.
+>
+> **Rulings 2026-09-23 (later, Terrence), built in `dc2e501`:**
+> - **§4 acceptance: waived.** *"I wont be running it. we are moving on."*
+> - **D6 re-measurement: dropped.** *"its useless"*. R6's fourth bar will not be measured.
+> - **R5 minimum-runs floor: built.** The prompt-defect alarm needs 5 runs
+>   (`_PT_PROMPT_DEFECT_MIN_RUNS`).
+> - **Suite-owned unsets: superseded.** The suite-owned-commands lint is now BLOCKING, except in
+>   a case whose sequence step is flagged `negative`. There, Generate and Fix may unset anything
+>   the test needs *"with no pushback"*, and Review checks only whether a LATER case needs the
+>   setting restored. The 2026-09-15 refinement (a policy flag, excluded from `_arrival_refusal`)
+>   no longer describes the code.
 
 ## 1. The evidence — three runs on AWPTCM-T44297
 
@@ -234,6 +245,7 @@ out of a JS-only slice. **Noticed, not acted on:** the prompt-defect branch fire
 `frac >= 0.10` with no minimum-runs guard, while its sibling lint-text branch guards with
 `attempts >= 3` — so on a thin window one 2-unit blip raises a "change the generate prompt"
 alarm, which these surfaces now display prominently. A backend design call, untouched.
+**→ Built 2026-09-23 (`dc2e501`):** a floor of 5 runs, on Terrence's call.
 
 ### R6 — Cost comparison for the higher-ups  ⏳ SCAFFOLDED 2026-09-15 (awaits the D6 run)  *(D6)*
 

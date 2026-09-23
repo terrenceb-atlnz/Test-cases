@@ -21,6 +21,39 @@ current working thread see
 > `ask-ck/ck-facelift/`, `pytest-create/` and `CK-main/` plan paths moved to `ask-ck/plans/` on 2026-09-11 and, once complete, to `archive/plans/`.
 > `js-tests/` → `tests/js/`, `e2e/` → `tests/e2e/`, `static/js/` → `ask-ck/frontend/ck-main/current/<page>/` (2026-09-11).
 
+## 2026-09-23 — negative tests, the stacked-DUT frame fix, run preflight, and five audit items closed
+
+Terrence answered the doc sweep's open list, and these are his rulings built (`dc2e501`).
+
+- **Negative tests may unset suite config, and nothing else may.** A `negative` flag on a
+  sequence step (the Sequence page's Neg column) lets Generate and Fix unset any suite-owned
+  command *"with no pushback at any point"*. Everywhere else the unset is now a **blocking**
+  lint error; it was a policy flag from 2026-09-15. *Why:* a negative test often *is* the unset.
+  The old policy flag argued with the test's purpose, and was too weak to stop the real harm: a
+  non-negative case silently breaking the suite for every case behind it. Review checks only
+  whether a later case needs the setting restored.
+- **Stacked DUT: the frame now copies ART.** It used to re-assign `dut` to the `Stack`, which has
+  no `cmd`, so every generated script would have died on its first command on tb470's stacked
+  DUT. The frame was never run on hardware, so nothing caught it. It now binds `swi_a` for
+  commands and `dut_stack` for ports, the shape 103 of 239 ART scripts use. Terrence: *"Copy what
+  they do, because it works."*
+- **Run checks the bench first.** `pt_preflight` runs before upload. An UN-RUNNABLE script stops
+  as `preflight_failed` and can be run anyway. *Why:* `init_portlink()` fails silently, so a
+  missing cable used to show up as a script defect after bench time had been spent.
+- **Audit items closed** (PLAN-pipeline-end-to-end):
+  - **5.1:** a malformed LLM JSON reply is a 502, not a silently wrong inner element.
+  - **8.1:** a fragment-only `stk_*` no longer adds a phantom stack to the frame.
+  - **9.1c:** Lint no longer overwrites the saved script.
+  - **10.4:** the preflight above.
+  - **12.4's comment bypass:** `guard_db_only` no longer skips any line containing `# `, and it
+    now has a test proving it detects a violation.
+- **Smaller changes:**
+  - Unused imports are removed at assembly, and the removals are recorded.
+  - The R5 prompt-defect alarm needs 5 runs, so one blip can no longer raise it.
+  - `bench_probe.py` is now a pointer to device-testing's copy.
+- **T33234 hand-edited** to framework discovery (`5bb2162`). *Why:* regenerating it would
+  overwrite case code Terrence wants kept.
+
 ## 2026-09-22 — ART family numbering `<family>.<case>.<TestCase>`, and library PRUNE
 
 **Terrence's convention**, set this session: `900x.yyyy.zzzz` — family · Zephyr case · the

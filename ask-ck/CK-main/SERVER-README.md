@@ -272,7 +272,9 @@ drop to a terminal. Actions (`/api/admin/*`, all confirmation-gated):
   step-5 Summary banner and `ask-ck/tools/pt_lint_report.py`. Thresholds are server
   constants in `routers/pytest_create.py` (`_PT_TREND_WINDOW`,
   `_PT_PROMPT_DEFECT_UNIT_FRACTION`, `_PT_PROMPT_DEFECT_CONSECUTIVE`,
-  `_PT_LINT_TEXT_RETURN_RATE`) — not yet editable from the panel.
+  `_PT_PROMPT_DEFECT_MIN_RUNS` (5, since 2026-09-23: a thin window can no longer raise the
+  generate-prompt alarm from one blip), `_PT_LINT_TEXT_RETURN_RATE`). They are not yet editable
+  from the panel.
 
 > **No DB rebuild here.** `ck.db` is the permanent, committed source of truth
 > (built once; source couriers retired), so the panel intentionally has no
@@ -670,7 +672,8 @@ MDI/MDI-X forced-polarity negative path (14 steps → 9).
 **5. Generate** while the lint reports errors — it previously never looked at the lint at all,
 so a script with hard errors could be signed off and carried into the run and export stages.
 The 19 lint errors (as of 2026-08-04 — the classes have grown since; `tests/test_lint_error_classes.py`
-is the authority, and enumerated 19 blocking + 9 policy on 2026-09-23) are two different kinds of
+is the authority, and enumerated 19 blocking + 9 policy on 2026-09-23, then 20 + 8 after
+the suite-owned check moved to blocking later that day) are two different kinds of
 thing, so they have two different authorities:
 
 - **blocking (14)** — the artefact provably cannot work: a syntax error, missing structure, a
@@ -1137,6 +1140,48 @@ born at Extract Sequence were only caught at the third review round.
   `test_pt_prompt_library_context.py` (8); `pt-gen-state.spec.js`, `pt-review-stale.spec.js`,
   `pt-seq-claims.spec.js` (14).
 
+### Negative tests, run preflight, and the 2026-09-23 fixes
+
+Commit `dc2e501`. Each item is Terrence's ruling on the 2026-09-23 open list.
+
+- **Negative tests may unset suite config; nothing else may.** Terrence: *"If there is a
+  'negative test' type of testcase, the Fix and Generate should be able to UnSet whatever needs
+  unsetting to test it. There should be no pushback at any point for this. IF THEY ARE
+  UNSETTING THINGS NOT ON A NEGATIVE TEST, IT SHOULD BE BANNED."* How it is built:
+  - **The flag.** A sequence step carries `negative` (the **Neg** column on the Sequence page,
+    `pt-seq-negative`). Sequence extraction proposes it; `save_sequence` keeps it; `_is_negative`
+    reads it. `_negative_case_names` maps flagged steps to their `TestCase_<n>` classes.
+  - **The ban** (`_lint_suite_owned_commands(tree, code, negative)`) is now **blocking**. It
+    covers only suite-owned commands, meaning ones `TestSet.configure()` issues for the whole
+    run. A negative case is exempt. The finding no longer carries a policy marker, and it is no
+    longer excluded from `_arrival_refusal`.
+  - **The prompts.** `pt_generate_step.jinja` names a negative case in the **per-unit** half, so
+    the shared, cached half stays byte-identical across units. `pt_fix_unit.jinja` states the
+    exception.
+  - **Restoring the setting afterwards.** `_negative_unset_facts` / `_review_negative_unsets`
+    give the review prompt a `negative_unsets` list. Terrence's rule: *"have Review check if a
+    later case restores it. If restoring isnt required by a latter test case, ignore it."*
+- **Run preflight** (`pt_exec._preflight_gate`). Before upload, Run checks the script against
+  the bench `.setup` with `pt_preflight.preflight_text`. An UN-RUNNABLE verdict stops the run
+  as `preflight_failed`, and the page offers **Run anyway**, which sends `ignore_preflight`
+  and is recorded as `"preflight": "skip"`. An error inside the check itself never blocks: it is
+  a check, not a gate on the check.
+- **Malformed JSON is an error, not "nothing"** (`llm.extract_json_result` → `(value, status)`,
+  status `ok` / `none` / `malformed`). Before this, a broken outer object made the extractor
+  walk inward and return its first inner element. Sequence extraction and per-step suggest now
+  answer a malformed reply with a 502. `extract_json_block` is kept as a thin wrapper.
+- **A fragment-only `stk_*` is the DUT.** `_detect_topology` reads the sequence text only.
+  A stack named only inside a borrowed fragment is aliased to the DUT (`stack_aliases`), not
+  rendered as a second `init_stk`.
+- **Lint no longer overwrites the saved copy.** The endpoint writes files only when sent
+  `write_files` (`ptPushCodeEdits`).
+- **Unused imports are removed at assembly** (`_tidy_imports`, except on the frame snapshot).
+  What was removed is recorded in `step6.assembly.imports`. `ATTestSet` / `ATTestCase` are
+  always kept (`_IMPORT_KEEP`).
+- **`guard_db_only.py` can no longer be bypassed by a comment.** Comments are stripped with the
+  tokenizer (`_code_lines`) instead of skipping any line containing `# `.
+  `tests/test_guard_db_only_detects.py` proves the guard still catches a violation.
+
 ### The frame DISCOVERS its topology through the framework — no `[misc]` (2026-09-21)
 
 Plan: `archive/plans/PLAN-frame-framework-discovery.md` (BUILT; commits `3116625` frame,
@@ -1154,10 +1199,14 @@ cable with its far device (`isinstance(far, ATTestBox.TestBox)` tells the testbo
 in a port. `ck_role_dut`, `ck_link_<role>` and `ck_profile` duplicated all three, and a media
 declaration goes stale the moment a module is swapped.
 
-- **Frame** (`pt_script_template.py.jinja`). `init()` binds `dut = setup.init_swi('swi_a')`,
-  then `dut = setup.init_stk(_stk.name)` when `dut.get_stack()` reports one (ports belong to
-  members and `[portlink]` declares them per member; commands go to the master). `_ck_discover`
-  walks `dut.get_all_port_links()` once, skips the DUT's own stack members, takes the `TestBox`
+- **Frame** (`pt_script_template.py.jinja`). `init()` binds `dut = setup.init_swi('swi_a')`
+  and, when `dut.get_stack()` reports one, **also** `dut_stack = setup.init_stk(_stk.name)`,
+  kept as `self.dut_stack`. *Corrected 2026-09-23:* until then the frame re-assigned
+  `dut = setup.init_stk(...)`. The framework's `Stack` has no `cmd`, so every command in a
+  generated script would have died on tb470's stacked DUT. The fix copies ART's own shape (103
+  of 239 ART scripts bind both): commands go through the `Switch`, ports through the `Stack`.
+  `_ck_discover(dut, unit=None)`
+  walks the port links once (the stack's when there is one), skips the DUT's own stack members, takes the `TestBox`
   far end as the `tb` link, and classifies every partner link by the DUT's own output: twisted
   pair listed by `show system pluggable` → `cusfp`, twisted pair fixed → `copper`, `fibre`,
   `not present` → `absent` — **an empty cage is no role** ("cages themselves aren't fibre or
