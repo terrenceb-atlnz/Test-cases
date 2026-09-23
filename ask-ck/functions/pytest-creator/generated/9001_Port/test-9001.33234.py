@@ -25,12 +25,12 @@
 import sys
 import time
 import re
+
 from framework import ATTestSet, ATTestCase
+from framework.ATDrivers import ATTestBox   # isinstance(far_end, ATTestBox.TestBox) tells the testbox from a switch
 from framework.ATPackets import *   # scapy (Ether, sendp, sniff) + the AT layers (lldp_*, IGMP, LACP, EPSR ...)
-from framework import ATDrivers
-from framework.ATLibrary import ATLimits
-from framework.ATLibrary import ATTools
-from library_9001 import *       # this FAMILY's shared helpers, beside the script
+
+from library_9001 import *   # this FAMILY's shared helpers, beside the script
 
 
 # ---------------------------------------------------------------------------
@@ -189,164 +189,158 @@ class TestSet(ATTestSet.TestSet):
 
     FEATURES = ['ALL']
 
-    def _ck_bind_link(self, setup, dut, misc, role, assert_media=True):
-        """Resolve `[misc] ck_link_<role>` on THIS bench, bind it, and assert its media.
+    def _ck_discover(self, dut, unit=None):
+        """Every data link on the DUT, classified by asking the DUT what is fitted in each port.
 
-        `assert_media=False` binds by port REFERENCE only, for a PLUGGABLE role whose module
-        the operator inserts during the test (steps 16/18). The media check then belongs to
-        `assert_role_media_now()`, called by the insertion case.
+        `dut` is the switch handle commands go to; `unit` is what owns the ports — the STACK
+        when the DUT is in one (its members' [portlink]s all count), else `dut` itself.
 
-        Fixed frame — do not edit or delete. Three failures it converts from silent to loud:
-          1. an undeclared role: the bench has not agreed to host this test;
-          2. `init_portlink()` returning (None, None) for a link the bench does not have —
-             a None port later renders as `interface None`, so the run fails looking like a
-             SCRIPT defect;
-          3. the bound port being the wrong MEDIA. That one cannot be caught offline: media
-             belongs to the pluggable, and the CLI accepts `polarity`/`speed 100` on fibre
-             where they are meaningless, so the run would report a PRODUCT failure that is
-             really a cabling error.
-        Raising aborts the suite on purpose: "this bench cannot host this test" is not a
-        test result. See ask-ck/functions/pytest-creator/TOPOLOGY-PROFILES.md.
+        Fixed frame — do not edit or delete (manual port of the 2026-09-21 discovery frame to
+        this saved script, 2026-09-23). Nothing is pre-declared: the cables come from the
+        bench's own [portlink] section through `get_all_port_links()`; the testbox is the far
+        end that is a TestBox; a member of the DUT's own stack is never a partner; and the
+        MEDIA of each DUT-side port is read from `show interface <port> status` (its Type
+        column) and `show system pluggable` (which cages hold a module). A LAG member is an
+        ordinary partner link (Terrence, 2026-09-23). An EMPTY cage lands in `absent`.
+        Returns {bucket: [(near_port, far_port, far_device), ...]} for the buckets
+        tb / copper (fixed twisted pair) / cusfp (twisted pair in a cage) / fibre / absent / unknown.
         """
         import ck_media
-        ref = misc.get('ck_link_' + role)
-        if not ref:
-            raise RuntimeError(
-                "BENCH PROBLEM, not a product defect: this .setup declares no "
-                "ck_link_%s, so the %s link this test needs is not available here. "
-                "See TOPOLOGY-PROFILES.md." % (role, role))
-        dev_a, dev_b, _named_port = ck_media.parse_link_ref(ref)
-        dut_key = misc.get('ck_role_dut', 'swi_a')
-        far_key = dev_b if dev_a == dut_key else dev_a
-        if far_key == 'tb':
-            # The TESTBOX end of a data link (`ck_link_tb = tb-<dut>:<eth>`): the far
-            # object is the testbox itself and its port is an Eth, so the ART shape
-            # `(dut.portA, tb.ethA) = setup.init_portlink(dut, tb, type1='port')` applies.
-            far = self.tb
-            (near_port, far_port) = setup.init_portlink(dut, far, type1='port')
-        else:
-            far = setup.init_swi(far_key)
-            (near_port, far_port) = setup.init_portlink(dut, far, type1='port', type2='port')
-        if near_port is None or far_port is None:
-            raise RuntimeError(
-                "BENCH PROBLEM, not a product defect: ck_link_%s = %r but no unused "
-                "matching [portlink] exists between %s and %s." % (role, ref, dut_key, far_key))
-        if not assert_media:
-            # PLUGGABLE ROLE: bind by port REFERENCE only and defer the media check.
-            # Steps 16 and 18 exist precisely so the operator INSERTS the module, so the
-            # media cannot be asserted at suite-init time: an empty bay would abort the
-            # whole suite before the case that fills it ever ran. The insertion cases call
-            # `assert_role_media_now()` once the operator has confirmed, which is where the
-            # media genuinely becomes knowable.
-            self.log('topology: role %r -> %s %s <-> %s %s (media check DEFERRED to the '
-                     'insertion step)' % (
-                         role, dut_key, near_port.name, far_key, far_port.name))
-            return near_port, far_port, far
-        status = dut.cmd('show interface %s status' % near_port.name)
-        ok, why = ck_media.assert_role_media(status, near_port.name, role)
-        if not ok:
-            raise RuntimeError(why)
-        self.log('topology: role %r -> %s %s <-> %s %s (%s)' % (
-            role, dut_key, near_port.name, far_key, far_port.name, why))
-        return near_port, far_port, far
+        unit = unit if unit is not None else dut
+        members = set(unit.all_members()) if hasattr(unit, 'all_members') else set()
+        in_cage = ck_media.pluggable_ports(dut.cmd('show system pluggable'))
+        found = {'tb': [], 'copper': [], 'cusfp': [], 'fibre': [], 'absent': [], 'unknown': []}
+        for far, pairs in unit.get_all_port_links().items():
+            if far in members:
+                continue                       # stackport / member cabling is not a data path
+            for near, far_port in pairs:
+                if isinstance(far, ATTestBox.TestBox):
+                    found['tb'].append((near, far_port, far))
+                    continue
+                if not near.name.startswith('port'):
+                    continue                   # an eth0 management link is not a data path
+                status = dut.cmd('show interface %s status' % near.name)
+                kind = ck_media.classify(ck_media.media_type(status, near.name))
+                if kind == ck_media.TWISTED_PAIR:
+                    bucket = 'cusfp' if ck_media.is_pluggable(near.name, in_cage) else 'copper'
+                elif kind == ck_media.FIBRE:
+                    bucket = 'fibre'
+                elif kind == ck_media.ABSENT:
+                    bucket = 'absent'
+                else:
+                    bucket = 'unknown'
+                found[bucket].append((near, far_port, far))
+        self.log('topology discovered on %s: %s' % (dut.name, '; '.join(
+            '%s=%s' % (k, ','.join('%s<->%s.%s' % (n.name, getattr(f, 'name', 'tb'), p.name)
+                                    for n, p, f in v))
+            for k, v in found.items() if v) or 'NO data links declared'))
+        return found
+
+    def _ck_bind_link(self, setup, dut, role, optional=False):
+        """Take ONE discovered link for `role` and bind it: (near_port, far_port, far_device).
+
+        `role` is what the TEST needs — 'tb', 'copper', 'fibre', 'cusfp'. A link is never
+        handed out twice; a copper role takes a copper SFP only when no fixed twisted-pair link
+        is left; a partner switch is initialised once however many links go to it. A REQUIRED
+        role with no link aborts the suite ("this bench cannot host this test" is a bench
+        problem, not a test result); an OPTIONAL role returns (None, None, None).
+
+        PLUGGABLE roles (cusfp, fibre) in THIS script (Terrence, 2026-09-23): steps 16 and 18
+        have the operator INSERT the module mid-run, so at init() the cage is usually EMPTY.
+        A matching fitted module is taken first; otherwise a declared link whose DUT cage is
+        empty (`absent`) is bound, and its media is checked by the insertion case itself
+        (`assert_role_media_now`) once the operator has fitted the module. The operator prompt
+        names the port, so which empty cage becomes which role does not matter.
+        """
+        import ck_media
+        buckets = {'tb': ('tb',), 'copper': ('copper', 'cusfp'),
+                   'cusfp': ('cusfp', 'absent'), 'fibre': ('fibre', 'absent')}[role]
+        for bucket in buckets:
+            if not self._ck_topo.get(bucket):
+                continue
+            near, far_port, far = self._ck_topo[bucket].pop(0)
+            if not isinstance(far, ATTestBox.TestBox):
+                if far.name not in self._ck_far:
+                    self._ck_far[far.name] = (setup.init_stk(far.name) if hasattr(far, 'all_members')
+                                              else setup.init_swi(far.name))
+                far = self._ck_far[far.name]
+            self.log('topology: role %r -> %s %s <-> %s %s (%s%s)' % (
+                role, dut.name, near.name, getattr(far, 'name', 'tb'), far_port.name, bucket,
+                ' — cage empty now; media checked when the operator fits the module'
+                if bucket == 'absent' else ''))
+            return near, far_port, far
+        have = ', '.join('%d %s' % (len(v), k) for k, v in self._ck_topo.items() if v) or 'none'
+        why = ("BENCH PROBLEM, not a product defect: no unused %s link on %s (data links "
+               "discovered: %s). Cable a %s partner port to the DUT and declare it under "
+               "[portlink]." % (role, dut.name, have, role))
+        if optional:
+            self.log(why + ' This role is OPTIONAL here: the cases needing it report UNSUPPORTED.')
+            return None, None, None
+        raise RuntimeError(why)
 
     def init(self, setup):
-        # Topology is resolved from the .setup [misc] ROLE CONTRACT at run time, so this
-        # script names no device and no port: it binds correctly on any bench that declares
-        # the roles it needs, and fails loudly on one that does not. The role names come
-        # from TOPOLOGY-PROFILES.md; the bench says what they mean HERE.
+        # Topology is DISCOVERED through the framework at run time, never declared to this
+        # script (manual port of the 2026-09-21 frame, 2026-09-23; the [misc] role contract
+        # this script used to read is retired): the DUT is the framework's `swi_a` slot (its
+        # stack, when it is in one), the partners are whatever the bench's [portlink]s cable to
+        # it, and which link is copper / fibre / copper-SFP is read from the DUT itself.
         tb = setup.init_tb()
-        misc = setup.get_all_misc()
-        dut = setup.init_swi(misc.get('ck_role_dut', 'swi_a'))
+        dut = setup.init_swi('swi_a')
+        # ART's own shape: the STACK owns the ports [portlink] declares per member and is what
+        # discovery walks; COMMANDS go to the swi_a member handle, which has cmd()/mode() — the
+        # framework's Stack class defines neither, and every VCStack member serves the
+        # stack-wide CLI (Terrence, 2026-09-23: "Copy what they do, because it works.").
+        _stk = dut.get_stack()
+        dut_stack = setup.init_stk(_stk.name) if _stk is not None else None
         self.tb = tb
         self.dut = dut
+        self.dut_stack = dut_stack
+        self._ck_far = {}
+        self._ck_topo = self._ck_discover(dut, dut_stack)
 
         # ---------------------------------------------------------------
-        # ROLE CONTRACT for this case (holistic review, TestSet.init):
+        # ROLE SET for this case (holistic review, TestSet.init):
         #
-        #   copper    DUT copper RJ45 test port  <-> PARTNER SWITCH copper port.
-        #             This is the link every copper step measures at BOTH ends,
-        #             so both ends must be switch ports of one and the same
-        #             cable. Previously portA came from the `tb` role (a testbox
-        #             NIC) while the "partner" assertions were aimed at the
-        #             fibre peer — two different cables.
-        #   cusfp     DUT pluggable-capable port hosting the COPPER SFP module
-        #             <-> partner switch copper port (steps 16-17).
-        #   fibre     DUT pluggable-capable port hosting the FIBRE SFP module
-        #             <-> partner switch fibre port (steps 18-19).
+        #   copper    DUT copper RJ45 test port  <-> PARTNER SWITCH copper port. The link
+        #             every copper step measures at BOTH ends. REQUIRED.
+        #   cusfp     DUT cage for the COPPER SFP module <-> partner port (steps 16-17).
+        #   fibre     DUT cage for the FIBRE SFP module <-> partner port (steps 18-19).
+        #   tb        testbox data link — not needed by this case (CLI at both ends).
         #
-        # `cusfp` and `fibre` are DISTINCT roles bound to DISTINCT handles so
-        # the copper-SFP and fibre-SFP assertions are never aimed at one port
-        # attribute (holistic review, TestCase_16/17).
+        # The pluggable roles are bound FIRST so the copper role cannot consume a copper-SFP
+        # link, and `cusfp` / `fibre` are DISTINCT handles so the copper-SFP and fibre-SFP
+        # assertions are never aimed at one port attribute (holistic review, TestCase_16/17).
         # ---------------------------------------------------------------
-        (dut.portA, partner_copper_port, partner) = self._ck_bind_link(
-            setup, dut, misc, 'copper')
+        (dut.portCuSfp, cusfp_far_port, cusfp_peer) = self._ck_bind_link(
+            setup, dut, 'cusfp', optional=True)
+        self.cusfp_supported = cusfp_peer is not None
+        if self.cusfp_supported:
+            cusfp_peer.portCuSfp = cusfp_far_port
+        else:
+            self.cusfp_reason = 'no unused copper-SFP (or empty-cage) link to a partner on this bench'
+        self.cusfp_peer = cusfp_peer
+        self.cusfp_far_port = cusfp_far_port
+
+        (dut.portFibre, fibre_far_port, fibre_peer) = self._ck_bind_link(
+            setup, dut, 'fibre', optional=True)
+        self.fibre_supported = fibre_peer is not None
+        if self.fibre_supported:
+            fibre_peer.portFibre = fibre_far_port
+        else:
+            self.fibre_reason = 'no unused fibre (or empty-cage) link to a partner on this bench'
+        self.fibre_peer = fibre_peer
+        self.peer_fibre_port = fibre_far_port
+        # Backwards-compatible alias: `portPeer` has always meant "the DUT's fibre SFP port" in
+        # steps 18/19; keep the name pointing at exactly that.
+        dut.portPeer = dut.portFibre
+
+        (dut.portA, partner_copper_port, partner) = self._ck_bind_link(setup, dut, 'copper')
         partner.portDut = partner_copper_port
         self.peer = partner
 
-        # ---------------------------------------------------------------
-        # The two PLUGGABLE roles are bound by PORT REFERENCE ONLY.
-        #
-        # Steps 16 and 18 exist so the operator INSERTS a copper SFP and a fibre SFP.
-        # Asserting the media here would read an EMPTY bay and abort the suite before
-        # the case that fills it ever ran — the module-detection steps could then never
-        # observe an insertion event, which is the whole point of them. So `init` only
-        # resolves and binds the port; `assert_role_media_now()` performs the media
-        # check inside the insertion case, once the operator has confirmed.
-        # ---------------------------------------------------------------
-        self.fibre_supported = True
-        try:
-            (dut.portFibre, fibre_far_port, fibre_peer) = self._ck_bind_link(
-                setup, dut, misc, 'fibre', assert_media=False)
-            fibre_peer.portFibre = fibre_far_port
-            self.fibre_peer = fibre_peer
-            self.peer_fibre_port = fibre_far_port
-        except RuntimeError as exc:
-            # The bench declares no fibre pluggable link. A bench-capability statement,
-            # never a product result — and it must NOT abort the suite, because steps
-            # 1-15 are all copper and remain perfectly valid here.
-            self.fibre_supported = False
-            self.fibre_reason = str(exc)
-            dut.portFibre = None
-            self.fibre_peer = None
-            self.peer_fibre_port = None
-            self.log('INFO: fibre role not available on this bench: %s' % exc)
-        # Backwards-compatible alias: `portPeer` has always meant "the DUT's fibre
-        # SFP port" in steps 18/19; keep the name pointing at exactly that.
-        dut.portPeer = dut.portFibre
-
-        # The COPPER SFP pluggable link (profile `cusfp`). Optional on benches that
-        # cannot host a copper SFP: the two cases that use it mark themselves
-        # unsupported rather than aiming at the fibre handle.
-        self.cusfp_supported = True
-        try:
-            (dut.portCuSfp, cusfp_far_port, cusfp_peer) = self._ck_bind_link(
-                setup, dut, misc, 'cusfp', assert_media=False)
-            cusfp_peer.portCuSfp = cusfp_far_port
-            self.cusfp_peer = cusfp_peer
-            self.cusfp_far_port = cusfp_far_port
-        except RuntimeError as exc:
-            # Bench does not declare a copper-SFP pluggable link. That is a bench
-            # capability statement, not a product result: record it and let the two
-            # copper-SFP cases report themselves as not supported here.
-            self.cusfp_supported = False
-            self.cusfp_reason = str(exc)
-            dut.portCuSfp = None
-            self.cusfp_peer = None
-            self.cusfp_far_port = None
-            self.log('INFO: copper-SFP role not available on this bench: %s' % exc)
-
-        # The TESTBOX data link (profile `tblink`): the ART shape `(dut.portA, tb.ethA)`.
-        # Captures, injected frames and pings would happen on `tb.ethA`. Optional here:
-        # this case drives everything from the CLI at both ends of a switch-to-switch
-        # cable, so a bench without a testbox data link can still host it.
-        try:
-            (dut.portTb, tb.ethA, _tb) = self._ck_bind_link(setup, dut, misc, 'tb')
-        except RuntimeError as exc:
-            dut.portTb = None
-            tb.ethA = None
-            self.log('INFO: testbox data link not declared on this bench (not required '
-                     'by this case): %s' % exc)
+        # The TESTBOX data link: optional here — this case drives everything from the CLI at
+        # both ends of a switch-to-switch cable.
+        (dut.portTb, tb.ethA, _tb) = self._ck_bind_link(setup, dut, 'tb', optional=True)
 
         # Baselines recorded by one case and adjudicated by another.
         self.mdi_polarity_dut_straight = None
