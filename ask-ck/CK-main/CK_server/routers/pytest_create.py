@@ -6557,9 +6557,21 @@ def _unit_evidence_gone(guard: dict, new_code: str, unit: dict) -> Optional[str]
     Any-line-survives was the old rule, and it refused correct fixes (AWPTCM-T33235,
     2026-09-24): a finding quoted `if checkLinkStatus(..., 'connected'):` plus the
     `linkUp = True` under it, the fix replaced the poll, and the untouched `linkUp = True` alone
-    refused all four link-poll units. A one-line quote is judged exactly as before."""
-    cur = {_norm_ws(ln) for ln in (guard.get("current_code") or "").split("\n") if ln.strip()}
-    new = {_norm_ws(ln) for ln in (new_code or "").split("\n") if ln.strip()}
+    refused all four link-poll units. A one-line quote is judged exactly as before.
+
+    A MOVED line is a fix too (G5, 2026-09-24): T33235 tc20's defect was WHERE
+    `logBefore = dut.cmd(...)` ran, and the correct reply moved it — every quoted line survived,
+    so it was refused. Among the lines the current unit and the reply share, if any judged line
+    now sits at a different position, the quote was re-ordered and the reply is not refused
+    here (it is still held for approval, and still lint- and scope-guarded)."""
+    cur_seq = [_norm_ws(ln) for ln in (guard.get("current_code") or "").split("\n") if ln.strip()]
+    new_seq = [_norm_ws(ln) for ln in (new_code or "").split("\n") if ln.strip()]
+    cur, new = set(cur_seq), set(new_seq)
+    shared_cur = [ln for ln in cur_seq if ln in new]
+    shared_new = [ln for ln in new_seq if ln in cur]
+
+    def _moved(ln: str) -> bool:
+        return shared_cur.index(ln) != shared_new.index(ln)
     for f in guard.get("findings") or []:
         if (f.get("kind") or "") not in _EVIDENCE_IS_DEFECT_KINDS:
             continue
@@ -6569,7 +6581,7 @@ def _unit_evidence_gone(guard: dict, new_code: str, unit: dict) -> Optional[str]
             if not ln or "..." in ln or "…" in ln or ln not in cur:
                 continue
             judged.append(ln)
-        if judged and all(ln in new for ln in judged):
+        if judged and all(ln in new for ln in judged) and not any(_moved(ln) for ln in judged):
             return (f"finding evidence still present — the {f.get('kind')} finding at "
                     f"{f.get('where') or '(unit)'} quotes `{judged[0][:90]}` as the defect and "
                     f"the reply still contains every quoted line; kept the current unit")
@@ -6732,6 +6744,14 @@ def _reindent_setup_pair(code: str, def_indent: int, body_indent: int) -> str:
 def _code_hash(code: str) -> str:
     import hashlib
     return hashlib.sha1((code or "").encode("utf-8")).hexdigest()[:16]
+
+
+def _unit_hashes(code: str) -> Dict[str, str]:
+    """{unit id: hash of that unit's text} for a script, so a stored review can tell which of its
+    findings are about a unit that has changed since (P5, PLAN-pt-drive-followups-2026-09-24)."""
+    lines = (code or "").split("\n")
+    return {u["id"]: _code_hash("\n".join(lines[u["lines"][0] - 1:u["lines"][1]]))
+            for u in _skeleton_units(code or "")}
 
 
 _GEN_DIVERGED_REASON = (
@@ -8123,8 +8143,20 @@ def _fix_reasons(sess: PtSession, ctx: dict, code: str) -> dict:
         else:
             unmapped.append(f"lint: {e}")
     structural: List[str] = []
-    for f in ((step6.get("review") or {}).get("findings")) or []:
+    stale: List[str] = []
+    review = step6.get("review") or {}
+    reviewed = review.get("unit_hashes") if isinstance(review.get("unit_hashes"), dict) else None
+    current = _unit_hashes(code) if reviewed is not None else {}
+    for f in (review.get("findings")) or []:
         uid = _unit_id_for_finding(f, ctx, code_units)
+        # P5 (2026-09-24): a finding about a unit that changed after the review read it — a hand
+        # edit, an applied fix — is reported, never re-dispatched. On T33235 stale findings
+        # re-fixed units that were already fixed. A review stored before unit hashes existed
+        # cannot be judged per unit and keeps the old behaviour.
+        if uid and reviewed is not None and reviewed.get(uid) != current.get(uid):
+            stale.append(f"stale: {f.get('where') or uid} — {f.get('what') or ''} "
+                         f"[{uid} changed since the review]")
+            continue
         why = _structural_reason(f, uid)
         if why:
             # G5: reported with its reason and NEVER dispatched — a design decision, not a
@@ -8156,7 +8188,7 @@ def _fix_reasons(sess: PtSession, ctx: dict, code: str) -> dict:
             else:
                 unmapped.append(f"run: {c.get('name')} {c.get('result')}")
     return {"per_unit": per, "unmapped": unmapped, "structural": structural,
-            "code_units": code_units}
+            "stale": stale, "code_units": code_units}
 
 
 def _chunks_from_code(code: str, ctx: dict) -> Dict[str, str]:
@@ -8377,6 +8409,22 @@ async def fix_units(key: str, request: Request, body: dict = Body(default={})):
     if not ctx["units"]:
         raise HTTPException(409, "The skeleton has no fillable units — confirm step 4 first.")
     reasons = _fix_reasons(sess, ctx, code)
+    # P5 (2026-09-24): `{"units": [...]}` limits the run to those units, like apply_held. Omitted
+    # = every unit with a current reason (unchanged behaviour).
+    want = body.get("units")
+    if isinstance(want, list):
+        only = {str(u) for u in want}
+        reasons["per_unit"] = {u: r for u, r in reasons["per_unit"].items() if u in only}
+        if not reasons["per_unit"]:
+            raise HTTPException(409, "Nothing to fix in " + ", ".join(sorted(only)) +
+                                (" — their review findings are stale (the unit changed since "
+                                 "the review)" if reasons["stale"] else "") + ".")
+    if (not reasons["per_unit"] and not reasons["unmapped"] and not reasons["structural"]
+            and reasons["stale"]):
+        raise HTTPException(409, f"Nothing to fix: all {len(reasons['stale'])} remaining review "
+                                 f"finding(s) are about units that changed since the review — "
+                                 f"review again if they still need judging: "
+                                 + "; ".join(reasons["stale"][:3]))
     if not reasons["per_unit"] and not reasons["unmapped"] and not reasons["structural"]:
         raise HTTPException(409, "Nothing to fix: no lint errors, review findings or failed "
                                  "run results.")
@@ -8416,7 +8464,8 @@ async def fix_units(key: str, request: Request, body: dict = Body(default={})):
     targets = [uid for uid in reasons["per_unit"] if uid in by_id and uid not in already]
     if not targets:
         return {"dispatched": [], "already_running": sorted(already),
-                "unmapped": reasons["unmapped"], "structural": reasons["structural"]}
+                "unmapped": reasons["unmapped"], "structural": reasons["structural"],
+                "stale": reasons["stale"]}
     llm_cfg = _llm_cfg_for(sess, "unit_fill")
     prepared = [(uid, by_id[uid],
                  _fix_unit_prompt(key, data, sess, ctx, by_id[uid], synced[uid],
@@ -8474,7 +8523,8 @@ async def fix_units(key: str, request: Request, body: dict = Body(default={})):
         await _run_primed_and_wait(prepared, _one)
         record: Dict[str, Any] = {"at": utc_now().isoformat(), "units": targets,
                                   "unmapped": reasons["unmapped"],
-                                  "structural": reasons["structural"], "assembled": False}
+                                  "structural": reasons["structural"],
+                                  "stale": reasons["stale"], "assembled": False}
         try:
             fresh = _pt_load(key)
             chunks = ((fresh.step6 if fresh else None) or {}).get("chunks") or {}
@@ -8511,6 +8561,7 @@ async def fix_units(key: str, request: Request, body: dict = Body(default={})):
     asyncio.create_task(_chain())
     return {"dispatched": targets, "already_running": sorted(already),
             "unmapped": reasons["unmapped"], "structural": reasons["structural"],
+            "stale": reasons["stale"],
             "primed": targets[0] if len(targets) > 1 else None,
             "counts": {uid: {"lint": len(r["lint"]), "review": len(r["review"]),
                              "run": bool(r["run"])}
@@ -8604,6 +8655,7 @@ def _late_review_handler(key: str, sequence: List[dict], reviewed_lint, code: st
                 parsed.get("findings") if isinstance(parsed, dict) else parsed, sequence),
             "reviewed_lint": reviewed_lint,
             "code_hash": _code_hash(code),
+            "unit_hashes": _unit_hashes(code),
             "provenance": {"llm": {"auth_method": "claude_agent", "late": True},
                            "prompt": "", "response": result.get("content", "")},
         }
@@ -8689,6 +8741,7 @@ async def review_script(key: str, request: Request):
         "findings": findings,
         "reviewed_lint": _review_lint_findings(sess),
         "code_hash": _code_hash(step6["files"]["test"]["code"]),   # slice B: bound to this code
+        "unit_hashes": _unit_hashes(step6["files"]["test"]["code"]),  # P5: per-unit staleness
         "provenance": {
             "llm": {k: meta.get(k) for k in ("provider", "model", "auth_method")},
             "prompt": meta.get("prompt", ""),

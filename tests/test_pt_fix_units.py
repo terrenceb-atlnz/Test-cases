@@ -1207,3 +1207,58 @@ def test_G2_after_a_RECHUNK_frees_body_assignments_but_still_freezes_the_shortcu
     for shortcut in ("        dut = self.testSet.dut\n", "        portPeer = dut.portPeer\n"):
         ok, why = pc._unit_frozen_ok(filled, filled.replace(shortcut, ""), unit)
         assert not ok and "frozen line" in why, shortcut
+
+
+# --- P5 + G5 (PLAN-pt-drive-followups-2026-09-24 §1) -------------------------------------------
+
+def test_P5_a_finding_about_a_unit_changed_since_the_review_is_stale_not_redispatched():
+    """T33235 (2026-09-24): after a hand edit, fix_units re-fixed units already fixed because the
+    review's findings were still mapped to them. A review now carries a hash per unit; a finding
+    whose unit changed is reported as stale and never dispatched."""
+    s = _sess()
+    s.step6["review"]["unit_hashes"] = pc._unit_hashes(SCRIPT)
+    r = pc._fix_reasons(s, CTX, SCRIPT)
+    assert r["per_unit"]["tc1"]["review"] and r["stale"] == []          # unchanged: still live
+    edited = SCRIPT.replace("self.log('one')", "self.log('one, edited')")
+    r2 = pc._fix_reasons(s, CTX, edited)
+    assert r2["per_unit"].get("tc1", {}).get("review", []) == []
+    assert len(r2["stale"]) == 1 and "tc1 changed since the review" in r2["stale"][0]
+
+
+def test_P5_a_review_stored_before_unit_hashes_keeps_the_old_mapping():
+    edited = SCRIPT.replace("self.log('one')", "self.log('one, edited')")
+    r = pc._fix_reasons(_sess(), CTX, edited)
+    assert r["per_unit"]["tc1"]["review"] and r["stale"] == []
+
+
+def test_P5_both_review_records_store_unit_hashes_and_fix_units_takes_a_units_filter():
+    assert _CODE.count('"unit_hashes": _unit_hashes(') == 2
+    assert 'want = body.get("units")' in FIX_UNITS
+    assert 'reasons["per_unit"] = {u: r for u, r in reasons["per_unit"].items() if u in only}' in FIX_UNITS
+    assert FIX_UNITS.index('want = body.get("units")') < FIX_UNITS.index('targets = [uid for uid in reasons["per_unit"]')
+
+
+def test_P5_unit_hashes_key_every_unit():
+    h = pc._unit_hashes(SCRIPT)
+    assert set(h) == {"setup", "tc1", "tc2"} and len(set(h.values())) == 3
+
+
+def test_G5_a_reply_that_MOVES_the_quoted_line_is_not_refused_one_that_keeps_it_in_place_is():
+    """T33235 tc20 (2026-09-24): the defect was WHERE `logBefore = dut.cmd(...)` ran; the correct
+    fix moved it after the forcing, and the evidence guard refused it because the line survived."""
+    cur = ("class TestCase_2(ATTestCase.TestCase):\n"
+           "    def main(self):\n"
+           "        logBefore = dut.cmd('show log')\n"
+           "        dut.cmd('speed 100')\n"
+           "        peer.cmd('speed 100')\n"
+           "        self.passed('x')\n")
+    g = {"current_code": cur, "findings": [{"kind": "wrong_symbol", "where": "TestCase_2.main",
+                                            "what": "baseline taken too early",
+                                            "evidence": "logBefore = dut.cmd('show log')"}]}
+    assert pc._unit_evidence_gone(g, cur, _unit("tc2"))                     # untouched: refused
+    moved = cur.replace("        logBefore = dut.cmd('show log')\n", "").replace(
+        "        peer.cmd('speed 100')\n", "        peer.cmd('speed 100')\n        logBefore = dut.cmd('show log')\n")
+    assert pc._unit_evidence_gone(g, moved, _unit("tc2")) is None
+    # Adding lines around it without moving it relative to the rest is still refused.
+    padded = cur.replace("        self.passed('x')\n", "        self.log('extra')\n        self.passed('x')\n")
+    assert pc._unit_evidence_gone(g, padded, _unit("tc2"))

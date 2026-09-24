@@ -1981,7 +1981,9 @@ async function _ptFixUnitsCommon(btn, statusEl) {
       + (unm ? ` ${unm} finding(s) name no unit — use "Fix whole script" for those.` : '')
       // G5 (PLAN-fix-units-guardrails): a structural finding is a design decision. It is
       // never sent to a model; the reason is shown so the reviewer can take that decision.
-      + (structural.length ? ` ${structural.length} structural finding(s) need a design decision, not a fix: ${structural.join(' · ')}` : '');
+      + (structural.length ? ` ${structural.length} structural finding(s) need a design decision, not a fix: ${structural.join(' · ')}` : '')
+      // P5 (2026-09-24): findings about a unit edited since the review are not re-fixed.
+      + ((d.stale || []).length ? ` ${d.stale.length} review finding(s) skipped — their unit changed since the review: ${d.stale.join(' · ')}` : '');
   }
   _ptOnUnitsSettled = async () => {
     await ptRefreshSession();
