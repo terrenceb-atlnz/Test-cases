@@ -318,7 +318,7 @@ function ptRenderSequence(seq) {
       <td>${i + 1}${flagged ? ' <span class="pt-seq-flag" title="' + escapeHtml(flagTitle) + '">⚠</span>' : ''}</td>
       <td style="text-align:center;font-size:11px" title="source refined step #">${from}</td>
       <td><textarea class="form-input pt-seq-action" data-i="${i}" style="width:100%;height:44px;font-size:11px">${escapeHtml(s.action || '')}</textarea></td>
-      <td><textarea class="form-input pt-seq-verify" data-i="${i}" style="width:100%;height:44px;font-size:11px">${escapeHtml(s.verify || '')}</textarea>${_ptPublishesText(s.publishes)}</td>
+      <td><textarea class="form-input pt-seq-verify" data-i="${i}" style="width:100%;height:44px;font-size:11px">${escapeHtml(s.verify || '')}</textarea>${_ptPublishesText(s.publishes, i)}</td>
       ${anyClaim ? `<td class="pt-seq-claim" style="font-size:11px">${escapeHtml(_ptClaimText(s.claim)) || '<span class="justification-note">—</span>'}</td>` : ''}
       <td style="text-align:center"><input type="checkbox" class="pt-seq-negative" data-i="${i}"${s.negative ? ' checked' : ''} title="Negative test — may unset suite-owned commands"></td>
       <td><button class="btn btn-compact" data-action="ptRemoveSeqRow" data-args='[${i}]'>✕</button></td>
@@ -329,13 +329,26 @@ function ptRenderSequence(seq) {
   ptWireSeqDrag();
 }
 
-// G6 (2026-09-24): a value this step measures for a LATER step (`publishes`). Display-only here,
-// like `claim`; it rides the row cache so a drag or Save keeps it on its own step.
-function _ptPublishesText(pubs) {
-  if (!Array.isArray(pubs) || !pubs.length) return '';
-  return '<div class="justification-note pt-seq-publishes" title="Later steps read this value; the frame declares it in TestSet.init()">publishes: '
-    + pubs.map(p => `<code>${escapeHtml(p.name || '')}</code>${p.shape ? ' — ' + escapeHtml(p.shape) : ''}`).join('; ')
-    + '</div>';
+// G6 (2026-09-24) + C6 (2026-09-25): a value this step measures for a LATER step (`publishes`),
+// editable as `name: what it is; name2: …`. The server keeps only valid camelCase names and drops
+// them on setup steps (_normalize_publishes), so the text box needs no validation of its own.
+function _ptPublishesToText(pubs) {
+  return (Array.isArray(pubs) ? pubs : [])
+    .map(p => (p.name || '') + (p.shape ? ': ' + p.shape : '')).join('; ');
+}
+function _ptPublishesFromText(text) {
+  return String(text || '').split(';').map(part => {
+    const i = part.indexOf(':');
+    const name = (i < 0 ? part : part.slice(0, i)).trim();
+    const shape = i < 0 ? '' : part.slice(i + 1).trim();
+    return { name, shape };
+  }).filter(p => p.name);
+}
+function _ptPublishesText(pubs, i) {
+  return `<input class="form-input pt-seq-publishes" data-i="${i}" style="width:100%;font-size:11px;margin-top:2px" `
+    + `placeholder="publishes for later steps (name: what it is; …)" `
+    + `title="A value this step measures that a LATER step reads — the frame declares it in TestSet.init() and later cases are told its shape" `
+    + `value="${escapeHtml(_ptPublishesToText(pubs))}">`;
 }
 
 // The `from` (zephyr_step_idx) is now display-only, so we cache it per-row alongside
@@ -365,6 +378,7 @@ function _ptReadSeqRows() {
     const a = row.querySelector('.pt-seq-action');
     const v = row.querySelector('.pt-seq-verify');
     const neg = row.querySelector('.pt-seq-negative');
+    const pub = row.querySelector('.pt-seq-publishes');
     const from = _ptSeqCache[Number(row.dataset.i)] || {};
     const out = {
       n: i + 1,
@@ -376,7 +390,8 @@ function _ptReadSeqRows() {
     if (typeof from.zephyr_step_idx === 'number') out.zephyr_step_idx = from.zephyr_step_idx;
     if (from.kind) out.kind = from.kind;
     if (from.claim) out.claim = from.claim;
-    if (from.publishes) out.publishes = from.publishes;
+    // Editable (C6), so sent explicitly: an emptied box must clear the declaration.
+    out.publishes = pub ? _ptPublishesFromText(pub.value) : (from.publishes || []);
     return out;
   });
 }
