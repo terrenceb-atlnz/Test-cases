@@ -2,6 +2,7 @@
 // @ts-nocheck
 
   import PageCard from '../lib/components/PageCard.svelte';
+  import Button from '../lib/components/Button.svelte';
   import { resolvedTheme } from '../lib/theme.js';
   import askCKLogoDark from '../assets/askck-logo.png';
   import askCKLogoLight from '../assets/askck-logo-light.png';
@@ -34,6 +35,22 @@
       isAdmin = true;
     }
   }
+
+  function resetCurrentCaseSession() {
+    // TODO: wire up a real reset of the current case session
+  }
+
+  function resetWorkspaceLlmConfig() {
+    // TODO: wire up a real reset of the workspace LLM config
+  }
+
+  function resetAllSessions() {
+    // TODO: wire up a real reset of all sessions
+  }
+
+  function restartServer() {
+    // TODO: wire up a real server restart/reload
+  }
 </script>
 
 <div class="home-hero">
@@ -44,7 +61,23 @@
     <p>Ask CK is a server-backed test-engineering workbench for the AWPTCM test-case program. It brings the tools for enriching manual test cases, mapping them to automation, and turning them into runnable scripts into one place. Pick a tool from below, or read the step-by-step guides inside the Help section. Most tools use an LLM via a local subscription CLI — set that up first under <span style="font-weight: bold;">LLM → Configure</span>.</p>
 </div>
 {#if isAdmin}
-  <p>Hello world</p>
+  <div class="admin-panel">
+    <div class="admin-section">
+      <p class="admin-section-label">Session state</p>
+      <div class="admin-actions">
+        <Button variant="outline" on:click={resetCurrentCaseSession}>Reset current case session</Button>
+        <Button variant="outline" sparkle on:click={resetWorkspaceLlmConfig}>Reset workspace LLM config</Button>
+        <Button variant="outline" on:click={resetAllSessions}>Reset ALL sessions</Button>
+      </div>
+    </div>
+
+    <div class="admin-section">
+      <p class="admin-section-label">Server</p>
+      <div class="admin-actions">
+        <Button variant="outline" on:click={restartServer}>Restart server (reload)</Button>
+      </div>
+    </div>
+  </div>
 {:else}
   <div class="card-container">
     <div class="card-grid">
@@ -101,6 +134,30 @@
         align-items: center;
         justify-content: center;
         text-align: center;
+    }
+
+    .admin-panel {
+        display: flex;
+        flex-direction: column;
+        gap: 28px;
+        max-width: 720px;
+        margin: 0 auto;
+        padding: 24px 24px;
+    }
+
+    .admin-section-label {
+        margin: 0 0 8px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--color-text-muted);
+    }
+
+    .admin-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
     }
 
 </style>

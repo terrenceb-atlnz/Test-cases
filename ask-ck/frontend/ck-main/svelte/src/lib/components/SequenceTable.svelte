@@ -9,8 +9,17 @@
   /** @type {string} */
   export let emptyMessage = 'No sequenced steps yet.';
 
+  /**
+     * @type {string | null}
+     */
   let editingRowId = null;
+  /**
+     * @type {number | null}
+     */
   let draggedIndex = null;
+  /**
+     * @type {{ index: any; position: any; } | null}
+     */
   let dropIndicator = null; // { index, position: 'above' | 'below' }
 
   function toggleEditRow(id) {
