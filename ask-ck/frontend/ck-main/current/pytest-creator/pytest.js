@@ -223,7 +223,10 @@ export function renderPtSeqPanel() {
   _ptSeqSanity = ((ptSession.step2 || {}).sanity) || [];
   ptRenderSequenceCached(((ptSession.step2 || {}).sequence) || []);
   const notes = (ptSession.step2 || {}).notes;
-  if (notes) ptStatusEl('pt-seq-status').textContent = 'LLM notes: ' + notes;
+  // S3 (2026-09-24): notes describe the sequence the extract wrote, not one edited since.
+  if (notes) ptStatusEl('pt-seq-status').textContent = ((ptSession.step2 || {}).notes_stale
+    ? 'LLM notes (written for the extracted sequence, before your edits — may name steps that no longer exist): '
+    : 'LLM notes: ') + notes;
   mountPtProvenance('pt-seq-prov', 'panel-pt-seq', '/api/pytest-create/extract_sequence/{key}', (ptSession.step2 || {}).provenance);
   updatePtBadges();
 }

@@ -106,6 +106,15 @@ Convert this manual test case into a prescriptive sequence of automatable test s
   inventing one. But that table is keyed by port TYPE, and which type a given bench port
   is remains unknown at generation time, so still express the outcome in plain words
   ("link should not come up if the partner cannot match") rather than as a fixed verdict.
+- **TRY EVERY DOCUMENTED VALUE, ON EVERY SCRIPT.** A script is not per-device: it runs
+  unchanged on every platform, so a step that sweeps a command's values (speeds, modes) takes
+  EVERY value the command documents for the media under test — including values some hardware
+  will refuse — rather than only the ones you judge applicable. Write each such verify as
+  *accept-if-legal, reject-if-not*: if the DUT accepts the value, the step's check must hold; if
+  it rejects it with a CLI error, verify the rejection instead (the error is printed and the
+  configured value is unchanged) — that is the result for that value. Never drop a documented
+  value because a platform might not support it. (Terrence, 2026-09-24: "The
+  device doesnt support every speed, but we should try on every script. Thats the point.")
 - **HALF DUPLEX IS IMPOSSIBLE AT 1 Gig AND ABOVE.** Physical constraint, not a CLI one, so
   no reference page states it — the `duplex` page lists `{auto|full|half}` unconditionally
   on the products that support half duplex at all. `speed 1000` + `duplex half` therefore
@@ -123,6 +132,14 @@ Convert this manual test case into a prescriptive sequence of automatable test s
   - `setup` — configuration or precondition with no pass/fail check of its own (base config, enabling a feature, addressing). Becomes suite `configure()`, not a test case.
   - `verify` — a normal automatable action + observable check driven over the CLI/traffic (the common case, the default).
   - `physical` — REQUIRES a human to physically act on the hardware (insert/remove a pluggable, plug/unplug a cable, hot-swap), then the script waits for the resulting port state change (link up/down, pluggable detected) and continues. These are IN SCOPE — do NOT skip them. Model: prompt the operator, then poll `show interface <port> status` for the state transition (see the SVT 3009 Pluggable Qualifications `waitForReplugEvent`/`waitForHotswapEvent` pattern).
+    **Fitted pluggables are a PRECONDITION, not a step.** The script finds each pluggable link
+    (fibre SFP, copper SFP) at start-up from the modules already fitted, and every module the
+    case uses is fitted and cabled BEFORE the run. So when a step only needs a module to be
+    present — "insert a copper SFP, then force speed 100 on it" — write the step against the
+    fitted module and NO insert, remove or swap. Write an insert/remove/swap `physical` step
+    ONLY when the step is ABOUT the insertion itself (hot-swap detection, re-seat recovery).
+    (Terrence, 2026-09-23: "if we need to have a pluggable inserted first, as a precondition,
+    then so be it"; 2026-09-24: "have both of them plugged-in at test start".)
   - `manual` — a visual/physical check the DEVICE CANNOT self-report (LED colour, physical seating), needing operator Y/N confirmation (`yesNo("Press Y when …")`).
 - **"negative"** = `true` when the step is a NEGATIVE test — it checks that something does NOT
   work, is refused, or is absent (a link that must stay down, a rejected command, a frame that

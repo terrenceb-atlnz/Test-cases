@@ -671,6 +671,27 @@ def _sequence_shape(sequence: list) -> str:
                     for s in (sequence or []))
 
 
+def _prune_step_matches(step3: Optional[dict], prev_seq: list, new_seq: list) -> Tuple[Optional[dict], List[str]]:
+    """S2 (PLAN-pt-drive-followups-2026-09-24): drop the per-step script CANDIDATES
+    (`step3.step_matches`, keyed by step number) whose step's action text is not what it was when
+    they were suggested. T33235 kept 2026-09-17 candidates for 5 steps after a 35-step
+    re-extract, shown against steps they were never about. Candidates are cheap to re-suggest
+    and are not the reviewer's picks: `step3.selections` is deliberately left alone (Terrence,
+    2026-09-02 — a reported risk, never destroyed automatically). Returns (step3, dropped keys)."""
+    sm = (step3 or {}).get("step_matches") or {}
+    if not sm:
+        return step3, []                  # untouched, None included
+
+    def _txt(seq):
+        return {str(x.get("n")): " ".join(str(x.get("action") or "").split()) for x in (seq or [])}
+    before, after = _txt(prev_seq), _txt(new_seq)
+    keep = {k: v for k, v in sm.items() if k in after and before.get(k) == after[k]}
+    dropped = sorted(set(sm) - set(keep), key=lambda k: (len(k), k))
+    if not dropped:
+        return step3, []
+    return {**step3, "step_matches": keep}, dropped
+
+
 def _selections_fingerprint(sess: PtSession) -> str:
     """Order-independent fingerprint of the step-3 script selections. Fragments are
     stamped with this at gather time; when it no longer matches the current selections,
@@ -5108,8 +5129,13 @@ async def extract_sequence(key: str, request: Request):
         # step3.selections has the same {stepN: ...} exposure and is deliberately NOT
         # cleared here -- Terrence chose to keep that as a reported risk rather than
         # destroy a reviewer's script picks automatically. See the 2026-09-02 log entry.
-        prev_shape = _sequence_shape((fresh.step2 or {}).get("sequence") or [])
+        prev_seq_f = (fresh.step2 or {}).get("sequence") or []
+        prev_shape = _sequence_shape(prev_seq_f)
         fresh.step2 = _step2
+        fresh.step3, _dropped = _prune_step_matches(fresh.step3, prev_seq_f, sequence)
+        if _dropped:
+            print(f"[pt] {key}: dropped script candidates for step(s) {', '.join(_dropped)} — "
+                  f"their step text changed")
         _invalidate_from(fresh, 2)
         if prev_shape and prev_shape != _sequence_shape(sequence):
             if (fresh.step5 or {}).get("fragments"):
@@ -5161,10 +5187,17 @@ async def save_sequence(key: str, body: dict = Body(...)):
     # The sanity flags name step NUMBERS; once the steps are re-shaped they point at the
     # wrong rows, so they are kept only while the shape is unchanged.
     sanity = (sess.step2 or {}).get("sanity") or []
-    if _sequence_shape(prev_seq) != _sequence_shape(sequence):
+    reshaped = _sequence_shape(prev_seq) != _sequence_shape(sequence)
+    if reshaped:
         sanity = []
     sess.step2 = {**(sess.step2 or {}), "sequence": sequence,
                   "coverage": coverage, "sanity": sanity, "confirmed": False}
+    # S3 (2026-09-24): the extract's `notes` describe the sequence IT wrote; once the reviewer
+    # reshapes it they may name steps that no longer exist. Kept, but marked, so the page can
+    # say so. A fresh extract writes a new step2 without the mark.
+    if reshaped and sess.step2.get("notes"):
+        sess.step2["notes_stale"] = True
+    sess.step3, _dropped = _prune_step_matches(sess.step3, prev_seq, sequence)   # S2
     _invalidate_from(sess, 2)
     _pt_persist(sess)
     return {"sequence": sequence, "coverage": coverage, "sanity": sanity}
