@@ -75,3 +75,10 @@ def test_reset_generate_starts_the_count_again():
 def test_gen_state_carries_the_count_to_the_ui():
     st = pc._gen_state({"review_log": [{}, {}, {}]})
     assert st["review_rounds"] == 3 and st["review_rounds_free"] == pc._PT_REVIEW_ROUNDS_FREE
+
+
+def test_gen_state_carries_the_last_rounds_size_and_none_before_any_round():
+    """C9 (PLAN-pt-followups-review-2026-09-24): the reviewer sees what the last round cost."""
+    assert pc._gen_state({"review_log": [{"prompt_chars": 1000}, {"prompt_chars": 372000}]})[
+        "review_last_prompt_chars"] == 372000
+    assert pc._gen_state({})["review_last_prompt_chars"] is None

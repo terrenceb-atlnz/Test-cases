@@ -6957,6 +6957,7 @@ def _gen_state(step6: dict) -> dict:
         "review_stale": review_stale,
         "review_rounds": len(step6.get("review_log") or []),
         "review_rounds_free": _PT_REVIEW_ROUNDS_FREE,
+        "review_last_prompt_chars": ((step6.get("review_log") or [{}])[-1] or {}).get("prompt_chars"),
     }
 
 

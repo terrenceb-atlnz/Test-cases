@@ -416,6 +416,14 @@ body {
   color: var(--status-medium);
   border-color: var(--status-medium);
 }
+/* ⏳ seat limit (P3, 2026-09-24): the seat refused on its usage limit; re-run after the reset.
+   Grey, dotted — not a unit defect. */
+.pt-pill-row button.pt-pill-limit {
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+  border-color: var(--text-secondary);
+  border-style: dotted;
+}
 .pt-pill-row button.pt-pill-current { outline: 2px solid var(--text-primary); outline-offset: 1px; }
 /* Slice A: the units ⇄ script state pill (a span, not a button — it is a verdict, not a target). */
 .pt-pill-row .pt-state {

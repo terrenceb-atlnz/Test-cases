@@ -123,5 +123,6 @@ describe('review round cap (P1 / D-A, 2026-09-24)', () => {
   it('tells the reviewer how many rounds were used', () => {
     expect(RENDER).toContain('review_rounds');
     expect(RENDER).toContain('review_rounds_free');
+    expect(RENDER).toContain('review_last_prompt_chars');
   });
 });

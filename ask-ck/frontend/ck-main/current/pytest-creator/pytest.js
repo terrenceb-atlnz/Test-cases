@@ -1159,12 +1159,15 @@ function ptRenderUnitPills() {
   const cls = { ok: 'pt-pill-ok', run: 'pt-pill-run', gap: 'pt-pill-gap', held: 'pt-pill-held' };
   const pills = _ptUnits.map((u, i) => {
     const st = _ptUnitState(u);
-    const glyph = st === 'ok' ? '✓' : (st === 'run' ? '…' : (st === 'held' ? '⏸' : '✗'));
+    // P3 (2026-09-24): the SEAT refused on its usage limit — not the model, not the prompt.
+    // Its own look, so a row of them reads as "wait for the reset", not "twelve bad units".
+    const limit = u.status === 'error' && /^seat limit:/.test(u.error || '');
+    const glyph = limit ? '⏳' : (st === 'ok' ? '✓' : (st === 'run' ? '…' : (st === 'held' ? '⏸' : '✗')));
     const cur = (i === _ptUnitIdx) ? ' pt-pill-current' : '';
     const label = u.kind === 'setup' ? 'setup' : String(u.tc_n);
     const why = u.status === 'error' && u.error ? ` — FAILED ${_fmtAt(u.at)}: ${u.error}`
       : (st === 'held' ? ' — HELD: a fix is waiting for your Apply / Discard (open the unit)' : '');
-    return `<button class="pt-pill ${cls[st]}${cur}" data-action="ptGoUnit" data-args='[${i}]' `
+    return `<button class="pt-pill ${limit ? 'pt-pill-limit' : cls[st]}${cur}" data-action="ptGoUnit" data-args='[${i}]' `
       + `title="${escapeHtml(u.label)}${escapeHtml(why)}">${glyph} ${escapeHtml(label)}</button>`;
   }).join('');
   // Summary is red until every unit is green, then YELLOW — not green. Green is earned by
@@ -1912,7 +1915,9 @@ function ptRenderReview(review, code = '') {
   // P1 / D-A (2026-09-24): say how many tool review rounds this script has had.
   const rb = document.getElementById('pt-review-btn');
   if (rb && ptGenState && ptGenState.review_rounds_free) {
+    const last = ptGenState.review_last_prompt_chars;
     rb.title = `Tool review rounds used: ${ptGenState.review_rounds || 0} of ${ptGenState.review_rounds_free}`
+      + (last ? ` (the last sent ~${Math.round(last / 1000)}k prompt characters)` : '')
       + ' — after that, another round needs a confirmation.';
   }
   if (!review || !review.at) { el.innerHTML = ''; return; }
