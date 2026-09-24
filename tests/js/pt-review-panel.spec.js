@@ -105,3 +105,23 @@ describe('rendering', () => {
     }
   });
 });
+
+describe('review round cap (P1 / D-A, 2026-09-24)', () => {
+  // T33235 had four tool reviews, each ~355-375k prompt characters, with nothing saying so.
+  // After the free rounds the server 409s with "review round cap: ..."; the UI shows that
+  // text and sends another round ONLY on an explicit confirm, with extra_round set.
+  it('asks before sending a round past the cap, and only then sets extra_round', () => {
+    expect(HANDLER).toMatch(/review round cap:/);
+    expect(HANDLER).toContain('confirm(');
+    const ask = HANDLER.indexOf('confirm(');
+    const extra = HANDLER.indexOf('extra_round: true');
+    expect(extra).toBeGreaterThan(ask);
+    // the first send carries no extra_round
+    expect(HANDLER.slice(0, ask)).not.toContain('extra_round');
+  });
+
+  it('tells the reviewer how many rounds were used', () => {
+    expect(RENDER).toContain('review_rounds');
+    expect(RENDER).toContain('review_rounds_free');
+  });
+});

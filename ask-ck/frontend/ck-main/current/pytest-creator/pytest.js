@@ -1895,6 +1895,12 @@ function _ptEvidencePresent(code, evidence) {
 function ptRenderReview(review, code = '') {
   const el = document.getElementById('pt-review-result');
   if (!el) return;
+  // P1 / D-A (2026-09-24): say how many tool review rounds this script has had.
+  const rb = document.getElementById('pt-review-btn');
+  if (rb && ptGenState && ptGenState.review_rounds_free) {
+    rb.title = `Tool review rounds used: ${ptGenState.review_rounds || 0} of ${ptGenState.review_rounds_free}`
+      + ' — after that, another round needs a confirmation.';
+  }
   if (!review || !review.at) { el.innerHTML = ''; return; }
   const stale = !!(ptGenState && ptGenState.review_stale);
   const findings = review.findings || [];
@@ -2034,9 +2040,25 @@ async function ptReviewScript() {
   // holds something else reports findings against a script the reviewer cannot see.
   await ptPushCodeEdits(false);
   const btn = document.getElementById('pt-review-btn');
-  const d = await ptApi(`/review_script/${S.ptCase.key}`, {
-    method: 'POST', btn, busyLabel: 'Reviewing…', llm: true,
-  }, ptStatusEl('pt-gen-status'));
+  const st = ptStatusEl('pt-gen-status');
+  const errRef = {};
+  let d = await ptApi(`/review_script/${S.ptCase.key}`, {
+    method: 'POST', btn, busyLabel: 'Reviewing…', llm: true, errRef,
+  }, st);
+  // P1 / D-A (2026-09-24): the script has used its free tool review rounds. The server says how
+  // many and how big the last one was; another round is sent only if the reviewer says so.
+  if (!d && /^review round cap:/.test(errRef.msg || '')) {
+    if (!confirm(errRef.msg.replace(/^review round cap: /, '') + '\n\nSend another tool review round anyway?')) {
+      if (st) st.textContent = '⚠ ' + errRef.msg;
+      return;
+    }
+    d = await ptApi(`/review_script/${S.ptCase.key}`, {
+      method: 'POST', body: JSON.stringify({ extra_round: true }),
+      btn, busyLabel: 'Reviewing…', llm: true,
+    }, st);
+  } else if (!d && errRef.msg && st) {
+    st.textContent = isCancelMessage(errRef.msg) ? '⏹ stopped — nothing was kept.' : '⚠ ' + errRef.msg;
+  }
   recordLLMDebug(btn);
   if (!d) return;
   await ptRefreshSession();

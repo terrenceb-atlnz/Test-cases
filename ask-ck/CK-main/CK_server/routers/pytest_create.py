@@ -6788,6 +6788,8 @@ def _gen_state(step6: dict) -> dict:
         "diverged": diverged,
         "reason": _GEN_DIVERGED_REASON if diverged else "",
         "review_stale": review_stale,
+        "review_rounds": len(step6.get("review_log") or []),
+        "review_rounds_free": _PT_REVIEW_ROUNDS_FREE,
     }
 
 
@@ -8626,6 +8628,42 @@ async def discard_held(key: str, body: dict = Body(default={})):
     return {"discarded": dropped}
 
 
+# P1 / D-A (PLAN-pt-drive-followups-2026-09-24): how many TOOL review rounds a script gets before
+# the next one needs an explicit "yes, another round". T33235 had four, each ~355-375k prompt
+# characters on Opus, the last two of a script Claude had already hand-merged — and nothing said
+# what a round cost or that it was the fourth. Terrence: "we are already two-reviews past what i
+# want the tool to actually do." Two is Claude's pick, recorded as D-A for his review. The count
+# lives in step6, so reset_generate (which keeps only files/lint/naming) starts it again.
+_PT_REVIEW_ROUNDS_FREE = 2
+
+
+def _record_review_round(step6_f: dict, review: dict, prompt_chars: Optional[int]) -> None:
+    """Count a STORED review (not a dispatch: a failed or unparseable reply cost tokens but
+    produced nothing to act on, and is already reported as an error) and log its size."""
+    log = list(step6_f.get("review_log") or [])
+    log.append({"at": review.get("at"), "code_hash": review.get("code_hash"),
+                "prompt_chars": prompt_chars,
+                "model": ((review.get("provenance") or {}).get("llm") or {}).get("model"),
+                "findings": len(review.get("findings") or [])})
+    step6_f["review_log"] = log
+    step6_f["review_rounds"] = len(log)
+
+
+def _review_round_gate(step6: dict, extra_round: bool) -> Optional[str]:
+    """The 409 text when this script has used its free tool review rounds and the caller has not
+    asked for another. None = go ahead."""
+    log = step6.get("review_log") or []
+    if len(log) < _PT_REVIEW_ROUNDS_FREE or extra_round:
+        return None
+    last = log[-1] or {}
+    size = f"~{int(last['prompt_chars']) // 1000}k prompt characters" if last.get("prompt_chars") else "an unknown size"
+    return (f"review round cap: this script has had {len(log)} tool review(s) already (the last "
+            f"was {size}{' on ' + str(last['model']) if last.get('model') else ''}). The "
+            f"intended loop is {_PT_REVIEW_ROUNDS_FREE} review rounds; after that, fix what "
+            f"remains by hand and Lint. Send another round only on purpose "
+            f"(`{{\"extra_round\": true}}`, or confirm in the UI).")
+
+
 def _late_review_handler(key: str, sequence: List[dict], reviewed_lint, code: str,
                          dispatched_at: str):
     """Store a review whose reply arrived AFTER the caller gave up (t44297 #6, D6c).
@@ -8668,6 +8706,7 @@ def _late_review_handler(key: str, sequence: List[dict], reviewed_lint, code: st
             if cur.get("at", "") > dispatched_at:
                 return
             step6_f["review"] = review
+            _record_review_round(step6_f, review, None)
             fresh.step6 = step6_f
 
         _pt_persist_fresh(key, _store)
@@ -8693,6 +8732,10 @@ async def review_script(key: str, request: Request):
     _data(request)
     sess = _pt_get(key)
     dry_run = await _dry_run(request)
+    try:
+        extra_round = bool((await request.json()).get("extra_round"))
+    except Exception:
+        extra_round = False
     step6 = sess.step6 or {}
     if not (step6.get("files") or {}).get("test"):
         raise HTTPException(409, "No script to review. Run generate_script first.")
@@ -8700,6 +8743,11 @@ async def review_script(key: str, request: Request):
     gate = _lint_blocks_review(step6)
     if gate:
         raise HTTPException(409, gate)
+    # P1 / D-A (2026-09-24): the free rounds are spent — say so, with the size, before sending.
+    # A dry run sends nothing and is always allowed (it is how the size is previewed).
+    cap = None if dry_run else _review_round_gate(step6, extra_round)
+    if cap:
+        raise HTTPException(409, cap)
 
     sequence = (sess.step2 or {}).get("sequence") or []
     # Give this call somewhere to land if it finishes after we have stopped waiting (D6c).
@@ -8752,10 +8800,13 @@ async def review_script(key: str, request: Request):
     def _apply(fresh: PtSession) -> None:
         step6_f = dict(fresh.step6 or {})
         step6_f["review"] = review
+        _record_review_round(step6_f, review, len(meta.get("prompt") or "") or None)
         fresh.step6 = step6_f
 
     _pt_persist_fresh(key, _apply)
     return {"findings": findings, "at": review["at"],
+            "review_rounds": len((step6.get("review_log") or [])) + 1,
+            "review_rounds_free": _PT_REVIEW_ROUNDS_FREE,
             "counts": {s: sum(1 for f in findings if f["severity"] == s)
                        for s in _REVIEW_SEVERITIES}}
 
