@@ -52,8 +52,10 @@
    `fibre_peer` / `portFibre` and `cusfp_peer` / `portCuSfp`, when bound, are PLUGGABLE links
    (a fitted fibre module, a fitted copper SFP): the frame leaves them None on a bench that
    has no such link, with `self.testSet.fibre_supported` / `cusfp_supported` saying which. A
-   case that needs one checks the flag FIRST and, when it is False, logs why, sets
-   `self.supported = False` and returns — UNSUPPORTED, not a failure. Their far ports are
+   case that needs one checks the flag FIRST in `main()` and, when it is False, reports
+   UNSUPPORTED the rule-3d way (`self.supported = False`, then `self.failed('<why>')`, then
+   `return`) — not a product failure. Its `configure()`/`tear_down()` skip their commands when
+   the handle is None (no verdict there). Their far ports are
    `fibre_peer.portFibre` and `cusfp_peer.portCuSfp` (role-specific, because both often land
    on the same partner switch). After the operator removes and re-fits a module, re-check its
    media with the frame's `assert_role_media_now(self, <dut>, <port>, '<role>')`.
@@ -108,12 +110,35 @@
    output = dutA.cmd('show lldp')
    if 'Invalid input' in output or 'Unrecognized command' in output:
        self.supported = False
-       self.log('INFO: {} does not support lldp; case not applicable'.format(dutA))
+       self.failed('{} does not support lldp: {}'.format(dutA.name, output.strip()[:80]))
        return
    ```
-   `self.supported = False` is the framework's UNSUPPORTED result (68 of 188 ART tests use
-   it): the case is reported as not applicable rather than as a product failure. Use it
+   **UNSUPPORTED is `self.supported = False` FOLLOWED BY `self.failed('<why>')`** — the
+   framework decides a case's result by COUNTING verdicts: no pass and no fail is ERROR;
+   `supported = False` plus a fail is UNSUPPORTED; `supported = False` with only passes is
+   ERROR. So the flag alone, or the flag with `self.log()`, reports **ERROR**, not
+   UNSUPPORTED. ART writes the pair in 224 of its 352 uses. Two more framework facts:
+   `main()` runs even when `configure()` set the flag, so make the check (and the
+   `failed()`) in `main()`; and a verdict in `configure()` is refused by the lint. Use it
    for genuine capability gaps only, never to dodge a failing check.
+3e. **Every case must leave the configuration as it found it.** After each case's
+   `tear_down()` the framework compares every switch's running-config with the one the
+   TestSet started from (`confCheck`, on by default) and fails the case on any difference.
+   So `tear_down()` restores what `configure()` and `main()` changed, on BOTH ends of the
+   link. Where the CLI reference documents a `no` form, use it (`no speed`, not `speed auto`)
+   — the negation is what removes the line from the running-config. A command with no `no`
+   form in its syntax (`duplex {auto|full|half}`) is restored to its default (`duplex auto`).
+3f. **`show system pluggable` names ports WITHOUT the `port` prefix on some releases**
+   (`1.0.2`, not `port1.0.2`), so a row lookup keyed on `port.name` silently finds nothing
+   there and every decision built on it falls back. Ask the frame's own parser instead:
+   ```python
+   import ck_media
+   in_cage = ck_media.pluggable_ports(dut.cmd('show system pluggable'))
+   if ck_media.is_pluggable(port.name, in_cage):   # a module is fitted in this port's cage
+       ...
+   ```
+   To read a column of that table for a port, compare the row's first token after dropping
+   a leading `port` from both sides.
 3c. **The script runs on the TESTBOX's `python3`, not this server's.** tb470 is on
    **3.13**, so anything removed from the stdlib in 3.12/3.13 is an ImportError there even
    though it compiles here: no `distutils` (parse y/n yourself), no `imp`, `telnetlib`,

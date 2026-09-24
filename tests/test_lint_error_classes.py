@@ -80,6 +80,9 @@ BLOCKING = [
     # 2026-09-23 (Terrence): a NON-negative case unsetting a suite-owned command is BANNED —
     # blocking, not the reviewer's call (it was policy 2026-09-15 to 2026-09-23).
     "suite-owned: TestCase_1.tear_down() line 60 unsets `lldp run` (`no lldp run`) on dutA, which TestSet.configure() sets for the whole run, and TestCase_1 is not a negative test — only a case whose sequence step is marked negative may unset a suite command (mark the step on the Sequence page, or leave the suite's setting alone)",
+    # 2026-09-24 (G11): the flag with no fail reports ERROR, not UNSUPPORTED — the run's result
+    # is wrong on that path every time, so no reviewer judgement makes it right.
+    "unsupported: TestCase_15.main() line 2390 sets `self.supported = False` with no `self.failed()` — the framework reports that as ERROR, not UNSUPPORTED",
 ]
 
 POLICY = [

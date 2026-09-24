@@ -3468,6 +3468,176 @@ def _lint_verdict_echo(tree, sequence: List[dict]) -> List[str]:
     return out
 
 
+def _lint_unsupported_without_failure(tree) -> List[str]:
+    """G11 (PLAN-pt-drive-followups-2026-09-24): `self.supported = False` with no `self.failed()`.
+
+    The framework decides a case's result by COUNTING verdicts (`ATTestCase._get_result`, read on
+    tb470 2026-09-24): no pass and no fail is ERROR, `supported = False` plus a fail is
+    UNSUPPORTED, `supported = False` with only passes is ERROR. So the flag on its own — the
+    shape the fill rules taught until 2026-09-24 — reports ERROR. T33235 had 18 such paths.
+
+    Accepted: a `self.failed(...)` in the same statement block as the assignment (ART writes the
+    pair back to back, 224 of 352 uses). An assignment in configure()/tear_down()/init() — where
+    a verdict is refused — is accepted only if the class's main() reads `self.supported`, since
+    main() runs regardless and must report the fail itself. BLOCKING: the run's result is wrong
+    on that path every time."""
+    import ast as ast_mod
+
+    def _is_flag_off(st):
+        return (isinstance(st, ast_mod.Assign) and len(st.targets) == 1
+                and isinstance(st.targets[0], ast_mod.Attribute) and st.targets[0].attr == "supported"
+                and isinstance(st.targets[0].value, ast_mod.Name) and st.targets[0].value.id == "self"
+                and isinstance(st.value, ast_mod.Constant) and st.value.value is False)
+
+    def _has_failed(nodes):
+        return any(isinstance(n, ast_mod.Call) and isinstance(n.func, ast_mod.Attribute)
+                   and n.func.attr == "failed" and isinstance(n.func.value, ast_mod.Name)
+                   and n.func.value.id == "self"
+                   for st in nodes for n in ast_mod.walk(st))
+
+    def _blocks(fn):
+        for n in ast_mod.walk(fn):
+            for field in ("body", "orelse", "finalbody"):
+                blk = getattr(n, field, None)
+                if isinstance(blk, list) and blk and isinstance(blk[0], ast_mod.stmt):
+                    yield blk
+
+    out: List[str] = []
+    for c in tree.body:
+        if not isinstance(c, ast_mod.ClassDef):
+            continue
+        fns = {m.name: m for m in c.body if isinstance(m, ast_mod.FunctionDef)}
+        main = fns.get("main")
+        main_reads_flag = main is not None and any(
+            isinstance(n, ast_mod.Attribute) and n.attr == "supported"
+            and isinstance(n.ctx, ast_mod.Load) and isinstance(n.value, ast_mod.Name)
+            and n.value.id == "self" for n in ast_mod.walk(main))
+        for fname, fn in fns.items():
+            for blk in _blocks(fn):
+                for st in blk:
+                    if not _is_flag_off(st):
+                        continue
+                    if fname == "main":
+                        if _has_failed(blk):
+                            continue
+                        why = "add `self.failed('<why>')` right after it in the same branch"
+                    else:
+                        if main_reads_flag:
+                            continue
+                        why = ("main() runs anyway and never reads `self.supported`; make the "
+                               "check in main() and call `self.failed('<why>')` there")
+                    out.append(
+                        f"unsupported: {c.name}.{fname}() line {st.lineno} sets `self.supported = "
+                        f"False` with no `self.failed()` — the framework reports that as ERROR, not "
+                        f"UNSUPPORTED (UNSUPPORTED = the flag plus a fail); {why}")
+    return out
+
+
+def _lint_pluggable_port_key(tree, code: str) -> List[str]:
+    """G12: a method that reads `show system pluggable` and matches its rows against a port's
+    `.name` itself. That table prints `1.0.2`, not `port1.0.2`, on some releases, so the lookup
+    silently finds nothing and every decision built on it falls back (five T33235 units). The
+    frame's `ck_media.pluggable_ports()` / `is_pluggable()` handle both forms. A WARNING: a
+    method that strips the prefix by hand is correct, and this cannot always tell."""
+    import ast as ast_mod
+    out: List[str] = []
+    for c in tree.body:
+        if not isinstance(c, ast_mod.ClassDef):
+            continue
+        for fn in c.body:
+            if not isinstance(fn, ast_mod.FunctionDef):
+                continue
+            src = ast_mod.get_source_segment(code, fn) or ""
+            if "show system pluggable" not in src or "ck_media" in src:
+                continue
+            if re.search(r"replace\(\s*['\"]port['\"]|removeprefix\(|lstrip\(\s*['\"]port|\[4:\]|_bare|"
+                         r"len\(\s*['\"]port['\"]\s*\)|split\(\s*['\"]port['\"]", src):
+                continue
+            if re.search(r"\bport\w*\.name\b", src):
+                out.append(
+                    f"pluggable: {c.name}.{fn.name}() reads `show system pluggable` and matches "
+                    f"it against a port's `.name` — that table lists `1.0.x` without the `port` "
+                    f"prefix on some releases, so the row is never found. Use "
+                    f"`ck_media.is_pluggable(port.name, ck_media.pluggable_ports(output))`")
+    return out
+
+
+# Exec-mode commands: an action, not configuration, so there is nothing for tear_down() to undo.
+_EXEC_CMD_RX = re.compile(
+    r"^(clear|ping|trace\w*|reboot|reload|copy|delete|del|terminal|debug|undebug|dir|erase|"
+    r"mkdir|rmdir|move|ssh|telnet|restart|activate|y|n|yes|no debug|boot system)\b", re.I)
+
+
+def _lint_config_not_restored(tree) -> List[str]:
+    """G13: a TestCase that leaves configuration changed and never touches that command in its
+    tear_down(). After each case's tear_down() the framework compares every switch's
+    running-config with the TestSet's (`confCheck`, on by default in ATTestCase), so an
+    unrestored change fails the case — and a wrong restore (`speed auto` for `no speed`) can
+    too. Keyed on the command's first word per device, so `speed 100` is answered by `no speed`
+    or `speed auto`; whether the restore is the RIGHT one is the Review's question.
+
+    Judged on the LAST form configure() then main() leave per (device, word): a final `no X`
+    returns X to its default, which is the baseline unless the suite owns X (that is
+    `_lint_suite_owned_commands`' job), so only a final positive form needs undoing. Not judged:
+    commands the TestSet itself issues, mode navigation, `show`, exec actions, a device handed
+    to a helper in tear_down() (`configureDefaultPort(self, dut, port)`), and a word tear_down()
+    sends through a loop variable (`for dev, port in ...: dev.cmd('no speed')`) counts for
+    every device. A WARNING: helpers are invisible here, so no finding proves nothing."""
+    import ast as ast_mod
+    classes = [n for n in tree.body if isinstance(n, ast_mod.ClassDef)]
+
+    def _base_has(c, word):
+        return any(word in getattr(b, "attr", getattr(b, "id", "")) for b in c.bases)
+
+    def _word(cmd):
+        toks = cmd.split()
+        if toks and toks[0] == "no":
+            toks = toks[1:]
+        return toks[0] if toks else ""
+
+    owned = set()
+    for c in classes:
+        if _base_has(c, "TestSet"):
+            for m in c.body:
+                if isinstance(m, ast_mod.FunctionDef) and m.name in ("configure", "tear_down"):
+                    owned |= {(dev, _word(cmd)) for dev, cmd, _ln in _cmd_literals(m)}
+    out: List[str] = []
+    for c in classes:
+        if not _base_has(c, "TestCase"):
+            continue
+        fns = {m.name: m for m in c.body if isinstance(m, ast_mod.FunctionDef)}
+        td = fns.get("tear_down")
+        td_cmds = _cmd_literals(td) if td is not None else []
+        loop_vars = {t.id for n in (ast_mod.walk(td) if td is not None else [])
+                     if isinstance(n, ast_mod.For)
+                     for t in ast_mod.walk(n.target) if isinstance(t, ast_mod.Name)}
+        restored = {(dev, _word(cmd)) for dev, cmd, _ln in td_cmds}
+        restored_any = {_word(cmd) for dev, cmd, _ln in td_cmds if dev in loop_vars}
+        helped = {a.id for n in (ast_mod.walk(td) if td is not None else [])
+                  if isinstance(n, ast_mod.Call)
+                  and not (isinstance(n.func, ast_mod.Attribute) and n.func.attr in ("cmd", "mode", "log"))
+                  for a in n.args if isinstance(a, ast_mod.Name)}
+        last: Dict[Tuple[str, str], Tuple[str, str, int]] = {}
+        for mname in ("configure", "main"):
+            if mname not in fns:
+                continue
+            for dev, cmd, ln in sorted(_cmd_literals(fns[mname]), key=lambda t: t[2]):
+                if _SUITE_NAV_CMD_RX.match(cmd) or _EXEC_CMD_RX.match(cmd) or not _word(cmd):
+                    continue
+                last[(dev, _word(cmd))] = (mname, cmd, ln)
+        for (dev, word), (mname, cmd, ln) in last.items():
+            if (cmd.startswith("no ") or (dev, word) in owned or (dev, word) in restored
+                    or word in restored_any or dev in helped or dev in loop_vars):
+                continue
+            out.append(
+                f"confcheck: {c.name}.{mname}() line {ln} sends `{cmd}` on {dev} and "
+                f"{c.name}.tear_down() never sends `{word}` on {dev} — the framework "
+                f"compares the running-config after each case's tear_down() with the "
+                f"TestSet's, so an unrestored change fails the case. Restore it with the "
+                f"documented `no` form (or the default value where there is none)")
+    return out
+
+
 def _lint_generated(sess: PtSession) -> dict:
     """Offline checks: py_compile + structural AST assertions + framework import check."""
     step6 = sess.step6 or {}
@@ -4044,6 +4214,10 @@ def _lint_generated(sess: PtSession) -> dict:
         for _e in _lint_layer_fields(tree):                     # D4, 2026-09-15
             errors.append(_e)
         warnings.extend(_lint_verdict_echo(tree, (sess.step2 or {}).get("sequence") or []))
+        for _e in _lint_unsupported_without_failure(tree):     # G11, 2026-09-24
+            errors.append(_e)
+        warnings.extend(_lint_pluggable_port_key(tree, code))   # G12, 2026-09-24
+        warnings.extend(_lint_config_not_restored(tree))        # G13, 2026-09-24
 
     # 4. OBJECTIVE COVERAGE (Terrence's invariant, 2026-07-27): every objective links to
     #    a Zephyr step, and every Zephyr step needs at least one PyTest step — otherwise
