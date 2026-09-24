@@ -30,10 +30,12 @@
   --color-border-surface: #d7dee4;
 
   --color-tool-card-border: #bebfbf3d;
-  --color-tool-card-border-hover: #00538f60;
+  --color-tool-card-border-hover: #00538fa3;
   --color-tool-card-bg: rgba(255, 255, 255, 0.12);
-  --color-tool-card-bg-hover: rgba(195, 212, 255, 0.15);
+  --color-tool-card-bg-hover: #f3f3f3;
   --color-tool-card-text: #818282;
+  --color-tool-card-hover-text: #000;
+
 
   --color-code-bg: rgba(0, 83, 143, 0.08);
 
@@ -63,7 +65,7 @@
   --color-arrow-step-border: #d4d4d4;
   --color-arrow-step-complete-bg: #a9ffc8;
   --color-arrow-step-complete-text: #00a33c;
-  --color-arrow-step-complete-border: rgb(137, 251, 139);
+  --color-arrow-step-complete-border: #00a33c84;
   --color-arrow-step-review-bg: #fbdeb8;
   --color-arrow-step-review-text: #ed8a00;
   --color-arrow-step-review-border: #ffbc5e;

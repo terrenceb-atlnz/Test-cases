@@ -36,7 +36,7 @@
   }
 
   .tool-card:hover {
-    box-shadow: inset 0 0 0 1px rgba(22, 64, 96, 0.06), 0 2px 8px rgba(22, 64, 96, 0.12);
+    box-shadow: inset 0 0 0 1px rgba(22, 64, 96, 0.06), 0 5px 8px rgba(22, 64, 96, 0.378);
     transform: translateY(-2px);
     cursor: pointer;
     border: 4px solid var(--color-tool-card-border-hover);
