@@ -31,6 +31,22 @@
   ];
 
   let activeProvider = 'local-llm';
+
+  let localLlmMode = 'fast';
+  let localLlmModelOverride = '';
+
+  let claudeModel = 'sonnet';
+  let claudeModelOverride = '';
+  let unitFillsRoute = '';
+  let stepMatchingRoute = '';
+
+  function checkLocalLlmHealth() {
+    // TODO: wire up a real health check call to the local LLM
+  }
+
+  function checkLocalAgent() {
+    // TODO: wire up a real reachability/login check for the local Claude Code agent
+  }
 </script>
 
 <PageHeader title="Settings" intro="Settings and configurations for Ask CK" />
@@ -110,11 +126,61 @@
         <div class="provider-list">
           {#each providers as provider}
             <div class="provider-card" class:active={activeProvider === provider.id}>
-              <h4 class="provider-title">{provider.title}</h4>
-              <img class="provider-icon" src={provider.icon} alt="" aria-hidden="true" />
-              <div class="provider-options">
-                <p class="provider-option-title">{provider.description}</p>
+              <div class="provider-identity">
+                <h4 class="provider-title">{provider.title}</h4>
+                <img class="provider-icon" src={provider.icon} alt="" aria-hidden="true" />
               </div>
+
+              <div class="provider-divider"></div>
+
+              <div class="provider-config">
+                {#if provider.id === 'local-llm'}
+                  <p class="provider-field-label">Mode</p>
+                  <div class="provider-field-row">
+                    <label class="provider-radio">
+                      <input type="radio" name="local-llm-mode" value="fast" bind:group={localLlmMode} />
+                      Fast
+                    </label>
+                    <label class="provider-radio">
+                      <input type="radio" name="local-llm-mode" value="thinking" bind:group={localLlmMode} />
+                      Thinking
+                    </label>
+                    <input type="text" class="provider-text-input" bind:value={localLlmModelOverride} />
+                    <Button variant="outline" on:click={checkLocalLlmHealth}>Check Health</Button>
+                  </div>
+                {:else if provider.id === 'claude-cli'}
+                  <p class="provider-field-label">Model</p>
+                  <div class="provider-field-row">
+                    <label class="provider-radio">
+                      <input type="radio" name="claude-model" value="haiku" bind:group={claudeModel} />
+                      Haiku
+                    </label>
+                    <label class="provider-radio">
+                      <input type="radio" name="claude-model" value="sonnet" bind:group={claudeModel} />
+                      Sonnet
+                    </label>
+                    <label class="provider-radio">
+                      <input type="radio" name="claude-model" value="opus" bind:group={claudeModel} />
+                      Opus
+                    </label>
+                    <input type="text" class="provider-text-input" bind:value={claudeModelOverride} />
+                    <Button variant="outline" on:click={checkLocalAgent}>Check local agent</Button>
+                  </div>
+
+                  <p class="provider-field-label">Route</p>
+                  <div class="provider-field-row">
+                    <span class="provider-field-inline-label">unit fills:</span>
+                    <select class="provider-select" bind:value={unitFillsRoute}>
+                      <option value=""></option>
+                    </select>
+                    <span class="provider-field-inline-label">step matching:</span>
+                    <select class="provider-select" bind:value={stepMatchingRoute}>
+                      <option value=""></option>
+                    </select>
+                  </div>
+                {/if}
+              </div>
+
               {#if activeProvider === provider.id}
                 <span class="provider-status">Using</span>
               {:else}
@@ -344,11 +410,14 @@
 
   .provider-card {
     position: relative;
+    display: flex;
+    align-items: stretch;
+    gap: 20px;
     border: 1px solid var(--color-border-surface);
     background: var(--color-bg-surface);
     border-radius: 10px;
     padding: 20px;
-    min-height: 140px;
+    /* min-height: 12em; */
     transition: background-color 0.2s ease, border-color 0.2s ease;
   }
 
@@ -357,17 +426,103 @@
     background: color-mix(in srgb, var(--color-accent) 10%, var(--color-bg-surface));
   }
 
+  .provider-identity {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+    flex: 0 0 auto;
+    min-width: 200px;
+  }
+
   .provider-title {
-    margin: 0 0 16px;
+    margin: 0;
     font-size: 1.05rem;
     font-weight: 700;
     color: var(--color-text-heading);
   }
 
   .provider-icon {
-    width: 4em;
-    height: auto;
+    width: auto;
+    height: 5em;
     display: block;
+  }
+
+  .provider-divider {
+    flex: 0 0 auto;
+    width: 1px;
+    align-self: stretch;
+    background: var(--color-border-surface);
+  }
+
+  .provider-config {
+    flex: 1;
+    min-width: 0;
+    padding-bottom: 36px;
+  }
+
+  .provider-field-label {
+    margin: 0 0 8px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+  }
+
+  .provider-field-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 18px;
+  }
+
+  .provider-field-row:last-child {
+    margin-bottom: 0;
+  }
+
+  .provider-radio {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--color-text);
+    font-size: 0.9rem;
+    cursor: pointer;
+  }
+
+  .provider-radio input {
+    accent-color: var(--color-accent);
+    width: 15px;
+    height: 15px;
+    cursor: pointer;
+  }
+
+  .provider-text-input {
+    width: 160px;
+    padding: 6px 10px;
+    border-radius: 8px;
+    border: 1px solid var(--color-border-surface);
+    background: var(--color-bg-surface);
+    color: var(--color-text);
+    font: inherit;
+    font-size: 0.88rem;
+  }
+
+  .provider-field-inline-label {
+    color: var(--color-text-muted);
+    font-size: 0.88rem;
+  }
+
+  .provider-select {
+    padding: 6px 10px;
+    border-radius: 8px;
+    border: 1px solid var(--color-border-surface);
+    background: var(--color-bg-surface);
+    color: var(--color-text);
+    font: inherit;
+    font-size: 0.88rem;
+    min-width: 200px;
   }
 
   .provider-status,
