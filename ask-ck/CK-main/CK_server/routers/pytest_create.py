@@ -3774,6 +3774,80 @@ def _lint_config_not_restored(tree) -> List[str]:
     return out
 
 
+def _lint_published_unguarded(tree, published: List[dict]) -> List[str]:
+    """G15's deterministic half (C7, PLAN-pt-followups-review-2026-09-24): a case that READS a
+    published value (`self.testSet.<name>`, declared by a sequence step's `publishes`) and never
+    tests it against None. When the producer could not establish it, that case sends `speed None`
+    or crashes instead of reporting UNSUPPORTED (T33235: 15 such units before the hand fix).
+
+    Guarded = the value — or a local bound from it — appears in a condition in the same method: an
+    `if`/`elif`/`while`/ternary/`assert` test, a comparison with None, or `isinstance(...)`.
+    The producing case is not judged. A WARNING: a guard written some other way (a helper, a
+    try/except) is invisible here."""
+    import ast as ast_mod
+    names = {p["name"]: p.get("tc_n") for p in (published or []) if p.get("name")}
+    if not names:
+        return []
+
+    def _pub(n):
+        return (isinstance(n, ast_mod.Attribute) and n.attr in names
+                and isinstance(n.value, ast_mod.Attribute) and n.value.attr == "testSet"
+                and isinstance(n.value.value, ast_mod.Name) and n.value.value.id == "self")
+
+    out: List[str] = []
+    for c in tree.body:
+        if not isinstance(c, ast_mod.ClassDef):
+            continue
+        m = re.match(r"TestCase_(\d+)$", c.name)
+        tc_n = int(m.group(1)) if m else None
+        for fn in c.body:
+            if not isinstance(fn, ast_mod.FunctionDef):
+                continue
+            reads = {}
+            aliases: Dict[str, str] = {}
+            for n in ast_mod.walk(fn):
+                if _pub(n) and isinstance(n.ctx, ast_mod.Load):
+                    reads.setdefault(n.attr, n.lineno)
+                if (isinstance(n, ast_mod.Assign) and _pub(n.value) and len(n.targets) == 1
+                        and isinstance(n.targets[0], ast_mod.Name)):
+                    aliases[n.targets[0].id] = n.value.attr
+
+            def _which(e):
+                if _pub(e):
+                    return e.attr
+                if isinstance(e, ast_mod.Name) and e.id in aliases:
+                    return aliases[e.id]
+                return None
+            guarded = set()
+            for n in ast_mod.walk(fn):
+                # any appearance inside a CONDITION (`if s is None`, `if not s`, `if s and ...`,
+                # `isinstance(s, dict)`, an assert) counts: the case looked before using it
+                conds = []
+                if isinstance(n, (ast_mod.If, ast_mod.While, ast_mod.IfExp, ast_mod.Assert)):
+                    conds.append(n.test)
+                elif isinstance(n, ast_mod.Compare) and any(
+                        isinstance(x, ast_mod.Constant) and x.value is None for x in n.comparators):
+                    conds.append(n.left)
+                elif (isinstance(n, ast_mod.Call) and isinstance(n.func, ast_mod.Name)
+                        and n.func.id == "isinstance" and n.args):
+                    conds.append(n.args[0])
+                for cnd in conds:
+                    for sub in ast_mod.walk(cnd):
+                        w = _which(sub)
+                        if w:
+                            guarded.add(w)
+            for name, ln in sorted(reads.items(), key=lambda kv: kv[1]):
+                if name in guarded or (tc_n is not None and names.get(name) == tc_n):
+                    continue
+                out.append(
+                    f"published: {c.name}.{fn.name}() line {ln} reads `self.testSet.{name}` "
+                    f"(published by TestCase_{names[name]}) and never checks it for None — when "
+                    f"that case could not establish it, report UNSUPPORTED "
+                    f"(`self.supported = False`, `self.failed('{name} was not established')`, "
+                    f"`return`) instead of using None")
+    return out
+
+
 def _lint_generated(sess: PtSession) -> dict:
     """Offline checks: py_compile + structural AST assertions + framework import check."""
     step6 = sess.step6 or {}
@@ -4354,6 +4428,8 @@ def _lint_generated(sess: PtSession) -> dict:
             errors.append(_e)
         warnings.extend(_lint_pluggable_port_key(tree, code))   # G12, 2026-09-24
         warnings.extend(_lint_config_not_restored(tree))        # G13, 2026-09-24
+        warnings.extend(_lint_published_unguarded(                # C7 (G15), 2026-09-25
+            tree, _published_values((sess.step2 or {}).get("sequence") or [])))
 
     # 4. OBJECTIVE COVERAGE (Terrence's invariant, 2026-07-27): every objective links to
     #    a Zephyr step, and every Zephyr step needs at least one PyTest step — otherwise

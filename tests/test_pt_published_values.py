@@ -192,3 +192,45 @@ def test_G10_every_shape_the_review_asks_for_passes_the_lint():
     bad = [e for e in lint["errors"] if not e.startswith("coverage")]
     assert bad == [], bad
     assert not [w for w in lint["warnings"] if w.startswith(("confcheck:", "pluggable:"))]
+
+
+# --- C7: a consumer that never checks a published value for None ------------------------------
+
+_PUB = [{"name": "speedS", "shape": "int", "tc_n": 1, "orig_n": 2}]
+
+
+def _lint_pub(body):
+    import ast
+    return pc._lint_published_unguarded(ast.parse(
+        "class TestCase_1:\n    def main(self):\n        self.testSet.speedS = 100\n\n\n"
+        "class TestCase_2:\n" + body), _PUB)
+
+
+def test_C7_an_unguarded_read_warns_and_the_producer_is_not_judged():
+    out = _lint_pub("    def main(self):\n        dut.cmd('speed {}'.format(self.testSet.speedS))\n")
+    assert len(out) == 1 and out[0].startswith("published: TestCase_2.main()")
+
+
+def test_C7_every_guard_shape_is_accepted():
+    for guard in ("        s = self.testSet.speedS\n        if s is None:\n            return\n",
+                  "        if self.testSet.speedS is None:\n            return\n",
+                  "        s = self.testSet.speedS\n        if not s:\n            return\n",
+                  "        if self.testSet.speedS:\n            pass\n"):
+        body = "    def main(self):\n" + guard + "        dut.cmd('speed {}'.format(self.testSet.speedS))\n"
+        assert _lint_pub(body) == [], guard
+
+
+def test_C7_runs_in_the_lint_as_a_warning_and_is_silent_without_publishes():
+    assert "warnings.extend(_lint_published_unguarded(" in _SRC
+    import ast
+    assert pc._lint_published_unguarded(ast.parse("class TestCase_2:\n    def main(self):\n"
+                                                  "        x = self.testSet.speedS\n"), []) == []
+    assert pc._lint_published_unguarded(ast.parse(_FRAME), [{"name": "speedS", "tc_n": 1}]) == []
+
+
+def test_C7_T33235s_own_guards_count_isinstance_and_compound_conditions():
+    """The hand-finished T33235 guards monitoredBaseline with `isinstance(store, dict)` and a
+    compound `if`; neither is an unguarded read."""
+    for guard in ("        store = self.testSet.speedS\n        x = store.get('a') if isinstance(store, dict) else None\n",
+                  "        ref = self.testSet.speedS\n        if isinstance(ref, int) and ref > 10:\n            pass\n"):
+        assert _lint_pub("    def main(self):\n" + guard) == [], guard
