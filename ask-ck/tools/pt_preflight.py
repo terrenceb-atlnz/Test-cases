@@ -49,9 +49,9 @@ Usage:
   python3 ask-ck/tools/pt_preflight.py --setup tb470.setup --script ask-ck/functions/pytest-creator/generated/Port/x.py
   python3 ask-ck/tools/pt_preflight.py --setup tb470.setup --json
 
-The bench file lives outside this repo. For tb470 use the always-current local copy on
-the NFS lab home -- no scp, and no risk of reading the box mid-apply:
-  ~/claude/device-testing/bench-setup/tb470.setup.current
+The bench file lives outside this repo. For tb470 use the always-current copy in the sibling
+device-testing repo -- no scp, and no risk of reading the box mid-apply:
+  ../device-testing/bench-setup/tb470.setup.current   (relative to this repo's root)
 It is generated from bench-state.md, which is the source of truth for that bench.
 
 Exit status: 0 = every script is runnable on that bench, 1 = at least one is not,
@@ -68,12 +68,14 @@ import sys
 from pathlib import Path
 from typing import Dict, List, Optional, Sequence, Set, Tuple
 
-# tb470's .setup is GENERATED from bench-state.md; this local copy on the NFS lab
-# home is always current, so there is no need to scp it off the box (and no risk of
-# catching the box mid-apply).
-LOCAL_TB470_SETUP = "~/claude/device-testing/bench-setup/tb470.setup.current"
-
 REPO = Path(__file__).resolve().parents[2]  # ask-ck/tools/ -> repo root
+
+# tb470's .setup is GENERATED from bench-state.md; this copy in the sibling device-testing repo
+# is always current, so there is no need to scp it off the box (and no risk of catching the box
+# mid-apply). Resolved from THIS repo, not `~`: `~/claude/...` is right on a testbox, whose home
+# is the NFS lab home, but not on the dev host, where that share is mounted elsewhere (B1,
+# PLAN-pt-drive-followups-2026-09-24).
+LOCAL_TB470_SETUP = str(REPO.parent / "device-testing" / "bench-setup" / "tb470.setup.current")
 DEFAULT_SCRIPT_ROOT = REPO / "ask-ck" / "functions" / "pytest-creator" / "generated"
 
 TB = "tb"  # the framework's reserved name for the testbox itself
