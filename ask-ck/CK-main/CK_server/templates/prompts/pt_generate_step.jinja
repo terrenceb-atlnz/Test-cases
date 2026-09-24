@@ -130,7 +130,19 @@ later case depends on the setting.
 Use them by name (`pkt.haslayer(lldp_cap_tlv)`, `pkt[lldp_cap_tlv].lldp_med_cap`); never paste a class definition — a
 copy shadows the framework's and every decode then fails silently.
 {% endif %}
-{% if library and library.members %}
+{% if library and library.family_members %}
+## The group's own helpers — `{{ library.name }}`, ALREADY imported by the frame (`from {{ library.stem }} import *`): CALL these, with THESE signatures
+Every script in this group imports this module. When a helper here does what you need, call it
+rather than writing or adapting another — and pass exactly the arguments its signature names
+(a same-named legacy helper elsewhere may take different ones).
+{% for m in library.family_members %}
+- `{{ m.signature }}`{% if m.doc %} — {{ m.doc }}{% endif %}
+{%- endfor %}
+{% if library.family_replaced %}
+These selected fragments are NOT shipped because the group's module already defines their names
+— use the group's version above instead of adapting them: {% for r in library.family_replaced %}`{{ r.tag }}` ({{ r.names | join(', ') }}){% if not loop.last %}; {% endif %}{% endfor %}.
+{% endif %}
+{% endif %}{% if library and library.members %}
 ## Suite library `{{ library.name }}` — ALREADY imported by the frame (`from {{ library.stem }} import *`): CALL these, never paste them
 The way every ART suite keeps its packets and shared checks in `library_<suite>.py`. These
 reviewer-approved fragments ship in that file beside the script, verbatim, so a unit that

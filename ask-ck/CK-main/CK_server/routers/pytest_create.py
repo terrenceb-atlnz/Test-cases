@@ -1934,8 +1934,34 @@ def _close_fragment_deps(fragments: List[dict], data: dict, already: set,
     return members, import_lines
 
 
+def _read_family_library(group: str, family: int) -> str:
+    """The family's `library_<family>.py` as it stands on disk beside the group's scripts, or ""
+    — what every script in the folder already imports (G7/G14, 2026-09-24)."""
+    try:
+        path = PT_GENERATED_DIR / _group_dir_name(group, family) / f"{_family_library_stem(family)}.py"
+        return path.read_text(encoding="utf-8") if path.is_file() else ""
+    except Exception:
+        return ""
+
+
+def _library_signatures(code: str) -> List[dict]:
+    """[{name, signature, doc}] for the PUBLIC top-level functions of a library: what a unit
+    needs to CALL a helper it did not write — the signature and the docstring's first line."""
+    import ast as ast_mod
+    try:
+        tree = ast_mod.parse(code or "")
+    except SyntaxError:
+        return []
+    out: List[dict] = []
+    for n in tree.body:
+        if isinstance(n, (ast_mod.FunctionDef, ast_mod.AsyncFunctionDef)) and not n.name.startswith("_"):
+            doc = (ast_mod.get_docstring(n) or "").strip().split("\n")[0]
+            out.append({"name": n.name, "signature": f"{n.name}({ast_mod.unparse(n.args)})", "doc": doc})
+    return out
+
+
 def _build_library(group: str, family: int, fragments: List[dict], data: dict,
-                   surface: Optional[dict] = None) -> Optional[dict]:
+                   surface: Optional[dict] = None, family_code: str = "") -> Optional[dict]:
     """The GROUP's own helper module — one per mother folder since 2026-09-22 (R1(b)), named for
     its ART family since the numbering landed the same day; see `_family_library_stem`. `group`
     and `family` are BOTH passed in and never re-derived here, so the two generation paths
@@ -1967,6 +1993,17 @@ def _build_library(group: str, family: int, fragments: List[dict], data: dict,
         where such names legitimately come from (`LLDP_PHONE_PKT = Ether() / ...`).
     Returns None when nothing qualifies and nothing was excluded; a dict with empty
     `members` (and no `stem`) when only exclusions happened, so the frame emits no import.
+
+    THE FAMILY LIBRARY COMES FIRST (G7 / G14, 2026-09-24). `family_code` is the group's
+    `library_<family>.py` as it stands on disk (`_read_family_library`; the callers pass it, so
+    this function stays pure). A fragment defining a name that file already has is NOT shipped
+    — T33235 selected legacy `library_5000` helpers whose names exist in `library_9001` with
+    different contracts (`configurePort`'s sixth argument), and the save's clash guard then
+    refused every re-assembly. Such a fragment is recorded in `family_replaced` and its tag in
+    `family_tags` (so the unit prompt drops it from the code to adapt), and the unit prompt
+    lists the family's public helpers by signature (`family_members`) as the ones to call. The
+    returned `code` is the family file with this build's new members merged in, which is what
+    the save writes, so assembling again reproduces it instead of re-introducing the clash.
     """
     import ast as ast_mod
     import builtins as _bi
@@ -1980,6 +2017,9 @@ def _build_library(group: str, family: int, fragments: List[dict], data: dict,
     dupes: List[str] = []
     dupe_tags: set = set()
     skipped: List[str] = []
+    family_names = _library_top_names((family_code or "").splitlines())
+    family_replaced: List[dict] = []
+    family_tags: set = set()
     for f in fragments or []:
         code = (f.get("code") or "").strip("\n")
         if not code:
@@ -2060,6 +2100,13 @@ def _build_library(group: str, family: int, fragments: List[dict], data: dict,
         if not ok:
             continue
         names = [n.name for n in tree.body if isinstance(n, (ast_mod.FunctionDef, ast_mod.ClassDef))]
+        top = names + [t.id for n in tree.body if isinstance(n, ast_mod.Assign)
+                       for t in n.targets if isinstance(t, ast_mod.Name)]
+        taken = sorted(set(top) & family_names)
+        if taken:
+            family_replaced.append({"tag": tag, "names": taken})
+            family_tags.add(tag)
+            continue
         members.append({"tag": tag, "symbol": f.get("symbol") or (names[0] if names else ""),
                         "names": names, "code": textwrap_dedent(code), "why": f.get("why") or ""})
         for m in src_imports:
@@ -2072,6 +2119,7 @@ def _build_library(group: str, family: int, fragments: List[dict], data: dict,
     # can drop them without touching reviewer-selected members.
     _already = set(_bi.__dict__) | fw_classes | _SCAPY_STAR_NAMES | {c for c in dupes}
     _already |= {m["symbol"] for m in members} | {nm for m in members for nm in m["names"]}
+    _already |= family_names                         # the family file already provides these
     _dep_members, _dep_imports = _close_fragment_deps(fragments, data, _already, fw_classes)
     for _dm in _dep_members:
         members.append(_dm)
@@ -2079,12 +2127,14 @@ def _build_library(group: str, family: int, fragments: List[dict], data: dict,
         if _line not in imports:
             imports.append(_line)
 
-    if not members and not dupes:
+    family_extra = {"family_members": _library_signatures(family_code) if family_code else [],
+                    "family_replaced": family_replaced, "family_tags": family_tags}
+    if not members and not dupes and not (family_code or "").strip():
         return None
-    if not members:
+    if not members and not (family_code or "").strip():
         return {"name": "", "stem": "", "code": "", "members": [], "tags": set(),
                 "framework_dupes": sorted(set(dupes)), "framework_tags": dupe_tags,
-                "skipped": skipped}
+                "skipped": skipped, **family_extra}
     body = [f'"""{stem} — helpers shared by the {group} group (ART family {family}).',
             "",
             "Generated by Ask CK PyTest Creator alongside the test scripts, modelled on the way every",
@@ -2098,10 +2148,15 @@ def _build_library(group: str, family: int, fragments: List[dict], data: dict,
         if m["why"]:
             body += ["# " + ln for ln in _wrap_comment(m["why"], 92)]
         body.append(m["code"])
-    return {"name": stem + ".py", "stem": stem, "code": "\n".join(body).rstrip("\n") + "\n",
+    code = "\n".join(body).rstrip("\n") + "\n"
+    if (family_code or "").strip():
+        # Every name clash was removed above, so this merge cannot raise; a member whose tag the
+        # file already carries is left exactly as the file has it.
+        code = _merge_library_code(family_code, code) if members else family_code
+    return {"name": stem + ".py", "stem": stem, "code": code,
             "members": members, "tags": {m["tag"] for m in members},
             "framework_dupes": sorted(set(dupes)), "framework_tags": dupe_tags,
-            "skipped": skipped}
+            "skipped": skipped, **family_extra}
 
 
 def _fragment_source_text(source_id: str) -> str:
@@ -5790,7 +5845,8 @@ async def generate_script(key: str, request: Request, body: dict = Body(default=
     # inside _render_skeleton, so multi-device cases keep a fixed init() frame.
     # `group` is already resolved above, and equals `_effective_group(sess)` once the naming has
     # been persisted — pass it rather than re-deriving, so the two paths cannot drift (§1).
-    library = _build_library(group, family, fragments, data)
+    library = _build_library(group, family, fragments, data,
+                             family_code=_read_family_library(group, family))
     skeleton = _render_skeleton(key, _case_title(data, key), sequence,
                                 extra_import_lines, fragments,
                                 _case_payload_fields(sess)["objective"], library,
@@ -5923,7 +5979,7 @@ async def generate_script(key: str, request: Request, body: dict = Body(default=
             "files": {"test": {"name": file_name, "code": stamped_code},
                       "library": blocks["library"] or (
                           {"name": library["name"], "code": library["code"]}
-                          if (library or {}).get("members") else None)},
+                          if (library or {}).get("stem") and (library or {}).get("code") else None)},
             "iterations": prev.get("iterations", 0) + 1,
             "confirmed": False,
             # Phase 7.9 — the reply is stored WHOLE. It used to be cut at 20,000 chars with
@@ -6274,7 +6330,8 @@ def _pt_generation_context(key: str, data: dict, sess: PtSession) -> dict:
     sequence = (sess.step2 or {}).get("sequence") or []
     _group = _effective_group(sess)
     _family = _effective_family(sess)
-    library = _build_library(_group, _family, fragments, data)
+    library = _build_library(_group, _family, fragments, data,
+                             family_code=_read_family_library(_group, _family))
     skeleton = _render_skeleton(key, _case_title(data, key), sequence,
                                 extra_import_lines, fragments,
                                 _case_payload_fields(sess)["objective"], library,
@@ -6461,7 +6518,8 @@ def _render_unit_prompt(key: str, data: dict, sess: PtSession, ctx: dict, unit: 
     """The prompt for one unit, rendered but NOT sent."""
     plan = _shared_plan(ctx)
     lib = ctx.get("library") or {}
-    lib_tags = set(lib.get("tags") or ()) | set(lib.get("framework_tags") or ())
+    lib_tags = (set(lib.get("tags") or ()) | set(lib.get("framework_tags") or ())
+                | set(lib.get("family_tags") or ()))
     frags = plan["per_frags"][unit["id"]]                 # ALL of this unit's fragments
     # Fragments that ship in the suite library are CALLED, not pasted: they leave both the
     # per-unit and the hoisted sections and appear once, under the library header.
@@ -7109,7 +7167,7 @@ def _assemble_and_store(key: str, sess: PtSession, ctx: dict, group: str, name: 
         step6_f = dict(fresh.step6 or {})
         step6_f["naming"] = {"group": group, "name": name}
         step6_f["files"] = {"test": {"name": file_name, "code": stamped}}
-        if (ctx.get("library") or {}).get("members"):
+        if (ctx.get("library") or {}).get("stem") and (ctx.get("library") or {}).get("code"):
             # The frame imports `from <stem> import *`, so the module must ship with the
             # script (persist + run both read files["library"]).
             step6_f["files"]["library"] = {"name": ctx["library"]["name"],
@@ -7149,7 +7207,7 @@ def _assemble_and_store(key: str, sess: PtSession, ctx: dict, group: str, name: 
 
     sess = _pt_persist_fresh(key, _apply_lint)
     files_out = {"test": {"name": file_name, "code": stamped}}
-    if (ctx.get("library") or {}).get("members"):
+    if (ctx.get("library") or {}).get("stem") and (ctx.get("library") or {}).get("code"):
         files_out["library"] = {"name": ctx["library"]["name"], "code": ctx["library"]["code"]}
     return {"files": files_out, "lint": lint, "manifest": report, "units": len(ctx["units"]),
             "gen_state": _gen_state(sess.step6 or {})}

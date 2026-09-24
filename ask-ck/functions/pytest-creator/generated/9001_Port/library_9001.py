@@ -62,8 +62,12 @@ _PARSER_ERRORS = (
 
 
 def _field(output, table, name):
-    """Return the named field's exact token from a show interface body."""
-    if not output:
+    """Return the named field's exact token from a show interface body.
+
+    None for a field this module has no pattern for (2026-09-24): `configurePort(...,
+    'no', 'speed', ...)` used to raise KeyError reading back a `configured no` field.
+    """
+    if not output or name not in table:
         return None
     # Append a sentinel so a value that ends the line still matches the
     # `[,\s]` terminator in the patterns above.
