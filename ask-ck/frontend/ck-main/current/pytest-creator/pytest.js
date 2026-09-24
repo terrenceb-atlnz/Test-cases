@@ -315,7 +315,7 @@ function ptRenderSequence(seq) {
       <td>${i + 1}${flagged ? ' <span class="pt-seq-flag" title="' + escapeHtml(flagTitle) + '">⚠</span>' : ''}</td>
       <td style="text-align:center;font-size:11px" title="source refined step #">${from}</td>
       <td><textarea class="form-input pt-seq-action" data-i="${i}" style="width:100%;height:44px;font-size:11px">${escapeHtml(s.action || '')}</textarea></td>
-      <td><textarea class="form-input pt-seq-verify" data-i="${i}" style="width:100%;height:44px;font-size:11px">${escapeHtml(s.verify || '')}</textarea></td>
+      <td><textarea class="form-input pt-seq-verify" data-i="${i}" style="width:100%;height:44px;font-size:11px">${escapeHtml(s.verify || '')}</textarea>${_ptPublishesText(s.publishes)}</td>
       ${anyClaim ? `<td class="pt-seq-claim" style="font-size:11px">${escapeHtml(_ptClaimText(s.claim)) || '<span class="justification-note">—</span>'}</td>` : ''}
       <td style="text-align:center"><input type="checkbox" class="pt-seq-negative" data-i="${i}"${s.negative ? ' checked' : ''} title="Negative test — may unset suite-owned commands"></td>
       <td><button class="btn btn-compact" data-action="ptRemoveSeqRow" data-args='[${i}]'>✕</button></td>
@@ -324,6 +324,15 @@ function ptRenderSequence(seq) {
   html += '</tbody></table><button class="btn btn-compact mt-2" data-action="ptAddSeqRow">+ Add step</button>';
   el.innerHTML = html;
   ptWireSeqDrag();
+}
+
+// G6 (2026-09-24): a value this step measures for a LATER step (`publishes`). Display-only here,
+// like `claim`; it rides the row cache so a drag or Save keeps it on its own step.
+function _ptPublishesText(pubs) {
+  if (!Array.isArray(pubs) || !pubs.length) return '';
+  return '<div class="justification-note pt-seq-publishes" title="Later steps read this value; the frame declares it in TestSet.init()">publishes: '
+    + pubs.map(p => `<code>${escapeHtml(p.name || '')}</code>${p.shape ? ' — ' + escapeHtml(p.shape) : ''}`).join('; ')
+    + '</div>';
 }
 
 // The `from` (zephyr_step_idx) is now display-only, so we cache it per-row alongside
@@ -338,6 +347,7 @@ function ptRenderSequenceCached(seq) {
     zephyr_step_idx: (typeof s.zephyr_step_idx === 'number') ? s.zephyr_step_idx : undefined,
     kind: s.kind || undefined,
     claim: (s.claim && typeof s.claim === 'object') ? s.claim : undefined,
+    publishes: Array.isArray(s.publishes) && s.publishes.length ? s.publishes : undefined,
   }));
   ptRenderSequence(seq);
 }
@@ -363,6 +373,7 @@ function _ptReadSeqRows() {
     if (typeof from.zephyr_step_idx === 'number') out.zephyr_step_idx = from.zephyr_step_idx;
     if (from.kind) out.kind = from.kind;
     if (from.claim) out.claim = from.claim;
+    if (from.publishes) out.publishes = from.publishes;
     return out;
   });
 }

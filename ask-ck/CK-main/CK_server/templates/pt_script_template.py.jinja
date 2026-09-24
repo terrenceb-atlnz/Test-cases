@@ -313,6 +313,13 @@ class TestSet(ATTestSet.TestSet):
         self.tb = tb
         self.{{ dut }} = {{ dut }}
         self.dut_stack = dut_stack
+        {%- if published %}
+        # Values a test case PUBLISHES for later cases (the sequence's `publishes`). Each is None
+        # until its producer sets it; a later case that finds it None reports UNSUPPORTED.
+        {%- for p in published %}
+        self.{{ p.name }} = None  # set by TestCase_{{ p.tc_n }}{% if p.shape %}: {{ p.shape }}{% endif %}
+        {%- endfor %}
+        {%- endif %}
         {%- for st in (stacks or []) + (stack_aliases or []) %}
         self.{{ st }} = {{ st }}
         {%- endfor %}

@@ -130,6 +130,13 @@ Convert this manual test case into a prescriptive sequence of automatable test s
   run (`no lldp receive` for a transmit-only check). `false` for every other step, including
   `setup` steps. Only a negative step's test case may unset a suite command; the reviewer can
   change the flag on the Sequence page.
+- **"publishes"** (optional) = the values THIS step measures that a LATER step compares
+  against or uses — "the highest speed both ends accept (S)", "the baseline duplex recorded in
+  step 28". Declare each on the step that PRODUCES it, as
+  `[{"name": "speedS", "shape": "int Mbps: the highest speed both ends accepted"}]`: a
+  camelCase name, and one line saying what the value is, its type and its units. The later
+  steps then say "the S published by step 14" rather than a literal. Omit the field when no
+  later step depends on this one; `setup` steps never publish.
 - For `physical`/`manual` steps, still write the action (the human instruction) and verify (the state change / confirmation to check) — they become real test cases with the interactive pattern, not skips.
 - If the execution order differs from the manual step order (reordering, splitting, or merging), state briefly in "notes" what you changed and why.
 
@@ -154,7 +161,7 @@ contradiction in one sentence. An empty `sanity` list means every claim checked 
 
 - Output JSON ONLY, this shape:
 {"sequence": [{"n": 1, "action": "...", "verify": "...", "kind": "verify", "negative": true,
-               "zephyr_step_idx": 1,
+               "zephyr_step_idx": 1, "publishes": [{"name": "speedS", "shape": "int Mbps: ..."}],
                "claim": {"cable": "crossover", "dut": "mdix", "partner": "mdi", "expect": "down"}}],
  "sanity": [{"steps": [6, 7], "issue": "one sentence: which two claims contradict, and why"}],
  "notes": "anything assumed or reordered"}

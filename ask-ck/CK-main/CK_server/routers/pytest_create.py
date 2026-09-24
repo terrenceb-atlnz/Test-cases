@@ -1665,6 +1665,9 @@ def _skeleton_bound_devices(skeleton: str, dut: str = "") -> List[str]:
             for t in sub.targets:
                 # `(dut.portA, self.ck_far_port, lp) = self._ck_bind_link(...)`
                 targets.extend(t.elts if isinstance(t, (ast_mod.Tuple, ast_mod.List)) else [t])
+            # `self.speedS = None` is a PUBLISHED value's declaration (G6), not a device.
+            if isinstance(sub.value, ast_mod.Constant) and sub.value.value is None:
+                continue
             for t in targets:
                 if (isinstance(t, ast_mod.Attribute)
                         and isinstance(t.value, ast_mod.Name) and t.value.id == "self"
@@ -2284,6 +2287,7 @@ def _render_skeleton(case_key: str, case_title: str, sequence: List[dict],
                       links=_detect_links(sequence, fragments or [], objective),
                       lib_stem=(library or {}).get("stem") or "",
                       art_set=art_set,
+                      published=_published_values(sequence),
                       objective_lines=_objective_comment_lines(objective))
 
 
@@ -3198,6 +3202,59 @@ def _is_negative(step: dict) -> bool:
     if isinstance(v, str):
         return v.strip().lower() in ("true", "yes", "1")
     return bool(v)
+
+
+# G6 / G15 (PLAN-pt-drive-followups-2026-09-24 §3): a value one test case measures and a LATER
+# case compares against has a declared contract. On T33235 independently generated units
+# invented three different schemas for the same shared record (TC29 then failed every port and
+# TC30 compared nothing), 15 units hard-coded '100'/'1000' instead of reading step 14's result,
+# and nothing said what a consumer does when the producer found nothing. The producing sequence
+# step declares `publishes: [{"name", "shape"}]`; the frame declares each as `self.<name> = None`
+# in TestSet.init; the producer's unit is told to set it and every later unit is told its shape
+# and to report UNSUPPORTED while it is None.
+_PUBLISH_NAME_RX = re.compile(r"^[a-z][A-Za-z0-9]{1,39}$")
+# Names the frame already binds on the TestSet, and ATTestSet's own members: a published value
+# must not shadow either.
+_PUBLISH_RESERVED = frozenset({
+    "tb", "dut", "peer", "fibre_peer", "cusfp_peer", "dut_stack", "fibre_supported",
+    "cusfp_supported", "init", "configure", "tear_down", "run", "log", "name", "setup",
+    "testCases", "add_testCase", "passed", "failed", "supported"})
+
+
+def _normalize_publishes(value) -> List[dict]:
+    """A step's `publishes` as a clean list of {name, shape}: a model may send one object, a bare
+    name, or junk. Names must be camelCase identifiers, unique, and not reserved; `shape` is one
+    line of prose (what the value is, its type and units). Anything else is dropped."""
+    items = value if isinstance(value, list) else ([value] if value else [])
+    out: List[dict] = []
+    seen = set()
+    for it in items:
+        if isinstance(it, str):
+            it = {"name": it, "shape": ""}
+        if not isinstance(it, dict):
+            continue
+        name = str(it.get("name") or "").strip()
+        if not _PUBLISH_NAME_RX.match(name) or name in _PUBLISH_RESERVED or name in seen:
+            continue
+        seen.add(name)
+        out.append({"name": name, "shape": " ".join(str(it.get("shape") or "").split())[:200]})
+    return out
+
+
+def _published_values(sequence: List[dict]) -> List[dict]:
+    """[{name, shape, tc_n, orig_n}] over the TestCase steps, in execution order. A setup step
+    cannot publish (it is TestSet.configure(), which runs before every case). The first producer
+    of a name wins; a later step re-declaring it is ignored."""
+    _setup, tc_steps = _split_sequence(sequence or [])
+    out: List[dict] = []
+    seen = set()
+    for s in tc_steps:
+        for p in _normalize_publishes(s.get("publishes")):
+            if p["name"] in seen:
+                continue
+            seen.add(p["name"])
+            out.append({**p, "tc_n": s["n"], "orig_n": s.get("orig_n")})
+    return out
 
 
 def _negative_case_names(sequence: List[dict]) -> frozenset:
@@ -4952,6 +5009,11 @@ async def extract_sequence(key: str, request: Request):
         s["n"] = i + 1
         _collapse_step_text(s)
         s["negative"] = _is_negative(s)
+        pubs = _normalize_publishes(s.get("publishes"))
+        if pubs and _step_kind(s) != "setup":
+            s["publishes"] = pubs
+        else:
+            s.pop("publishes", None)
         claim = _normalize_claim(s.get("claim"))
         if claim:
             s["claim"] = claim
@@ -5022,7 +5084,7 @@ async def save_sequence(key: str, body: dict = Body(...)):
         # same row, so a drag-reorder never pins another step's kind or claim onto this one.
         old = prev_by_n.get(str(s["n"]))
         if old and " ".join(str(old.get("action") or "").split()) == (s.get("action") or ""):
-            for fld in ("kind", "claim", "zephyr_step_idx", "negative"):
+            for fld in ("kind", "claim", "zephyr_step_idx", "negative", "publishes"):
                 if s.get(fld) in (None, "") and old.get(fld) not in (None, ""):
                     s[fld] = old[fld]
         else:
@@ -5033,6 +5095,11 @@ async def save_sequence(key: str, body: dict = Body(...)):
                 s.pop("claim", None)
     for s in sequence:
         s["negative"] = _is_negative(s)
+        pubs = _normalize_publishes(s.get("publishes"))
+        if pubs and _step_kind(s) != "setup":
+            s["publishes"] = pubs
+        else:
+            s.pop("publishes", None)
     # Re-check coverage on manual edits too — deleting a row in the UI can drop the last
     # entry covering a Zephyr step just as easily as the LLM can.
     coverage = _coverage_report(sequence, _case_payload_fields(sess)["steps"])
@@ -6405,7 +6472,13 @@ def _render_unit_prompt(key: str, data: dict, sess: PtSession, ctx: dict, unit: 
     own_cli = _join_cli_sections(cli_header,
                                  [(c, t) for c, t in cli_secs if c not in plan["shared_cmds"]])
     src = _unit_source_step(unit, ctx["tc_steps"])
+    published = _published_values(ctx.get("sequence") or []) if ctx.get("sequence") is not None \
+        else [dict(p, tc_n=s["n"], orig_n=s.get("orig_n")) for s in ctx["tc_steps"]
+              for p in _normalize_publishes(s.get("publishes"))]
+    tc_n = unit.get("tc_n")
     return render_prompt("pt_generate_step.jinja", {
+        "publishes_here": [p for p in published if tc_n is not None and p["tc_n"] == tc_n],
+        "published_before": [p for p in published if tc_n is not None and p["tc_n"] < tc_n],
         "case_key": key,
         "case_title": _case_title(data, key),
         "mode": unit["kind"],
@@ -8764,6 +8837,7 @@ async def review_script(key: str, request: Request):
         "sequence": sequence,
         "lint_findings": _review_lint_findings(sess),
         "negative_unsets": _review_negative_unsets(sess),
+        "published": _published_values(sequence),                  # G6, 2026-09-24
         **_library_prompt_context(step6),
     }, llm_config=_llm_cfg(sess), timeout=600, dry_run=dry_run,
        # Findings, not a script: the reply is a small JSON object, so the default

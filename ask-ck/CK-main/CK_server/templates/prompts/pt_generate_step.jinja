@@ -184,6 +184,18 @@ This class implements **sequence step {{ source_n }}**.
 - **negative test**: yes — this case MAY unset (`no …`) a command the suite's `TestSet.configure()`
   applies, when its step needs to.
 {%- endif %}
+{%- if publishes_here %}
+- **publishes for later cases**: {% for p in publishes_here %}`self.testSet.{{ p.name }}`{% if p.shape %} — {{ p.shape }}{% endif %}{% if not loop.last %}; {% endif %}{% endfor %}.
+  Set it (exactly that shape — later cases read it) once this step has established the value,
+  and leave it `None` when the step could not; `TestSet.init()` already declares it as None.
+{%- endif %}
+{%- if published_before %}
+- **values earlier cases publish** (declared in `TestSet.init()`; read them, never re-measure
+  or hard-code them): {% for p in published_before %}`self.testSet.{{ p.name }}`{% if p.shape %} — {{ p.shape }}{% endif %} (set by TestCase_{{ p.tc_n }}){% if not loop.last %}; {% endif %}{% endfor %}.
+  If this step needs one and it is `None`, its producer could not establish it: report
+  UNSUPPORTED — `self.supported = False`, then `self.failed('<name> was not established by
+  TestCase_<n>')`, then `return` — never proceed with `None`.
+{%- endif %}
 
 The `verify` text is the contract. Your pass/fail determination must correspond to it — not
 to something narrower, broader, or adjacent. This is the single most important property of

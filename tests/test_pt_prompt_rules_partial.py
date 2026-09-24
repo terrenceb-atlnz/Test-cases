@@ -48,6 +48,13 @@ prefix goes from 10,934 to ~20,100 chars. The rendered diff was reviewed line by
 before the snapshot was regenerated: the note's paragraph moved from inside rule 3c to
 after rule 5, nothing else.
 
+SNAPSHOT UPDATED 2026-09-24 (PLAN-pt-drive-followups-2026-09-24 G11-G13, executed on Terrence's
+"continue ... executing the plan"): rule 3's pluggable-flag sentence and rule 3d now teach
+UNSUPPORTED as the flag FOLLOWED BY `self.failed()` (the flag alone reports ERROR — framework
+`ATTestCase._get_result`, read on tb470), and two rules were added: 3e (confCheck: tear_down
+restores with the documented negation) and 3f (`show system pluggable` prints bare port names;
+use ck_media). The rendered diff was checked to be those four hunks and nothing else.
+
 Everything below still holds: the rules live in one file, and any FURTHER change to the
 rendered whole-script prompt must be as deliberate as these two were.
 """
