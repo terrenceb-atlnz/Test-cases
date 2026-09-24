@@ -1244,6 +1244,9 @@ function ptRenderUnitPage() {
         : (u.status === 'error' ? '✗ ' + escapeHtml(u.error || 'failed') + (u.at ? ' · ' + escapeHtml(_fmtAt(u.at)) : '')
         : (st === 'run' ? 'in flight…' : 'not generated yet')))}</span>
       ${u.edited ? '<span class="badge">prompt edited</span>' : ''}
+      ${st === 'ok' && (((ptSession || {}).step6 || {}).files || {}).test
+        ? `<button class="btn btn-compact" data-action="ptFixThisUnit" data-args='["${escapeHtml(u.id)}"]' id="pt-unit-fix-btn" title="Re-generate this unit against its current lint errors, review findings and run result only">Fix this unit (LLM)</button>`
+        : ''}
     </div>
     ${st === 'held' ? _ptHeldFrame(u) : ''}
 
@@ -1989,10 +1992,12 @@ async function ptFixFromSummary() {
 // Returns immediately like the generate fan-out; the pills carry progress and the
 // one-shot _ptOnUnitsSettled callback refreshes the Summary afterwards. Findings that name
 // no unit are reported, not guessed at: those are the whole-script Fix's job.
-async function _ptFixUnitsCommon(btn, statusEl) {
+async function _ptFixUnitsCommon(btn, statusEl, ids = null) {
   await ptPushCodeEdits(false);           // fix the script the reviewer can see, not a stale copy
+  // C8 (2026-09-25): `ids` limits the run to those units (the server's `units` filter, P5).
   const d = await ptApi(`/fix_units/${S.ptCase.key}`,
-    { method: 'POST', btn, busyLabel: 'Dispatching…' }, statusEl);
+    { method: 'POST', btn, busyLabel: 'Dispatching…',
+      ...(ids ? { body: JSON.stringify({ units: ids }) } : {}) }, statusEl);
   if (!d) return null;
   (d.dispatched || []).forEach(id => { _ptUnitSending[id] = true; });
   _ptUnitFails = _ptUnitFails.filter(f => !(d.dispatched || []).includes(f.id));
@@ -2039,6 +2044,12 @@ async function _ptFixUnitsCommon(btn, statusEl) {
   };
   _ptStartUnitPoll();
   return d;
+}
+
+// C8 (2026-09-25): fix ONE unit from its own page, with that unit's current reasons only.
+async function ptFixThisUnit(id) {
+  if (!ptRequireCase()) return;
+  await _ptFixUnitsCommon(document.getElementById('pt-unit-fix-btn'), ptStatusEl('pt-unit-status'), [id]);
 }
 
 async function ptFixUnits() {
@@ -2559,7 +2570,7 @@ registerActions({
   ptSaveMatches,
   ptGatherFragments, ptSaveFragments, ptGenerateScript,
   ptFragGoStep, ptFragPrevStep, ptFragNextStep, ptFragToggle, ptPreviewFragments,
-  ptLintScript, ptReviewScript, ptFixScript, ptFixFromSummary, ptFixUnits, ptFixUnitsFromValidate, ptSaveScript,
+  ptLintScript, ptReviewScript, ptFixScript, ptFixFromSummary, ptFixUnits, ptFixUnitsFromValidate, ptFixThisUnit, ptSaveScript,
   ptLoadUnits, ptGenerateUnit, ptGenerateAllUnits, ptAssembleScript, ptAssembleAndSettle,
   ptRechunk, ptResetGenerate, ptPruneLibrary, ptPruneLibraryApply,
   ptGoUnit, ptGoSummary, ptUnitPrev, ptUnitNext, ptClearUnitErrors,

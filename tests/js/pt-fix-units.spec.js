@@ -113,3 +113,17 @@ describe('R4 assemble-and-settle (2026-09-15)', () => {
     expect(body).toMatch(/run Review/);
   });
 });
+
+describe('Fix this unit (C8, 2026-09-25)', () => {
+  // The server's fix_units takes {"units": [...]} (P5); the unit page offers it for ONE unit.
+  const SRC = readFileSync(resolve(dirname(fileURLToPath(import.meta.url)),
+    '../../ask-ck/frontend/ck-main/current/pytest-creator/pytest.js'), 'utf8');
+  it('sends the one unit id through the shared fix path', () => {
+    expect(SRC).toMatch(/async function ptFixThisUnit\(id\) \{[\s\S]{0,200}?await _ptFixUnitsCommon\([\s\S]{0,120}?, \[id\]\);/);
+    expect(SRC).toContain('body: JSON.stringify({ units: ids })');
+    expect(SRC).toMatch(/registerActions\([\s\S]*ptFixThisUnit/);
+  });
+  it('is offered only for a generated unit of an assembled script', () => {
+    expect(SRC).toMatch(/st === 'ok' && \(\(\(ptSession \|\| \{\}\)\.step6 \|\| \{\}\)\.files \|\| \{\}\)\.test[\s\S]{0,80}data-action="ptFixThisUnit"/);
+  });
+});
