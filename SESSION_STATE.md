@@ -4649,3 +4649,19 @@ untouched by tests.
   101 orphan blocks, and deleting the zip. See `PROGRESS.md` 2026-09-24 (latest).
 - **Next:** Terrence is authoring demo scripts (demo in about an hour).
 - **Gate:** pytest 1798 passed / 1 skipped, vitest 348, `ck.db` untouched by tests.
+
+## Session Close / Handoff (2026-09-24, evening) — T33235 script finished by hand; four guard fixes; follow-up plan
+
+- **Shipped:**
+  - `generated/9001_Port/test-9001.33235.py` (fixed port speed, 33 cases): lint-clean, pt_preflight
+    RUNNABLE on tb470, family `library_9001.py` unchanged. Not yet run on hardware.
+  - Four per-unit Fix / library guard fixes in `routers/pytest_create.py` with 6 tests (CHANGELOG
+    2026-09-24 evening).
+  - `ask-ck/plans/PLAN-pt-drive-followups-2026-09-24.md`: every issue from driving the tool, by root
+    cause, with decisions D-A/D-B/D-C for Terrence and the script choices R1/R2 for review.
+- **How it went:** fresh extract and Terrence's rulings on step 2; Opus 5.5 by API through a scratch
+  broker; the seat hit its weekly limit mid-generate; four tool reviews, then Terrence stopped the
+  loop ("YOU review it, YOU hand fix it") and Claude finished and self-reviewed in session.
+- **Open:** the plan (nothing started); T33234 still carries 8 UNSUPPORTED paths that report ERROR
+  (plan D-B); the zip's working copy is still untracked at the repo root.
+- **Gate:** pytest 1804 passed / 1 skipped, vitest 348, both guards OK, `ck.db` untouched by tests.

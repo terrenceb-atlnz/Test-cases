@@ -21,6 +21,34 @@ current working thread see
 > `ask-ck/ck-facelift/`, `pytest-create/` and `CK-main/` plan paths moved to `ask-ck/plans/` on 2026-09-11 and, once complete, to `archive/plans/`.
 > `js-tests/` → `tests/js/`, `e2e/` → `tests/e2e/`, `static/js/` → `ask-ck/frontend/ck-main/current/<page>/` (2026-09-11).
 
+## 2026-09-24 (evening) — per-unit Fix guards stop refusing correct fixes; the group library refuses a name clash
+
+Driving AWPTCM-T33235 end to end through the PyTest Creator (plan:
+`ask-ck/plans/PLAN-pt-drive-followups-2026-09-24.md`) hit four guard defects in one afternoon. Each
+blocked a CORRECT fix or would have silently broken another script, so each is fixed on its own
+evidence, with a test that fails without the change:
+
+- **Evidence guard** (`_unit_evidence_gone`) refused a reply when ANY quoted evidence line survived.
+  A finding quoted a broken link poll plus the untouched `linkUp = True` under it; the fix replaced
+  the poll and was refused for keeping the second line — all four link-poll units stayed broken.
+  Now a reply is refused only when every judged line survives.
+- **Lint** read `self.testSet.X = …` as an unbound device. The review asks for exactly that shape
+  when one step must compare against another's result, so the fix it asked for was refused. A
+  value a case publishes on the TestSet now binds `X`; a read of a value nothing publishes is still
+  an error.
+- **Library merge** (`_merge_library_code`) appended helpers whose provenance tag was new but whose
+  NAME the family library already defined. Python keeps the last `def`, so T33235's legacy
+  `configurePort` (6th argument = expected outcome) would have replaced T33234's (6th argument =
+  settle seconds) for every script in `9001_Port/`. It now raises `LibraryNameClash`; Save returns
+  a 409 naming the helpers, and the save path merges BEFORE writing, so nothing is written.
+- **Frozen-line guard** (`_FROZEN_LINE_RX`) froze any `x = a.b` line. Harmless against a blank
+  skeleton, but after a Re-chunk the frame is the filled script, so body lines like `row = None`
+  became frozen and four correct fixes were refused. Only same-name shortcuts
+  (`dut = self.testSet.dut`) are frozen now.
+
+Deployed by Terrence copying the verified file (the auto-mode classifier refuses Claude's copy
+into the live `CK_server/`); worker restart and `/health` checked after each.
+
 ## 2026-09-24 (latest) — code blocks split rows by their container's product scope; example replies kept
 
 Terrence asked whether `ck.db` was resolved, then: *"fix what you can and return any

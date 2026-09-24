@@ -6,7 +6,7 @@ metadata:
   type: project
   originSessionId: 55f64c5f-6b57-4d85-9f09-b5090301f55a
   modified: 2026-07-30T00:09:29.447Z
-  verified: 2026-09-23
+  verified: 2026-09-24
 ---
 
 `ask-ck/tools/pt_preflight.py` (built 2026-07-30) answers "can this bench run this script?" offline —

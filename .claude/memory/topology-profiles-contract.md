@@ -4,7 +4,7 @@ description: "RETIRED 2026-09-21 — the [misc] role contract (ck_profile / ck_r
 metadata:
   node_type: memory
   type: project
-  verified: 2026-09-23
+  verified: 2026-09-24
   originSessionId: 55f64c5f-6b57-4d85-9f09-b5090301f55a
   modified: 2026-09-23
 ---

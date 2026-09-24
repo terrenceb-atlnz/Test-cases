@@ -3787,6 +3787,15 @@ def _lint_generated(sess: PtSession) -> dict:
                   for t in n.targets
                   if isinstance(t, ast_mod.Attribute) and isinstance(t.value, ast_mod.Name)
                   and t.value.id == "self"}
+        # A case PUBLISHING a value for later cases — `self.testSet.speedS = ...` — binds it
+        # too (AWPTCM-T33235, 2026-09-24). The review asks for exactly that shape when one
+        # step must compare against another's result, and without this the fix it asked for
+        # was refused as an unbound device.
+        _bound |= {t.attr for n in ast_mod.walk(tree) if isinstance(n, ast_mod.Assign)
+                   for t in n.targets
+                   if isinstance(t, ast_mod.Attribute) and isinstance(t.value, ast_mod.Attribute)
+                   and t.value.attr == "testSet" and isinstance(t.value.value, ast_mod.Name)
+                   and t.value.value.id == "self"}
         # Tuple-unpacked binds — `(dut.portA, self.ck_far_port, lp) = ...`
         for _n in ast_mod.walk(tree):
             if isinstance(_n, ast_mod.Assign):
@@ -4145,6 +4154,22 @@ def _split_library(code: str):
     return lines[:idx[0]], members
 
 
+# A top-level name a library line defines: `def f(`, `class C`, or `NAME = …` at column 0.
+_LIB_TOPNAME_RX = re.compile(r"^(?:def|class)\s+([A-Za-z_]\w*)|^([A-Za-z_]\w*)\s*(?::[^=\n]*)?=(?!=)")
+
+
+def _library_top_names(lines) -> set:
+    return {m.group(1) or m.group(2) for m in (_LIB_TOPNAME_RX.match(ln) for ln in lines) if m}
+
+
+class LibraryNameClash(ValueError):
+    """A member the merge would append re-defines a top-level name the library already has."""
+
+    def __init__(self, names):
+        self.names = sorted(names)
+        super().__init__(", ".join(self.names))
+
+
 def _merge_library_code(existing: str, incoming: str) -> str:
     """Merge a freshly built library into the one already on disk, keyed by provenance tag.
 
@@ -4156,7 +4181,13 @@ def _merge_library_code(existing: str, incoming: str) -> str:
       member survives the next save;
     * a tag not present is appended, in `_build_library` order;
     * imports the incoming file needs are inserted after the last top-level import already
-      there (always safe in Python), or after the header when the file has none.
+      there (always safe in Python), or after the header when the file has none;
+    * a NEW-tag member that defines a top-level name the file already has raises
+      `LibraryNameClash` and nothing is merged. Appending it would put a second `def` after
+      the first, and the later one wins at import: every other script in the group would
+      silently call this script's version. AWPTCM-T33235 (2026-09-24) appended six such
+      helpers — `configurePort`'s sixth argument is an expected outcome in one and a settle
+      time in the other — over T33234's.
     """
     if not (existing or "").strip():
         return incoming
@@ -4164,6 +4195,12 @@ def _merge_library_code(existing: str, incoming: str) -> str:
     _, want = _split_library(incoming)
     seen = {tag for tag, _ in have}
     add = [m for tag, m in want if tag not in seen]
+    defined = _library_top_names(existing.splitlines())
+    clash = set()
+    for m in add:
+        clash |= _library_top_names(m) & defined
+    if clash:
+        raise LibraryNameClash(clash)
 
     lines = existing.splitlines()
     # imports the incoming library declares that the existing file does not
@@ -4324,8 +4361,7 @@ def _persist_generated_files(sess: PtSession) -> List[str]:
     script_path = _script_path(group, name)
     script_path.parent.mkdir(parents=True, exist_ok=True)
     written = []
-    script_path.write_text(test["code"], encoding="utf-8")
-    written.append(str(script_path))
+    lib_write = None
     lib = files.get("library")
     if lib and lib.get("code"):
         # Validate the FULL library filename before building any path. The old check
@@ -4346,9 +4382,23 @@ def _persist_generated_files(sess: PtSession) -> List[str]:
         # folder writes this same path. Overwriting would drop the other scripts' members.
         code = lib["code"]
         if lib_path.exists():
-            code = _merge_library_code(lib_path.read_text(encoding="utf-8"), code)
-        lib_path.write_text(code, encoding="utf-8")
-        written.append(str(lib_path))
+            try:
+                code = _merge_library_code(lib_path.read_text(encoding="utf-8"), code)
+            except LibraryNameClash as e:
+                # Refused BEFORE anything is written: the script and the library stay as they were.
+                raise HTTPException(409, (
+                    f"{stem} already defines {', '.join(e.names)} — another script in this "
+                    f"group owns them, and appending this script's copies would silently replace "
+                    f"them for every script that imports {stem}. Nothing was written. Call the "
+                    f"group's versions (with their signatures) or rename this script's copies, "
+                    f"then Save again."))
+        lib_write = (lib_path, code)
+
+    script_path.write_text(test["code"], encoding="utf-8")
+    written.append(str(script_path))
+    if lib_write:
+        lib_write[0].write_text(lib_write[1], encoding="utf-8")
+        written.append(str(lib_write[0]))
 
     meta = _meta_dir(group, name)
     meta.mkdir(parents=True, exist_ok=True)
@@ -6264,9 +6314,17 @@ def _unit_shape_ok(code: str, unit: dict) -> Tuple[bool, str]:
 # continuation included), the three method signatures and each method's opening shortcut
 # block (`name = dotted.name`, no call). The prompt asked for them "EXACTLY as they are" and
 # nothing checked; tc6 came back re-implemented wholesale and was stored as ok.
+# The frame's own lines: the class line, the testCase* attributes, the three method signatures,
+# and the handle SHORTCUTS. A shortcut always binds a name to the attribute of the same name —
+# `dut = self.testSet.dut`, `portPeer = dut.portPeer`, `ethA = tb.ethA` — so that is what the
+# last alternative requires. It used to be any `x = a.b` line, which was harmless against the
+# blank skeleton but, once Re-chunk makes the FILLED script the frame, froze ordinary body lines
+# (`row = None`, `speedValue = self.testSet.speedS`) and refused four correct fixes on
+# AWPTCM-T33235 (2026-09-24).
 _FROZEN_LINE_RX = re.compile(
     r"^class TestCase_\d+\(|^\s*testCase(Desc|Ref|Method)\s*\+?=|"
-    r"^\s*(?:async\s+)?def\s+(configure|main|tear_down)\s*\(|^\s*\w+ = [\w.]+$")
+    r"^\s*(?:async\s+)?def\s+(configure|main|tear_down)\s*\(|"
+    r"^\s*(?P<name>\w+) = (?:\w+\.)+(?P=name)$")
 
 
 def _unit_frozen_lines(unit: dict, current_code: str) -> List[str]:
@@ -6316,23 +6374,31 @@ def _norm_ws(s: str) -> str:
 
 
 def _unit_evidence_gone(guard: dict, new_code: str, unit: dict) -> Optional[str]:
-    """For each finding of an evidence-is-defect kind mapped to this unit: every evidence
-    line that is quoted verbatim from the current unit (whitespace-insensitive; elided lines
-    with `...` and lines the current unit does not contain are not judged) must no longer
-    appear in the reply. A line still there means the defect was not addressed."""
+    """For each finding of an evidence-is-defect kind mapped to this unit, the evidence lines
+    quoted verbatim from the current unit are JUDGED (whitespace-insensitive; elided lines with
+    `...` and lines the current unit does not contain are not). The reply is refused only when
+    EVERY judged line of one finding is still in it — the quoted snippet survived whole, so the
+    defect was not addressed.
+
+    Any-line-survives was the old rule, and it refused correct fixes (AWPTCM-T33235,
+    2026-09-24): a finding quoted `if checkLinkStatus(..., 'connected'):` plus the
+    `linkUp = True` under it, the fix replaced the poll, and the untouched `linkUp = True` alone
+    refused all four link-poll units. A one-line quote is judged exactly as before."""
     cur = {_norm_ws(ln) for ln in (guard.get("current_code") or "").split("\n") if ln.strip()}
     new = {_norm_ws(ln) for ln in (new_code or "").split("\n") if ln.strip()}
     for f in guard.get("findings") or []:
         if (f.get("kind") or "") not in _EVIDENCE_IS_DEFECT_KINDS:
             continue
+        judged = []
         for raw in str(f.get("evidence") or "").split("\n"):
             ln = _norm_ws(raw)
             if not ln or "..." in ln or "…" in ln or ln not in cur:
                 continue
-            if ln in new:
-                return (f"finding evidence still present — the {f.get('kind')} finding at "
-                        f"{f.get('where') or '(unit)'} quotes `{ln[:90]}` as the defect and the "
-                        f"reply still contains that line; kept the current unit")
+            judged.append(ln)
+        if judged and all(ln in new for ln in judged):
+            return (f"finding evidence still present — the {f.get('kind')} finding at "
+                    f"{f.get('where') or '(unit)'} quotes `{judged[0][:90]}` as the defect and "
+                    f"the reply still contains every quoted line; kept the current unit")
     return None
 
 

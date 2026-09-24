@@ -11,6 +11,39 @@ verified: 2026-09-23
 > claim has since stopped being true, a ⚠ line under its heading says what changed.
 > Newest first. Paths in older entries predate these moves (the same as in CHANGELOG): `tool/` → `ask-ck/tools/`, `ask-ck/var/` → `ask-ck/db/`, `objective-drafting/` → `ask-ck/functions/generator/`, `pytest-create/` → `ask-ck/functions/pytest-creator/`, `js-tests/` → `tests/js/`, `ask-ck/ck-facelift/` → `ask-ck/plans/`, root reports → `docs/`, and completed plans `ask-ck/plans/` → `archive/plans/` (2026-09-11, 2026-09-23). Also retired 2026-09-23: the demo notes → `archive/plans/demo-2026-09-11/`, and `HANDOFF-generate-token-efficiency.md` + `Fragments_prompt.md` → `archive/records/`.
 
+## Latest session (2026-09-24, evening) — T33235 driven through the PyTest Creator, finished by hand; four guard fixes
+
+**Pick up here:** `ask-ck/plans/PLAN-pt-drive-followups-2026-09-24.md` — every issue the drive
+exposed, grouped by root cause, with three decisions for Terrence (D-A review rounds, D-B T33234's
+UNSUPPORTED paths, D-C headless agent). §1 (the review/Fix loop overrunning) is the one he asked to
+fix soon. Nothing in the plan is started.
+
+- **T33235 (fixed port speed) is DONE:** `generated/9001_Port/test-9001.33235.py`, 33 cases,
+  lint-clean, pt_preflight **RUNNABLE** on tb470, uses the family `library_9001.py` unchanged. Not yet
+  run on hardware. Chosen as the demo case because nothing in it needs a person at the bench.
+- **Sequence (step 2):** fresh extract (Opus), then Terrence's rulings applied by hand: both
+  pluggables fitted before the run (the extract wrote two mid-run swap steps); try every documented
+  speed on every port type (accept if legal, reject if not); copper sweep 10–10000, fibre sweep
+  100–100000 (100 added — the reference lists 100 Mbps fibre SFPs); copper test port = the frame's
+  copper link (fixed twisted pair, else a copper SFP). Terrence confirmed step 2.
+- **Driven by API** on `claude-opus-5-5` through a scratch broker standing in for the browser tab.
+  The seat's weekly limit hit mid-generate (12 units later redone on Sonnet from the UI).
+- **Four tool reviews and three Fix rounds**, then Terrence stopped the loop: *"No, no more. YOU review
+  it, YOU hand fix it."* (about that moment, not a standing rule). Finished and self-reviewed in
+  session; the fixes are itemised in the plan (§2–§4: UNSUPPORTED paths reported ERROR, pluggable
+  table keyed on the wrong port name, cross-case values with mismatched schemas, legacy helpers
+  colliding with the family library).
+- **Four guard fixes shipped** (tests + mutation, deployed by Terrence's `cp` — the auto-mode
+  classifier refuses Claude's copy into the live tree): evidence guard, `self.testSet.X` binding,
+  library name-clash refusal, frozen-line shortcuts. SERVER-README "Per-unit Fix" and the group
+  library paragraph describe them.
+
+**For Terrence's review:** plan R1 (who decides whether 10/100 is legal on a copper SFP — Claude
+chose "the DUT's answer decides, that branch is verified").
+
+**Gate at the wrap:** pytest 1804 passed / 1 skipped; vitest 348; both guards OK; `ck.db` untouched by
+tests (it carries the T33235 session from real traffic).
+
 ## Latest session (2026-09-24, latest) — ck.db: code blocks split by container scope; example replies
 
 Details and the why: CHANGELOG 2026-09-24 (latest); design: SERVER-README "CLI command reference".

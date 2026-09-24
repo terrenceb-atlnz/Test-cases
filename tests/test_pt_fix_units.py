@@ -1166,3 +1166,44 @@ def test_the_negative_line_is_per_unit_and_leaves_the_cached_half_identical():
     shared_pos, unit_pos = pos.split(pc._PT_PROMPT_SPLIT, 1)
     assert shared_neg == shared_pos
     assert "negative test**: yes" in unit_neg and "negative test**: yes" not in unit_pos
+
+
+def test_G6c_multi_line_evidence_is_refused_only_while_the_WHOLE_quote_survives():
+    """AWPTCM-T33235 (2026-09-24): a finding quoted the defective poll AND the untouched line
+    under it. The fix replaced the poll; the old any-line rule still refused it because the
+    second line survived, which kept all four link-poll units broken. Now a reply is refused
+    only when every judged line of the quote is still there."""
+    cur = pc._chunks_from_code(SCRIPT, CTX)["tc2"]
+    g = {"current_code": cur, "findings": [{"kind": "wrong_symbol", "where": "TestCase_2.main", "what": "x",
+                                            "evidence": "self.failed('bad')\nself.log('two')"}]}
+    why = pc._unit_evidence_gone(g, cur, _unit("tc2"))
+    assert why and "evidence still present" in why          # nothing changed: refused
+    fixed = cur.replace("self.failed('bad')", "self.failed('OBSERVED: {}'.format(out))")
+    assert pc._unit_evidence_gone(g, fixed, _unit("tc2")) is None      # self.log('two') alone survives
+    other = cur.replace("self.log('two')", "self.log('STEP 4: two')")
+    assert pc._unit_evidence_gone(g, other, _unit("tc2")) is None
+
+
+def test_G2_after_a_RECHUNK_frees_body_assignments_but_still_freezes_the_shortcuts():
+    """AWPTCM-T33235 (2026-09-24): Re-chunk makes the FILLED script the frame, so the unit's
+    block holds body code. The shortcut alternative used to be any `x = a.b` line, which then
+    froze `row = None` and `speedValue = self.testSet.speedS` and refused four correct fixes.
+    A shortcut binds a name to the attribute of the same name; only that shape is frozen."""
+    filled = ("class TestCase_2(ATTestCase.TestCase):\n"
+              "    testCaseDesc = 'two'\n"
+              "    testCaseRef = 'AWPTCM-T1'\n"
+              "    testCaseMethod = 'two'\n\n"
+              "    def main(self):\n"
+              "        dut = self.testSet.dut\n"
+              "        portPeer = dut.portPeer\n"
+              "        row = None\n"
+              "        speedValue = self.testSet.speedS\n"
+              "        self.failed('bad')\n")
+    unit = {"id": "tc2", "kind": "testcase", "block": filled}
+    fixed = (filled.replace("        row = None\n", "        row = next(iter(rows), None)\n")
+                   .replace("        speedValue = self.testSet.speedS\n", "        speedValue = str(self.testSet.speedS)\n"))
+    ok, why = pc._unit_frozen_ok(filled, fixed, unit)
+    assert ok, why
+    for shortcut in ("        dut = self.testSet.dut\n", "        portPeer = dut.portPeer\n"):
+        ok, why = pc._unit_frozen_ok(filled, filled.replace(shortcut, ""), unit)
+        assert not ok and "frozen line" in why, shortcut

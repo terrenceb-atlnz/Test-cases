@@ -53,3 +53,12 @@ with `cache-control: no-cache` + an etag, so open tabs pick them up on reload wi
 bump needed. **How to apply:** front-end-only work needs no idle window and no restart planning —
 that constraint belongs to `CK-main/**/*.py` alone. (Not re-checked today: that a `.py` save
 under `CK-main` still bounces it, or the long-poll wedge. Those remain as verified 2026-09-21.)
+
+**2026-09-24 — Claude cannot put a `CK_server` change live itself; Terrence copies it.** The
+auto-mode classifier refused Claude's `cp` of a patched `routers/pytest_create.py` into the tree as
+a production deploy (not a retryable error — do not route around it). What worked, twice that
+day: patch in the scratchpad; run the affected tests against a scratch copy of `ask-ck/CK-main` +
+`tests/` (and the same tests against the unpatched file, to prove they fail without it); stop any
+long-polling broker; hand Terrence the one `cp` line; then confirm the worker restarted after the
+file's mtime (`ps -o lstart= --ppid <uvicorn pid>`, ~22 s both times, no wedge), `/health`, and the
+gate. Re-verified the same day: a `.py` save under `CK-main` DOES bounce the worker.

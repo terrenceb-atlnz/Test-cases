@@ -164,3 +164,56 @@ WIDGET = 1
     assert lines.index("import re") > lines.index("# second header line"), "imports landed above the header"
     assert lines.index("import re") < lines.index("WIDGET = 1"), "imports landed after the first statement"
     compile(out, "merged", "exec")          # and the result is importable Python
+
+
+# --- 4. a new member may not re-define a name the library already has (2026-09-24) ----------
+
+TAG_C = "# legacy 5000_mdi_mdix/library_5000.py lines 61-85"
+
+CLASHING = f'''"""library_9001 — helpers shared by the Port group (ART family 9001)."""
+import time
+
+
+{TAG_C}
+def check_lldp_lag(testCase, eth, tb, expect_value):
+    return "A DIFFERENT CONTRACT UNDER THE SAME NAME"
+'''
+
+
+def test_a_new_tag_member_redefining_an_existing_name_is_refused():
+    """AWPTCM-T33235 appended six helpers whose names T33234's library already defined, and the
+    later `def` wins at import — so T33234 would have silently called T33235's versions."""
+    import pytest
+    with pytest.raises(pc.LibraryNameClash) as e:
+        pc._merge_library_code(EXISTING, CLASHING)
+    assert e.value.names == ["check_lldp_lag"]
+
+
+def test_the_clash_is_detected_against_an_UNTAGGED_library_too():
+    import pytest
+    untagged = "import re\n\n\ndef check_lldp_lag(testCase, eth, tb):\n    return True\n"
+    with pytest.raises(pc.LibraryNameClash):
+        pc._merge_library_code(untagged, CLASHING)
+
+
+def test_saving_a_clashing_library_writes_NOTHING(tmp_path, monkeypatch):
+    import pytest
+    from fastapi import HTTPException
+    gen = tmp_path / "generated"
+    gen.mkdir()
+    monkeypatch.setattr(pc, "PT_GENERATED_DIR", gen)
+    monkeypatch.setattr(pc, "META_ROOT", gen / ".meta")
+    monkeypatch.setattr(pc, "FAMILY_REGISTRY", gen / ".families.json")
+    script = pc._script_path("Port", "test-9001.2")
+    script.parent.mkdir(parents=True, exist_ok=True)
+    lib = script.parent / "library_9001.py"
+    lib.write_text(EXISTING, encoding="utf-8")
+    s = pc.PtSession(key="AWPTCM-T2")
+    s.step6 = {"naming": {"group": "Port", "name": "test-9001.2"},
+               "files": {"test": {"name": "test-9001.2.py", "code": "print('x')\n"},
+                         "library": {"name": "library_9001.py", "code": CLASHING}}}
+    with pytest.raises(HTTPException) as e:
+        pc._persist_generated_files(s)
+    assert e.value.status_code == 409 and "check_lldp_lag" in e.value.detail
+    assert not script.exists(), "the script was written although the save was refused"
+    assert lib.read_text(encoding="utf-8") == EXISTING, "the group library was changed"

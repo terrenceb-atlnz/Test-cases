@@ -1107,6 +1107,19 @@ Seven of the eight decisions in `docs/TOKEN-EFFICIENCY-REPORT-2026-09-04.md` §6
   Fix stays for those. UI: "⤺ Fix units (LLM)" on the Summary and "Fix units (LLM, from
   failures)" on step 7; the pills carry progress and the Summary refreshes when the last
   unit lands.
+  **The reply guards, as corrected 2026-09-24 (AWPTCM-T33235 — each refused correct fixes):**
+  - *Frozen lines (G2, `_FROZEN_LINE_RX`)* — the class line, `testCase*` attributes, the three
+    method signatures and the handle **shortcuts**, which bind a name to the attribute of the
+    same name (`dut = self.testSet.dut`, `portPeer = dut.portPeer`). It used to freeze any
+    `x = a.b` line, so after a Re-chunk (which makes the FILLED script the frame) it froze
+    ordinary body lines like `row = None`.
+  - *Evidence gone (G6(c), `_unit_evidence_gone`)* — for verdict/observation/symbol findings, a
+    reply is refused only when EVERY judged line of the quoted evidence survives. It used to
+    refuse on any one surviving line, which refused a fix that replaced a poll and kept the
+    `linkUp = True` under it. A fix that only MOVES the quoted line is still refused (open:
+    `ask-ck/plans/PLAN-pt-drive-followups-2026-09-24.md` G5).
+  - *Lint regression* — unchanged; and the lint now counts `self.testSet.X = …` (a value one
+    case publishes for later cases) as binding `X`, where it used to call it an unbound device.
 - **Two-tier Review (decision 7).** `review_script` refuses (409) while lint has BLOCKING
   errors: the deterministic pass goes to green first. Policy errors (`_POLICY_LINT_MARKERS`)
   and style warnings do not gate.
@@ -1339,7 +1352,13 @@ and Terrence asked for all eight closed in one pass. What changed, and why each:
    (`PLAN-art-family-numbering-and-prune.md`). Because every script in a folder writes the SAME
    path, `_persist_generated_files` **merges by provenance tag** instead of overwriting — a tag
    already present is left byte for byte (so a hand edit survives), a new tag is appended,
-   imports are unioned, and nothing is ever removed on a save. Removing auto-added
+   imports are unioned, and nothing is ever removed on a save. **A new-tag member that defines a
+   top-level name the library already has is refused (2026-09-24):** `_merge_library_code` raises
+   `LibraryNameClash` and Save returns a 409 naming the helpers, with **nothing written** — the
+   merge runs before either file is touched. Appending it would put a second `def` after the first,
+   and the later one wins at import, so every other script in the folder would silently call this
+   script's version (T33235's legacy `configurePort` treats its 6th argument as an expected outcome,
+   T33234's as a settle time). Reconcile by calling the family's versions. Removing auto-added
    (`# AI: dependency`) members nothing references is the **explicit** `POST /library_prune`,
    which previews unless asked to apply and never runs on its own.
    Both generation paths pass the group AND the family into `_build_library` explicitly

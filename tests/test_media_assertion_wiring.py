@@ -328,3 +328,20 @@ def test_the_real_rendered_skeleton_passes_its_own_media_lint():
     bad = [e for e in lint_errors(render())
            if "MEDIA assertion" in e or "never calls" in e]
     assert bad == [], bad
+
+
+def test_lint_ACCEPTS_a_value_one_case_publishes_on_the_TestSet_for_later_cases():
+    """AWPTCM-T33235 (2026-09-24): the review asks a case to publish a result for a later case
+    (`self.testSet.speedS = ...`). That is a binding, not a device; the lint used to reject the
+    very fix the review asked for."""
+    sk = render3()
+    mut = sk.replace("        self.log('STEP 1",
+                     "        self.testSet.speedS = '100'\n        speed = self.testSet.speedS\n"
+                     "        self.log('STEP 1", 1)
+    assert mut != sk
+    assert [e for e in lint_errors(mut) if "never binds" in e] == [], lint_errors(mut)
+    # ...and a value nothing publishes is still an unbound read.
+    read_only = sk.replace("        self.log('STEP 1",
+                           "        speed = self.testSet.speedS\n        self.log('STEP 1", 1)
+    hits = [e for e in lint_errors(read_only) if "never binds" in e]
+    assert hits and "speedS" in hits[0], lint_errors(read_only)
