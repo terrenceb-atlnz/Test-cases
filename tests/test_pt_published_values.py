@@ -234,3 +234,9 @@ def test_C7_T33235s_own_guards_count_isinstance_and_compound_conditions():
     for guard in ("        store = self.testSet.speedS\n        x = store.get('a') if isinstance(store, dict) else None\n",
                   "        ref = self.testSet.speedS\n        if isinstance(ref, int) and ref > 10:\n            pass\n"):
         assert _lint_pub("    def main(self):\n" + guard) == [], guard
+
+
+def test_C7_an_isinstance_check_bound_to_a_flag_is_a_guard():
+    body = ("    def main(self):\n        store = self.testSet.speedS\n        ok = isinstance(store, int)\n"
+            "        if ok:\n            dut.cmd('speed {}'.format(store))\n")
+    assert _lint_pub(body) == []
