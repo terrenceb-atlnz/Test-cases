@@ -2363,9 +2363,7 @@ class TestCase_15(ATTestCase.TestCase):
         # This case needs the DEDICATED copper-SFP pluggable role, never the fibre
         # handle (holistic review, TestCase_16/17).
         if not getattr(self.testSet, 'cusfp_supported', False):
-            self.supported = False
-            self.log('INFO: no copper-SFP pluggable link declared on this bench; case not applicable. '
-                     '{}'.format(getattr(self.testSet, 'cusfp_reason', '')))
+            # No pluggable link: skip this precondition; main() reports UNSUPPORTED.
             return
         portCuSfp = dut.portCuSfp
         cusfp_peer = self.testSet.cusfp_peer
@@ -2388,8 +2386,8 @@ class TestCase_15(ATTestCase.TestCase):
             # Bench-capability gap, not a product result: the framework's UNSUPPORTED result,
             # so the case is reported as not applicable rather than as a silent pass.
             self.supported = False
-            self.log('INFO: no copper-SFP pluggable link declared on this bench; case not applicable. '
-                     '{}'.format(getattr(self.testSet, 'cusfp_reason', '')))
+            self.failed('no copper-SFP pluggable link declared on this bench; case not applicable. '
+                        '{}'.format(getattr(self.testSet, 'cusfp_reason', '')))
             return
         portCuSfp = dut.portCuSfp
         far_port = self.testSet.cusfp_far_port
@@ -2434,7 +2432,9 @@ class TestCase_15(ATTestCase.TestCase):
 
         # Attribute the module type to the port's OWN row (same shape as TestCase_17), so a
         # type string printed for another port or in a header cannot satisfy this step.
-        plug_row = status_row(pluggable_output, port.name)
+        # `show system pluggable` prints `1.0.x` without the `port` prefix on some releases.
+        plug_row = status_row(pluggable_output, port.name) or status_row(
+            pluggable_output, port.name[len('port'):])
         if plug_row is None:
             self.failed("{} missing from 'show system pluggable' output: {}".format(
                 port.name, pluggable_output))
@@ -2489,9 +2489,7 @@ class TestCase_16(ATTestCase.TestCase):
         tb = self.testSet.tb
         dut = self.testSet.dut
         if not getattr(self.testSet, 'cusfp_supported', False):
-            self.supported = False
-            self.log('INFO: no copper-SFP pluggable link declared on this bench; case not applicable. '
-                     '{}'.format(getattr(self.testSet, 'cusfp_reason', '')))
+            # No pluggable link: skip this precondition; main() reports UNSUPPORTED.
             return
         # This step presumes both ends are still at the factory default (auto)
         # polarity/speed/duplex over the straight-through copper SFP link.
@@ -2507,8 +2505,8 @@ class TestCase_16(ATTestCase.TestCase):
             # Bench-capability gap, not a product result: the framework's UNSUPPORTED result,
             # so the case is reported as not applicable rather than as a silent pass.
             self.supported = False
-            self.log('INFO: no copper-SFP pluggable link declared on this bench; case not applicable. '
-                     '{}'.format(getattr(self.testSet, 'cusfp_reason', '')))
+            self.failed('no copper-SFP pluggable link declared on this bench; case not applicable. '
+                        '{}'.format(getattr(self.testSet, 'cusfp_reason', '')))
             return
         portCuSfp = dut.portCuSfp
         cusfp_peer = self.testSet.cusfp_peer
@@ -2591,9 +2589,7 @@ class TestCase_17(ATTestCase.TestCase):
         tb = self.testSet.tb
         dut = self.testSet.dut
         if not getattr(self.testSet, 'fibre_supported', False):
-            self.supported = False
-            self.log('INFO: no fibre pluggable link declared on this bench; case not applicable. '
-                     '{}'.format(getattr(self.testSet, 'fibre_reason', '')))
+            # No pluggable link: skip this precondition; main() reports UNSUPPORTED.
             return
         portFibre = dut.portFibre
         # Physical-media step: the module is fitted before the run (PRECONDITION); make
@@ -2614,8 +2610,8 @@ class TestCase_17(ATTestCase.TestCase):
         dut = self.testSet.dut
         if not getattr(self.testSet, 'fibre_supported', False):
             self.supported = False
-            self.log('INFO: no fibre pluggable link declared on this bench; case not applicable. '
-                     '{}'.format(getattr(self.testSet, 'fibre_reason', '')))
+            self.failed('no fibre pluggable link declared on this bench; case not applicable. '
+                        '{}'.format(getattr(self.testSet, 'fibre_reason', '')))
             return
         portFibre = dut.portFibre
         fibre_peer = self.testSet.fibre_peer
@@ -2665,7 +2661,9 @@ class TestCase_17(ATTestCase.TestCase):
 
         pluggable_output = dut.cmd('show system pluggable {}'.format(port.name))
         self.log('OBSERVED: {}'.format(pluggable_output))
-        plug_row = status_row(pluggable_output, port.name)
+        # `show system pluggable` prints `1.0.x` without the `port` prefix on some releases.
+        plug_row = status_row(pluggable_output, port.name) or status_row(
+            pluggable_output, port.name[len('port'):])
         if plug_row is None:
             self.failed('{} missing from show system pluggable output'.format(port.name))
             return
@@ -2706,9 +2704,7 @@ class TestCase_18(ATTestCase.TestCase):
         tb = self.testSet.tb
         dut = self.testSet.dut
         if not getattr(self.testSet, 'fibre_supported', False):
-            self.supported = False
-            self.log('INFO: no fibre pluggable link declared on this bench; case not applicable. '
-                     '{}'.format(getattr(self.testSet, 'fibre_reason', '')))
+            # No pluggable link: skip this precondition; main() reports UNSUPPORTED.
             return
         portFibre = dut.portFibre
         # Ensure the fibre SFP port starts this step at its default polarity/speed/duplex
@@ -2726,8 +2722,8 @@ class TestCase_18(ATTestCase.TestCase):
         dut = self.testSet.dut
         if not getattr(self.testSet, 'fibre_supported', False):
             self.supported = False
-            self.log('INFO: no fibre pluggable link declared on this bench; case not applicable. '
-                     '{}'.format(getattr(self.testSet, 'fibre_reason', '')))
+            self.failed('no fibre pluggable link declared on this bench; case not applicable. '
+                        '{}'.format(getattr(self.testSet, 'fibre_reason', '')))
             return
         portFibre = dut.portFibre
         self.log("STEP 19: Record the fibre SFP port's link state from 'show interface <fibre port> status', then attempt to apply polarity configuration to it: 'interface <fibre port>' then 'polarity mdi', and again 'polarity mdix'. Capture the CLI response to each, then re-read 'show running-config interface <fibre port>' and 'show interface <fibre port> status'.")
