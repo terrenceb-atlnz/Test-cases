@@ -21,6 +21,16 @@ current working thread see
 > `ask-ck/ck-facelift/`, `pytest-create/` and `CK-main/` plan paths moved to `ask-ck/plans/` on 2026-09-11 and, once complete, to `archive/plans/`.
 > `js-tests/` → `tests/js/`, `e2e/` → `tests/e2e/`, `static/js/` → `ask-ck/frontend/ck-main/current/<page>/` (2026-09-11).
 
+## 2026-09-25 — seat-limit pill, per-unit Fix, editable publishes, published-value lint
+
+Same branch as below. These are the follow-ups that finish that work in the UI:
+
+- A reviewer can now declare a value the extract missed (editable `publishes`).
+- A reviewer can fix one unit without re-dispatching every unit that has a finding (Fix this unit).
+- A row of seat-limit failures reads as "wait for the reset", not as broken units.
+- The Review button says what the last round cost.
+- G15's None check gets a deterministic warning: prompt and review alone had left it to the model.
+
 ## 2026-09-24 (night) — framework result facts linted, values between cases declared, the family library as the helper source, a bound on review rounds
 
 Everything the T33235 drive exposed (`archive/plans/PLAN-pt-drive-followups-2026-09-24.md`), on

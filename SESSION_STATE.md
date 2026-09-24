@@ -4681,3 +4681,16 @@ Supersedes the "Open" line of the 2026-09-24 (evening) entry: the plan is execut
 - **Next:** Terrence merges with `--ff-only` and verifies; then that plan's §C.
 - **Gate (branch):** pytest 1857 passed / 2 skipped, vitest 352, both guards OK, `ck.db` untouched
   by tests.
+
+## Session Close / Handoff (2026-09-25) — five more follow-ups on the branch
+
+- **Shipped (branch `pt-followups-2026-09-24`, still NOT merged; 7 more commits):**
+  - C11 — seat-limit pill.
+  - C9 (partly) — the last round's size in the Review tooltip.
+  - C8 — Fix this unit.
+  - C7 — the `published:` None-guard warning.
+  - C6 — editable `publishes`.
+- **Recorded in:** `ask-ck/plans/PLAN-pt-followups-review-2026-09-24.md` status header.
+- **Next:** Terrence merges with `--ff-only`; then that plan's §A/§B decisions and C1–C5, C10.
+- **Gate (branch):** pytest 1863 passed / 2 skipped, vitest 356, both guards OK, `ck.db` untouched
+  by tests.

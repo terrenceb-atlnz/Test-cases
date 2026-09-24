@@ -11,6 +11,22 @@ verified: 2026-09-23
 > claim has since stopped being true, a ⚠ line under its heading says what changed.
 > Newest first. Paths in older entries predate these moves (the same as in CHANGELOG): `tool/` → `ask-ck/tools/`, `ask-ck/var/` → `ask-ck/db/`, `objective-drafting/` → `ask-ck/functions/generator/`, `pytest-create/` → `ask-ck/functions/pytest-creator/`, `js-tests/` → `tests/js/`, `ask-ck/ck-facelift/` → `ask-ck/plans/`, root reports → `docs/`, and completed plans `ask-ck/plans/` → `archive/plans/` (2026-09-11, 2026-09-23). Also retired 2026-09-23: the demo notes → `archive/plans/demo-2026-09-11/`, and `HANDOFF-generate-token-efficiency.md` + `Fragments_prompt.md` → `archive/records/`.
 
+## Latest session (2026-09-25) — five follow-ups added to the same branch
+
+**Pick up here:** unchanged. Merge `pt-followups-2026-09-24` (`git merge --ff-only`), verify it,
+then `ask-ck/plans/PLAN-pt-followups-review-2026-09-24.md`. §A and §B are Terrence's; C1–C5 and
+C10 need the merge, the bench or a `ck.db` corpus edit.
+
+- **Added** (commits `9dbe78a`–`6c0073c`):
+  - C11 — a ⏳ pill for a unit the seat refused on its usage limit.
+  - C9 (partly) — the Review tooltip gives rounds used and the last round's size.
+  - C8 — **Fix this unit** on each unit's page.
+  - C7 — a `published:` warning when a case reads a published value without checking it for None.
+    It is silent on T33235's hand-guarded consumers.
+  - C6 — `publishes` is editable on the Sequence table.
+- **Gate on the branch:** pytest 1863 passed / 2 skipped, vitest 356, both guards OK, `ck.db`
+  untouched by tests.
+
 ## Latest session (2026-09-24, night) — the T33235 follow-up plan executed, on a branch
 
 **Pick up here:** merge the branch — `git merge --ff-only pt-followups-2026-09-24` in the live

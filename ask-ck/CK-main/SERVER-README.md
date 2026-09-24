@@ -1299,6 +1299,13 @@ and what is still open are in `ask-ck/plans/PLAN-pt-followups-review-2026-09-24.
 - **Seat limit (P3).** A unit refused with the seat's usage-limit reply is stored as
   `seat limit: …` with `limit: true`, and `generate_units` records the units still queued as not
   sent instead of dispatching them.
+- **2026-09-25 additions (same branch).** A unit refused on the seat limit shows a ⏳ grey
+  dotted pill. The Review button's tooltip gives rounds used and the last round's prompt size
+  (`gen_state.review_last_prompt_chars`). Each generated unit's page has **Fix this unit (LLM)**,
+  which sends `fix_units {"units": [id]}`. `publishes` is editable on the Sequence table
+  (`name: what it is; …`, sent explicitly on save). `_lint_published_unguarded` warns
+  (`published:`) when a case reads a published value without it appearing in any condition
+  (None comparison, `not`, `if`/`while`/ternary/`assert`, `isinstance`).
 
 ### The frame DISCOVERS its topology through the framework — no `[misc]` (2026-09-21)
 

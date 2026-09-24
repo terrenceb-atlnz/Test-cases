@@ -5,7 +5,10 @@ verified: 2026-09-24
 
 > ## Status (read first)
 >
-> **OPEN — nothing below is started.** Written at the end of executing
+> **OPEN.** 2026-09-25: C6, C7, C8, C9 and C11 DONE on the same branch (commits `9dbe78a`
+> `9efb2ad` `601f70a` `8246147` `6c0073c`; C9 only as far as the last round's size — see it).
+> Still open: §A (confirm), §B (D-C), C1–C5 and C10 — each needs Terrence, the merge, the bench or
+> a `ck.db` corpus edit. Written at the end of executing
 > `archive/plans/PLAN-pt-drive-followups-2026-09-24.md` (every item of which landed on branch
 > `pt-followups-2026-09-24`). §A are the decisions Claude took because they blocked work, for
 > Terrence to confirm or reverse; §B is the one decision still open; §C is work still to do,
@@ -57,17 +60,17 @@ verified: 2026-09-24
    default value"; whichever the device does decides whether T33234/T33235's teardowns satisfy
    `confCheck`.
 5. **Run T33235 (and T33234) on tb470.** Both are preflight-RUNNABLE and lint-clean; neither has run.
-6. **A UI to add or edit a step's `publishes`.** Today only the extract writes it; the Sequence
+6. **DONE 2026-09-25 (`6c0073c`)** — **A UI to add or edit a step's `publishes`.** Today only the extract writes it; the Sequence
    table shows it read-only. Needed before a reviewer can declare one the extract missed.
-7. **A lint that a consumer guards a published value against None** (G15's deterministic half).
+7. **DONE 2026-09-25 (`601f70a`, warning `published:`)** — **A lint that a consumer guards a published value against None** (G15's deterministic half).
    Prompt + review only today.
-8. **A per-unit "Fix this unit" control** using the new `fix_units {"units": [...]}` filter (API
+8. **DONE 2026-09-25 (`9efb2ad`)** — **A per-unit "Fix this unit" control** using the new `fix_units {"units": [...]}` filter (API
    only today).
-9. **A pre-send size for the FIRST review round.** The cap message shows the last round's size;
+9. **PARTLY DONE 2026-09-25 (`9dbe78a`: the button tooltip shows the LAST round's size; the first round's still needs the dry run — a render per page load is too heavy for gen_state)** — **A pre-send size for the FIRST review round.** The cap message shows the last round's size;
    the first round's is visible only through the provenance dry run.
 10. **G9 for families without their own `checkLinkStatus`.** G7 covers 9001; marking the legacy
     fragment in the index would be a `ck.db` corpus edit, which this work did not make.
-11. **A distinct pill state for `limit: true`** (P3). The text says "seat limit"; the colour is the
+11. **DONE 2026-09-25 (`9dbe78a`, ⏳ grey dotted pill)** — **A distinct pill state for `limit: true`** (P3). The text says "seat limit"; the colour is the
     ordinary error red.
 
 ## Behaviour changes to know about
