@@ -1262,3 +1262,38 @@ def test_G5_a_reply_that_MOVES_the_quoted_line_is_not_refused_one_that_keeps_it_
     # Adding lines around it without moving it relative to the rest is still refused.
     padded = cur.replace("        self.passed('x')\n", "        self.log('extra')\n        self.passed('x')\n")
     assert pc._unit_evidence_gone(g, padded, _unit("tc2"))
+
+
+# --- P3 (PLAN-pt-drive-followups-2026-09-24 §6): the seat's usage limit -----------------------
+
+def test_P3_the_seat_limit_reply_is_recognised_and_ordinary_errors_are_not():
+    assert pc._is_seat_limit("You've hit your weekly limit · resets 2pm")
+    assert pc._is_seat_limit("Claude AI usage limit reached|1758700000")
+    assert not pc._is_seat_limit("the reply contained no fenced python block")
+    assert not pc._is_seat_limit("timeout after 600s")
+
+
+def test_P3_a_unit_refused_on_the_seat_limit_is_recorded_as_such(monkeypatch):
+    sess = _FakeSess({})
+    monkeypatch.setattr(pc, "run_prompt_text", lambda *a, **k: {
+        "error": True, "content": "You've hit your weekly limit · resets 2pm"})
+
+    def _fake_persist(key, apply_fn, attempts=0):
+        apply_fn(sess)
+        return sess
+    monkeypatch.setattr(pc, "_pt_persist_fresh", _fake_persist)
+    res = pc._unit_call_and_store("AWPTCM-T00001", "tc2", "shared\n" + pc._PT_PROMPT_SPLIT + "\nunit",
+                                  False, _unit("tc2"), {"model": "m"}, "(verbatim)", {"generation": True})
+    assert res["status"] == "limit"
+    ch = sess.step6["chunks"]["tc2"]
+    assert ch["status"] == "error" and ch["limit"] is True
+    assert ch["error"].startswith("seat limit: You've hit your weekly limit")
+
+
+def test_P3_generate_stops_sending_after_the_first_limit():
+    s = _CODE.index('@router.post("/generate_units/')
+    body = _CODE[s:_CODE.index("_dispatch_primed(prepared, _one)", s)]
+    # checked INSIDE the semaphore, before the call, so a queued unit is not sent
+    assert body.index("async with sem:") < body.index("if seat_limit:") < body.index("_unit_call_and_store")
+    assert 'if res.get("status") == "limit":' in body and 'seat_limit.setdefault("unit", uid)' in body
+    assert '"error": f"seat limit: not sent' in body

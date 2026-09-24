@@ -7562,6 +7562,18 @@ def _unit_system_prompt(shared_half: str) -> str:
     return _CODE_SYSTEM_PROMPT + ("\n\n" + shared_half if shared_half else "")
 
 
+# P3 (PLAN-pt-drive-followups-2026-09-24 §6): the seat's usage limit, as the claude_agent seat
+# reports it. T33235 (2026-09-24, 13:01): "You've hit your weekly limit · resets 2pm" failed 12
+# unit jobs that were each still sent, and each read like any other model error.
+_SEAT_LIMIT_RX = re.compile(
+    r"hit your (?:\w+ )?(?:usage )?limit|usage limit (?:reached|exceeded)|limit\s*[·•-]\s*resets\b",
+    re.I)
+
+
+def _is_seat_limit(text: str) -> bool:
+    return bool(_SEAT_LIMIT_RX.search(text or ""))
+
+
 def _unit_call_and_store(key: str, unit_id: str, prompt: str, edited: bool,
                          unit: dict, llm_cfg: dict, template: str = "(verbatim)",
                          guard: Optional[dict] = None, repaired: bool = False,
@@ -7626,7 +7638,14 @@ def _unit_call_and_store(key: str, unit_id: str, prompt: str, edited: bool,
         return {"unit": unit_id, "status": "error", "error": reason}
 
     if meta.get("error"):
-        return _fail(meta.get("content", "LLM error"), meta.get("content", ""))
+        content = meta.get("content", "LLM error")
+        if _is_seat_limit(content) and not (guard and not guard.get("generation")):
+            # P3: say it is the SEAT, not the model or the prompt, and let the dispatcher stop.
+            _store({"status": "error", "error": f"seat limit: {content.strip()[:300]}",
+                    "limit": True, "at": utc_now().isoformat(), "raw": "", "code": "",
+                    "held": None, **({"prompt": prompt} if edited else {})})
+            return {"unit": unit_id, "status": "limit", "error": content}
+        return _fail(content, meta.get("content", ""))
     blocks = _parse_generated_blocks(meta.get("content", ""))
     code = (blocks.get("test_code") or "").strip()
     if not code:
@@ -7782,6 +7801,22 @@ async def generate_units(key: str, request: Request, body: dict = Body(default={
         raise
 
     sem = asyncio.Semaphore(_PT_UNIT_DISPATCH_MAX)
+    # P3 (2026-09-24): after the first unit the seat refuses on its usage limit, the rest are
+    # not sent — each would fail the same way and cost a dispatch — and are recorded as such.
+    seat_limit: Dict[str, str] = {}
+
+    def _record_not_sent(uid: str) -> None:
+        def _apply_ns(fresh: PtSession) -> None:
+            step6_f = dict(fresh.step6 or {})
+            chunks = dict(step6_f.get("chunks") or {})
+            prev = dict(chunks.get(uid) or {})
+            prev.update({"status": "error", "limit": True, "at": utc_now().isoformat(),
+                         "error": f"seat limit: not sent — {seat_limit['unit']} hit the seat's "
+                                  f"usage limit ({seat_limit['why'][:160]}). Re-run once it resets."})
+            chunks[uid] = prev
+            step6_f["chunks"] = chunks
+            fresh.step6 = step6_f
+        _pt_persist_fresh(key, _apply_ns, attempts=_PT_CHUNK_WRITE_ATTEMPTS)
 
     async def _one(uid: str, unit: dict, prompt: str, edited: bool):
         # R2: the arrival guard lints each reply the moment it lands, against the frame + the
@@ -7790,8 +7825,15 @@ async def generate_units(key: str, request: Request, body: dict = Body(default={
         gen_guard = {"generation": True, "ctx": ctx, "sess": sess}
         try:
             async with sem:
+                if seat_limit:
+                    await run_in_threadpool(_record_not_sent, uid)
+                    return
                 res = await run_in_threadpool(_unit_call_and_store, key, uid, prompt,
                                               edited, unit, llm_cfg, "(verbatim)", gen_guard)
+                if res.get("status") == "limit":
+                    seat_limit.setdefault("unit", uid)
+                    seat_limit.setdefault("why", str(res.get("error") or "").strip())
+                    return
                 budget = _effective_repair_turns()
                 first_class = _lint_class_of((res.get("reason") or "").split(": ", 1)[-1]) \
                     if res.get("status") == "arrival_refused" else ""
