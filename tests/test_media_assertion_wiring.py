@@ -97,8 +97,10 @@ def test_the_dut_is_the_frameworks_swi_a_slot_and_its_stack_when_it_is_in_one():
     stacked bench the ports belong to members and commands go to the master, so the stack
     handle is bound when `get_stack()` reports one."""
     sk = render()
-    assert "setup.init_swi('swi_a')" in sk
-    assert ".get_stack()" in sk and "setup.init_stk(_stk.name)" in sk
+    assert "_devs['swi_a']" in sk
+    # 2026-09-25: the stack comes from get_stack() once init_all_devices() has built it;
+    # init_stk() a second time would build a second Stack object.
+    assert ".get_stack()" in sk and "dut_stack = _stk" in sk and "setup.init_stk(_stk.name)" not in sk
     assert "get_all_misc" not in sk and "ck_link" not in sk and "ck_role_dut" not in sk
 
 
@@ -261,7 +263,10 @@ def test_only_the_dut_and_one_partner_are_bound():
     """T33235 bound 4 devices and used 1. Each spurious binding becomes a topology demand a
     bench must satisfy for nothing, which is what made that script un-runnable."""
     body = init_body(render3())
-    assert body.count("setup.init_swi(") == 1, "only the DUT should be looked up directly"
+    # 2026-09-25: everything is initialised by init_all_devices(); only tb and the DUT are
+    # looked up by key, and nothing else is init_swi()-ed.
+    assert body.count("_devs['") == 2 and "setup.init_swi(" not in body, \
+        "only the testbox and the DUT should be looked up directly"
     # ART shape (2026-09-07): the neighbour is `peer`, resolved from the far end of the link;
     # the positional second name (`dutA` here) is no longer bound when a link exists.
     assert "self.dut = dut" in body and "self.peer = peer" in body
@@ -294,7 +299,7 @@ def test_without_a_link_the_partner_is_still_capped_at_one():
     body = init_body(render3([{"n": 1, "action": "show version",
                                "verify": "the build string is reported", "kind": "verify"}]))
     assert "_ck_bind_link(" not in body
-    assert body.count("setup.init_swi(") == 2      # DUT + one console-only partner
+    assert "_devs['swi_a']" in body and body.count("setup.init_swi(") == 1   # + one console-only partner
     assert "self.linkP" not in body
     assert "# NOT BOUND: linkP." in body
 

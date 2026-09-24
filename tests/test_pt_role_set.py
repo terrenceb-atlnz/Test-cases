@@ -121,10 +121,10 @@ def test_nothing_is_read_from_misc_and_nothing_is_pre_declared():
 
 def test_the_dut_is_swi_a_or_its_stack():
     body = init_body(render(seq("copper")))
-    assert "dut = setup.init_swi('swi_a')" in body
+    assert "dut = _devs['swi_a']" in body
     assert "_stk = dut.get_stack()" in body
     # ART's shape (2026-09-23): the stack is bound ALONGSIDE, never over, the swi_a handle.
-    assert "dut_stack = setup.init_stk(_stk.name) if _stk is not None else None" in body
+    assert "dut_stack = _stk" in body
     assert "dut = setup.init_stk(" not in body
 
 
@@ -212,8 +212,8 @@ def test_a_copper_role_falls_back_to_a_copper_sfp_but_never_the_reverse():
 
 def test_a_partner_switch_is_initialised_once_and_the_testbox_never():
     helper = re.search(r"def _ck_bind_link.*?\n    def init", render(seq("copper")), re.S).group(0)
-    assert "if far.name not in self._ck_far:" in helper
-    assert "setup.init_swi(far.name)" in helper and "setup.init_stk(far.name)" in helper
+    assert "self._ck_far.setdefault(far.name, far)" in helper
+    assert "setup.init_swi(far.name)" not in helper and "setup.init_stk(far.name)" not in helper
     assert "if isinstance(far, ATTestBox.TestBox):" in helper
 
 
@@ -274,3 +274,16 @@ def test_the_unit_prompt_explains_the_pluggable_handles_and_the_unsupported_idio
     assert "`dut.portCuSfp` <-> `cusfp_peer.portCuSfp`" in out
     assert "assert_role_media_now" in out
     assert "role contract" not in out and "ck_link" not in out
+
+
+def test_the_frame_initialises_every_declared_device_and_link_before_discovering():
+    """The frame's FIRST hardware run (T33235 on tb470, 2026-09-25) aborted in init() with "no
+    unused copper link": the framework's get_all_port_links() returns only INITIALISED links,
+    and get_stack() is set only by init_stk(), so binding swi_a alone discovered nothing.
+    init_all_devices(powerOn=False) comes first; tb and swi_a come from the table it returns
+    (a second init_tb() exits the run); no PDU outlet is switched on by binding."""
+    body = init_body(render(seq("copper")))
+    i = body.index("_devs = setup.init_all_devices(powerOn=False)")
+    assert i < body.index("tb = _devs['tb']") < body.index("dut = _devs['swi_a']") \
+        < body.index("self._ck_topo = self._ck_discover(")
+    assert "setup.init_tb()" not in body

@@ -119,8 +119,10 @@ def test_bind_helper_takes_the_testbox_end_without_init_swi():
     sk = render(CAPTURE_SEQ)
     helper = re.search(r"def _ck_bind_link.*?\n    def init", sk, re.S).group(0)
     assert "if isinstance(far, ATTestBox.TestBox):" in helper
-    assert "if far.name not in self._ck_far:" in helper
-    assert "setup.init_swi(far.name)" in helper
+    # 2026-09-25: the far device is the object init_all_devices() already built — kept once,
+    # never re-initialised (init_stk would build a second Stack, init_tb would exit the run).
+    assert "self._ck_far.setdefault(far.name, far)" in helper
+    assert "setup.init_swi(far.name)" not in helper and "setup.init_stk(far.name)" not in helper
     assert "init_portlink" not in helper
 
 

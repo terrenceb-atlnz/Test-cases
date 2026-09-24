@@ -389,7 +389,7 @@ def test_skeleton_binds_devices_and_never_names_a_port():
     # slot (297 corpus lookups; Terrence 2026-09-21) — every bench maps it to its own
     # hardware, so the script binds correctly anywhere without naming a device, and nothing
     # is read from `[misc]` to find it. See TOPOLOGY-PROFILES.md.
-    assert "setup.init_swi('swi_a')" in sk and "get_all_misc" not in sk
+    assert "_devs['swi_a']" in sk and "get_all_misc" not in sk
     assert "init_swi('dut')" not in sk and "init_swi('lp')" not in sk
     # and no literal port name is seeded anywhere
     assert not re.search(r"""['"][^'"\n]*\bport\d+\.\d+\.\d+\b[^'"\n]*['"]""", sk), \

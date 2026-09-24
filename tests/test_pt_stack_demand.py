@@ -44,7 +44,7 @@ def test_a_fragment_only_stack_is_aliased_not_demanded():
 def test_a_stack_the_sequence_names_is_still_bound():
     seq = [dict(SEQ[0], action="Configure LLDP on stk_a"), SEQ[1]]
     out = _render(seq, [STACK_FRAG])
-    assert "setup.init_stk('stk_a')" in out
+    assert "_devs['stk_a']" in out
 
 
 def test_topology_reports_no_stack_from_fragment_code_alone():

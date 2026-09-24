@@ -129,9 +129,9 @@ class TestSet(ATTestSet.TestSet):
                 if not ok:
                     raise RuntimeError(why)
             else:
-                if far.name not in self._ck_far:
-                    self._ck_far[far.name] = (setup.init_stk(far.name) if hasattr(far, 'all_members')
-                                              else setup.init_swi(far.name))
+                # `far` is the device init_all_devices() already initialised — re-initialising
+                # it would build a second object (init_stk) or abort the run (init_tb).
+                self._ck_far.setdefault(far.name, far)
                 far = self._ck_far[far.name]
             self.log('topology: role %r -> %s %s <-> %s %s (%s)' % (
                 role, dut.name, near.name, getattr(far, 'name', 'tb'), far_port.name, bucket))
@@ -153,8 +153,16 @@ class TestSet(ATTestSet.TestSet):
         # / fibre / copper-SFP is read from the DUT itself. So the script names no port and no
         # partner, binds correctly on any bench cabled for it, and fails loudly on one that is
         # not. (`swi_a`/`stk_a`: 297/192 corpus lookups; a role-named key appears 0 times.)
-        tb = setup.init_tb()
-        dut = setup.init_swi('swi_a')
+        # Every device and link the bench's .setup declares is initialised FIRST, by the
+        # framework's own init_all_devices(): get_all_port_links() returns only INITIALISED links
+        # and get_stack() is set only by init_stk, so a frame that bound swi_a alone discovered
+        # NOTHING — its first hardware run, T33235 on tb470, 2026-09-25, aborted in init() with
+        # "no unused copper link". powerOn=False: binding never switches a PDU outlet on (a
+        # power-cycle test still has its power objects). tb and swi_a come from the returned
+        # device table — init_tb() a second time exits the run.
+        _devs = setup.init_all_devices(powerOn=False)
+        tb = _devs['tb']
+        dut = _devs['swi_a']
         # ART's own shape (103 of 239 suites bind BOTH the stack and the swi_a switch):
         # the STACK owns the ports [portlink] declares per member and is what discovery walks;
         # COMMANDS go to the swi_a member handle, which has cmd()/mode() — the framework's Stack
@@ -162,7 +170,7 @@ class TestSet(ATTestSet.TestSet):
         # to 2026-09-23 the frame rebound `dut` to the Stack, so every command died on a
         # stacked DUT; Terrence: "Copy what they do, because it works.")
         _stk = dut.get_stack()
-        dut_stack = setup.init_stk(_stk.name) if _stk is not None else None
+        dut_stack = _stk                   # initialised above; init_stk() again builds a second Stack
         self.tb = tb
         self.dut = dut
         self.dut_stack = dut_stack
