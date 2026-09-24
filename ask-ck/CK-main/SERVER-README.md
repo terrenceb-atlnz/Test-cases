@@ -1133,8 +1133,8 @@ Seven of the eight decisions in `docs/TOKEN-EFFICIENCY-REPORT-2026-09-04.md` §6
   - *Evidence gone (G6(c), `_unit_evidence_gone`)* — for verdict/observation/symbol findings, a
     reply is refused only when EVERY judged line of the quoted evidence survives. It used to
     refuse on any one surviving line, which refused a fix that replaced a poll and kept the
-    `linkUp = True` under it. A fix that only MOVES the quoted line is still refused (open:
-    `ask-ck/plans/PLAN-pt-drive-followups-2026-09-24.md` G5).
+    `linkUp = True` under it. A fix that MOVES the quoted line is accepted too (G5, 2026-09-24):
+    among the lines the unit and the reply share, a judged line at a new position is a re-order.
   - *Lint regression* — unchanged; and the lint now counts `self.testSet.X = …` (a value one
     case publishes for later cases) as binding `X`, where it used to call it an unbound device.
 - **Two-tier Review (decision 7).** `review_script` refuses (409) while lint has BLOCKING
@@ -1256,6 +1256,49 @@ Commit `dc2e501`. Each item is Terrence's ruling on the 2026-09-23 open list.
 - **`guard_db_only.py` can no longer be bypassed by a comment.** Comments are stripped with the
   tokenizer (`_code_lines`) instead of skipping any line containing `# `.
   `tests/test_guard_db_only_detects.py` proves the guard still catches a violation.
+
+### Follow-ups from the T33235 drive (2026-09-24, evening)
+
+Executed from `archive/plans/PLAN-pt-drive-followups-2026-09-24.md`; the decisions Claude took
+and what is still open are in `ask-ck/plans/PLAN-pt-followups-review-2026-09-24.md`.
+
+- **Framework result facts, taught and linted (G11–G13).** The framework counts verdicts
+  (`ATTestCase._get_result`): no pass and no fail is ERROR, `self.supported = False` plus a fail is
+  UNSUPPORTED, the flag with only passes is ERROR — so the flag alone reports ERROR. The fill rules
+  (§3, §3d) now teach the flag FOLLOWED BY `self.failed('<why>')` in `main()`, and
+  `_lint_unsupported_without_failure` makes the flag without a fail a BLOCKING error (`unsupported:`;
+  a call passing `self` to a helper counts as a possible fail; in `configure()` it passes only when
+  `main()` reads `self.supported`). §3e: `confCheck` compares running-config after every case's
+  `tear_down()`, so restore with the documented `no` form — `_lint_config_not_restored` warns
+  (`confcheck:`) on a change whose command word `tear_down()` never sends. §3f: `show system
+  pluggable` prints `1.0.x` on some releases — use `ck_media`; `_lint_pluggable_port_key` warns
+  (`pluggable:`).
+- **Values one case publishes for another (G6/G15).** A sequence step may carry
+  `publishes: [{"name", "shape"}]` (extract teaches it; `_normalize_publishes` on extract and save;
+  the Sequence table shows it read-only). The frame declares each as `self.<name> = None` in
+  `TestSet.init()` (not counted as a device); the producer's unit is told to set it, every later
+  unit gets its shape and "None → UNSUPPORTED", and the Review lists it and checks consumers.
+- **Review and Fix loop (P1, P5, G5, G10).** Each stored review is logged in `step6.review_log`
+  (prompt size, model); after `_PT_REVIEW_ROUNDS_FREE` (2) the endpoint 409s with `review round cap:`
+  unless the body has `extra_round: true` (the UI asks first; dry runs are never refused;
+  `reset_generate` starts the count again). A review stores `unit_hashes`; `fix_units` reports a
+  finding about a unit changed since as `stale` and never dispatches it, and takes
+  `{"units": [...]}`. The review prompt tells suggestions to use shapes the lint accepts.
+- **The family library is the helper source (G7/G14).** `_build_library(..., family_code=)`
+  receives the group's `library_<family>.py` from disk (`_read_family_library`). A fragment or R1
+  dependency whose name the family defines is not shipped (`family_replaced`, `family_tags` — the
+  unit prompt drops it from the code to adapt); the family's public helpers reach both generate
+  prompts by signature; the stored library is the family file plus only the new members, so
+  re-assembly no longer re-introduces the G3 clash; and the library ships whenever the frame
+  imports it.
+- **Sequence (S1–S4).** The extract prompt treats a fitted pluggable as a precondition (an
+  insert/swap step only when the step is about insertion) and sweeps every documented value with an
+  accept-if-legal / reject-if-not verify. `_prune_step_matches` drops per-step script candidates
+  whose step text changed (on extract and save; `selections` are never touched); a reshaped
+  sequence sets `step2.notes_stale`.
+- **Seat limit (P3).** A unit refused with the seat's usage-limit reply is stored as
+  `seat limit: …` with `limit: true`, and `generate_units` records the units still queued as not
+  sent instead of dispatching them.
 
 ### The frame DISCOVERS its topology through the framework — no `[misc]` (2026-09-21)
 

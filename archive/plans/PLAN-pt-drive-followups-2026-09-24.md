@@ -5,7 +5,17 @@ verified: 2026-09-24
 
 > ## Status (read first)
 >
-> **PLAN ONLY — nothing below is started.** Written at Terrence's request after the T33235 script
+> **COMPLETE 2026-09-24 (evening) — executed on branch `pt-followups-2026-09-24`, retired to
+> `archive/plans/`.** Every item below landed with tests and a mutation check, except D-C (a
+> decision, annotated, nothing built). Decisions D-A and D-B were blockers and Claude chose
+> (D-A: two free tool review rounds, then confirm-to-continue; D-B: T33234 fixed by hand); both,
+> plus how the branch reaches production (X1), are for Terrence's review in
+> `ask-ck/plans/PLAN-pt-followups-review-2026-09-24.md`, which also holds everything still open.
+> Commit per item: G11–G13 `bb91e97`, D-B `8b192f0`, P5/G5 `f2fecc0`, P1 `7eec760`,
+> G6/G15/G10 `cb49f8e`, G7/G14/G8/G9 `ab8fa88`, S1–S4 `986f470`, P3 `f665f98`, B1 `df5577d`,
+> P4 + a G11 widening `f69dd42`.
+>
+> *Original header, kept:* **PLAN ONLY — nothing below is started.** Written at Terrence's request after the T33235 script
 > was finished by hand (`generated/9001_Port/test-9001.33235.py`, lint-clean, preflight RUNNABLE on
 > tb470). Each item names the evidence from that drive. Four guard defects found on the way were
 > fixed the same day and are listed only for completeness (§0).

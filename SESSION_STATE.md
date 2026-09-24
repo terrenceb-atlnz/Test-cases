@@ -4665,3 +4665,19 @@ untouched by tests.
 - **Open:** the plan (nothing started); T33234 still carries 8 UNSUPPORTED paths that report ERROR
   (plan D-B); the zip's working copy is still untracked at the repo root.
 - **Gate:** pytest 1804 passed / 1 skipped, vitest 348, both guards OK, `ck.db` untouched by tests.
+
+## Session Close / Handoff (2026-09-24, night) — T33235 follow-up plan executed on a branch
+
+Supersedes the "Open" line of the 2026-09-24 (evening) entry: the plan is executed and T33234's
+8 UNSUPPORTED paths are fixed in its file.
+
+- **Shipped (branch `pt-followups-2026-09-24`, 11 commits, NOT merged):** every item of
+  `archive/plans/PLAN-pt-drive-followups-2026-09-24.md` except D-C, each with tests and a mutation
+  check. SERVER-README "Follow-ups from the T33235 drive" and CHANGELOG 2026-09-24 (night)
+  describe them.
+- **Decisions Claude took, for review:** X1 (branch + ff-merge as the deploy), D-A (two free review
+  rounds), D-B (T33234 by hand). All are in `ask-ck/plans/PLAN-pt-followups-review-2026-09-24.md`
+  §A. D-C (headless broker) is still open: annotated, nothing built.
+- **Next:** Terrence merges with `--ff-only` and verifies; then that plan's §C.
+- **Gate (branch):** pytest 1857 passed / 2 skipped, vitest 352, both guards OK, `ck.db` untouched
+  by tests.

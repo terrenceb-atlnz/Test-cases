@@ -21,6 +21,33 @@ current working thread see
 > `ask-ck/ck-facelift/`, `pytest-create/` and `CK-main/` plan paths moved to `ask-ck/plans/` on 2026-09-11 and, once complete, to `archive/plans/`.
 > `js-tests/` → `tests/js/`, `e2e/` → `tests/e2e/`, `static/js/` → `ask-ck/frontend/ck-main/current/<page>/` (2026-09-11).
 
+## 2026-09-24 (night) — framework result facts linted, values between cases declared, the family library as the helper source, a bound on review rounds
+
+Everything the T33235 drive exposed (`archive/plans/PLAN-pt-drive-followups-2026-09-24.md`), on
+branch `pt-followups-2026-09-24`. The reason for each is a defect the drive actually hit:
+
+- **UNSUPPORTED reported ERROR.** The framework counts verdicts; `self.supported = False` alone is
+  ERROR. Our fill rules taught exactly that shape, and T33235 had 18 such paths. The rules now
+  teach the flag followed by `self.failed()`, and a BLOCKING lint refuses the flag without a fail.
+  Two warnings join it: a `show system pluggable` row keyed on `port.name` (the table prints `1.0.x`
+  on some releases), and a change a case's `tear_down()` never restores (`confCheck` fails it).
+- **Units invented schemas for shared values.** Three units read one record three ways and 15
+  hard-coded a measured speed. A sequence step now declares `publishes`; the frame declares the
+  value, the producer sets it, and consumers get its shape plus "None → UNSUPPORTED".
+- **Legacy helpers collided with the family library**, and every re-assembly re-introduced the
+  collision. Generation now reads `library_<family>.py` first, drops fragments whose names it
+  defines, and offers its helpers by signature. The stored library is the family file plus new
+  members.
+- **The review/Fix loop had no bound.** It ran four reviews at ~360k prompt characters each. Now:
+  two free rounds, then an explicit confirm. Stale findings are not re-dispatched, `fix_units`
+  takes a unit filter, and the evidence guard accepts a moved line.
+- **Smaller fixes:**
+  - The extract no longer writes mid-run pluggable swaps, and it sweeps every documented value.
+  - Stale step candidates and notes are handled.
+  - A seat-limit failure says so and stops the fan-out.
+  - The preflight hint path works from the dev host.
+  - The backend deploy procedure is written down.
+
 ## 2026-09-24 (evening) — per-unit Fix guards stop refusing correct fixes; the group library refuses a name clash
 
 Driving AWPTCM-T33235 end to end through the PyTest Creator (plan:

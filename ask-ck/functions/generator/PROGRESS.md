@@ -5,13 +5,45 @@ verified: 2026-09-23
 
 **Purpose**: This file exists so future sessions can quickly understand exactly where we are, what has been built, what the priorities are, and how to continue seamlessly.
 
-**Last Updated**: 2026-09-24 (by Claude, with Terrence for every decision)
+**Last Updated**: 2026-09-24 night (by Claude; blocker decisions taken by Claude are listed for review in ask-ck/plans/PLAN-pt-followups-review-2026-09-24.md)
 
 > **Reading note (2026-09-23 doc sweep).** Entries are frozen as written. Where an entry's
 > claim has since stopped being true, a ⚠ line under its heading says what changed.
 > Newest first. Paths in older entries predate these moves (the same as in CHANGELOG): `tool/` → `ask-ck/tools/`, `ask-ck/var/` → `ask-ck/db/`, `objective-drafting/` → `ask-ck/functions/generator/`, `pytest-create/` → `ask-ck/functions/pytest-creator/`, `js-tests/` → `tests/js/`, `ask-ck/ck-facelift/` → `ask-ck/plans/`, root reports → `docs/`, and completed plans `ask-ck/plans/` → `archive/plans/` (2026-09-11, 2026-09-23). Also retired 2026-09-23: the demo notes → `archive/plans/demo-2026-09-11/`, and `HANDOFF-generate-token-efficiency.md` + `Fragments_prompt.md` → `archive/records/`.
 
+## Latest session (2026-09-24, night) — the T33235 follow-up plan executed, on a branch
+
+**Pick up here:** merge the branch — `git merge --ff-only pt-followups-2026-09-24` in the live
+tree (one reload), then check the worker restart, `/health`, and the gate. Then
+`ask-ck/plans/PLAN-pt-followups-review-2026-09-24.md`: §A decisions Claude took (X1, D-A, D-B, R1)
+to confirm or reverse, §B the one still open (D-C), §C what is left.
+
+- **Where the work is:** branch `pt-followups-2026-09-24`, built in a scratch worktree so no save
+  touched production. Nothing is live until the merge. The procedure is now in SERVER-README.
+- **Done** (every item of `archive/plans/PLAN-pt-drive-followups-2026-09-24.md` except D-C), each
+  with tests and a mutation check:
+  - G11–G13 — prompts teach UNSUPPORTED = flag + `self.failed()`, `confCheck` restores and
+    `ck_media` for the pluggable table; one blocking lint and two warning lints.
+  - D-B — T33234's 8 paths hand-fixed, plus two real pluggable lookups.
+  - P1 — two free tool review rounds, then a confirm.
+  - P5 / G5 — stale findings are not re-fixed; a `units` filter; a moved line counts as a fix.
+  - G6 / G15 / G10 — steps declare `publishes`; review suggestions must pass the lint.
+  - G7 / G14 / G8 / G9 — the family library is the helper source; `_field` stops raising.
+  - S1–S4 — extract prompt and sequence hygiene.
+  - P3 — seat limit recognised; generate stops sending.
+  - B1 — the preflight hint path.
+  - P4 — the deploy procedure.
+- **Open (plan §C):**
+  - T33234's `ck.db` session still holds the pre-fix code; its next lint is blocking.
+  - Whether AW+ accepts `no duplex` — check on tb470.
+  - Neither script has run on hardware.
+  - Small UI follow-ups: edit `publishes`, a per-unit Fix, a seat-limit pill.
+  - Delete the untracked zip.
+- **Gate on the branch:** pytest 1857 passed / 2 skipped, vitest 352, both guards OK, `ck.db`
+  untouched by tests.
+
 ## Latest session (2026-09-24, evening) — T33235 driven through the PyTest Creator, finished by hand; four guard fixes
+> ⚠ 2026-09-24 (night): the plan below was executed on branch `pt-followups-2026-09-24` and retired to `archive/plans/`; see the entry above.
 
 **Pick up here:** `ask-ck/plans/PLAN-pt-drive-followups-2026-09-24.md` — every issue the drive
 exposed, grouped by root cause, with three decisions for Terrence (D-A review rounds, D-B T33234's

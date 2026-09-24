@@ -62,3 +62,11 @@ day: patch in the scratchpad; run the affected tests against a scratch copy of `
 long-polling broker; hand Terrence the one `cp` line; then confirm the worker restarted after the
 file's mtime (`ps -o lstart= --ppid <uvicorn pid>`, ~22 s both times, no wedge), `/health`, and the
 gate. Re-verified the same day: a `.py` save under `CK-main` DOES bounce the worker.
+
+**2026-09-24 (night) — the batch version: a branch.** For a multi-commit backend change, build on
+a branch in a scratch worktree (`git worktree add -b <branch> <scratchpad>/wt main`, `.venv` and
+`node_modules` symlinked in and never staged), run the gate and every mutation there, commit there,
+and hand Terrence one `git merge --ff-only <branch>` for the live tree: one reload for the batch,
+and no one needed mid-run. Edit memories and docs in the WORKTREE too — an uncommitted edit to the
+same file in the live tree blocks the fast-forward. Written into SERVER-README ("Changing the
+backend of the hosted server").
