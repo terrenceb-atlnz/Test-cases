@@ -233,3 +233,16 @@ def test_the_three_lints_are_wired_into_the_lint():
     for fn in ("_lint_unsupported_without_failure(tree)", "_lint_pluggable_port_key(tree, code)",
                "_lint_config_not_restored(tree)"):
         assert fn in seg
+
+
+def test_G11_a_helper_handed_the_testcase_may_report_the_fail_and_is_not_refused():
+    """A blocking error must not fire on what the lint cannot see: `reportUnsupported(self, why)`
+    may call `self.failed()` itself."""
+    assert pc._lint_unsupported_without_failure(_tree('''
+    def main(self):
+        if not self.testSet.fibre_supported:
+            self.supported = False
+            reportUnsupported(self, 'no fibre link')
+            return
+        self.passed('ok')
+''')) == []

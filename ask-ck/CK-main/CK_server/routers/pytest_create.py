@@ -3623,9 +3623,12 @@ def _lint_unsupported_without_failure(tree) -> List[str]:
                 and isinstance(st.value, ast_mod.Constant) and st.value.value is False)
 
     def _has_failed(nodes):
-        return any(isinstance(n, ast_mod.Call) and isinstance(n.func, ast_mod.Attribute)
-                   and n.func.attr == "failed" and isinstance(n.func.value, ast_mod.Name)
-                   and n.func.value.id == "self"
+        # `self.failed(...)`, or a helper handed the TestCase (`reportUnsupported(self, why)`),
+        # which may record the fail itself — a blocking error must not fire on what it cannot see.
+        return any(isinstance(n, ast_mod.Call) and (
+                   (isinstance(n.func, ast_mod.Attribute) and n.func.attr == "failed"
+                    and isinstance(n.func.value, ast_mod.Name) and n.func.value.id == "self")
+                   or any(isinstance(a, ast_mod.Name) and a.id == "self" for a in n.args))
                    for st in nodes for n in ast_mod.walk(st))
 
     def _blocks(fn):

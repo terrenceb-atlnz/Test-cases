@@ -245,6 +245,23 @@ HOST=0.0.0.0 ./run.sh
 > from (D17). Since 2026-09-10 no seat can reach this box's Claude seat: server-side Claude is
 > gone, and every seat's Claude calls run on its own agent.
 
+> **Changing the backend of the hosted server — the procedure (2026-09-24).** The working tree
+> IS production and the unit runs uvicorn `--reload` on `ask-ck/CK-main/`, so every save of a
+> `CK_server/*.py` file restarts the server other seats are using (and a reload can wedge on the
+> agent long-polls — memory `editing-backend-restarts-production`). A Claude session does not
+> put backend changes live itself; it hands them over:
+> 1. **Build on a branch in a scratch worktree** (`git worktree add -b <branch>
+>    <scratchpad>/wt main`, with `.venv` and `node_modules` symlinked in — never staged). Run the
+>    gate there, mutation-check new tests there (a mutation loop in the live tree fires one reload
+>    per mutation), and commit on the branch. The live tree is not touched.
+> 2. **Terrence deploys** with one fast-forward in the live tree: `git merge --ff-only <branch>`
+>    — one reload for the whole batch. (The same day's smaller fixes went as one `cp` of a
+>    patched file; either way the deploy is his, since the auto-mode classifier refuses a
+>    Claude-initiated copy into the live tree as a production deploy.)
+> 3. **Then check it came back:** the worker's start time is after the merge
+>    (`ps -o lstart= --ppid <uvicorn pid>`, ~22 s), `/health` answers, and the gate is green in
+>    the live tree.
+
 > **A plain restart needs only `run.sh`, not `setup.sh`.** `run.sh` starts the
 > server against the existing `ask-ck/db/ck.db` in seconds. `setup.sh` is for
 > first-time environment setup — venv/deps + `git lfs pull` to materialize the
