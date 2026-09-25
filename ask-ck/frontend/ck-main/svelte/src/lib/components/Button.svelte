@@ -1,10 +1,15 @@
 <script>
+// @ts-nocheck
+
   export let variant = 'primary'; // 'primary' | 'outline' | 'success'
   export let type = 'button';
   export let disabled = false;
 
   /** @type {boolean} Show the sparkles icon — use for buttons that trigger an LLM call */
   export let sparkle = false;
+
+  /** @type {boolean} Show the copy icon — use for buttons that copy text to the clipboard */
+  export let copy = false;
 
   let className = '';
   export { className as class };
@@ -36,6 +41,23 @@
       <circle cx="4" cy="20" r="2" />
     </svg>
   {/if}
+  {#if copy}
+    <!-- Inlined from assets/icons/copy.svg with stroke swapped to currentColor — see the sparkle
+         icon above for why this can't be a plain <img> or CSS mask. -->
+    <svg
+      class="btn-copy-icon"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      aria-hidden="true"
+    >
+      <rect width="14" height="14" x="8" y="8" rx="2" ry="2" />
+      <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" />
+    </svg>
+  {/if}
   <slot />
 </button>
 
@@ -54,7 +76,8 @@
     transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, filter 0.2s ease;
   }
 
-  .btn-sparkle-icon {
+  .btn-sparkle-icon,
+  .btn-copy-icon {
     width: 15px;
     height: 15px;
     flex-shrink: 0;
