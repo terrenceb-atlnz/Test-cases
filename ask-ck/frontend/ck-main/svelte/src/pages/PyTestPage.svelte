@@ -1,6 +1,7 @@
 <script>
 // @ts-nocheck
 
+  import { tick } from 'svelte';
   import PageCard from '../lib/components/PageCard.svelte';
   import PageHeader from '../lib/components/PageHeader.svelte';
   import ToolHeader from '../lib/components/ToolHeader.svelte';
@@ -14,6 +15,7 @@
   import SearchBox from '../lib/components/SearchBox.svelte';
   import FragmentCard from '../lib/components/FragmentCard.svelte';
   import EditableField from '../lib/components/EditableField.svelte';
+  import UnderConstruction from '../lib/components/UnderConstruction.svelte';
 
   import briefcaseIcon from '../assets/icons/briefcase.svg';
   import listSortIcon from '../assets/icons/list-sort-descending.svg';
@@ -28,8 +30,8 @@
     { id: 'sequence', label: 'Sequence', icon: listSortIcon },
     { id: 'script-search', label: 'Script Search', icon: folderSearchIcon },
     { id: 'fragments', label: 'Fragments', icon: puzzleIcon },
-    { id: 'generate', label: 'Generate', icon: codeIcon },
-    { id: 'validate', label: 'Validate', icon: checkIcon }
+    { id: 'generate', label: 'Generate', icon: codeIcon }
+    // { id: 'validate', label: 'Validate', icon: checkIcon }
   ];
 
   let currentStep = 0;
@@ -39,6 +41,30 @@
 
   function goToStep(index) {
     currentStep = index;
+  }
+
+  // Both wait for Svelte to flush the pending DOM update (a step/unit swap) before scrolling —
+  // otherwise this can run while the old, taller content is still on screen, and the subsequent
+  // layout shift from the swap interrupts or swallows the smooth-scroll animation.
+
+  // Used by the main "Review & Confirm" actions (Sequence/Script Search/Fragments/Generate ->
+  // the next main step) — goes all the way to the top of the page.
+  async function scrollToTop() {
+    await tick();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  // Used when confirming an individual arrow step (Confirm Scripts/Fragments/Unit) — goes to the
+  // new step's own description just above its arrow-step row, rather than the page top, since
+  // that's the part actually relevant when paging between steps within the same arrow-stepper.
+  async function scrollToStepIntro() {
+    await tick();
+    const intro = document.querySelector('.step-intro');
+    if (intro) {
+      intro.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } else {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
   }
 
   // Mock case lists — replace with a real data source later
@@ -69,7 +95,7 @@
 
   const manualColumns = [
     { key: 'stepNumber', label: '#', width: 1 },
-    { key: 'description', label: 'Description', width: 6 }
+    { key: 'description', label: 'Description', width: 9 }
   ];
 
   // Mock manual test steps — replace with the steps from the selected case's Objective Generator output
@@ -99,6 +125,7 @@
 
   function reviewAndConfirmSequence() {
     currentStep = 2;
+    scrollToTop();
   }
 
   const scriptColumns = [
@@ -208,6 +235,10 @@
     scriptSearchState = scriptSearchState;
   }
 
+  // Briefly flashes newly-chosen rows in the "Chosen" table so it's clear where they landed.
+  let flashChosenIds = [];
+  let flashChosenTimeout;
+
   function chooseSelectedForStep(stepId) {
     const state = scriptSearchState[stepId];
     const moving = state.candidates.filter((c) => state.selectedCandidateIds.includes(c.id));
@@ -216,6 +247,10 @@
     scriptSearchState[stepId].candidates = state.candidates.filter((c) => !state.selectedCandidateIds.includes(c.id));
     scriptSearchState[stepId].selectedCandidateIds = [];
     scriptSearchState = scriptSearchState;
+
+    flashChosenIds = moving.map((c) => c.id);
+    clearTimeout(flashChosenTimeout);
+    flashChosenTimeout = setTimeout(() => { flashChosenIds = []; }, 900);
   }
 
   function clearSelectedForStep(stepId) {
@@ -247,6 +282,7 @@
     // confirmed, land on the Summary arrow instead.
     const nextUnconfirmed = sequencedTestSteps.find((s) => !updatedConfirmed.includes(s.id));
     activeStepId = nextUnconfirmed ? nextUnconfirmed.id : SUMMARY_STEP_ID;
+    scrollToStepIntro();
   }
 
   let showNoScriptsModal = false;
@@ -262,6 +298,7 @@
 
   function confirmScriptSearchAndAdvance() {
     currentStep = 3;
+    scrollToTop();
   }
 
   // Mock reusable-code fragments per sequence step — replace with a real code-reuse search / LLM
@@ -403,10 +440,12 @@
 
     const nextUnconfirmed = sequencedTestSteps.find((s) => !updatedConfirmed.includes(s.id));
     fragmentActiveStepId = nextUnconfirmed ? nextUnconfirmed.id : FRAGMENTS_SUMMARY_STEP_ID;
+    scrollToStepIntro();
   }
 
   function confirmFragmentsAndAdvance() {
     currentStep = 4;
+    scrollToTop();
   }
 
   const GENERATE_SETUP_ID = '__generate_setup__';
@@ -518,6 +557,7 @@
 
     const nextUnconfirmed = generateUnits.find((u) => !updatedConfirmed.includes(u.id));
     generateActiveUnitId = nextUnconfirmed ? nextUnconfirmed.id : GENERATE_SUMMARY_STEP_ID;
+    scrollToStepIntro();
   }
 
   // The frame (imports, TestSet class, ts.add_testCase() runner) is rendered locally — it cannot
@@ -525,13 +565,14 @@
   const GENERATE_FRAME_HEADER = 'import art\nfrom framework import TestSet, TestCase, ts\n\nclass AMF_Master_TestSet(TestSet):';
   const GENERATE_FRAME_FOOTER = '\nts.add_testCase(AMF_Master_TestSet)';
 
+  const GENERATE_REVIEW_STEP_ID = '__generate_review__';
+
   let assembledCode = '';
   let lintResults = [];
-  let holisticReview = '';
   let assembled = false;
 
-  function assembleLintAndReview() {
-    // TODO: replace with a real local assembly + linter + holistic-review LLM call
+  function assembleAndLint() {
+    // TODO: replace with a real local assembly + linter call
     const setupUnit = generateUnits.find((u) => u.kind === 'setup');
     const testCaseUnits = generateUnits.filter((u) => u.kind === 'testcase');
     const indent = (code) => code.split('\n').map((line) => '    ' + line).join('\n');
@@ -550,14 +591,57 @@
       { level: 'warn', message: 'Line 14: assertion message could be more descriptive.' }
     ];
 
-    holisticReview =
-      "The assembled script consistently uses the AMF cluster fixtures established in setUp() across every TestCase, and the assertions map cleanly back to each sequence step's verify condition. No cross-step ordering issues detected.";
-
     assembled = true;
   }
 
-  function confirmGenerateAndAdvance() {
+  function confirmAndReviewGenerate() {
+    generateActiveUnitId = GENERATE_REVIEW_STEP_ID;
+    scrollToStepIntro();
+  }
+
+  // 'review' once there's an assembled script to look at — Review/Fix has no further "covered"
+  // state of its own since finishing it means leaving the Generate step entirely.
+  $: generateReviewStatus = assembled ? 'review' : 'none';
+
+  let scriptFeedback = '';
+  let showScriptFeedback = false;
+
+  function reviewWithLlm() {
+    // TODO: replace with a real holistic-review LLM call
+    scriptFeedback =
+      "The assembled script consistently uses the AMF cluster fixtures established in setUp() across every TestCase, and the assertions map cleanly back to each sequence step's verify condition. No cross-step ordering issues detected.";
+    showScriptFeedback = true;
+  }
+
+  // Both "fix" actions invalidate the current assembly/lint/review and send the user back to
+  // Summary — Fix Units additionally un-confirms every unit (the LLM is regenerating their code,
+  // so each needs re-reviewing), while Fix Whole Script patches the assembled script directly and
+  // leaves already-confirmed units alone. Either way, Assemble & Lint (and then Review with LLM)
+  // must be run again before Review/Fix can be reached in a usable state.
+  function backToSummaryForFix() {
+    assembled = false;
+    assembledCode = '';
+    lintResults = [];
+    scriptFeedback = '';
+    showScriptFeedback = false;
+    generateActiveUnitId = GENERATE_SUMMARY_STEP_ID;
+    scrollToTop();
+  }
+
+  function fixUnitsWithLlm() {
+    // TODO: replace with a real per-unit LLM fix call
+    confirmedGenerateUnits = [];
+    backToSummaryForFix();
+  }
+
+  function fixWholeScriptWithLlm() {
+    // TODO: replace with a real whole-script LLM fix call
+    backToSummaryForFix();
+  }
+
+  function saveAndFinish() {
     currentStep = 5;
+    scrollToTop();
   }
 </script>
 
@@ -582,7 +666,6 @@
 
     <SequenceTable
       bind:rows={sequencedTestSteps}
-      emptyMessage='No sequenced steps yet. Click "Extract Sequence (LLM)" above.'
     />
 
     <div class="step-actions">
@@ -619,6 +702,7 @@
     </div>
     <div class="step-frame">
       {#if activeStepId === SUMMARY_STEP_ID}
+        <p class="step-table-label summary-title">Sequence Step Summary</p>
         <div class="script-summary">
           {#each sequencedTestSteps as step, i (step.id)}
             <div class="script-summary-section">
@@ -674,7 +758,7 @@
         </div>
 
         <p class="step-table-label">Chosen for this sequence step</p>
-        <Table columns={scriptColumns} rows={scriptSearchState[activeStepId].chosen} bind:selected={scriptSearchState[activeStepId].selectedChosenIds} />
+        <Table columns={scriptColumns} rows={scriptSearchState[activeStepId].chosen} bind:selected={scriptSearchState[activeStepId].selectedChosenIds} flashIds={flashChosenIds} />
 
         <div class="testlink-final-actions">
           <Button variant="outline" on:click={() => clearSelectedForStep(activeStep.id)}>Clear Selected</Button>
@@ -729,6 +813,7 @@
     </div>
     <div class="step-frame">
       {#if fragmentActiveStepId === FRAGMENTS_SUMMARY_STEP_ID}
+        <p class="step-table-label summary-title">Sequence Step Summary</p>
         <div class="script-summary">
           {#each sequencedTestSteps as step, i (step.id)}
             <div class="script-summary-section">
@@ -746,7 +831,7 @@
               </div>
               <div class="fragment-summary-list">
                 {#each (fragmentGroups[step.id] ?? []).filter((f) => (fragmentSelectedIds[step.id] ?? []).includes(f.id)) as frag (frag.id)}
-                  <p class="fragment-summary-row">{frag.name} — {frag.source}</p>
+                  <p class="fragment-summary-row"><code>{frag.name} — {frag.source}</code></p>
                 {:else}
                   <p class="fragment-summary-row fragment-summary-empty">No fragments selected for this step.</p>
                 {/each}
@@ -806,12 +891,12 @@
         </div>
 
         <div class="step-actions">
-          <Button variant="primary" on:click={advanceFragmentStep}>Confirm Fragments</Button>
+          <Button variant="primary" disabled={!(fragmentGroups[fragmentActiveStepId]?.length)} on:click={advanceFragmentStep}>Confirm Fragments</Button>
         </div>
       {/if}
     </div>
   {:else if currentStep === 4}
-    <p class="step-intro">Generated one unit at a time — a unit is a single TestCase class, or the TestSet setup pair. The frame (imports, TestSet, the ts.add_testCase() runner) is rendered here, not by an LLM, so it cannot vary between units. Page through the units: each shows the prompt that will be sent (editable — the button sends what you see) and the code that came back. Summary assembles them locally, lints, and runs the holistic review.</p>
+    <p class="step-intro">Generated one unit at a time — a unit is a single TestCase class, or the TestSet setup pair. The frame (imports, TestSet, the ts.add_testCase() runner) is rendered here, not by an LLM, so it cannot vary between units. Page through the units: each shows the prompt that will be sent (editable — the button sends what you see) and the code that came back. Summary assembles them locally and lints the result; Review/Fix then runs the holistic LLM review and lets you send fixes back for another pass before you save and finish.</p>
 
     <div class="arrow-step-row">
       {#each generateUnits as unit (unit.id)}
@@ -831,6 +916,13 @@
           active={generateActiveUnitId === GENERATE_SUMMARY_STEP_ID}
           onClick={() => selectGenerateUnit(GENERATE_SUMMARY_STEP_ID)}
         />
+        <ArrowStep
+          label="Review/Fix"
+          wide={true}
+          status={generateReviewStatus}
+          active={generateActiveUnitId === GENERATE_REVIEW_STEP_ID}
+          onClick={() => selectGenerateUnit(GENERATE_REVIEW_STEP_ID)}
+        />
       {/if}
     </div>
 
@@ -842,6 +934,7 @@
     </div>
     <div class="step-frame">
       {#if generateActiveUnitId === GENERATE_SUMMARY_STEP_ID}
+        <p class="step-table-label summary-title">Sequence Step Summary</p>
         <div class="script-summary">
           {#each generateUnits as unit (unit.id)}
             <div class="script-summary-section">
@@ -862,29 +955,31 @@
         </div>
 
         <div class="step-actions">
-          <Button variant="primary" disabled={generateSummaryStatus !== 'covered'} on:click={assembleLintAndReview}>Assemble, Lint &amp; Review</Button>
+          <Button variant="primary" disabled={generateSummaryStatus !== 'covered'} on:click={assembleAndLint}>Assemble &amp; Lint</Button>
+        </div>
+
+        <p class="step-table-label">Assembled Script</p>
+        <div class="generate-assembled-editor">
+          <EditableField
+            type="code"
+            bind:value={assembledCode}
+            placeholder={'Not assembled yet. Click "Assemble & Lint" above.'}
+            height="420px"
+          />
         </div>
 
         {#if assembled}
-          <p class="step-table-label">Assembled Script</p>
-          <div class="generate-assembled-editor">
-            <EditableField type="code" bind:value={assembledCode} height="420px" />
-          </div>
-
           <p class="step-table-label">Lint Results</p>
           <ul class="lint-results">
             {#each lintResults as result}
               <li class="lint-result" class:lint-pass={result.level === 'pass'} class:lint-warn={result.level === 'warn'}>{result.message}</li>
             {/each}
           </ul>
-
-          <p class="step-table-label">Holistic Review (LLM)</p>
-          <p class="holistic-review">{holisticReview}</p>
-
-          <div class="step-actions">
-            <Button variant="primary" on:click={confirmGenerateAndAdvance}>Review &amp; Confirm</Button>
-          </div>
         {/if}
+
+        <div class="step-actions">
+          <Button variant="primary" disabled={!assembled} on:click={confirmAndReviewGenerate}>Confirm &amp; Review</Button>
+        </div>
       {:else if generateActiveUnit}
         <div class="sequence-step-summary">
           <span
@@ -914,7 +1009,7 @@
               <EditableField
                 type="code"
                 bind:value={generateState[generateActiveUnitId].code}
-                placeholder={'Not generated yet. Click "Generate (LLM)" below.'}
+                placeholder={'Not generated yet. Click the "Generate (LLM)" button above.'}
               />
             {/key}
           </div>
@@ -923,10 +1018,42 @@
         <div class="step-actions">
           <Button variant="primary" disabled={!generateState[generateActiveUnitId].code} on:click={advanceGenerateUnit}>Confirm Unit</Button>
         </div>
+      {:else if generateActiveUnitId === GENERATE_REVIEW_STEP_ID}
+        <p class="step-table-label">Assembled Script</p>
+        <div class="generate-assembled-editor">
+          <EditableField
+            type="code"
+            bind:value={assembledCode}
+            placeholder={'Not assembled yet. Assemble & Lint on the Summary step first.'}
+            height="420px"
+          />
+        </div>
+
+        {#if !assembled}
+          <p class="fragment-empty">Assemble &amp; Lint the script on the Summary step first.</p>
+        {:else}
+          <div class="step-actions">
+            <Button variant="primary" sparkle on:click={reviewWithLlm}>Review with LLM</Button>
+          </div>
+
+          {#if showScriptFeedback}
+            <p class="step-table-label">Script Feedback (LLM)</p>
+            <div class="feedback-window">
+              <p class="holistic-review">{scriptFeedback}</p>
+            </div>
+            <div class="step-actions">
+              <Button variant="primary" sparkle on:click={fixUnitsWithLlm}>Fix Units (LLM)</Button>
+              <Button variant="primary" sparkle on:click={fixWholeScriptWithLlm}>Fix Whole Script (LLM)</Button>
+            </div>
+            <div class="step-actions">
+              <Button variant="success" on:click={saveAndFinish}>Save and Finish</Button>
+            </div>
+          {/if}
+        {/if}
       {/if}
     </div>
   {:else}
-    <p>Hello world</p>
+    <UnderConstruction />
   {/if}
 </div>
 
@@ -944,6 +1071,10 @@
     letter-spacing: 0.06em;
     text-transform: uppercase;
     color: var(--color-text-muted);
+  }
+
+  .summary-title {
+    margin-bottom: 22px;
   }
 
   .step-actions {
@@ -994,13 +1125,27 @@
     border-radius: 8px;
     padding: 24px 24px 0px 24px;
     width: 100%;
+    /* min-height: 28rem; */
+  }
+
+  .feedback-window {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 16px;
+    margin-bottom: 12px;
+    border: 1px solid var(--color-border-surface);
+    border-radius: 8px;
+    background: var(--color-bg-surface);
+    width: 100%;
   }
 
   .sequence-step-summary {
     display: flex;
     align-items: flex-start;
     gap: 10px;
-    margin-bottom: 16px;
+    margin-bottom: 10px;
+    /* margin-left: 24px; */
   }
 
   .sequence-step-summary p {
@@ -1097,6 +1242,7 @@
     margin: 0;
     color: var(--color-text);
     font-size: 0.9rem;
+    margin-left: 3rem;
   }
 
   .fragment-summary-empty {

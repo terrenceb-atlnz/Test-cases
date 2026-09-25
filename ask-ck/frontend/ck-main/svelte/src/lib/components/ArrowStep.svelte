@@ -88,6 +88,10 @@
     overflow: visible;
   }
 
+  .arrow-shape path {
+    transition: fill 0.15s ease, stroke 0.15s ease;
+  }
+
   .arrow-step-wide {
     width: 160px;
   }
@@ -141,6 +145,7 @@
     font-size: 1.1rem;
     font-style: italic;
     font-weight: 700;
+    transition: color 0.15s ease;
   }
 
   .arrow-label:hover {

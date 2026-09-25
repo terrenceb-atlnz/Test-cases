@@ -1,6 +1,24 @@
 <script>
   import chevronRightIcon from '../assets/icons/chevron-right.svg';
   import PageHeader from '../lib/components/PageHeader.svelte';
+  import Button from '../lib/components/Button.svelte';
+
+  const seatSetupWindowsCmd = 'irm http://…/setup/setup.ps1 | iex';
+  const seatSetupUbuntuCmd = 'curl -fsSL http://…/setup/setup.sh | bash';
+
+  let windowsCopyLabel = 'Copy';
+  let ubuntuCopyLabel = 'Copy';
+
+  async function copySetupCommand(text, which) {
+    const setLabel = which === 'windows' ? (v) => (windowsCopyLabel = v) : (v) => (ubuntuCopyLabel = v);
+    try {
+      await navigator.clipboard.writeText(text);
+      setLabel('Copied!');
+    } catch (e) {
+      setLabel('Copy failed');
+    }
+    setTimeout(() => setLabel('Copy'), 1500);
+  }
 
   const toolGuides = [
     {
@@ -40,6 +58,8 @@ real hardware and iterates until it passes. Each step has a Confirm gate.</p>
     { title: 'How often should I update my LLM model?', content: '' }
   ];
 
+  let setupGuideOpen = false;
+
   /**
      * @type {number | null}
      */
@@ -65,6 +85,60 @@ real hardware and iterates until it passes. Each step has a Confirm gate.</p>
 <PageHeader title="Help" intro="Find how to use the workbench via the guides provided below." />
 
 <div class="help-page">
+
+  <section class="help-section">
+    <h2>Setup Guides</h2>
+    <p class="help-section-intro">Get your environment ready before using the tools.</p>
+
+    <div class="accordion">
+      <div class="accordion-item">
+        <button
+          type="button"
+          class="accordion-row"
+          aria-expanded={setupGuideOpen}
+          on:click={() => (setupGuideOpen = !setupGuideOpen)}
+        >
+          <span>Set up your seat for Claude</span>
+          <img class="chevron" class:open={setupGuideOpen} src={chevronRightIcon} alt="" aria-hidden="true" />
+        </button>
+        {#if setupGuideOpen}
+          <div class="accordion-panel">
+            <p>Ask CK runs in your browser; it <strong>cannot run Claude on your PC by itself</strong>.
+              A small agent on your PC does that, using <strong>your own</strong> Claude seat —
+              nothing is shared and the server never sees a credential. One line installs Claude
+              Code if needed, fixes your PATH, logs you in, installs the agent and starts it.
+              Re-run the same line any time to update or repair.</p>
+            <ol>
+              <li>
+                <strong>Windows</strong> — open <strong>PowerShell</strong> and paste:
+                <div class="copy-field-row">
+                  <div class="copy-field-box">{seatSetupWindowsCmd}</div>
+                  <Button variant="primary" copy on:click={() => copySetupCommand(seatSetupWindowsCmd, 'windows')}>
+                    {windowsCopyLabel}
+                  </Button>
+                </div>
+                <span class="justification-note">(or <a href="/setup/setup.ps1" download>download setup.ps1</a>
+                  and run it with <code>powershell -ExecutionPolicy Bypass -File setup.ps1</code>)</span>
+              </li>
+              <li>
+                <strong>Ubuntu</strong> — open a terminal and paste:
+                <div class="copy-field-row">
+                  <div class="copy-field-box">{seatSetupUbuntuCmd}</div>
+                  <Button variant="primary" copy on:click={() => copySetupCommand(seatSetupUbuntuCmd, 'ubuntu')}>
+                    {ubuntuCopyLabel}
+                  </Button>
+                </div>
+                <span class="justification-note">(or <a href="/setup/setup.sh" download>download setup.sh</a>)</span>
+              </li>
+              <li>It asks once whether the agent should start when you log in, then opens Ask CK,
+                which runs the final check itself — the result appears under <strong>LLM → Configure</strong>.
+                Pick <strong>Claude Code CLI (my local machine)</strong> there and you are ready.</li>
+            </ol>
+          </div>
+        {/if}
+      </div>
+    </div>
+  </section>
 
   <section class="help-section">
     <h2>Tool Guides</h2>
@@ -237,6 +311,35 @@ real hardware and iterates until it passes. Each step has a Confirm gate.</p>
     border-radius: 4px;
     font-size: 0.88em;
     font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+
+  .copy-field-row {
+    display: flex;
+    align-items: stretch;
+    gap: 10px;
+    margin: 8px 0;
+  }
+
+  .copy-field-box {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--color-border-surface);
+    background: var(--color-code-bg);
+    color: var(--color-text);
+    font-size: 0.88em;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+
+  .justification-note {
+    display: block;
+    margin-top: 4px;
+    font-size: 0.88em;
   }
 
   .help-contact {

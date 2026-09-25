@@ -12,6 +12,7 @@
   import localLlmIconLight from '../assets/local-llm-light.png';
   import claudeLlmIconDark from '../assets/claude-llm.png';
   import claudeLlmIconLight from '../assets/claude-llm-light.png';
+import UnderConstruction from '../lib/components/UnderConstruction.svelte';
 
   const tabs = [
     { id: 'general', label: 'General', icon: settingsIcon },
@@ -27,7 +28,7 @@
 
   $: providers = [
     { id: 'local-llm', title: 'Local LLM', icon: $resolvedTheme === 'dark' ? localLlmIconLight : localLlmIconDark },
-    { id: 'claude-cli', title: 'Claude Code CLI (Local)', icon: $resolvedTheme === 'dark' ? claudeLlmIconLight : claudeLlmIconDark }
+    { id: 'claude-cli', title: 'Claude Code', icon: $resolvedTheme === 'dark' ? claudeLlmIconLight : claudeLlmIconDark }
   ];
 
   let activeProvider = 'local-llm';
@@ -145,7 +146,7 @@
                       <input type="radio" name="local-llm-mode" value="thinking" bind:group={localLlmMode} />
                       Thinking
                     </label>
-                    <input type="text" class="provider-text-input" bind:value={localLlmModelOverride} />
+                    <input type="text" placeholder="Local LLM API key (leave blank to keep stored key)" class="provider-text-input" bind:value={localLlmModelOverride} />
                     <Button variant="outline" on:click={checkLocalLlmHealth}>Check Health</Button>
                   </div>
                 {:else if provider.id === 'claude-cli'}
@@ -210,7 +211,7 @@
 
     <!-- USAGE TAB  -->
     {:else if activeTab === 'usage'}
-      <div class="settings-box"></div>
+      <UnderConstruction />
     {/if}
 
   </div>
@@ -417,7 +418,7 @@
     background: var(--color-bg-surface);
     border-radius: 10px;
     padding: 20px;
-    /* min-height: 12em; */
+    min-height: 12em;
     transition: background-color 0.2s ease, border-color 0.2s ease;
   }
 
@@ -432,7 +433,7 @@
     align-items: flex-start;
     gap: 16px;
     flex: 0 0 auto;
-    min-width: 200px;
+    min-width: 100px;
   }
 
   .provider-title {
@@ -499,7 +500,7 @@
   }
 
   .provider-text-input {
-    width: 160px;
+    width: 200px;
     padding: 6px 10px;
     border-radius: 8px;
     border: 1px solid var(--color-border-surface);

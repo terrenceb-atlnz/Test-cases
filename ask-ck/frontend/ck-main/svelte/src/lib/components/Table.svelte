@@ -13,6 +13,9 @@
   /** @type {Array<string | number>} Bindable list of selected row ids */
   export let selected = [];
 
+  /** @type {Array<string | number>} Row ids to briefly flash (e.g. just moved into this table) */
+  export let flashIds = [];
+
   function toggleRow(id) {
     selected = selected.includes(id) ? selected.filter((s) => s !== id) : [...selected, id];
   }
@@ -43,6 +46,7 @@
     {#each rows as row (row.id)}
       <div
         class="data-table-row data-table-row-body"
+        class:data-table-row-flash={flashIds.includes(row.id)}
         role="button"
         tabindex="0"
         on:click={() => toggleRow(row.id)}
@@ -98,6 +102,21 @@
     background: color-mix(in srgb, var(--color-accent) 8%, transparent);
   }
 
+  .data-table-row-flash {
+    animation: data-table-row-flash-kf 900ms ease-out;
+  }
+
+  @keyframes data-table-row-flash-kf {
+    0% {
+      background: color-mix(in srgb, var(--color-accent) 55%, transparent);
+      filter: brightness(1.6);
+    }
+    100% {
+      background: transparent;
+      filter: brightness(1);
+    }
+  }
+
   .data-table-header {
     background: var(--color-table-header-bg);
     border-bottom: 2px solid var(--color-border-surface);
@@ -117,7 +136,6 @@
     min-width: 0;
     font-size: 0.8rem;
     color: var(--color-text-muted);
-    padding-right: 16px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;

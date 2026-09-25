@@ -130,6 +130,7 @@
     margin: 0 0 20px;
     color: var(--color-text-muted);
     font-size: 0.92rem;
+    font-style: italic;
   }
 
   .modal-actions {

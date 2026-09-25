@@ -1,4 +1,6 @@
 <script>
+// @ts-nocheck
+
   import Button from './Button.svelte';
   import squarePenIcon from '../../assets/icons/square-pen.svg';
   import trashIcon from '../../assets/icons/trash.svg';
@@ -7,7 +9,7 @@
   export let rows = [];
 
   /** @type {string} */
-  export let emptyMessage = 'No sequenced steps yet.';
+  export let emptyMessage = '';
 
   /**
      * @type {string | null}
@@ -169,6 +171,9 @@
     padding: 10px 16px;
   }
 
+  .sequence-editor-empty {
+    min-height: 40px;
+  }
   .sequence-editor-row:hover {
     background: color-mix(in srgb, var(--color-accent) 8%, transparent);
   }

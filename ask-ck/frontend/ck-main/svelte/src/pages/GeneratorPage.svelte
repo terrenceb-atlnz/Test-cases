@@ -1,6 +1,7 @@
 <script>
 // @ts-nocheck
 
+  import { tick } from 'svelte';
   import PageCard from '../lib/components/PageCard.svelte';
   import PageHeader from '../lib/components/PageHeader.svelte';
   import ToolHeader from '../lib/components/ToolHeader.svelte';
@@ -125,8 +126,17 @@
     selectedChosenRows = [];
   }
 
+  // Waits for Svelte to flush the DOM update (the {:else if currentStep === N} swap) before
+  // scrolling — otherwise this can run while the old, taller content is still on screen, and the
+  // subsequent layout shift from the swap interrupts or swallows the smooth-scroll animation.
+  async function scrollToTop() {
+    await tick();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
   function reviewAndConfirmTestLink() {
     currentStep = 2;
+    scrollToTop();
   }
 
   // Mock Zephyr candidate pool — replace with a real data source later
@@ -183,6 +193,7 @@
 
   function reviewAndConfirmZephyr() {
     currentStep = 3;
+    scrollToTop();
   }
 
   // Mock ATPyLib candidate pool — replace with a real data source later
@@ -191,7 +202,13 @@
     { id: 'atp-2', caseId: 'ATP-5544', title: 'AMF library failover assertion set', score: '84', description: 'Common assertion set for validating failover timing across AMF library calls.' },
     { id: 'atp-3', caseId: 'ATP-5567', title: 'AMF library topology fixture', score: '77', description: 'Fixture that builds a standard AMF cluster topology for reuse across scored cases.' },
     { id: 'atp-4', caseId: 'ATP-5602', title: 'AMF library firmware version guard', score: '66', description: 'Guards library calls against unsupported firmware version combinations.' },
-    { id: 'atp-5', caseId: 'ATP-5631', title: 'AMF library priority helper', score: '52', description: 'Helper for configuring and asserting on AMF member priority values.' }
+    { id: 'atp-5', caseId: 'ATP-5631', title: 'AMF library priority helper', score: '52', description: 'Helper for configuring and asserting on AMF member priority values.' },
+    { id: 'atp-6', caseId: 'ATP-5639', title: 'AMF library priority helper', score: '52', description: 'Helper for configuring and asserting on AMF member priority values.' },
+    { id: 'atp-7', caseId: 'ATP-5789', title: 'AMF library priority helper', score: '52', description: 'Helper for configuring and asserting on AMF member priority values.' },
+    { id: 'atp-8', caseId: 'ATP-5678', title: 'AMF library priority helper', score: '52', description: 'Helper for configuring and asserting on AMF member priority values.' },
+    { id: 'atp-9', caseId: 'ATP-5780', title: 'AMF library priority helper', score: '52', description: 'Helper for configuring and asserting on AMF member priority values.' },
+    { id: 'atp-10', caseId: 'ATP-5656', title: 'AMF library priority helper', score: '52', description: 'Helper for configuring and asserting on AMF member priority values.' },
+
   ];
 
   let atpylibSearch = '';
@@ -239,6 +256,7 @@
 
   function reviewAndConfirmAtpylib() {
     currentStep = 4;
+    scrollToTop();
   }
 
   // Hard-coded placeholder objectives — replace with real LLM output once the backend is connected
@@ -299,6 +317,7 @@
 
   function reviewAndConfirmObjectives() {
     currentStep = 5;
+    scrollToTop();
   }
 
   // Hard-coded placeholder test steps — replace with real LLM output derived from objectives once the backend is connected
@@ -586,7 +605,7 @@
     flex-direction: column;
     gap: 16px;
     padding: 16px;
-    margin-bottom: 24px;
+    margin-bottom: 12px;
     border: 1px solid var(--color-border-surface);
     border-radius: 8px;
     background: var(--color-bg-surface);
