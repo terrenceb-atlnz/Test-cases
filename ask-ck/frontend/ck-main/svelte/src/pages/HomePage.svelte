@@ -3,6 +3,8 @@
 
   import PageCard from '../lib/components/PageCard.svelte';
   import Button from '../lib/components/Button.svelte';
+  import ConfirmModal from '../lib/components/ConfirmModal.svelte';
+  import StatusModal from '../lib/components/StatusModal.svelte';
   import { resolvedTheme } from '../lib/theme.js';
   import askCKLogoDark from '../assets/askck-logo.png';
   import askCKLogoLight from '../assets/askck-logo-light.png';
@@ -51,6 +53,10 @@
   function restartServer() {
     // TODO: wire up a real server restart/reload
   }
+
+  // TEMP: quick access to preview/style the modal components — remove once done.
+  let showConfirmModalPreview = false;
+  let showStatusModalPreview = false;
 </script>
 
 <div class="home-hero">
@@ -60,13 +66,35 @@
     <h1>{isAdmin ? 'Welcome Admin' : 'Welcome to Ask CK'}</h1>
     <p>Ask CK is a server-backed test-engineering workbench for the AWPTCM test-case program. It brings the tools for enriching manual test cases, mapping them to automation, and turning them into runnable scripts into one place. Pick a tool from below, or read the step-by-step guides inside the Help section. Most tools use an LLM via a local subscription CLI — set that up first under <span style="font-weight: bold;">LLM → Configure</span>.</p>
 </div>
+
+<!-- TEMP: preview buttons for styling the modal components — remove once done. -->
+<!-- <div class="temp-modal-preview">
+  <Button variant="outline" on:click={() => (showConfirmModalPreview = true)}>TEMP: Preview ConfirmModal</Button>
+  <Button variant="outline" on:click={() => (showStatusModalPreview = true)}>TEMP: Preview StatusModal</Button>
+</div> -->
+
+<ConfirmModal
+  bind:open={showConfirmModalPreview}
+  title="Are you sure?"
+  message="This is a preview of ConfirmModal's content and styling."
+  confirmText="Continue"
+  cancelText="Cancel"
+/>
+
+<StatusModal
+  bind:open={showStatusModalPreview}
+  status="success"
+  title="Preview status"
+  message="This is a preview of StatusModal's content and styling."
+/>
+
 {#if isAdmin}
   <div class="admin-panel">
     <div class="admin-section">
       <p class="admin-section-label">Session state</p>
       <div class="admin-actions">
         <Button variant="outline" on:click={resetCurrentCaseSession}>Reset current case session</Button>
-        <Button variant="outline" sparkle on:click={resetWorkspaceLlmConfig}>Reset workspace LLM config</Button>
+        <Button variant="outline" on:click={resetWorkspaceLlmConfig}>Reset workspace LLM config</Button>
         <Button variant="outline" on:click={resetAllSessions}>Reset ALL sessions</Button>
       </div>
     </div>
@@ -158,6 +186,13 @@
         display: flex;
         flex-wrap: wrap;
         gap: 12px;
+    }
+
+    .temp-modal-preview {
+        display: flex;
+        justify-content: center;
+        gap: 12px;
+        margin-bottom: 24px;
     }
 
 </style>

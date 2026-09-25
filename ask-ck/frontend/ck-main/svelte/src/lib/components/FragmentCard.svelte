@@ -18,7 +18,9 @@
   export let onToggleExpanded = () => {};
 </script>
 
-<div class="fragment-card" class:fragment-recommended={recommended} class:fragment-redundant={!recommended}>
+<!-- Card color follows the live selection state (green once ticked, red once unticked) — the
+     `recommended` grouping/wording below stays fixed to the LLM's original reasoning. -->
+<div class="fragment-card" class:fragment-recommended={selected} class:fragment-redundant={!selected}>
   <label class="fragment-card-header">
     <input type="checkbox" checked={selected} on:change={onToggleSelected} />
     <span class="fragment-name">{fragment.name}</span>
@@ -46,6 +48,7 @@
     border: 1px solid var(--color-border-surface);
     border-radius: 10px;
     padding: 12px 16px;
+    transition: border-color 0.15s ease, background-color 0.15s ease;
   }
 
   .fragment-recommended {

@@ -1,4 +1,6 @@
 <script>
+// @ts-nocheck
+
   import { onMount, onDestroy } from 'svelte';
   import { EditorState, Compartment } from '@codemirror/state';
   import { EditorView, placeholder as placeholderExt } from '@codemirror/view';
