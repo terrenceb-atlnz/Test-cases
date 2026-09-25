@@ -496,6 +496,33 @@ def failure_excerpts(text: str, parsed: Dict[str, Any], context: int = 15,
 # Remote execution
 # ---------------------------------------------------------------------------
 
+# Every Ask-CK run leaves the bench's own setup alone (Terrence, 2026-09-25). Without these the
+# framework's TestSet setup resets every device it binds: it writes a generated default.cfg
+# through start-shell, loads and unloads licences, reboots, and TFTP-copies
+# `<platform>-<host>.rel` into flash as the boot image. On 2026-09-25 that reset all four tb470
+# devices and then hung on the copy. The devices are expected to be running their topology's
+# own config already; the framework still runs configure(), saves `<hostname>.cfg` and tears
+# down to it.
+FRAMEWORK_RUN_FLAGS = ("--noupdate", "--nodefaultcfg")
+
+
+def run_command(workdir: str, fw_path: str, fw_parent: str, test_name: str,
+                setup_remote: str) -> str:
+    """The shell line that launches one framework run in `workdir`.
+
+    Every interpolated component is shell-quoted: test_name/case_key are already
+    regex-constrained upstream, but `setup_remote` can be a client-supplied "explicit remote
+    path" (pytest_create.py) — quoting it here is the primary defense against command injection
+    through the -s argument. PYTHONPATH stays OUTSIDE the quote (a VAR=val prefix to the
+    command, not an argument).
+    """
+    return (f"cd {shlex.quote(workdir)} && "
+            f"ln -sfn {shlex.quote(fw_path)} framework && "
+            f"sudo -n PYTHONPATH={shlex.quote(fw_parent)} python3 "
+            f"./{shlex.quote(test_name)} -s {shlex.quote(setup_remote)} -v "
+            + " ".join(FRAMEWORK_RUN_FLAGS))
+
+
 def _connect(profile: dict):
     import paramiko
     client = paramiko.SSHClient()
@@ -709,15 +736,7 @@ class RunManager:
             # where the symlink lives elsewhere (profile framework_path parent).
             fw_parent = str(Path(profile.get("framework_path", "/home/st-art/framework")).parent)
             fw_path = profile.get("framework_path") or "/home/st-art/framework"
-            # Every interpolated component is shell-quoted: test_name/case_key are already
-            # regex-constrained upstream, but `setup_remote` can be a client-supplied
-            # "explicit remote path" (pytest_create.py) — quoting it here is the primary
-            # defense against command injection through the -s argument. PYTHONPATH must
-            # stay OUTSIDE the quote (it's a VAR=val prefix to the command, not an argument).
-            cmd = (f"cd {shlex.quote(workdir)} && "
-                   f"ln -sfn {shlex.quote(fw_path)} framework && "
-                   f"sudo -n PYTHONPATH={shlex.quote(fw_parent)} python3 "
-                   f"./{shlex.quote(test_name)} -s {shlex.quote(setup_remote)} -v")
+            cmd = run_command(workdir, fw_path, fw_parent, test_name, setup_remote)
             _assert_command_allowed(cmd, profile)   # no mutation of the framework dir
             run["status"] = "running"
             run["command"] = cmd

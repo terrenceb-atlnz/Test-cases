@@ -1009,8 +1009,11 @@ a clean sweep to every count-based check. Expected-case count comes from the scr
    NIC ↔ switch port cabling `[portlink] tb-swi_X = ethN-portA.B.C`; these are DECLARED
    there and must never be inferred from case text), **Check Connection**,
    **Run on Testbox**. The script + setup go over
-   SSH/SFTP, run as `sudo python3 <script> -s <setup> -v`, and the framework `.log`
-   comes back and is parsed into per-TestCase PASS/FAIL. **The testbox framework dir
+   SSH/SFTP, run as `sudo python3 <script> -s <setup> -v --noupdate --nodefaultcfg`
+   (`pt_exec.FRAMEWORK_RUN_FLAGS`, 2026-09-25: the devices already run their topology's own
+   config, so the framework's setup must not reset them — without the flags it writes a
+   generated `default.cfg`, strips licences, reboots and TFTP-copies a `.rel` into flash), and
+   the framework `.log` comes back and is parsed into per-TestCase PASS/FAIL. **The testbox framework dir
    (`framework_path`, default `/home/st-art/framework`) is READ-ONLY** — `pt_exec.py`
    refuses any SFTP write or remote command that would mutate it (guarded by
    `ask-ck/tools/guard_framework_readonly.py`); copy a framework file into the run workdir to
