@@ -361,10 +361,37 @@ def parse_script(text: str, path: Optional[Path] = None) -> ScriptDemands:
     # portlink bound outside init() has happened before and is still a real demand. The
     # frame's own helpers are skipped: their `init_swi(far.name)` is mechanism, not a demand.
     helper_lines = _frame_helper_lines(tree)
+    # The discovery frame since 2026-09-25 binds through the framework's own table:
+    # `_devs = setup.init_all_devices(powerOn=False)`, then `dut = _devs['swi_a']`,
+    # `tb = _devs['tb']`, and per stack `stk_a = dut_stack if (...) else _devs['stk_a']`.
+    all_devs = {tgt.id for n in ast.walk(tree) if isinstance(n, ast.Assign)
+                and isinstance(n.value, ast.Call)
+                and isinstance(n.value.func, ast.Attribute)
+                and n.value.func.attr == "init_all_devices"
+                for tgt in n.targets if isinstance(tgt, ast.Name)}
+
+    def _table_role(value: ast.AST) -> Optional[str]:
+        """'swi_a' from `_devs['swi_a']`, or from the `else` arm of the stacks-loop IfExp."""
+        if isinstance(value, ast.IfExp):
+            value = value.orelse
+        if (isinstance(value, ast.Subscript) and isinstance(value.value, ast.Name)
+                and value.value.id in all_devs):
+            return _const_str(value.slice)
+        return None
+
     for node in ast.walk(tree):
-        if not isinstance(node, ast.Assign) or not isinstance(node.value, ast.Call):
+        if not isinstance(node, ast.Assign) or node.lineno in helper_lines:
             continue
-        if node.lineno in helper_lines:
+        role = _table_role(node.value) if all_devs else None
+        if role:
+            kind = BINDERS["init_tb"] if role == TB else (
+                BINDERS["init_stk"] if role.startswith("stk_") else BINDERS["init_swi"])
+            for tgt in node.targets:
+                if isinstance(tgt, ast.Name):
+                    d.bindings[tgt.id] = role
+            d.roles[role] = kind
+            continue
+        if not isinstance(node.value, ast.Call):
             continue
         binder = _binder_of(node.value)
         if binder is None or binder == "init_portlink":

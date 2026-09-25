@@ -638,3 +638,27 @@ def test_the_bench_parser_ignores_misc():
     b = check(parse_script(DISCOVERY_FRAME), Bench.from_text(with_misc))
     assert a["runnable"] == b["runnable"] and a["problems"] == b["problems"]
     assert not hasattr(Bench.from_text(with_misc), "misc")
+
+
+# The frame since 2026-09-25 binds every device through the framework's own table, not
+# `init_swi('swi_a')`: `get_all_port_links()` returns only initialised links, so binding swi_a
+# alone discovered nothing on tb470. A parser that only knew init_swi found NO devices in either
+# committed script — every check would then be vacuous.
+TABLE_FRAME = '''
+class TestSet(object):
+    def init(self, setup):
+        _devs = setup.init_all_devices(powerOn=False)
+        tb = _devs['tb']
+        dut = _devs['swi_a']
+        _stk = dut.get_stack()
+        dut_stack = _stk
+        stk_a = dut_stack if (_stk is not None and _stk.name == 'stk_a') else _devs['stk_a']
+        (dut.portPeer, peer_port, peer) = self._ck_bind_link(setup, dut, 'copper')
+'''
+
+
+def test_the_init_all_devices_table_binds_the_roles_it_names():
+    d = parse_script(TABLE_FRAME)
+    assert d.roles == {"tb": "tb", "swi_a": "switch", "stk_a": "stack"}
+    assert d.bindings["dut"] == "swi_a" and d.bindings["tb"] == "tb"
+    assert [(r.role, r.dut) for r in d.role_links] == [("copper", "swi_a")]
