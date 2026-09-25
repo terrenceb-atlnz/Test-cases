@@ -1,10 +1,10 @@
 ---
 name: topology-profiles-contract
-description: "RETIRED 2026-09-21 — the [misc] role contract (ck_profile / ck_role_dut / ck_link_<role>, pt_profiles.py) is GONE; a generated script binds the framework's swi_a slot, discovers cables via get_all_port_links() and reads media from the DUT; [misc] is never a lookup layer"
+description: "RETIRED 2026-09-21 — the [misc] role contract (ck_profile / ck_role_dut / ck_link_<role>, pt_profiles.py) is GONE; a generated script binds the framework's swi_a slot (from setup.init_all_devices() since 2026-09-25), discovers cables via get_all_port_links() and reads media from the DUT; [misc] is never a lookup layer"
 metadata:
   node_type: memory
   type: project
-  verified: 2026-09-24
+  verified: 2026-09-25
   originSessionId: 55f64c5f-6b57-4d85-9f09-b5090301f55a
   modified: 2026-09-23
 ---
@@ -29,6 +29,16 @@ retired and what replaced it — do not rebuild it.
   The one real gap the layer covered (two cables of different media between one pair, where
   `init_portlink` hands out the first unused) is closed by **asking the device**, not tagging
   the file.
+
+**⚠ Binding changed 2026-09-25 (`1cb72db`), after the first hardware run:** the frame now calls
+`_devs = setup.init_all_devices(powerOn=False)` and takes `tb = _devs['tb']`,
+`dut = _devs['swi_a']`, `dut_stack = dut.get_stack()` (NOT `init_stk()` again — that builds a
+second Stack; a second `init_tb()` exits the run), and `_ck_bind_link` reuses the far device the
+table already holds. Reason: `get_all_port_links()` returns only INITIALISED links and
+`get_stack()` is set only by `init_stk`, so binding swi_a alone discovered nothing on tb470.
+Preflight reads that table (`db1e02f`). The `copper` role accepts a `cusfp` link by design —
+on an all-SFP DUT a copper SFP IS the copper port (Terrence confirmed 2026-09-25). The paragraph
+below describes the 2026-09-21 binding; the discovery and role rules in it still hold.
 
 **What the frame does now** (`pt_script_template.py.jinja`, plan
 `archive/plans/PLAN-frame-framework-discovery.md`, spec `TOPOLOGY-PROFILES.md` rewritten):

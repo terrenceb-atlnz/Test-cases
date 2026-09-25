@@ -1,17 +1,79 @@
 ---
-verified: 2026-09-23
+verified: 2026-09-25
 ---
 # PROGRESS.md — Ask CK Workbench (Server-Backed)
 
 **Purpose**: This file exists so future sessions can quickly understand exactly where we are, what has been built, what the priorities are, and how to continue seamlessly.
 
-**Last Updated**: 2026-09-24 night (by Claude; blocker decisions taken by Claude are listed for review in ask-ck/plans/PLAN-pt-followups-review-2026-09-24.md)
+**Last Updated**: 2026-09-25 afternoon (by Claude; the branch is merged; bench runs now go through device-testing's `bench-runner` agent with `--noupdate --nodefaultcfg`)
 
 > **Reading note (2026-09-23 doc sweep).** Entries are frozen as written. Where an entry's
 > claim has since stopped being true, a ⚠ line under its heading says what changed.
 > Newest first. Paths in older entries predate these moves (the same as in CHANGELOG): `tool/` → `ask-ck/tools/`, `ask-ck/var/` → `ask-ck/db/`, `objective-drafting/` → `ask-ck/functions/generator/`, `pytest-create/` → `ask-ck/functions/pytest-creator/`, `js-tests/` → `tests/js/`, `ask-ck/ck-facelift/` → `ask-ck/plans/`, root reports → `docs/`, and completed plans `ask-ck/plans/` → `archive/plans/` (2026-09-11, 2026-09-23). Also retired 2026-09-23: the demo notes → `archive/plans/demo-2026-09-11/`, and `HANDOFF-generate-token-efficiency.md` + `Fragments_prompt.md` → `archive/records/`.
 
+## Latest session (2026-09-25, afternoon) — the first framework run reset the bench; run flags, bench-runner, merged
+
+**Pick up here:** re-run T33235 on tb470 through the **`bench-runner`** agent (a NEW session sees
+it; `.claude/agents/bench-runner.agent.md` links device-testing's copy), with
+`--noupdate --nodefaultcfg` — its pre-run gate must read MATCH first. T33235 has still not run a
+single TestCase. Then T33234.
+
+- **What happened.**
+  - The first framework run of a generated script (T33235, 07:48) aborted in `init()`: the frame
+    bound `swi_a` alone, and `get_all_port_links()` returns only INITIALISED links. The frame now
+    initialises every declared device (`1cb72db`).
+  - The re-run then did what ATTestSet's setup does by default to every device it initialises:
+    it wrote a generated `default.cfg`, stripped licences (the frame's `FEATURES = ['ALL']`), and
+    rebooted into all-ports-shut. That hit the stack, IE520-sa, 4050 and x230; stopped at 07:51.
+  - A second full run (09:17) hung on the setup's TFTP copy of `<platform>-tb470.rel`
+    (`/tftproot` is a tmpfs, emptied by tb470's 2026-09-24 reboot) and was killed. Its failure
+    path deleted four `debug-duplicate-master-*.tgz` from the stack's flash (Terrence: they don't
+    matter).
+  - Full mechanics: SESSION_STATE 2026-09-25 afternoon, and memory `framework-run-always-noupdate`.
+- **Restored.**
+  - Every device boots `flash:/tb470-bench.cfg`, written the framework's way (shell `echo` +
+    md5). Running configs are at 0 diff lines vs the 2026-09-24 16:58 copy.
+  - Terrence put a new `AR4050S-tb470.rel` in the 4050's flash and made it the boot image.
+  - Licences from the framework's key file:
+    - `ACCESS` on the x230, which has `start-shell` again;
+    - `FULL` on the IE520-sa, the 4050 and all three stack members.
+  - **`NZ` is not in the key file**, so it is still missing on the stack and the IE520-sa.
+  - ⚠ **The x230 `ACCESS` key leaked** into this session's output: the console wrapped the echo
+    past a plain-replace redaction. The tb470 files are scrubbed; the session transcript under
+    `~/.claude/projects/` is not. Memory `console-secret-redaction-wraps` has the fix.
+- **Decided (Terrence).**
+  - Every Ask-CK hardware run pre-loads the topology's own config and launches with
+    `--noupdate --nodefaultcfg`. `pt_exec.FRAMEWORK_RUN_FLAGS` does this (`57d2021`), with a test
+    that goes red if either flag is removed.
+  - Topology pairs live in `ask-ck/functions/test-composer/templates/<setup>/`: `<setup>.setup`
+    plus one `<setup>.<device>.cfg` per device, and one per stack (`69bdd83`).
+  - `genpop` is renamed **`test-composer`**: it builds a case's `.setup` + script pair and has no
+    bench autonomy. Device-testing's **`bench-runner`** runs, gates and re-verifies the bench
+    (`088745e`). One writer per repo.
+- **Fixed on the way:** `pt_preflight` found NO devices in scripts from the new frame, so every
+  preflight was vacuous. It now reads the `init_all_devices()` table (`db1e02f`); both scripts
+  read RUNNABLE on tb470.
+- **C4 answered:** `no duplex` is accepted, and both `no duplex` and `duplex auto` remove the line.
+  `speed 100` on 10GBASE-TM gives "% Unsupported speed/duplex combination".
+- **Merged:** Terrence merged the branch at 13:2x. The live tree runs it (`/health` ok), and
+  `main` is 22 ahead of `origin` until he pushes.
+- **Gate:** pytest 1870 passed / 1 skipped, vitest 356, both guards OK, `ck.db` untouched.
+- **Unsent, because the device-testing session had exited** (drafts in this session's
+  scratchpad, `f733e532…/scratchpad/`; re-send to the next device-testing session):
+  - `handover-restore_cfg.txt`: `restore_cfg.py` should become device-testing's
+    `bench-setup/restore_cfg.py`. The file is only on tb470 tmpfs (`/tmp/ck33235/restore_cfg.py`,
+    md5 `4dbc0525…`) and in the scratchpad.
+  - `handover-testbox-access-3b.txt`: a §3b for `TESTBOX-ACCESS.md`, which is device-testing's
+    file (a symlink here).
+- **Open for Terrence:**
+  - `NZ` licence keys.
+  - Whether the frame keeps `FEATURES = ['ALL']`; with `--nodefaultcfg` it changes nothing.
+  - Plugging the PDU back in after the network upgrade.
+  - §A/§B of the review plan.
+
 ## Latest session (2026-09-25) — five follow-ups added to the same branch
+
+⚠ Superseded by the entry above: the branch is merged (13:2x) and C4 is answered.
 
 **Pick up here:** unchanged. Merge `pt-followups-2026-09-24` (`git merge --ff-only`), verify it,
 then `ask-ck/plans/PLAN-pt-followups-review-2026-09-24.md`. §A and §B are Terrence's; C1–C5 and

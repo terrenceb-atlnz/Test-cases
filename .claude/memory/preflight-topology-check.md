@@ -6,7 +6,7 @@ metadata:
   type: project
   originSessionId: 55f64c5f-6b57-4d85-9f09-b5090301f55a
   modified: 2026-07-30T00:09:29.447Z
-  verified: 2026-09-24
+  verified: 2026-09-25
 ---
 
 `ask-ck/tools/pt_preflight.py` (built 2026-07-30) answers "can this bench run this script?" offline —
@@ -40,6 +40,12 @@ looks alike; source order let an optional pluggable eat the copper cable → a c
 UN-RUNNABLE on tb470). Media is declared unknowable offline in every note. An optional role with
 no link is a note (UNSUPPORTED), not a problem. `[misc]` is not parsed, and `--profile` went with
 `pt_profiles.py`, which was removed 2026-09-21 (`3116625`) — see [[topology-profiles-contract]].
+**2026-09-25 — reads the `init_all_devices()` table.** The frame now binds
+`dut = _devs['swi_a']` / `tb = _devs['tb']` / `stk_a = … else _devs['stk_a']` from
+`_devs = setup.init_all_devices(...)`; until `db1e02f` the parser knew only `init_swi`/`init_stk`/
+`init_tb`, found NO devices in either committed script, and every check was vacuous — only
+`test_every_generated_script_parses_and_is_checkable` caught it. It is also the pre-run gate of
+device-testing's `bench-runner` agent.
 
 **Testing discipline that made it worth anything:** a checker that returned "unsatisfiable"
 unconditionally would have produced the correct 0/3 verdict for the real scripts and been

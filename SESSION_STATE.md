@@ -4694,3 +4694,56 @@ Supersedes the "Open" line of the 2026-09-24 (evening) entry: the plan is execut
 - **Next:** Terrence merges with `--ff-only`; then that plan's §A/§B decisions and C1–C5, C10.
 - **Gate (branch):** pytest 1863 passed / 2 skipped, vitest 356, both guards OK, `ck.db` untouched
   by tests.
+
+## Session Close / Handoff (2026-09-25, afternoon) — T33235 on tb470: the framework reset the bench; restored; run flags; merged
+
+Supersedes the entry above on the branch's state: `pt-followups-2026-09-24` is MERGED (Terrence,
+13:2x), with three more commits on it, and C4 is answered.
+
+- **The runs.**
+  - 07:41 — aborted in `init()`: no links discovered, because `get_all_port_links()` returns only
+    initialised links. Fixed with `init_all_devices(powerOn=False)`.
+  - 07:48 — ATTestSet `__pre_configure` began resetting the stack, IE520-sa, 4050 and x230:
+    overwrote `default.cfg`, stripped NZ/FULL/access, and rebooted the IE520-sa into
+    all-ports-shut. Killed at 07:51.
+  - 09:15 — aborted in `init()` with every link read as "absent": `u2` was still in the root
+    shell the 07:51 kill left it in. `exit`-ed.
+  - 09:17 — Terrence: "run it as-is, end to end". It reset the IE520-sa, the 4050 and the stack
+    again, then the setup's TFTP copy of `IE520-tb470.rel` failed ("% Source file not found":
+    tb470's `/tftproot` is a tmpfs, empty since tb470's reboot of 2026-09-24 11:57). The failure
+    path deleted four `debug-duplicate-master-*.tgz` from the stack's flash, two uploaded first
+    (Terrence: they don't matter). The 4050, rebooted into its netboot of `AR4050S-tb470.rel`,
+    looped on TFTP. Killed about 09:40.
+- **Restored (Terrence did the 4050's software; Claude the rest).**
+  - All four devices boot `flash:/tb470-bench.cfg`, a name Terrence chose so the framework's
+    `default.cfg` can never overwrite it. It was written through `start-shell` `echo` lines with
+    an md5 check; on the x230 by CLI `copy running-config`. Running configs are at 0 diff lines
+    vs the 2026-09-24 16:58 copy (`/tmp/ckorient/final.out`), and were again after the licence
+    installs.
+  - Licences from `/home/st-art/feature_license_keys.env`: ACCESS on the x230; FULL on the
+    IE520-sa, the 4050 and all three stack members. NZ is not in the file.
+  - The x230's ACCESS key leaked into this session's output on the first attempt, because the
+    echo wrapped past a plain replace. tb470 files scrubbed; memory
+    `console-secret-redaction-wraps`.
+  - The device-testing session's `bench_probe.py run` at 10:55 read MATCH.
+- **Decided (Terrence):**
+  - the default for every Ask-CK hardware run: pre-loaded topology cfg + `--noupdate --nodefaultcfg`;
+  - where the topology pairs live and what they are called;
+  - `genpop` → `test-composer`;
+  - device-testing builds `bench-runner` and Test-cases links it; one writer per repo.
+- **Commits (on main, merged or after):**
+  - `1cb72db` — frame binds via `init_all_devices`;
+  - `db1e02f` — preflight reads it;
+  - `57d2021` — run flags;
+  - `088745e` — agents + memories;
+  - `69bdd83` — template names.
+  - The branch was rebased twice onto main to keep `--ff-only` possible: first for device-testing's
+    `a6aeb1f`, then for Terrence's `62730f3`. Claude's own mistake between those: a
+    `git checkout HEAD~0` detached the worktree, so two commits missed the branch until
+    re-pointed.
+- **Not done:**
+  - T33235 has run no TestCase yet.
+  - Handovers to device-testing are unsent (its session had exited): `restore_cfg.py`, and a §3b
+    for its `TESTBOX-ACCESS.md`. Drafts are in this session's scratchpad; see PROGRESS.
+- **Gate (live tree, after the merge):** pytest 1870 passed / 1 skipped, vitest 356, both guards
+  OK, `ck.db` untouched.

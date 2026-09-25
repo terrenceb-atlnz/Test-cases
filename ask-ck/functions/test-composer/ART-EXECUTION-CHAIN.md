@@ -101,8 +101,11 @@ verified: 2026-09-23
   with the setup file, exactly like our direct path.
 
 ### 6. `test-<suite>.<set>.py` — the testset (the unit WE generate)
-- Launched as: `sudo python3 test-<suite>.<set>.py -s <setup> -v` (our `pt_exec.py`
-  does this directly; `runTestSuite` does it as part of the batch).
+- Launched as: `sudo python3 test-<suite>.<set>.py -s <setup> -v` (`runTestSuite` does it as
+  part of the batch). **Ours adds `--noupdate --nodefaultcfg`** (`pt_exec.FRAMEWORK_RUN_FLAGS`,
+  Terrence 2026-09-25): our devices already run their topology's config, and without the flags
+  the TestSet setup regenerates `default.cfg`, strips licences, reboots and TFTP-copies a `.rel`
+  onto every bound device — `TESTBOX-ACCESS.md` §3.
 - **Runtime lifecycle inside the framework** (`ATTestSet.run(sys.argv)`):
   1. `create_log_file()` → `test-<suiteNum>.<setNum>.log`.
   2. `TestSet.init(setup)` — bind topology from the setup file.
@@ -138,7 +141,7 @@ chain collapses to:
    `../../plans/PLAN-pytest-testing.md`): if the direct run errors on a missing
    config.cfg, generate it with `config_gen.py`; else it's out of scope.
 3. *(optional)* firmware already loaded (skip build-load unless testing a build).
-4. `sudo python3 test-<suite>.<set>.py -s <setup> -v` → log → SFTP back → parse.
+4. `sudo python3 test-<suite>.<set>.py -s <setup> -v --noupdate --nodefaultcfg` → log → SFTP back → parse.
 
 **On tb470 (2026-09-23):** `configs/tb470.setup` exists — since 2026-07-27, and it is
 *generated* from `bench-state.md` in the device-testing repo, never hand-edited. Whether

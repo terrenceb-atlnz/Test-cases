@@ -5,10 +5,22 @@ verified: 2026-09-24
 
 > ## Status (read first)
 >
-> **OPEN.** 2026-09-25: C6, C7, C8, C9 and C11 DONE on the same branch (commits `9dbe78a`
-> `9efb2ad` `601f70a` `8246147` `6c0073c`; C9 only as far as the last round's size — see it).
-> Still open: §A (confirm), §B (D-C), C1–C5 and C10 — each needs Terrence, the merge, the bench or
-> a `ck.db` corpus edit. Written at the end of executing
+> **OPEN.** 2026-09-25 afternoon:
+> - **C1 DONE.** Terrence merged the branch (`--ff-only`, after two rebases onto main); the gate is
+>   green on the live tree. The scratch worktree is removed.
+> - **C4 DONE.** `no duplex` is accepted, and both it and `duplex auto` remove the line.
+> - **C5 attempted, not done.** The first runs showed the frame had to `init_all_devices()`, and
+>   that the framework's default setup resets the whole bench. Runs now use
+>   `--noupdate --nodefaultcfg` and go through device-testing's `bench-runner` agent; see PROGRESS
+>   2026-09-25 afternoon. No TestCase has run yet.
+> - In §B, the `genpop` agent is now named `test-composer`.
+>
+> Earlier on 2026-09-25: C6, C7, C8, C9 and C11 DONE on the same branch (commits `9dbe78a`
+> `9efb2ad` `601f70a` `8246147` `6c0073c`, hashes before the rebase; C9 only as far as the last
+> round's size — see it).
+>
+> Still open: §A (confirm), §B (D-C), C2, C3, C5 and C10 — each needs Terrence, the bench or a
+> `ck.db` corpus edit. Written at the end of executing
 > `archive/plans/PLAN-pt-drive-followups-2026-09-24.md` (every item of which landed on branch
 > `pt-followups-2026-09-24`). §A are the decisions Claude took because they blocked work, for
 > Terrence to confirm or reverse; §B is the one decision still open; §C is work still to do,

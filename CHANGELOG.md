@@ -21,6 +21,29 @@ current working thread see
 > `ask-ck/ck-facelift/`, `pytest-create/` and `CK-main/` plan paths moved to `ask-ck/plans/` on 2026-09-11 and, once complete, to `archive/plans/`.
 > `js-tests/` → `tests/js/`, `e2e/` → `tests/e2e/`, `static/js/` → `ask-ck/frontend/ck-main/current/<page>/` (2026-09-11).
 
+## 2026-09-25 (afternoon) — hardware runs leave the bench's own setup alone; bench runs belong to bench-runner
+
+**Why:** the first framework run of a generated script (T33235 on tb470) showed that ATTestSet's
+default setup resets every device the script binds. It writes a generated `default.cfg` through
+`start-shell`, loads and strips licences (the frame's `FEATURES = ['ALL']` removes everything not
+in the framework's key file, and its keep-list compares case-sensitively), reboots into
+all-ports-shut, and TFTP-copies `<platform>-<host>.rel` into flash. It did that to the whole shared
+bench, then hung on the copy. Terrence's decision: a run starts from the topology's own config and
+the framework's reset never runs.
+
+- **Run flags:** every hardware run from the server launches with `--noupdate --nodefaultcfg`
+  (`pt_exec.FRAMEWORK_RUN_FLAGS`, built by `run_command()`).
+- **Topology pairs:** they live in `ask-ck/functions/test-composer/templates/<setup>/`, as
+  `<setup>.setup` plus one `<setup>.<device>.cfg` per device (one per stack).
+- **Frame:** it initialises every device the `.setup` declares (`setup.init_all_devices()`) before
+  discovering cables. `get_all_port_links()` returns only initialised links, so binding `swi_a`
+  alone discovered nothing on real hardware.
+- **Preflight:** it reads that `init_all_devices()` table. Without it, preflight found no devices
+  in any new-frame script and passed everything vacuously.
+- **Agents:** `genpop` is renamed **`test-composer`** and has no bench autonomy. Runs on tb470 go
+  to device-testing's **`bench-runner`**, linked into `.claude/agents/`, which gates the bench
+  before and after each run and asks before any device-state change.
+
 ## 2026-09-25 — seat-limit pill, per-unit Fix, editable publishes, published-value lint
 
 Same branch as below. These are the follow-ups that finish that work in the UI:
