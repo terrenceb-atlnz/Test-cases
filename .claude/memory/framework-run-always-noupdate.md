@@ -13,9 +13,10 @@ on devices already running the topology's own config** (Terrence, 2026-09-25: "W
 ask-ck"). The topology pairs live in `ask-ck/functions/test-composer/templates/<setup-name>/`: the
 `.setup` plus **one `.cfg` per device the `.setup` declares, and ONE `.cfg` shared by every
 member of a stack** (Terrence, 2026-09-25; his `setup-a/a.setup` + `a.cfg` files are examples, not
-the whole convention). File names: **`<setup>.<device>.cfg`**, the device by its `.setup` name —
-`a.swi_b.cfg`, `a.swi_f.cfg`, and `a.stk_a.cfg` for the whole stack (Terrence: "a cleaner filename
-format. do that"). Bench execution is owned by the
+the whole convention). File names: **`<setup>.setup`** and **`<setup>.<device>.cfg`**, the device by
+its `.setup` name — `setup-a/a.setup`, `a.swi_b.cfg`, `a.swi_f.cfg`, and `a.stk_a.cfg` for the whole
+stack (Terrence: "a cleaner filename format. do that"; his first placeholder names
+`a_bench.setup` / `a_swi-a.cfg` were renamed to this on 2026-09-25 at his request). Bench execution is owned by the
 device-testing `bench-runner` agent (building 2026-09-25; linked into this repo's
 `.claude/agents/`), which runs its pre-run gate (`fuser`, bare-CR shell check, `bench_probe.py run`
 = MATCH) before launching.
