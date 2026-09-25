@@ -4747,3 +4747,9 @@ Supersedes the entry above on the branch's state: `pt-followups-2026-09-24` is M
     for its `TESTBOX-ACCESS.md`. Drafts are in this session's scratchpad; see PROGRESS.
 - **Gate (live tree, after the merge):** pytest 1870 passed / 1 skipped, vitest 356, both guards
   OK, `ck.db` untouched.
+- **At the wrap (Terrence):**
+  - NZ = FULL under another title, so no licence is missing.
+  - Keep `FEATURES = ['ALL']` for now.
+  - The PDU is his, next session.
+  - Open the next session by prompting him with the review plan's §A/§B.
+  - The stale `sweep-fixes-2026-09-23` worktree and branch are removed; only `main` remains.

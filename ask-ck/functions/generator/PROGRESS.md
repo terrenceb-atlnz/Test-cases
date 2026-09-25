@@ -13,6 +13,17 @@ verified: 2026-09-25
 
 ## Latest session (2026-09-25, afternoon) — the first framework run reset the bench; run flags, bench-runner, merged
 
+> ⚠ **Terrence at the wrap (2026-09-25):**
+> 1. **Start the next session by prompting him with the review plan,**
+>    `ask-ck/plans/PLAN-pt-followups-review-2026-09-24.md` §A (X1, D-A, D-B, R1) and §B (D-C),
+>    before anything else.
+> 2. **`NZ` is `FULL` under another title.** The FULL restore covers it, and no licence is
+>    missing. The "NZ still missing" lines below are superseded.
+> 3. **Keep the frame's `FEATURES = ['ALL']` for now.**
+> 4. **The PDU is his, next session.**
+> 5. Only the `main` worktree is attached to this repo now. The `sweep-fixes-2026-09-23` worktree
+>    (fully merged; only a scratch `ck.db` copy was modified) and its branch were removed.
+
 **Pick up here:** re-run T33235 on tb470 through the **`bench-runner`** agent (a NEW session sees
 it; `.claude/agents/bench-runner.agent.md` links device-testing's copy), with
 `--noupdate --nodefaultcfg` — its pre-run gate must read MATCH first. T33235 has still not run a
