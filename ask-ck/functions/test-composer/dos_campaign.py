@@ -11,37 +11,57 @@ runs in a finally block, so a crash still cleans up. Encodes the 2026-09-03 less
   * attacks must TRANSIT the switch (aimed at a host BEHIND it), never the switch's own MAC
     (CPU-punt bypasses the DoS ASIC -> 0 detections)
   * senders must be BATCHED -- single-packet sendp(loop=1) is too slow for the rate threshold
+  * the Ethernet SOURCE MAC must be a VALID UNICAST -- an illegal multicast source (e.g.
+    01:00:...) is dropped before any DoS counting (2026-09-04 bug; fixed: src = the sending
+    NIC's own MAC).
   * disarm is `no dos <type>` (for smurf `no dos smurf`); `... action shutdown` leaves it armed
-  * `dos ipoptions` needs an L3/ROUTED path, so it is NOT exercisable on this flat-L2 bench and
-    is reported N/A rather than FAIL.
+  * `dos ipoptions` on the IE520 is a CONFIRMED no-op (2026-09-28): armed it counts 0 and never
+    shuts the port, on both bridged AND routed paths, with valid frames above the 20 pps
+    threshold. The x230 (a platform that has the feature) detects the SAME stimulus at once. So
+    ipoptions is now graded like any other case -- FAIL on the IE520, and it is a filed defect.
+    See claude/device-testing/IE520/dos/5437.log.
 Pass = armed+attack -> port err-disable; disarmed+attack -> port stays connected.
+
+!! BENCH PARAMETERS BELOW ARE THE STANDING 2026-09-27 TOPOLOGY. The bench is recabled often --
+   RECONCILE PORT / IFACE / VIC_* / SRC / BCAST against bench-setup/bench-state.md before every
+   run (which tb NIC lands on which switch port, and the victim host behind the switch).
 """
 import sys, time
 from framework.Setup import LoadSetup
 from scapy.all import Ether, IP, TCP, UDP, ICMP, IPOption_LSRR, sendp
 
-# ---- bench parameters (flat-vlan1 tree, 2026-09-03) --------------------------------------
+# ---- bench parameters (STANDING 2026-09-27 topology -- verify vs bench-state.md) ----------
 SETUP   = "/home/st-art/st-art/configs/tb470.setup"
-DUT     = "swi_a"            # IE520 stack (the detector)
-PORT    = "port1.0.1"       # attack ingress on the IE520 (faces tb470 eth3)
+DUT     = "swi_a"            # IE520 stack (init_swi on any member reaches the master CLI)
+PORT    = "port3.0.9"       # attack ingress on the stack (member 3; faces tb470 eth3)
 IFACE   = "eth3"            # tb470 NIC cabled to PORT
-VIC_IP  = "10.38.215.71"    # x230 -- a host BEHIND the switch (transit victim)
-VIC_MAC = "00:1a:eb:91:cc:a1"
-SRC     = "10.38.215.90"
+VIC_IP  = "10.38.215.2"     # x230 -- a host BEHIND the switch (transit victim), reached via sa2
+VIC_MAC = "02:1a:eb:91:cc:a1"   # x230 as learned on the stack (sa2); NOT the switch's own MAC
+SRC     = "10.38.215.90"    # a plausible source in eth3's /27 (.64/27)
 BCAST   = "10.38.215.95"    # .64/27 directed broadcast (for smurf)
-REACH   = ["10.38.215.66", "10.38.215.70", "10.38.215.71"]   # IE520, 4050, x230
+REACH   = ["10.38.215.10", "10.38.215.70", "10.38.215.2"]    # stack, 4050, x230
 FIRE_S, NEG_S = 9, 6        # seconds to send in the positive / negative phase
 
+def _iface_mac(ifc):
+    """The sending NIC's own MAC -- a VALID UNICAST source, so frames are not dropped before
+    DoS counting (the 2026-09-04 illegal-multicast-source bug). Falls back to a valid
+    locally-administered unicast if the sysfs read fails."""
+    try:
+        return open("/sys/class/net/%s/address" % ifc).read().strip() or "02:00:00:00:00:01"
+    except Exception:
+        return "02:00:00:00:00:01"
+SRC_MAC = _iface_mac(IFACE)
+
 # ---- attack packet batches (same shapes as the lab tools, but batched) -------------------
-def b_ipoptions(): return [Ether(dst=VIC_MAC, src="01:00:01:00:00:01")/IP(src=SRC, dst=VIC_IP, options=IPOption_LSRR(routers=[VIC_IP]))/ICMP()]*2000
-def b_land():      return [Ether(src="00:00:01:01:01:01", dst=VIC_MAC)/IP(src=VIC_IP, dst=VIC_IP)/TCP(sport=80, dport=80, flags='S')]*2000
-def b_pod():       return [Ether(dst=VIC_MAC, src="01:00:01:00:00:01")/IP(src=SRC, dst=VIC_IP, flags="MF", frag=8191)/ICMP(code=8)/("\x00"*1458)]*2000
-def b_smurf():     return [Ether(dst="ff:ff:ff:ff:ff:ff", src="00:00:00:00:00:01")/IP(src=SRC, dst=BCAST)/ICMP(code=8)]*2000
-def b_synflood():  return [Ether(src="00:00:01:01:01:01", dst=VIC_MAC)/IP(src=SRC, dst=VIC_IP)/TCP(sport=1024+(i*37) % 64000, dport=80, flags='S') for i in range(2000)]
+def b_ipoptions(): return [Ether(dst=VIC_MAC, src=SRC_MAC)/IP(src=SRC, dst=VIC_IP, options=IPOption_LSRR(routers=[VIC_IP]))/ICMP()]*2000
+def b_land():      return [Ether(src=SRC_MAC, dst=VIC_MAC)/IP(src=VIC_IP, dst=VIC_IP)/TCP(sport=80, dport=80, flags='S')]*2000
+def b_pod():       return [Ether(dst=VIC_MAC, src=SRC_MAC)/IP(src=SRC, dst=VIC_IP, flags="MF", frag=8191)/ICMP(code=8)/("\x00"*1458)]*2000
+def b_smurf():     return [Ether(dst="ff:ff:ff:ff:ff:ff", src=SRC_MAC)/IP(src=SRC, dst=BCAST)/ICMP(code=8)]*2000
+def b_synflood():  return [Ether(src=SRC_MAC, dst=VIC_MAC)/IP(src=SRC, dst=VIC_IP)/TCP(sport=1024+(i*37) % 64000, dport=80, flags='S') for i in range(2000)]
 def b_teardrop():
     """Overlapping-fragment train: frag0 (MF), 10 stepped MF frags, one final non-MF frag."""
     load = "\x00"*800
-    base = Ether(dst=VIC_MAC, src="00:00:cd:00:00:01")/IP(dst=VIC_IP, src=SRC, proto=17, flags="MF")/UDP(dport=80)
+    base = Ether(dst=VIC_MAC, src=SRC_MAC)/IP(dst=VIC_IP, src=SRC, proto=17, flags="MF")/UDP(dport=80)
     train, off = [base/load], 3
     for _ in range(10):
         f = base.copy(); f.frag = off; off += 20; train.append(f/load)
@@ -50,7 +70,7 @@ def b_teardrop():
 
 #           key           arm-cli                                              disarm-cli                    builder      exercisable
 CASES = [
- ("ipoptions",     "dos ipoptions action shutdown",                     "no dos ipoptions",             b_ipoptions, False),
+ ("ipoptions",     "dos ipoptions action shutdown",                     "no dos ipoptions",             b_ipoptions, True ),
  ("land",          "dos land action shutdown",                          "no dos land",                  b_land,      True ),
  ("ping-of-death", "dos ping-of-death action shutdown",                 "no dos ping-of-death",         b_pod,       True ),
  ("smurf",         "dos smurf broadcast %s action shutdown" % BCAST,    "no dos smurf",                 b_smurf,     True ),
@@ -129,9 +149,11 @@ def run_case(dut, key, arm, disarm, builder, exercisable):
     neg = port_state(dut)
     print("  disarmed + attack: port -> %s" % neg)
     if exercisable:
+        # PASS only if arming detected (port shut) AND disarming stopped detecting (port stayed up).
+        # Armed-but-no-detection is a FAIL -- this is what caught the IE520 ipoptions defect.
         verdict = "PASS" if (st == "err-disable" and neg == "connected") else "FAIL"
     else:
-        verdict = "N/A (needs L3 routed path)" if st != "err-disable" else "PASS (unexpected on L2!)"
+        verdict = "SKIPPED (marked not exercisable on this bench)"
     print("  verdict: %s" % verdict)
     return verdict
 
