@@ -211,6 +211,12 @@ class TestSet(ATTestSet.TestSet):
         self.baselineDuplex = None
         self.speedS = None
         self.monitoredBaseline = None
+        # The sweep's record of the DUT's OWN answers (steps 3-13; Terrence 2026-09-28): every
+        # port and every device gets the same treatment — the script never decides from a port
+        # type, a module type or a product whether a speed is legal; it sends the command and
+        # records what the DUT said. {port name: {speed value: True accepted / False rejected}}.
+        # Later steps (20, 21) consult this instead of a table.
+        self.speedMap = {}
         # NOT BOUND: dutA.
         # A test binds the DUT plus the partners at the far end of the links it needs. These
         # names were only ever inferred from the vocabulary of the selected fragments, which is
@@ -487,7 +493,7 @@ class TestCase_2(ATTestCase.TestCase):
     # from the filename and this class name, and the run log prints it per case.
     testCaseRef = 'AWPTCM-T33235, 9001.33235.2'
     testCaseMethod = 'On the copper test link, attempt `10` whatever the port type. On the partner port apply `speed 10` and `duplex full`, then on the DUT copper test port apply `speed 10` and `duplex full`. Poll `show interface <copper test port> status` for up to 30 s, then read `show interface <copper test port>` and `show running-config interface <copper test port>`.\n'
-    testCaseMethod += "Verify: If the legal-values table lists `10` for the copper port's type, the DUT accepts the command, the test port row reads `connected` with bare `10` and bare `full` (no `a-` prefix), and the current line reads `current duplex full, current speed 10`. If the legal-values table does not list `10` for the port's type, the DUT rejects the command with an error indication, running-config gains no `speed 10` line, and the port's previous speed and link state are unchanged. If the partner rejects the command, log it; judge only the DUT's accept or reject, and do not assert link-up. The console stays at the prompt with no boot output.\n"
+    testCaseMethod += "Verify: The DUT's own answer decides, whatever the port type. If the DUT accepts the command, the test port row reads `connected` with bare `10` and bare `full` (no `a-` prefix), and the current line reads `current duplex full, current speed 10`. If the DUT rejects the command with an error indication, that is the result for `10` on this port: running-config gains no `speed 10` line, and the port's previous speed and link state are unchanged. Record whether the DUT accepted `10` on the copper test port for later steps. If the partner rejects the command, log it; judge only the DUT's accept or reject, and do not assert link-up. The console stays at the prompt with no boot output.\n"
 
     def configure(self):
         tb = self.testSet.tb
@@ -564,19 +570,6 @@ class TestCase_2(ATTestCase.TestCase):
         self.log('INFO: baseline {} row: {}; configured speed {}; current speed {}'.format(
             name, base_row, base_cfg_speed, base_cur_speed))
 
-        # Port type per the speed legal-values table: a fixed RJ.5/RJ-45 copper port lists 10.
-        # A pluggable copper module's row depends on the module (tri-speed lists 10, 1000 Mbps
-        # copper SFP and multi-speed SFP+ do not), so there only the DUT's own response decides.
-        plug = dut.cmd('show system pluggable')
-        # `show system pluggable` lists ports without the `port` prefix (`1.0.2`, not `port1.0.2`);
-        # ck_media is the frame's own parser for it.
-        import ck_media
-        is_pluggable = ck_media.is_pluggable(name, ck_media.pluggable_ports(plug))
-        speed10_legal = None if is_pluggable else True
-        self.log('INFO: {} is {}; table lists speed 10: {}'.format(
-            name, 'a pluggable copper module' if is_pluggable else 'a fixed RJ-45 copper port',
-            'depends on module' if speed10_legal is None else 'yes'))
-
         # Partner first.
         peer.mode(')#')
         peer.cmd('interface {}'.format(portDut.name))
@@ -595,6 +588,11 @@ class TestCase_2(ATTestCase.TestCase):
         dut_duplex_out = dut.cmd('duplex full')
         dut.mode('#')
         dut_rejected = any(tok in dut_speed_out for tok in err_tokens)
+        # The DUT's own answer is the result for 10 on this port, whatever its type; recorded
+        # for the later steps that need to know what this port accepts.
+        self.testSet.speedMap.setdefault(name, {})['10'] = not dut_rejected
+        self.log('INFO: DUT {} {} speed 10 (recorded in speedMap)'.format(
+            name, 'rejected' if dut_rejected else 'accepted'))
 
         # Poll show interface status for up to 30 s.
         row = poll_row(True)
@@ -640,12 +638,8 @@ class TestCase_2(ATTestCase.TestCase):
                     self.failed('{} current duplex {} / current speed {}, expected full / 10'.format(
                         name, attr_value(if_out, 'current duplex '), attr_value(if_out, 'current speed ')))
         else:
-            if speed10_legal:
-                self.failed('DUT rejected speed 10 on fixed copper port {} although the table lists 10 for RJ-45 copper: [{}]'.format(
-                    name, dut_speed_out.strip()))
-            else:
-                self.passed('DUT rejected speed 10 on pluggable {} with error indication: [{}]'.format(
-                    name, dut_speed_out.strip()))
+            self.passed('DUT rejected speed 10 on {} with an error indication (the DUT decides): [{}]'.format(
+                name, dut_speed_out.strip()))
             if not rc_speed10:
                 self.passed('running-config for {} gained no speed 10 line'.format(name))
             else:
@@ -701,7 +695,7 @@ class TestCase_3(ATTestCase.TestCase):
     # from the filename and this class name, and the run log prints it per case.
     testCaseRef = 'AWPTCM-T33235, 9001.33235.3'
     testCaseMethod = 'On the copper test link, attempt `100` whatever the port type. On the partner port apply `speed 100` and `duplex full`, then on the DUT copper test port apply `speed 100` and `duplex full`. Poll `show interface <copper test port> status` for up to 30 s, then read `show interface <copper test port>` and `show running-config interface <copper test port>`.\n'
-    testCaseMethod += "Verify: If the legal-values table lists `100` for the copper port's type, the DUT accepts the command, the test port row reads `connected` with bare `100` and bare `full` (no `a-` prefix), and the current line reads `current duplex full, current speed 100`. If the legal-values table does not list `100` for the port's type, the DUT rejects the command with an error indication, running-config gains no `speed 100` line, and the port's previous speed and link state are unchanged. If the partner rejects the command, log it; judge only the DUT's accept or reject, and do not assert link-up. The console stays at the prompt with no boot output.\n"
+    testCaseMethod += "Verify: The DUT's own answer decides, whatever the port type. If the DUT accepts the command, the test port row reads `connected` with bare `100` and bare `full` (no `a-` prefix), and the current line reads `current duplex full, current speed 100`. If the DUT rejects the command with an error indication, that is the result for `100` on this port: running-config gains no `speed 100` line, and the port's previous speed and link state are unchanged. Record whether the DUT accepted `100` on the copper test port for later steps. If the partner rejects the command, log it; judge only the DUT's accept or reject, and do not assert link-up. The console stays at the prompt with no boot output.\n"
 
     def configure(self):
         tb = self.testSet.tb
@@ -762,19 +756,9 @@ class TestCase_3(ATTestCase.TestCase):
                 time.sleep(2)
             return text, found
 
-        # Whether 100 is legal depends on the port type. A FIXED copper port (RJ-45 / RJ.5) lists
-        # 100 in the legal-values table. A copper SFP may be tri-speed (lists 100) or 1000 Mbps only
-        # (does not), and `show system pluggable` does not say which, so for a pluggable the DUT's
-        # answer decides and the branch it takes is verified below.
-        import ck_media
+        # The DUT's own answer decides whether 100 is legal on this port, whatever its type;
+        # the branch it takes is verified below and recorded for later steps.
         dut.mode('#')
-        plug = dut.cmd('show system pluggable')
-        pluggable = ck_media.is_pluggable(name, ck_media.pluggable_ports(plug))
-        port_type = 'copper SFP' if pluggable else 'fixed RJ-45/RJ.5 copper port'
-        expect_supported = None if pluggable else True
-        self.log('INFO: copper test port {} is a {}; {}'.format(
-            name, port_type, 'the DUT decides whether 100 is legal' if pluggable
-            else 'the legal-values table lists 100'))
 
         # Baseline before the change, used to prove "unchanged" if the DUT rejects.
         base_status = dut.cmd('show interface {} status'.format(name))
@@ -803,20 +787,17 @@ class TestCase_3(ATTestCase.TestCase):
 
         intf = dut.cmd('show interface {}'.format(name))
         runcfg = dut.cmd('show running-config interface {}'.format(name))
-        output = '\n'.join([plug, status, intf, runcfg])
+        output = '\n'.join([status, intf, runcfg])
         self.log('OBSERVED: {}'.format(output))
 
         cfg_lines = [line.strip() for line in runcfg.splitlines()]
 
-        if expect_supported is None:
-            self.log('INFO: DUT {} {} speed 100 on a {}; verifying that branch'.format(
-                name, 'accepted' if dut_speed_ok else 'rejected', port_type))
-        elif dut_speed_ok == expect_supported:
-            self.passed('DUT {} accepted speed 100 as the legal-values table requires for a {}'.format(
-                name, port_type))
+        self.testSet.speedMap.setdefault(name, {})['100'] = bool(dut_speed_ok)
+        if dut_speed_ok:
+            self.passed('DUT {} accepted speed 100 with no error indication (recorded in speedMap)'.format(name))
         else:
-            self.failed('DUT {} rejected speed 100 although the legal-values table lists 100 for a {}'.format(
-                name, port_type))
+            self.passed('DUT {} rejected speed 100 with an error indication (the DUT decides; recorded in speedMap)'.format(
+                name))
 
         if dut_speed_ok:
             if 'speed 100' in cfg_lines:
@@ -918,7 +899,7 @@ class TestCase_4(ATTestCase.TestCase):
     # from the filename and this class name, and the run log prints it per case.
     testCaseRef = 'AWPTCM-T33235, 9001.33235.4'
     testCaseMethod = 'On the copper test link, attempt `1000` whatever the port type. On the partner port apply `speed 1000` and `duplex full`, then on the DUT copper test port apply `speed 1000` and `duplex full`. Poll `show interface <copper test port> status` for up to 30 s, then read `show interface <copper test port>` and `show running-config interface <copper test port>`.\n'
-    testCaseMethod += "Verify: If the legal-values table lists `1000` for the copper port's type, the DUT accepts the command, the test port row reads `connected` with bare `1000` and bare `full` (no `a-` prefix), and the current line reads `current duplex full, current speed 1000`. If the legal-values table does not list `1000` for the port's type, the DUT rejects the command with an error indication, running-config gains no `speed 1000` line, and the port's previous speed and link state are unchanged. If the partner rejects the command, log it; judge only the DUT's accept or reject, and do not assert link-up. The console stays at the prompt with no boot output.\n"
+    testCaseMethod += "Verify: The DUT's own answer decides, whatever the port type. If the DUT accepts the command, the test port row reads `connected` with bare `1000` and bare `full` (no `a-` prefix), and the current line reads `current duplex full, current speed 1000`. If the DUT rejects the command with an error indication, that is the result for `1000` on this port: running-config gains no `speed 1000` line, and the port's previous speed and link state are unchanged. Record whether the DUT accepted `1000` on the copper test port for later steps. If the partner rejects the command, log it; judge only the DUT's accept or reject, and do not assert link-up. The console stays at the prompt with no boot output.\n"
 
     def configure(self):
         tb = self.testSet.tb
@@ -963,11 +944,6 @@ class TestCase_4(ATTestCase.TestCase):
                 if 'configured speed ' in line:
                     return line.split('configured speed ', 1)[1].split(',')[0].strip()
             return None
-
-        # Legal-values table for `speed`: every copper port type (RJ.5, RJ-45, tri-speed
-        # copper SFP, 1000 Mbps copper SFP, multi-speed copper SFP+) lists 1000, so on the
-        # copper test link the DUT is expected to ACCEPT speed 1000.
-        expect_accept = True
 
         # Baseline, so a rejection can be shown to leave speed and link state unchanged.
         dut.mode('#')
@@ -1020,16 +996,34 @@ class TestCase_4(ATTestCase.TestCase):
         else:
             self.passed('console stayed at the prompt: show interface and running-config for {} returned with no boot output'.format(name))
 
-        if expect_accept and not (dut_speed_ok and dut_duplex_ok):
-            self.failed('DUT {} rejected the command (speed 1000 accepted={}, duplex full accepted={}) although the legal-values table lists 1000 for copper ports'.format(
-                name, dut_speed_ok, dut_duplex_ok))
+        # The DUT's own answer decides whether 1000 is legal on this port, whatever its type.
+        self.testSet.speedMap.setdefault(name, {})['1000'] = bool(dut_speed_ok)
+        if not dut_speed_ok:
+            self.passed('DUT {} rejected speed 1000 with an error indication (the DUT decides; recorded in speedMap)'.format(
+                name))
             now_up = row is not None and 'connected' in row.split()
             now_speed = configured_speed(intf_out)
-            self.log('INFO: after rejection: running-config speed 1000 line present={}, configured speed {} (was {}), connected={} (was {})'.format(
-                has_speed_line, now_speed, base_speed, now_up, base_up))
+            if not has_speed_line:
+                self.passed('running-config for {} gained no speed 1000 line after the rejection'.format(name))
+            else:
+                self.failed('running-config for {} contains speed 1000 although the DUT rejected it: {!r}'.format(
+                    name, run_lines))
+            if now_speed == base_speed:
+                self.passed('{} configured speed unchanged at {}'.format(name, now_speed))
+            else:
+                self.failed('{} configured speed changed from {} to {} after a rejected command'.format(
+                    name, base_speed, now_speed))
+            if peer_ok:
+                self.log('INFO: partner accepted speed 1000, so the DUT link state is not compared to baseline')
+            elif now_up == base_up:
+                self.passed('{} link state unchanged (connected={})'.format(name, now_up))
+            else:
+                self.failed('{} link state changed from connected={} to connected={}'.format(name, base_up, now_up))
             return
-        else:
-            self.passed('DUT {} accepted speed 1000 and duplex full'.format(name))
+        if not dut_duplex_ok:
+            self.failed('DUT {} rejected duplex full after accepting speed 1000'.format(name))
+            return
+        self.passed('DUT {} accepted speed 1000 and duplex full (recorded in speedMap)'.format(name))
 
         if has_speed_line:
             self.passed('running-config for {} contains speed 1000'.format(name))
@@ -1091,7 +1085,7 @@ class TestCase_5(ATTestCase.TestCase):
     # from the filename and this class name, and the run log prints it per case.
     testCaseRef = 'AWPTCM-T33235, 9001.33235.5'
     testCaseMethod = 'On the copper test link, attempt `2500` whatever the port type. On the partner port apply `speed 2500` and `duplex full`, then on the DUT copper test port apply `speed 2500` and `duplex full`. Poll `show interface <copper test port> status` for up to 30 s, then read `show interface <copper test port>` and `show running-config interface <copper test port>`.\n'
-    testCaseMethod += "Verify: If the legal-values table lists `2500` for the copper port's type, the DUT accepts the command, the test port row reads `connected` with bare `2500` and bare `full` (no `a-` prefix), and the current line reads `current duplex full, current speed 2500`. If the legal-values table does not list `2500` for the port's type, the DUT rejects the command with an error indication, running-config gains no `speed 2500` line, and the port's previous speed and link state are unchanged. If the partner rejects the command, log it; judge only the DUT's accept or reject, and do not assert link-up. The console stays at the prompt with no boot output.\n"
+    testCaseMethod += "Verify: The DUT's own answer decides, whatever the port type. If the DUT accepts the command, the test port row reads `connected` with bare `2500` and bare `full` (no `a-` prefix), and the current line reads `current duplex full, current speed 2500`. If the DUT rejects the command with an error indication, that is the result for `2500` on this port: running-config gains no `speed 2500` line, and the port's previous speed and link state are unchanged. Record whether the DUT accepted `2500` on the copper test port for later steps. If the partner rejects the command, log it; judge only the DUT's accept or reject, and do not assert link-up. The console stays at the prompt with no boot output.\n"
 
     def configure(self):
         tb = self.testSet.tb
@@ -1140,22 +1134,6 @@ class TestCase_5(ATTestCase.TestCase):
             row = next((line for line in out.splitlines() if line.split()[:1] == [name]), None)
             return out, row
 
-        def legal_2500(type_token, plug_row):
-            # Map the reported port type onto the speed legal-values table:
-            # True = the row lists 2500, False = the row does not, None = cannot tell.
-            text = (type_token or '').upper().replace('-', '')
-            if not text:
-                return None
-            if '2.5G' in text or '2500' in text or '5000' in text or text.startswith('5G') or '/5G' in text:
-                return True
-            if '10G' in text and 'BASET' in text:
-                # Fixed RJ-45 copper lists 2500; a 10G copper SFP+ may be the single-speed type
-                return None if plug_row is not None else True
-            if 'BASE' in text:
-                # RJ.5 / tri-speed copper, 1G copper SFP, fibre, DAC, QSFP: 2500 not listed
-                return False
-            return None
-
         # Baseline of the DUT copper test port before the speed change
         dut.mode('#')
         base_if = dut.cmd('show interface {}'.format(name))
@@ -1165,18 +1143,6 @@ class TestCase_5(ATTestCase.TestCase):
         base_status_out, base_row = status_row()
         self.log('BASELINE {}: configured speed {}, current speed {}, running {}, status row: {}'.format(
             name, base_conf_speed, base_cur_speed, base_running, base_row))
-
-        # Classify the port type from the status row's Type column and the pluggable table
-        type_token = base_row.split()[-1] if base_row is not None and len(base_row.split()) > 1 else None
-        plug_out = dut.cmd('show system pluggable')
-        plug_row = None
-        if 'Invalid input' not in plug_out and 'Unrecognized command' not in plug_out:
-            # The pluggable table lists ports without the `port` prefix (`1.0.2`, not `port1.0.2`).
-            bare = name[len('port'):] if name.startswith('port') else name
-            plug_row = next((line for line in plug_out.splitlines() if line.split()[:1] == [bare]), None)
-        legal = legal_2500(type_token, plug_row)
-        self.log('INFO: {} Type column {}, pluggable row {}; legal-values table lists 2500: {}'.format(
-            name, type_token, plug_row, legal))
 
         # Partner first: speed 2500 then duplex full (judged only by logging)
         p_speed_ok = configurePort(self, peer, portDut, 'speed', '2500', 0)
@@ -1218,13 +1184,10 @@ class TestCase_5(ATTestCase.TestCase):
         else:
             self.passed('DUT console stayed at the prompt, no boot output seen')
 
+        # The DUT's own answer decides whether 2500 is legal on this port, whatever its type.
+        self.testSet.speedMap.setdefault(name, {})['2500'] = bool(d_speed_ok)
         if d_speed_ok:
-            if legal is False:
-                self.failed('DUT accepted speed 2500 on {} although its type {} does not list 2500 in the legal-values table'.format(name, type_token))
-            elif legal is True:
-                self.passed('DUT accepted speed 2500 on {} (type {} lists 2500) with no error indication'.format(name, type_token))
-            else:
-                self.passed('DUT accepted speed 2500 on {} with no error indication (type {} not classifiable)'.format(name, type_token))
+            self.passed('DUT accepted speed 2500 on {} with no error indication (recorded in speedMap)'.format(name))
             if d_duplex_ok:
                 self.passed('DUT accepted duplex full on {} with no error indication'.format(name))
             else:
@@ -1262,12 +1225,8 @@ class TestCase_5(ATTestCase.TestCase):
                 self.failed('{} current line is duplex {}, speed {}; expected full / 2500'.format(
                     name, if_field(if_out, 'current duplex'), if_field(if_out, 'current speed')))
         else:
-            if legal is True:
-                self.failed('DUT rejected speed 2500 on {} although its type {} lists 2500 in the legal-values table'.format(name, type_token))
-            elif legal is False:
-                self.passed('DUT rejected speed 2500 on {} with an error indication (type {} does not list 2500)'.format(name, type_token))
-            else:
-                self.log('INFO: DUT rejected speed 2500 on {}; type {} not classifiable, judging the rejection by its side effects'.format(name, type_token))
+            self.passed('DUT rejected speed 2500 on {} with an error indication (the DUT decides; recorded in speedMap)'.format(
+                name))
             if not rc_has_2500:
                 self.passed('running-config for {} gained no speed 2500 line'.format(name))
             else:
@@ -1319,7 +1278,7 @@ class TestCase_6(ATTestCase.TestCase):
     # from the filename and this class name, and the run log prints it per case.
     testCaseRef = 'AWPTCM-T33235, 9001.33235.6'
     testCaseMethod = 'On the copper test link, attempt `5000` whatever the port type. On the partner port apply `speed 5000` and `duplex full`, then on the DUT copper test port apply `speed 5000` and `duplex full`. Poll `show interface <copper test port> status` for up to 30 s, then read `show interface <copper test port>` and `show running-config interface <copper test port>`.\n'
-    testCaseMethod += "Verify: If the legal-values table lists `5000` for the copper port's type, the DUT accepts the command, the test port row reads `connected` with bare `5000` and bare `full` (no `a-` prefix), and the current line reads `current duplex full, current speed 5000`. If the legal-values table does not list `5000` for the port's type, the DUT rejects the command with an error indication, running-config gains no `speed 5000` line, and the port's previous speed and link state are unchanged. If the partner rejects the command, log it; judge only the DUT's accept or reject, and do not assert link-up. The console stays at the prompt with no boot output.\n"
+    testCaseMethod += "Verify: The DUT's own answer decides, whatever the port type. If the DUT accepts the command, the test port row reads `connected` with bare `5000` and bare `full` (no `a-` prefix), and the current line reads `current duplex full, current speed 5000`. If the DUT rejects the command with an error indication, that is the result for `5000` on this port: running-config gains no `speed 5000` line, and the port's previous speed and link state are unchanged. Record whether the DUT accepted `5000` on the copper test port for later steps. If the partner rejects the command, log it; judge only the DUT's accept or reject, and do not assert link-up. The console stays at the prompt with no boot output.\n"
 
     def configure(self):
         tb = self.testSet.tb
@@ -1407,31 +1366,11 @@ class TestCase_6(ATTestCase.TestCase):
             # can be compared against the baseline without a DUT-side duplex change.
             self.log('INFO: DUT rejected speed 5000 on {}; duplex full not applied'.format(name))
 
-        # Classify the DUT port type against the speed legal-values table from runtime evidence
-        # (never a platform list):
-        # - a port that auto-negotiated 5000 is a type whose legal values list 5000;
-        # - a fixed (non-pluggable) port that auto-negotiated 10000 is an RJ-45 copper port, whose
-        #   row lists 5000 (a 10000 Mbps copper SFP+ does not, so a pluggable at 10000 stays unknown);
-        # - a port that auto-negotiated below 5000 against a partner whose own type lists 5000 (it
-        #   accepted speed 5000) did not advertise 5000, so its type does not list it (RJ.5, tri-speed
-        #   or 1000 Mbps copper SFP, a 2.5G-only multigig port);
-        # - anything else cannot be classified from the bench and is logged as indeterminate.
-        pluggable = portCuSfp is not None and portCuSfp.name == name
-        if base_up and base_cur_speed == '5000':
-            lists_5000 = True
-            type_reason = 'baseline auto-negotiated 5000 Mbps'
-        elif base_up and base_cur_speed == '10000' and not pluggable:
-            lists_5000 = True
-            type_reason = 'fixed RJ-45 copper port that auto-negotiated 10000 Mbps; the RJ-45 row lists 5000'
-        elif base_up and peer_ok and base_cur_speed in ('10', '100', '1000', '2500'):
-            lists_5000 = False
-            type_reason = 'baseline auto-negotiated only {} Mbps against a partner that accepts 5000'.format(
-                base_cur_speed)
-        else:
-            lists_5000 = None
-            type_reason = 'baseline connected={}, current speed {}, pluggable={}, partner accepts 5000={}'.format(
-                base_up, base_cur_speed, pluggable, peer_ok)
-        self.log('INFO: {} type lists 5000 = {} ({})'.format(name, lists_5000, type_reason))
+        # The DUT's own answer decides whether 5000 is legal on this port, whatever its type;
+        # recorded for the later steps that need to know what this port accepts.
+        self.testSet.speedMap.setdefault(name, {})['5000'] = bool(dut_ok)
+        self.log('INFO: DUT {} {} speed 5000 (recorded in speedMap)'.format(
+            name, 'accepted' if dut_ok else 'rejected'))
 
         # Poll the status table for up to 30 s.
         dut.mode('#')
@@ -1452,15 +1391,7 @@ class TestCase_6(ATTestCase.TestCase):
         self.log('OBSERVED: {}'.format(output))
 
         if dut_ok:
-            if lists_5000 is False:
-                self.failed('DUT {} accepted speed 5000 although its port type does not list 5000 ({})'.format(
-                    name, type_reason))
-            elif lists_5000:
-                self.passed('DUT {} accepted speed 5000 with no error indication; its port type lists 5000 ({})'.format(
-                    name, type_reason))
-            else:
-                self.passed('DUT {} accepted speed 5000 with no error indication; port type classification indeterminate ({})'.format(
-                    name, type_reason))
+            self.passed('DUT {} accepted speed 5000 with no error indication'.format(name))
             if has_speed_line:
                 self.passed('running-config interface {} holds speed 5000'.format(name))
             else:
@@ -1488,15 +1419,7 @@ class TestCase_6(ATTestCase.TestCase):
                     self.failed('{} show interface lacks current duplex full, current speed 5000 (current speed {})'.format(
                         name, field_after(show_out, 'current speed ')))
         else:
-            if lists_5000:
-                self.failed('DUT {} rejected speed 5000 although its port type lists 5000 ({})'.format(
-                    name, type_reason))
-            elif lists_5000 is False:
-                self.passed('DUT {} rejected speed 5000 with an error indication; its port type does not list 5000 ({})'.format(
-                    name, type_reason))
-            else:
-                self.passed('DUT {} rejected speed 5000 with an error indication; port type classification indeterminate ({})'.format(
-                    name, type_reason))
+            self.passed('DUT {} rejected speed 5000 with an error indication (the DUT decides)'.format(name))
             if has_speed_line:
                 self.failed('running-config interface {} gained a speed 5000 line after the DUT rejected it'.format(
                     name))
@@ -1549,7 +1472,7 @@ class TestCase_7(ATTestCase.TestCase):
     # from the filename and this class name, and the run log prints it per case.
     testCaseRef = 'AWPTCM-T33235, 9001.33235.7'
     testCaseMethod = 'On the copper test link, attempt `10000` whatever the port type. On the partner port apply `speed 10000` and `duplex full`, then on the DUT copper test port apply `speed 10000` and `duplex full`. Poll `show interface <copper test port> status` for up to 30 s, then read `show interface <copper test port>` and `show running-config interface <copper test port>`.\n'
-    testCaseMethod += "Verify: If the legal-values table lists `10000` for the copper port's type, the DUT accepts the command, the test port row reads `connected` with bare `10000` and bare `full` (no `a-` prefix), and the current line reads `current duplex full, current speed 10000`. If the legal-values table does not list `10000` for the port's type, the DUT rejects the command with an error indication, running-config gains no `speed 10000` line, and the port's previous speed and link state are unchanged. If the partner rejects the command, log it; judge only the DUT's accept or reject, and do not assert link-up. The console stays at the prompt with no boot output.\n"
+    testCaseMethod += "Verify: The DUT's own answer decides, whatever the port type. If the DUT accepts the command, the test port row reads `connected` with bare `10000` and bare `full` (no `a-` prefix), and the current line reads `current duplex full, current speed 10000`. If the DUT rejects the command with an error indication, that is the result for `10000` on this port: running-config gains no `speed 10000` line, and the port's previous speed and link state are unchanged. Record whether the DUT accepted `10000` on the copper test port for later steps. If the partner rejects the command, log it; judge only the DUT's accept or reject, and do not assert link-up. The console stays at the prompt with no boot output.\n"
 
     def configure(self):
         tb = self.testSet.tb
@@ -1627,19 +1550,8 @@ class TestCase_7(ATTestCase.TestCase):
         base_connected = 'connected' in base_tokens
         base_cfg_speed = iface_field(base_iface, 'configured speed')
         base_cur_speed = iface_field(base_iface, 'current speed')
-        type_token = base_tokens[-1].lower()
         self.log('INFO: baseline {} row "{}", configured speed {}, current speed {}'.format(
             name, base_row.strip(), base_cfg_speed, base_cur_speed))
-
-        # Legal-values table: RJ-45 multi-gig copper lists 10000, RJ.5/tri-speed (1000Base) copper does not.
-        if '10g' in type_token or base_cur_speed == '10000':
-            expect_supported = True
-        elif type_token.startswith('1000base'):
-            expect_supported = False
-        else:
-            expect_supported = None
-        self.log('INFO: port type token "{}", 10000 expected in legal values: {}'.format(
-            type_token, expect_supported))
 
         # Partner first — its rejection is only logged.
         partner_accepted = configurePort(self, peer, portDut, 'speed', '10000', 0)
@@ -1690,15 +1602,10 @@ class TestCase_7(ATTestCase.TestCase):
             self.failed('DUT {} gave no error indication for speed 10000 yet running-config has no speed 10000 line'.format(name))
             return
 
-        if expect_supported is True and not accepted:
-            self.failed('DUT {} rejected speed 10000 although port type {} lists 10000 in the legal values'.format(
-                name, type_token))
-        elif expect_supported is False and accepted:
-            self.failed('DUT {} accepted speed 10000 although port type {} does not list 10000 in the legal values'.format(
-                name, type_token))
-        else:
-            self.passed('DUT {} {} speed 10000, consistent with port type {}'.format(
-                name, 'accepted' if accepted else 'rejected with an error indication', type_token))
+        # The DUT's own answer decides whether 10000 is legal on this port, whatever its type.
+        self.testSet.speedMap.setdefault(name, {})['10000'] = bool(accepted)
+        self.passed('DUT {} {} speed 10000 (the DUT decides; recorded in speedMap)'.format(
+            name, 'accepted' if accepted else 'rejected with an error indication'))
 
         row = status_row(status_out)
         cfg_speed = iface_field(iface_out, 'configured speed')
@@ -1784,7 +1691,7 @@ class TestCase_8(ATTestCase.TestCase):
     # from the filename and this class name, and the run log prints it per case.
     testCaseRef = 'AWPTCM-T33235, 9001.33235.8'
     testCaseMethod = 'Before this step, set the copper test link back to `no speed` and `duplex auto` on both ends. On the fibre test link, attempt `100` whatever the port type. Apply `speed 100` and `duplex full` on the partner port, then on the DUT fibre test port. Poll `show interface <fibre test port> status` for up to 30 s, then read `show interface <fibre test port>` and `show running-config interface <fibre test port>`.\n'
-    testCaseMethod += "Verify: If the legal-values table lists `100` for the fibre port's type, the DUT accepts the command, the fibre test port row reads `connected` with bare `100` (no `a-` prefix), and the current line reads `current speed 100`. If the legal-values table does not list `100` for the port's type, the DUT rejects the command with an error indication, running-config gains no `speed 100` line, and the port's previous speed and link state are unchanged. If the partner rejects the command, log it; judge only the DUT's accept or reject, and do not assert link-up. The console stays at the prompt with no boot output. If the fibre port's type is a 100 Mbps fibre SFP, `speed 100` is its only legal value and it does not auto-negotiate; on any other fibre type the DUT rejects `speed 100` with an error indication and the port's previous speed and link state are unchanged.\n"
+    testCaseMethod += "Verify: The DUT's own answer decides, whatever the port type. If the DUT accepts the command, the fibre test port row reads `connected` with bare `100` (no `a-` prefix), and the current line reads `current speed 100`. If the DUT rejects the command with an error indication, that is the result for `100` on this port: running-config gains no `speed 100` line, and the port's previous speed and link state are unchanged. Record whether the DUT accepted `100` on the fibre test port for later steps. If the partner rejects the command, log it; judge only the DUT's accept or reject, and do not assert link-up. The console stays at the prompt with no boot output.\n"
 
     def configure(self):
         tb = self.testSet.tb
@@ -1853,13 +1760,8 @@ class TestCase_8(ATTestCase.TestCase):
         # The pluggable table lists ports without the `port` prefix (`1.0.2`, not `port1.0.2`).
         bare = name[len('port'):] if name.startswith('port') else name
         plug_row = next((line for line in plug.splitlines() if line.split()[:1] == [bare]), '')
-        plug_upper = plug_row.upper()
-        # A 100 Mbps fibre SFP (100Base-FX) does not auto-negotiate and runs at 100 by default.
-        is_100m = (base_cur_speed == '100' or '100FX' in plug_upper or '100-FX' in plug_upper
-                   or '100BASE' in plug_upper)
-        self.log('INFO: baseline {} configured speed {}, current speed {}, link {}; pluggable row "{}"; '
-                 '100 Mbps fibre SFP: {}'.format(name, base_cfg_speed, base_cur_speed, base_link,
-                                                 plug_row.strip(), is_100m))
+        self.log('INFO: baseline {} configured speed {}, current speed {}, link {}; pluggable row "{}"'.format(
+            name, base_cfg_speed, base_cur_speed, base_link, plug_row.strip()))
 
         # Partner first, then the DUT fibre test port.
         partner_ok = configurePort(self, fibre_peer, farFibre, 'speed', '100', 0)
@@ -1901,12 +1803,14 @@ class TestCase_8(ATTestCase.TestCase):
 
         rc_speed100 = any(line.strip() == 'speed 100' for line in after_rc.splitlines())
 
-        if is_100m:
-            if dut_accepted:
-                self.passed('DUT accepted speed 100 on 100 Mbps fibre SFP port {}'.format(name))
+        # The DUT's own answer decides whether 100 is legal on this fibre port, whatever its type.
+        self.testSet.speedMap.setdefault(name, {})['100'] = bool(dut_accepted)
+        if dut_accepted:
+            self.passed('DUT accepted speed 100 on fibre port {} with no error indication (recorded in speedMap)'.format(name))
+            if rc_speed100:
+                self.passed('running-config for {} contains speed 100'.format(name))
             else:
-                self.failed('DUT rejected speed 100 on 100 Mbps fibre SFP port {}, where 100 is its only legal value'.format(name))
-                return
+                self.failed('running-config for {} has no speed 100 line after the command was accepted'.format(name))
             if not partner_ok:
                 self.log('INFO: partner rejected speed 100; link-up and current speed not asserted')
                 return
@@ -1923,13 +1827,8 @@ class TestCase_8(ATTestCase.TestCase):
             else:
                 self.failed('{} current speed is {}, expected 100'.format(name, field(after_if, 'current speed ')))
         else:
-            if not dut_accepted:
-                self.passed('DUT rejected speed 100 with an error indication on non-100M fibre port {} (pluggable "{}")'.format(
-                    name, plug_row.strip()))
-            else:
-                self.failed('DUT accepted speed 100 on non-100M fibre port {} (pluggable "{}"), expected rejection'.format(
-                    name, plug_row.strip()))
-                return
+            self.passed('DUT rejected speed 100 with an error indication on fibre port {} (the DUT decides; pluggable "{}")'.format(
+                name, plug_row.strip()))
             if rc_speed100 and not base_had_speed100:
                 self.failed('running-config for {} gained a speed 100 line after the rejected command'.format(name))
             else:
@@ -1988,7 +1887,7 @@ class TestCase_9(ATTestCase.TestCase):
     # from the filename and this class name, and the run log prints it per case.
     testCaseRef = 'AWPTCM-T33235, 9001.33235.9'
     testCaseMethod = 'On the fibre test link, attempt `1000` whatever the port type. Apply `speed 1000` and `duplex full` on the partner port, then on the DUT fibre test port. Poll `show interface <fibre test port> status` for up to 30 s, then read `show interface <fibre test port>` and `show running-config interface <fibre test port>`.\n'
-    testCaseMethod += "Verify: If the legal-values table lists `1000` for the fibre port's type, the DUT accepts the command, the fibre test port row reads `connected` with bare `1000` (no `a-` prefix), and the current line reads `current speed 1000`. If the legal-values table does not list `1000` for the port's type, the DUT rejects the command with an error indication, running-config gains no `speed 1000` line, and the port's previous speed and link state are unchanged. If the partner rejects the command, log it; judge only the DUT's accept or reject, and do not assert link-up. The console stays at the prompt with no boot output.\n"
+    testCaseMethod += "Verify: The DUT's own answer decides, whatever the port type. If the DUT accepts the command, the fibre test port row reads `connected` with bare `1000` (no `a-` prefix), and the current line reads `current speed 1000`. If the DUT rejects the command with an error indication, that is the result for `1000` on this port: running-config gains no `speed 1000` line, and the port's previous speed and link state are unchanged. Record whether the DUT accepted `1000` on the fibre test port for later steps. If the partner rejects the command, log it; judge only the DUT's accept or reject, and do not assert link-up. The console stays at the prompt with no boot output.\n"
 
     def configure(self):
         tb = self.testSet.tb
@@ -2078,16 +1977,7 @@ class TestCase_9(ATTestCase.TestCase):
         baseSpeed = current_speed(baseIf)
         baseUp = 'Link is UP' in baseIf
         baseHad1000 = has_speed_1000(baseRc)
-        # Legal-values table: only "1000 Mbps fiber SFPs" / CSFPs list 1000 for fibre; 100 Mbps
-        # fibre (100 only), 10G SFP+ (10000), 40G QSFP+ (40000) and 100G QSFP28 (100000) do not.
-        if baseSpeed == '1000':
-            expectLegal = True
-        elif baseSpeed in ('10', '100', '2500', '5000', '10000', '40000', '100000'):
-            expectLegal = False
-        else:
-            expectLegal = None
-        self.log('INFO: {} baseline current speed {}, link up {}, 1000 legal per table: {}'.format(
-            name, baseSpeed, baseUp, expectLegal))
+        self.log('INFO: {} baseline current speed {}, link up {}'.format(name, baseSpeed, baseUp))
 
         # Partner first, then the DUT.
         fibre_peer.mode(')#')
@@ -2136,43 +2026,33 @@ class TestCase_9(ATTestCase.TestCase):
                      dutSpeedOut.strip(), dutDuplexOut.strip(), row, afterSpeed, afterUp, has_speed_1000(rcOut))
         self.log('OBSERVED: {}'.format(output))
 
-        if expectLegal is None:
-            self.log('INFO: {} baseline speed unknown (link down at baseline); judging the DUT response on its own consistency'.format(name))
-        acceptPath = expectLegal is True or (expectLegal is None and not dutRejected)
-
-        if acceptPath:
-            if dutRejected:
-                self.failed('DUT rejected speed 1000 on {} although its type (baseline current speed {}) lists 1000: {}'.format(
-                    name, baseSpeed, first_error_line(dutSpeedOut)))
+        # The DUT's own answer decides whether 1000 is legal on this fibre port, whatever its type.
+        self.testSet.speedMap.setdefault(name, {})['1000'] = not dutRejected
+        if not dutRejected:
+            self.passed('DUT accepted speed 1000 on {} with no error indication (recorded in speedMap)'.format(name))
+            if has_speed_1000(rcOut):
+                self.passed('running-config for {} shows speed 1000'.format(name))
             else:
-                self.passed('DUT accepted speed 1000 on {} with no error indication'.format(name))
-                if has_speed_1000(rcOut):
-                    self.passed('running-config for {} shows speed 1000'.format(name))
+                self.failed('running-config for {} has no speed 1000 line after the command was accepted'.format(name))
+            if partnerRejected:
+                self.log('INFO: partner rejected speed 1000; link-up, status row and current speed not asserted')
+            else:
+                if row is None:
+                    self.failed('port {} missing from show interface status output'.format(name))
                 else:
-                    self.failed('running-config for {} has no speed 1000 line after the command was accepted'.format(name))
-                if partnerRejected:
-                    self.log('INFO: partner rejected speed 1000; link-up, status row and current speed not asserted')
+                    tokens = row.split()
+                    if 'connected' in tokens and '1000' in tokens and 'a-1000' not in tokens:
+                        self.passed('{} status row reads connected with bare 1000: {}'.format(name, row.strip()))
+                    else:
+                        self.failed('{} status row is not connected with bare 1000 after 30 s: {}'.format(
+                            name, row.strip()))
+                if afterSpeed == '1000':
+                    self.passed('{} show interface reads current speed 1000'.format(name))
                 else:
-                    if row is None:
-                        self.failed('port {} missing from show interface status output'.format(name))
-                    else:
-                        tokens = row.split()
-                        if 'connected' in tokens and '1000' in tokens and 'a-1000' not in tokens:
-                            self.passed('{} status row reads connected with bare 1000: {}'.format(name, row.strip()))
-                        else:
-                            self.failed('{} status row is not connected with bare 1000 after 30 s: {}'.format(
-                                name, row.strip()))
-                    if afterSpeed == '1000':
-                        self.passed('{} show interface reads current speed 1000'.format(name))
-                    else:
-                        self.failed('{} show interface reads current speed {}, expected 1000'.format(name, afterSpeed))
+                    self.failed('{} show interface reads current speed {}, expected 1000'.format(name, afterSpeed))
         else:
-            if dutRejected:
-                self.passed('DUT rejected speed 1000 on {} (type does not list 1000, baseline current speed {}): {}'.format(
-                    name, baseSpeed, first_error_line(dutSpeedOut)))
-            else:
-                self.failed('DUT accepted speed 1000 on {} although its type (baseline current speed {}) does not list 1000: {!r}'.format(
-                    name, baseSpeed, dutSpeedOut.strip()))
+            self.passed('DUT rejected speed 1000 on {} with an error indication (the DUT decides; recorded in speedMap): {}'.format(
+                name, first_error_line(dutSpeedOut)))
             if has_speed_1000(rcOut) and not baseHad1000:
                 self.failed('running-config for {} gained a speed 1000 line after the rejected command'.format(name))
             else:
@@ -2223,7 +2103,7 @@ class TestCase_10(ATTestCase.TestCase):
     # from the filename and this class name, and the run log prints it per case.
     testCaseRef = 'AWPTCM-T33235, 9001.33235.10'
     testCaseMethod = 'On the fibre test link, attempt `10000` whatever the port type. Apply `speed 10000` and `duplex full` on the partner port, then on the DUT fibre test port. Poll `show interface <fibre test port> status` for up to 30 s, then read `show interface <fibre test port>` and `show running-config interface <fibre test port>`.\n'
-    testCaseMethod += "Verify: If the legal-values table lists `10000` for the fibre port's type, the DUT accepts the command, the fibre test port row reads `connected` with bare `10000` (no `a-` prefix), and the current line reads `current speed 10000`. If the legal-values table does not list `10000` for the port's type, the DUT rejects the command with an error indication, running-config gains no `speed 10000` line, and the port's previous speed and link state are unchanged. If the partner rejects the command, log it; judge only the DUT's accept or reject, and do not assert link-up. The console stays at the prompt with no boot output.\n"
+    testCaseMethod += "Verify: The DUT's own answer decides, whatever the port type. If the DUT accepts the command, the fibre test port row reads `connected` with bare `10000` (no `a-` prefix), and the current line reads `current speed 10000`. If the DUT rejects the command with an error indication, that is the result for `10000` on this port: running-config gains no `speed 10000` line, and the port's previous speed and link state are unchanged. Record whether the DUT accepted `10000` on the fibre test port for later steps. If the partner rejects the command, log it; judge only the DUT's accept or reject, and do not assert link-up. The console stays at the prompt with no boot output.\n"
 
     def configure(self):
         tb = self.testSet.tb
@@ -2308,14 +2188,6 @@ class TestCase_10(ATTestCase.TestCase):
         baseCfgSpeed = field(baseIf, 'configured speed')
         self.log('INFO: baseline {} row "{}", current speed {}, configured speed {}'.format(
             name, baseRow, baseSpeed, baseCfgSpeed))
-        if baseSpeed is None:
-            self.failed('{} shows no current speed before the change (row "{}"), so the fibre module type cannot be classified against the speed legal-values table'.format(name, baseRow))
-            return
-        # Fibre types in the legal-values table: only "10000 Mbps fiber SFP+" lists 10000;
-        # 100M/1000M fibre SFPs, CSFPs, 40G QSFP+ and 100G QSFP28 do not.
-        tenGigLegal = baseSpeed == '10000'
-        self.log('INFO: {} native speed {} Mbps; speed 10000 is {} for this fibre type'.format(
-            name, baseSpeed, 'LEGAL' if tenGigLegal else 'NOT legal'))
 
         # Partner first.
         fibre_peer.mode(')#')
@@ -2344,7 +2216,7 @@ class TestCase_10(ATTestCase.TestCase):
         row = status_row()
         deadline = time.time() + 30
         while time.time() < deadline:
-            if tenGigLegal and not dutRejected:
+            if not dutRejected:
                 if row_up(row) and '10000' in row.split():
                     break
             elif row_up(row) == baseUp:
@@ -2364,13 +2236,11 @@ class TestCase_10(ATTestCase.TestCase):
         runHasSpeed = any(line.strip() == 'speed 10000' for line in runOutput.splitlines())
         rowTokens = row.split() if row is not None else []
 
-        if tenGigLegal:
-            if not dutRejected:
-                self.passed('DUT accepted speed 10000 on 10G fibre port {} (response "{}")'.format(
-                    name, dutSpeedOut.strip()))
-            else:
-                self.failed('DUT rejected speed 10000 on 10G fibre port {}, which the legal-values table allows: {}'.format(name, error_line(dutSpeedOut)))
-                return
+        # The DUT's own answer decides whether 10000 is legal on this fibre port, whatever its type.
+        self.testSet.speedMap.setdefault(name, {})['10000'] = not dutRejected
+        if not dutRejected:
+            self.passed('DUT accepted speed 10000 on fibre port {} with no error indication (recorded in speedMap; response "{}")'.format(
+                name, dutSpeedOut.strip()))
             if runHasSpeed:
                 self.passed('show running-config interface {} contains "speed 10000"'.format(name))
             else:
@@ -2391,11 +2261,8 @@ class TestCase_10(ATTestCase.TestCase):
                 else:
                     self.failed('{} show interface reads current speed {}, expected 10000'.format(name, nowSpeed))
         else:
-            if dutRejected:
-                self.passed('DUT rejected speed 10000 on {} Mbps fibre port {}: {}'.format(
-                    baseSpeed, name, error_line(dutSpeedOut)))
-            else:
-                self.failed('DUT accepted speed 10000 on {} Mbps fibre port {}, which the legal-values table does not list (response "{}")'.format(baseSpeed, name, dutSpeedOut.strip()))
+            self.passed('DUT rejected speed 10000 on fibre port {} with an error indication (the DUT decides; recorded in speedMap): {}'.format(
+                name, error_line(dutSpeedOut)))
             if not runHasSpeed:
                 self.passed('show running-config interface {} gained no "speed 10000" line'.format(name))
             else:
@@ -2450,7 +2317,7 @@ class TestCase_11(ATTestCase.TestCase):
     # from the filename and this class name, and the run log prints it per case.
     testCaseRef = 'AWPTCM-T33235, 9001.33235.11'
     testCaseMethod = 'On the fibre test link, attempt `40000` whatever the port type. Apply `speed 40000` and `duplex full` on the partner port, then on the DUT fibre test port. Poll `show interface <fibre test port> status` for up to 30 s, then read `show interface <fibre test port>` and `show running-config interface <fibre test port>`.\n'
-    testCaseMethod += "Verify: If the legal-values table lists `40000` for the fibre port's type, the DUT accepts the command, the fibre test port row reads `connected` with bare `40000` (no `a-` prefix), and the current line reads `current speed 40000`. If the legal-values table does not list `40000` for the port's type, the DUT rejects the command with an error indication, running-config gains no `speed 40000` line, and the port's previous speed and link state are unchanged. If the partner rejects the command, log it; judge only the DUT's accept or reject, and do not assert link-up. The console stays at the prompt with no boot output.\n"
+    testCaseMethod += "Verify: The DUT's own answer decides, whatever the port type. If the DUT accepts the command, the fibre test port row reads `connected` with bare `40000` (no `a-` prefix), and the current line reads `current speed 40000`. If the DUT rejects the command with an error indication, that is the result for `40000` on this port: running-config gains no `speed 40000` line, and the port's previous speed and link state are unchanged. Record whether the DUT accepted `40000` on the fibre test port for later steps. If the partner rejects the command, log it; judge only the DUT's accept or reject, and do not assert link-up. The console stays at the prompt with no boot output.\n"
 
     def configure(self):
         tb = self.testSet.tb
@@ -2519,14 +2386,8 @@ class TestCase_11(ATTestCase.TestCase):
         # The pluggable table lists ports without the `port` prefix (`1.0.2`, not `port1.0.2`).
         bare = name[len('port'):] if name.startswith('port') else name
         plug_upper = (next((line for line in plug.splitlines() if line.split()[:1] == [bare]), '') or '').upper()
-        # Legal-values table: 40000 is listed only for 40000 Mbps QSFP+ and 40000 Mbps DAC
-        legal_40g = ('40G' in plug_upper
-                     or ('QSFP' in plug_upper and 'QSFP28' not in plug_upper and '100G' not in plug_upper)
-                     or base_cur_speed == '40000')
-        self.log('INFO: {} baseline connected={} configured speed {} current speed {}; module row "{}"; '
-                 '40000 legal for this port type: {}'.format(name, base_connected, base_cfg_speed,
-                                                             base_cur_speed, plug_upper.strip(), legal_40g))
-        expect_reject = 0 if legal_40g else 1
+        self.log('INFO: {} baseline connected={} configured speed {} current speed {}; module row "{}"'.format(
+            name, base_connected, base_cfg_speed, base_cur_speed, plug_upper.strip()))
 
         # Partner first, then the DUT
         # The family library's configurePort returns True when the command is accepted (and
@@ -2578,12 +2439,10 @@ class TestCase_11(ATTestCase.TestCase):
         cfg_speed = field_after(int_out, 'configured speed ')
         cur_speed = field_after(int_out, 'current speed ')
 
-        if legal_40g:
-            if dut_rejected:
-                self.failed('{} is a 40G port type but the DUT rejected speed 40000'.format(name))
-                return
-            else:
-                self.passed('{} is a 40G port type and the DUT accepted speed 40000'.format(name))
+        # The DUT's own answer decides whether 40000 is legal on this fibre port, whatever its type.
+        self.testSet.speedMap.setdefault(name, {})['40000'] = not dut_rejected
+        if not dut_rejected:
+            self.passed('DUT accepted speed 40000 on {} with no error indication (recorded in speedMap)'.format(name))
             if run_has_40g:
                 self.passed('running-config for {} shows speed 40000'.format(name))
             else:
@@ -2601,13 +2460,10 @@ class TestCase_11(ATTestCase.TestCase):
                 else:
                     self.failed('{} show interface reads current speed {}, expected 40000'.format(name, cur_speed))
         else:
-            if not dut_rejected:
-                self.failed('{} port type does not list 40000 but the DUT accepted speed 40000'.format(name))
-            else:
-                self.passed('{} port type does not list 40000 and the DUT rejected speed 40000 with an error'.format(
-                    name))
+            self.passed('DUT rejected speed 40000 on {} with an error indication (the DUT decides; recorded in speedMap)'.format(
+                name))
             if run_has_40g:
-                self.failed('running-config for {} gained a speed 40000 line on a non-40G port'.format(name))
+                self.failed('running-config for {} gained a speed 40000 line after the rejected command'.format(name))
             else:
                 self.passed('running-config for {} has no speed 40000 line'.format(name))
             if cfg_speed == base_cfg_speed:
@@ -2658,7 +2514,7 @@ class TestCase_12(ATTestCase.TestCase):
     # from the filename and this class name, and the run log prints it per case.
     testCaseRef = 'AWPTCM-T33235, 9001.33235.12'
     testCaseMethod = 'On the fibre test link, attempt `100000` whatever the port type. Apply `speed 100000` and `duplex full` on the partner port, then on the DUT fibre test port. Poll `show interface <fibre test port> status` for up to 30 s, then read `show interface <fibre test port>` and `show running-config interface <fibre test port>`.\n'
-    testCaseMethod += "Verify: If the legal-values table lists `100000` for the fibre port's type, the DUT accepts the command, the fibre test port row reads `connected` with bare `100000` (no `a-` prefix), and the current line reads `current speed 100000`. If the legal-values table does not list `100000` for the port's type, the DUT rejects the command with an error indication, running-config gains no `speed 100000` line, and the port's previous speed and link state are unchanged. If the partner rejects the command, log it; judge only the DUT's accept or reject, and do not assert link-up. The console stays at the prompt with no boot output.\n"
+    testCaseMethod += "Verify: The DUT's own answer decides, whatever the port type. If the DUT accepts the command, the fibre test port row reads `connected` with bare `100000` (no `a-` prefix), and the current line reads `current speed 100000`. If the DUT rejects the command with an error indication, that is the result for `100000` on this port: running-config gains no `speed 100000` line, and the port's previous speed and link state are unchanged. Record whether the DUT accepted `100000` on the fibre test port for later steps. If the partner rejects the command, log it; judge only the DUT's accept or reject, and do not assert link-up. The console stays at the prompt with no boot output.\n"
 
     def configure(self):
         tb = self.testSet.tb
@@ -2740,15 +2596,12 @@ class TestCase_12(ATTestCase.TestCase):
         self.log('INFO: baseline {} row: {}; link up: {}; configured speed {}; current speed {}'.format(
             name, base_row, base_link_up, base_cfg_speed, base_cur_speed))
 
-        # Port type: 100000 is legal only on 100000 Mbps QSFP28 ports
+        # Pluggable row, logged for context; the DUT's own answer decides whether 100000 is legal.
         plug = dut.cmd('show system pluggable')
         # The pluggable table lists ports without the `port` prefix (`1.0.2`, not `port1.0.2`).
         bare = name[len('port'):] if name.startswith('port') else name
         plug_row = next((line for line in plug.splitlines() if line.split()[:1] == [bare]), None)
-        plug_upper = (plug_row or '').upper()
-        legal_100g = base_cur_speed == '100000' or 'QSFP28' in plug_upper or '100G' in plug_upper
-        self.log('INFO: {} pluggable row: {}; 100000 in legal values for this port type: {}'.format(
-            name, plug_row, legal_100g))
+        self.log('INFO: {} pluggable row: {}'.format(name, plug_row))
 
         # Partner first — its accept/reject is logged only, never judged
         peer_speed_ok = configurePort(self, fibre_peer, peerFibre, 'speed', '100000', 0)
@@ -2792,13 +2645,13 @@ class TestCase_12(ATTestCase.TestCase):
         else:
             self.passed('DUT console stayed at the prompt, no boot output in show interface / running-config reads')
 
-        if legal_100g:
-            if dut_accepted and rc_has_speed:
-                self.passed('DUT {} accepted speed 100000 and running-config shows speed 100000'.format(name))
+        self.testSet.speedMap.setdefault(name, {})['100000'] = bool(dut_accepted)
+        if dut_accepted:
+            self.passed('DUT {} accepted speed 100000 with no error indication (recorded in speedMap)'.format(name))
+            if rc_has_speed:
+                self.passed('running-config for {} shows speed 100000'.format(name))
             else:
-                self.failed('DUT {} did not take speed 100000 on a 100G port: accepted={}, running-config speed 100000 present={}'.format(
-                    name, dut_accepted, rc_has_speed))
-                return
+                self.failed('running-config for {} has no speed 100000 line after the command was accepted'.format(name))
             if not peer_speed_ok:
                 self.log('INFO: partner rejected speed 100000; link-up and current speed not asserted')
                 return
@@ -2814,10 +2667,8 @@ class TestCase_12(ATTestCase.TestCase):
                 self.failed('{} show interface current speed is {}, expected 100000'.format(
                     name, field(if_out, 'current speed')))
         else:
-            if not dut_accepted:
-                self.passed('DUT {} rejected speed 100000 with an error indication (not a QSFP28 port)'.format(name))
-            else:
-                self.failed('DUT {} accepted speed 100000 although 100000 is not a legal value for this port type'.format(name))
+            self.passed('DUT {} rejected speed 100000 with an error indication (the DUT decides; recorded in speedMap)'.format(
+                name))
             if rc_has_speed and not base_has_speed:
                 self.failed('running-config for {} gained a speed 100000 line after the rejected command'.format(name))
             else:
@@ -3708,11 +3559,11 @@ class TestCase_18(ATTestCase.TestCase):
 
 
 class TestCase_19(ATTestCase.TestCase):
-    testCaseDesc = "From the legal-values table, pick a documented speed value that is not legal for the test port's type. Examples: `speed 10000` on RJ.5 copper or a tri-speed copper SFP, `speed 40000` on RJ-45 copper, `speed 10` on a 1000 Mbps fibre SFP, `speed 1000` on a 10000 Mbps fibre SFP+. Enter it on the DUT test port."
+    testCaseDesc = "Pick a documented speed value the sweep (steps 3-8) recorded as rejected by the DUT on the test port; the DUT's own answers, not a port-type table, say which values are illegal here. If the sweep recorded no rejected value, log the step as not applicable. Enter it on the DUT test port."
     # ART identity <family>.<case>.<TestCase> — the framework composes the same triple
     # from the filename and this class name, and the run log prints it per case.
     testCaseRef = 'AWPTCM-T33235, 9001.33235.19'
-    testCaseMethod = "From the legal-values table, pick a documented speed value that is not legal for the test port's type. Examples: `speed 10000` on RJ.5 copper or a tri-speed copper SFP, `speed 40000` on RJ-45 copper, `speed 10` on a 1000 Mbps fibre SFP, `speed 1000` on a 10000 Mbps fibre SFP+. Enter it on the DUT test port.\n"
+    testCaseMethod = "Pick a documented speed value the sweep (steps 3-8) recorded as rejected by the DUT on the test port; the DUT's own answers, not a port-type table, say which values are illegal here. If the sweep recorded no rejected value, log the step as not applicable. Enter it on the DUT test port.\n"
     testCaseMethod += 'Verify: The command is rejected with an error indication stating it is not supported on this port or media. Afterwards, running-config still contains `speed S` and no new speed line, the status row still reads `connected` with bare S, and the current line still reads `current speed S`.\n'
 
     def configure(self):
@@ -3727,9 +3578,9 @@ class TestCase_19(ATTestCase.TestCase):
         portCuSfp = dut.portCuSfp
         if self.testSet.speedS is None:
             return    # step 14 found no working fixed speed S; main() reports UNSUPPORTED
-        # Precondition: the copper test link runs at a FIXED speed S = 1000 with duplex full
-        # (the step-14 'speed S + duplex full' state; 1000 is legal on RJ.5, RJ-45 and
-        # tri-speed copper). Partner first, then the DUT, as the library note says.
+        # Precondition: the copper test link runs at the FIXED speed S step 14 found, with duplex
+        # full (the step-14 'speed S + duplex full' state). Partner first, then the DUT, as the
+        # library note says.
         configurePort(self, peer, portDut, 'speed', self.testSet.speedS, 0)
         configurePort(self, peer, portDut, 'duplex', 'full', 0)
         configurePort(self, dut, portPeer, 'speed', self.testSet.speedS, 0)
@@ -3752,12 +3603,22 @@ class TestCase_19(ATTestCase.TestCase):
             self.supported = False
             self.failed('no working fixed speed S was found in step 14 (TestCase_13), so this step has no S to apply')
             return
-        self.log("STEP 20: From the legal-values table, pick a documented speed value that is not legal for the test port's type. Examples: `speed 10000` on RJ.5 copper or a tri-speed copper SFP, `speed 40000` on RJ-45 copper, `speed 10` on a 1000 Mbps fibre SFP, `speed 1000` on a 10000 Mbps fibre SFP+. Enter it on the DUT test port.")
+        self.log("STEP 20: Pick a documented speed value the sweep (steps 3-8) recorded as rejected by the DUT on the test port; the DUT's own answers, not a port-type table, say which values are illegal here. If the sweep recorded no rejected value, log the step as not applicable. Enter it on the DUT test port.")
         import time
         speed_s = self.testSet.speedS
-        # (RJ.5: 10/100/1000, RJ-45: up to 10000, tri-speed copper SFP: 10/100/1000).
-        bad_speed = '40000'
         name = portPeer.name
+        # The sweep (steps 3-8) recorded the DUT's own answer for every documented speed on this
+        # port; a value it rejected there is an illegal value for THIS port, whatever its type.
+        recorded = (self.testSet.speedMap or {}).get(name) or {}
+        rejected = [value for value in ('10', '100', '1000', '2500', '5000', '10000')
+                    if recorded.get(value) is False]
+        self.log('INFO: sweep record for {}: {}; rejected values: {}'.format(name, recorded, rejected))
+        if not rejected:
+            self.supported = False
+            self.failed('the sweep recorded no speed value the DUT rejected on {}, so there is no illegal value to enter; case not applicable'.format(
+                name))
+            return
+        bad_speed = rejected[-1]
 
         # Precondition check: fixed speed S applied and the link is connected at bare S.
         dut.mode('#')
@@ -3859,11 +3720,11 @@ class TestCase_19(ATTestCase.TestCase):
 
 
 class TestCase_20(ATTestCase.TestCase):
-    testCaseDesc = "Run this only where both 10 and 100 are legal for the test port's type (copper). On single-speed media an incompatible fixed pair cannot be built, so skip and log it as not applicable. Force BOTH ends: on the DUT test port apply `speed 100` and `duplex full`; on the partner port apply `speed 10` and `duplex full`. Every 5 s for 60 s, read `show interface <test port> status`, `show interface <test port>` and the partner's status row. Then read `show log`."
+    testCaseDesc = "Run this only where the sweep (steps 3-4) recorded the DUT accepting both `speed 10` and `speed 100` on the test port. Where the DUT rejected either, an incompatible fixed pair cannot be built, so skip and log it as not applicable. Force BOTH ends: on the DUT test port apply `speed 100` and `duplex full`; on the partner port apply `speed 10` and `duplex full`. Every 5 s for 60 s, read `show interface <test port> status`, `show interface <test port>` and the partner's status row. Then read `show log`."
     # ART identity <family>.<case>.<TestCase> — the framework composes the same triple
     # from the filename and this class name, and the run log prints it per case.
     testCaseRef = 'AWPTCM-T33235, 9001.33235.20'
-    testCaseMethod = "Run this only where both 10 and 100 are legal for the test port's type (copper). On single-speed media an incompatible fixed pair cannot be built, so skip and log it as not applicable. Force BOTH ends: on the DUT test port apply `speed 100` and `duplex full`; on the partner port apply `speed 10` and `duplex full`. Every 5 s for 60 s, read `show interface <test port> status`, `show interface <test port>` and the partner's status row. Then read `show log`.\n"
+    testCaseMethod = "Run this only where the sweep (steps 3-4) recorded the DUT accepting both `speed 10` and `speed 100` on the test port. Where the DUT rejected either, an incompatible fixed pair cannot be built, so skip and log it as not applicable. Force BOTH ends: on the DUT test port apply `speed 100` and `duplex full`; on the partner port apply `speed 10` and `duplex full`. Every 5 s for 60 s, read `show interface <test port> status`, `show interface <test port>` and the partner's status row. Then read `show log`.\n"
     testCaseMethod += 'Verify: Throughout the whole 60 s window, the test port row never contains `connected` and neither does the partner row. `show interface <test port>` has no `current speed` value. The log contains no link-up event for the test port during the window.\n'
 
     def configure(self):
@@ -3900,22 +3761,33 @@ class TestCase_20(ATTestCase.TestCase):
         portFibre = dut.portFibre
         cusfp_peer = self.testSet.cusfp_peer          # None when self.testSet.cusfp_supported is False
         portCuSfp = dut.portCuSfp
-        self.log("STEP 21: Run this only where both 10 and 100 are legal for the test port's type (copper). On single-speed media an incompatible fixed pair cannot be built, so skip and log it as not applicable. Force BOTH ends: on the DUT test port apply `speed 100` and `duplex full`; on the partner port apply `speed 10` and `duplex full`. Every 5 s for 60 s, read `show interface <test port> status`, `show interface <test port>` and the partner's status row. Then read `show log`.")
+        self.log("STEP 21: Run this only where the sweep (steps 3-4) recorded the DUT accepting both `speed 10` and `speed 100` on the test port. Where the DUT rejected either, an incompatible fixed pair cannot be built, so skip and log it as not applicable. Force BOTH ends: on the DUT test port apply `speed 100` and `duplex full`; on the partner port apply `speed 10` and `duplex full`. Every 5 s for 60 s, read `show interface <test port> status`, `show interface <test port>` and the partner's status row. Then read `show log`.")
         testName = portPeer.name
         partnerName = portDut.name
 
-        # Applicability is decided by the DUT test port's type: it must accept BOTH speed 10
-        # and speed 100. A rejection of either means single-speed media, where an
-        # incompatible fixed pair cannot be built. Speed 100 is applied last so it stays in effect.
-        dutSpeed10Ok = configurePort(self, dut, portPeer, 'speed', '10', 0)
-        dutSpeed100Ok = configurePort(self, dut, portPeer, 'speed', '100', 0)
+        # Applicability comes from the sweep's record of the DUT's own answers (steps 3-4): the
+        # test port must have accepted BOTH speed 10 and speed 100. A rejection of either means an
+        # incompatible fixed pair cannot be built. Consulting the record instead of probing again
+        # keeps the probe's link events out of this step's log window.
+        recorded = (self.testSet.speedMap or {}).get(testName) or {}
+        dutSpeed10Ok = recorded.get('10')
+        dutSpeed100Ok = recorded.get('100')
+        if dutSpeed10Ok is None or dutSpeed100Ok is None:
+            self.supported = False
+            self.failed('the sweep recorded no answer for speed 10 / speed 100 on {} ({}); applicability unknown, case not applicable'.format(
+                testName, recorded))
+            return
         if not (dutSpeed10Ok and dutSpeed100Ok):
             self.supported = False
-            self.failed('DUT test port {} on {} accepted speed 10={}, speed 100={}; both are required (single-speed media), incompatible fixed pair cannot be built, case not applicable'.format(
+            self.failed('DUT test port {} on {} accepted speed 10={}, speed 100={} in the sweep; both are required, incompatible fixed pair cannot be built, case not applicable'.format(
                 testName, dut, dutSpeed10Ok, dutSpeed100Ok))
             return
-        self.log('INFO: DUT test port {} on {} accepts both speed 10 and speed 100; case applicable'.format(
+        self.log('INFO: the sweep recorded DUT test port {} on {} accepting both speed 10 and speed 100; case applicable'.format(
             testName, dut))
+        # Speed 100 on the DUT is applied now so it is in effect for the window.
+        if not configurePort(self, dut, portPeer, 'speed', '100', 0):
+            self.failed('DUT test port {} rejected speed 100 although the sweep recorded it accepted'.format(testName))
+            return
 
         # Partner capability is checked and logged separately: the partner end must take speed 10.
         if not configurePort(self, peer, portDut, 'speed', '10', 0):
@@ -3939,8 +3811,7 @@ class TestCase_20(ATTestCase.TestCase):
             self.failed('{} does not show configured speed 100 / configured duplex full after forcing'.format(testName))
 
         # Log baseline taken only now, with BOTH ends forced (DUT 100/full, partner 10/full),
-        # immediately before the window: link events caused by the applicability probe
-        # (DUT speed 10 against a partner still on auto) are excluded from the judgement.
+        # immediately before the window, so link events from forcing the ends are excluded.
         dut.mode('#')
         logBefore = dut.cmd('show log tail 250')
         baseline = set(logBefore.splitlines())

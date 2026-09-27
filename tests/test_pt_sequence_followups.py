@@ -70,3 +70,49 @@ def test_S3_a_reshaped_sequence_marks_the_extract_notes_stale_and_the_page_says_
         SAVE.index('sess.step2["notes_stale"] = True')
     assert "notes_stale" not in EXTRACT          # a fresh extract writes a fresh step2
     assert "(ptSession.step2 || {}).notes_stale" in JS
+
+
+# --- A4 (2026-09-28): the DUT decides — every port and every device gets the same treatment --
+# Terrence reversed R1 ("a fixed copper port must accept 10/100"): some products do not go
+# that slow, and the sweep's job is to MAP what the device accepts. The rule lives in the
+# extract prompt (it writes the verify text), the fact behind it in the shared domain facts
+# (extract + review), and T33235 is the first script written to it.
+
+_DF = (_SERVER / "templates" / "prompts" / "_pt_domain_facts.jinja").read_text(encoding="utf-8")
+_T33235 = (_REPO / "ask-ck" / "functions" / "pytest-creator" / "generated" / "9001_Port"
+           / "test-9001.33235.py").read_text(encoding="utf-8")
+
+
+def test_A4_the_extract_prompt_says_the_dut_decides_and_the_record_is_published():
+    i = _EX.index("**THE DUT DECIDES — EVERY PORT AND EVERY DEVICE GETS THE SAME TREATMENT.**")
+    rule = " ".join(_EX[i:_EX.index("- **TRY EVERY DOCUMENTED VALUE", i)].split())
+    assert "never as the verdict" in " ".join(_EX[:i].split())        # the table = which values to TRY
+    assert "A rejection is a verified result, never a failure" in rule
+    assert "declare it in `publishes`" in rule and "speedMap" in rule
+    assert "never a table or a port-type guess" in rule
+    # the old shape must be gone from the prompt: the table as the source of legality
+    assert "take unsupported-value choices from there" not in _EX
+
+
+def test_A4_the_domain_fact_names_the_hardware_reason_and_the_false_red():
+    i = _DF.index("**Which speeds a port accepts is decided by the DUT")
+    fact = " ".join(_DF[i:_DF.index("- **A negotiated port never reports", i)].split())
+    assert "some fixed copper ports do not go below 1000" in fact
+    assert "a copper SFP reads `1000BASE-T`" in fact
+    assert '"a fixed copper port must accept 10/100" is a FALSE RED' in fact
+
+
+def test_A4_T33235_records_every_sweep_answer_and_never_fails_a_rejection_by_port_type():
+    # Every sweep case (TC2-TC12) records the DUT's answer; no verdict is drawn from a table.
+    assert _T33235.count("self.testSet.speedMap.setdefault(name, {})[") == 11
+    assert "self.speedMap = {}" in _T33235
+    for word in ("legal-values", "legal values", "expect_supported", "legal_2500", "lists_5000",
+                 "tenGigLegal", "legal_40g", "legal_100g", "is_100m", "expectLegal"):
+        assert word not in _T33235, word
+    # the consumers read the record, guarded, and report UNSUPPORTED when it is empty
+    assert _T33235.count("recorded = (self.testSet.speedMap or {}).get(") == 2
+    assert "bad_speed = rejected[-1]" in _T33235
+    # no case fails the DUT for an answer that disagrees with a port-type classification
+    bad = [ln.strip() for ln in _T33235.splitlines() if "self.failed(" in ln and "although" in ln
+           and any(w in ln for w in ("table", "port type", "its type", "lists ", "is a 40G", "not a QSFP"))]
+    assert bad == [], bad

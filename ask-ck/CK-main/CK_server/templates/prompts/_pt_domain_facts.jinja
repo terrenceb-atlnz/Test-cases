@@ -38,6 +38,14 @@
   full-duplex only). `speed 1000` + `duplex half` cannot link at half duplex; pair `half` only
   with 10 or 100. The `duplex` page lists `{auto|full|half}` unconditionally, so the reference
   will not warn you.
+- **Which speeds a port accepts is decided by the DUT, not by the reference's port-type
+  table.** The `speed` page's legal-values table is keyed by port TYPE, and the device
+  enforces its own hardware: a copper SFP reads `1000BASE-T` in `show system pluggable`
+  whether it is tri-speed or 1000 Mbps-only, and some fixed copper ports do not go below
+  1000. So a forced speed is verified by the DUT's own accept/reject, on every port and
+  every product alike: a rejection with an error indication is a result to verify, not a
+  failure, and "a fixed copper port must accept 10/100" is a FALSE RED. (T33235, Terrence
+  2026-09-28.)
 - **A negotiated port never reports the literal `auto` as its current value.** After `speed
   auto` / `duplex auto` the current line shows the negotiated figures (`1000`, `full`); assert a
   concrete value or "a value is present", never the string `auto`.
