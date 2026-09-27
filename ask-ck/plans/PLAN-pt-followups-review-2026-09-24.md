@@ -19,7 +19,27 @@ verified: 2026-09-24
 > `9efb2ad` `601f70a` `8246147` `6c0073c`, hashes before the rebase; C9 only as far as the last
 > round's size — see it).
 >
-> Still open: §A (confirm), §B (D-C), C2, C3, C5 and C10 — each needs Terrence, the bench or a
+> **2026-09-28 — §A and §B answered by Terrence** (branch `dut-decides-review-sweep-2026-09-28`):
+> - **X1 CONFIRMED** ("as long as the process is smooth"; walk him through the first times).
+> - **D-A CONFIRMED**, with the real complaint named: the reviewer trickles findings over
+>   rounds instead of finding them all at once. `pt_review_script.jinja` now demands ONE
+>   exhaustive pass over every unit and every kind (memory `review-one-exhaustive-pass`).
+> - **D-B / C2 DONE by Terrence** (server restarted, T33234 saved; its file is unchanged).
+>   ⚠ The same UI Save on T33235 wrote its session's OLDER frame over the file (the
+>   pre-`1cb72db` bind-swi_a-alone init). The branch carries the committed frame plus the A4
+>   rewrite; after the merge the session needs `save_script` with the file's code, or the next
+>   Save regresses it again.
+> - **R1 REVERSED.** "A fixed copper port must accept 10/100? no. some devices we produce dont
+>   go that slow. ALL ports on the DUT should decide whether ANY speed is legal ... It maps the
+>   device's capabilities." Every port and every device gets the same treatment. Done on the
+>   branch: the extract prompt rule + domain fact, and T33235 rewritten (TC2–TC12 record the
+>   DUT's answer in `speedMap`; TC19/TC20 consult it). Memory
+>   `dut-decides-every-port-every-device`. Still to do: the same wording in T33235's stored
+>   sequence (`save_sequence`, un-confirms step 6 — Terrence's call).
+> - **D-C DECIDED (a)** — plan written: `PLAN-pt-agent-broker.md`. Not built.
+> - C3, C5, C10 unchanged. The untracked zip is deleted.
+>
+> Still open before 2026-09-28: §A (confirm), §B (D-C), C2, C3, C5 and C10 — each needs Terrence, the bench or a
 > `ck.db` corpus edit. Written at the end of executing
 > `archive/plans/PLAN-pt-drive-followups-2026-09-24.md` (every item of which landed on branch
 > `pt-followups-2026-09-24`). §A are the decisions Claude took because they blocked work, for

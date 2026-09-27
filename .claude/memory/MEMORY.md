@@ -29,6 +29,8 @@
 - [PyTest step numbering divergence](pt-step-numbering-divergence.md) — internal step5 = UI "4. Fragments", step6 = "5. Generate"; never show raw stepN to users
 - [Stale session connection bug](stale-session-connection-bug.md) — a 200 outside readers never see: CAUSE (FIXED 2026-09-10) = two SQLite libs in one process stripped server locks; .nfs* orphans
 - [Site-default LLM gotcha (per-seat since 2026-09-10)](workspace-llm-default-gotcha.md) — headless curl with no X-CK-LLM header gets the SITE DEFAULT, which ANY seat's Apply rewrites (D17); send the header or POST set_site_default_llm
+- [The DUT decides — every port, every device](dut-decides-every-port-every-device.md) — Terrence 2026-09-28: never classify a port/product to decide legality; send the command, the DUT's accept/reject IS the result, a rejection is verified not failed; the sweep publishes a capability record (speedMap) later steps consult
+- [Review: one exhaustive pass](review-one-exhaustive-pass.md) — Terrence 2026-09-28: the reviewer must sweep every unit × every kind in ONE pass; trickling findings over rounds is the failure; the 2-round cap only stops the bleeding
 - [Physical-interaction steps are in scope](physical-interaction-steps.md) — generate prompt + wait-for-state-change for plug/unplug steps (model: SVT 3009 waitForReplugEvent); do NOT skip them
 - [User prefers manual UI testing](user-prefers-manual-ui-testing.md) — skip Playwright, give a manual test checklist instead
 - [Explain in plain language](explain-in-plain-language.md) — lead with plain words, unpack jargon (gate/fixture/coupling); Terrence will otherwise ask "what does that even mean"
