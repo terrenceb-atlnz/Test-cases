@@ -65,6 +65,16 @@ about it.
 {%- endfor %}
 {% endif %}
 
+## Coverage — ONE exhaustive pass, every unit, every kind
+Review EVERY unit — `TestSet.configure`, `TestSet.tear_down`, and every `TestCase_<n>`'s
+`configure`, `main` and `tear_down` — against EVERY kind below, in this one pass, walking the
+units in file order and never stopping at the first finding in a unit. Report everything you
+find NOW. The reviewer fixes what you report as a batch, and a later round sees the same
+script: a defect you could have reported here and did not costs a whole round. Three findings
+in a unit this round and three more in the same unit next round is the failure mode this rule
+exists to stop. (Terrence, 2026-09-28: the reviewer "infinitely finding more and more script
+issues, and never finding them all at once to be fixed as a batch".)
+
 ## What to look for, in priority order
 
 1. **Verdict does not match the step's `verify` text.** The highest-value finding. A case that

@@ -270,3 +270,21 @@ def test_an_off_enum_tag_folds_to_other_and_keeps_the_raw_tag_for_audit():
     assert by["fine"]["kind"] == "missing_precondition" and "kind_raw" not in by["fine"]
     assert by["blank tag"]["kind"] == "other" and "kind_raw" not in by["blank tag"]
 
+
+
+# --- A2 (2026-09-28): one exhaustive pass, not a trickle -------------------------------------
+# Terrence: the reviewer kept "infinitely finding more and more script issues, and never
+# finding them all at once to be fixed as a batch". The round cap (P1) stops the bleeding;
+# this rule asks for the sweep the cap assumes: every unit, every kind, in one pass.
+
+def test_the_review_prompt_demands_one_exhaustive_pass_over_every_unit_and_kind():
+    tpl = (_SERVER / "templates" / "prompts" / "pt_review_script.jinja").read_text(encoding="utf-8")
+    i = tpl.index("## Coverage — ONE exhaustive pass, every unit, every kind")
+    rule = " ".join(tpl[i:tpl.index("## What to look for", i)].split())
+    for unit in ("`TestSet.configure`", "`TestSet.tear_down`", "`configure`, `main` and `tear_down`"):
+        assert unit in rule, unit
+    assert "against EVERY kind below, in this one pass" in rule
+    assert "never stopping at the first finding in a unit" in rule
+    assert "Report everything you find NOW" in rule
+    # the coverage rule comes BEFORE the priority list, so the sweep is framed before the kinds
+    assert i < tpl.index("## What to look for, in priority order")
