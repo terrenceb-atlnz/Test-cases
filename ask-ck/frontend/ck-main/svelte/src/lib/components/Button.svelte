@@ -5,6 +5,11 @@
   export let type = 'button';
   export let disabled = false;
 
+  /** @type {boolean} Mid-call (e.g. an LLM response is pending) — disables the button and adds
+      the `btn-loading` class as a hook for a loading animation. Design the animation via that
+      class; this prop only wires the state up. */
+  export let loading = false;
+
   /** @type {boolean} Show the sparkles icon — use for buttons that trigger an LLM call */
   export let sparkle = false;
 
@@ -18,7 +23,8 @@
 <button
   {type}
   class="btn btn-{variant} {className}"
-  {disabled}
+  class:btn-loading={loading}
+  disabled={disabled || loading}
   on:click
 >
   {#if sparkle}
@@ -62,7 +68,28 @@
 </button>
 
 <style>
+  /* Loading-border trace: adapted from CodeFronts' "Pure CSS Animated Border Trace Button"
+     (MIT licensed) — https://codefronts.com/components/css-glowing-border-buttons/pure-css-animated-border-trace-button/
+     A conic-gradient comet wedge is clipped to a thin ring via mask-composite:exclude and spun
+     by animating its angle through @property, so the beam hugs the button's own border-radius.
+     Swapped their :hover/:focus-visible trigger for the `.btn-loading` class instead. */
+  @property --btn-spin-angle {
+    syntax: '<angle>';
+    inherits: false;
+    initial-value: 0deg;
+  }
+
+  /* Split out from `.btn` as a zero-specificity rule so a page that needs to force its own
+     `position` on a Button (e.g. absolutely placing it within a relative card) can still do so
+     with a plain single-class selector — without this, Svelte's scoping quietly makes `.btn`'s
+     own `position: relative` win the cascade over such an override. */
+  :where(.btn) {
+    position: relative;
+  }
+
   .btn {
+    --btn-beam: #E20052;
+    isolation: isolate;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -74,6 +101,49 @@
     font-size: 0.85rem;
     cursor: pointer;
     transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, filter 0.2s ease;
+  }
+
+  .btn::before,
+  .btn::after {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    padding: 2px;
+    background: conic-gradient(from var(--btn-spin-angle), transparent 0 82%, color-mix(in oklab, var(--btn-beam) 45%, transparent) 88%, var(--btn-beam) 93%, transparent 97%);
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+  }
+
+  .btn::after {
+    filter: blur(8px);
+    inset: -3px;
+    padding: 4px;
+  }
+
+  .btn-loading::before,
+  .btn-loading::after {
+    opacity: 1;
+    animation: btn-loading-lap 1.4s linear infinite;
+  }
+
+  @keyframes btn-loading-lap {
+    to {
+      --btn-spin-angle: 360deg;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .btn-loading::before,
+    .btn-loading::after {
+      animation: none;
+      opacity: 0.6;
+    }
   }
 
   .btn-sparkle-icon,

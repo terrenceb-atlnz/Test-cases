@@ -1,7 +1,7 @@
 <script>
 // @ts-nocheck
 
-  /** @type {Array<{ key: string, label: string, width?: number }>} */
+  /** @type {Array<{ key: string, label: string, width?: number, pillClass?: (value: any) => string }>} */
   export let columns = [];
 
   /** @type {Array<Record<string, any> & { id: string | number }>} */
@@ -12,9 +12,6 @@
 
   /** @type {Array<string | number>} Bindable list of selected row ids */
   export let selected = [];
-
-  /** @type {Array<string | number>} Row ids to briefly flash (e.g. just moved into this table) */
-  export let flashIds = [];
 
   function toggleRow(id) {
     selected = selected.includes(id) ? selected.filter((s) => s !== id) : [...selected, id];
@@ -46,7 +43,6 @@
     {#each rows as row (row.id)}
       <div
         class="data-table-row data-table-row-body"
-        class:data-table-row-flash={flashIds.includes(row.id)}
         role="button"
         tabindex="0"
         on:click={() => toggleRow(row.id)}
@@ -65,7 +61,11 @@
         {/if}
         {#each columns as col}
           <div class="data-table-cell" style="flex: {col.width ?? 1}">
-            {row[col.key] ?? ''}
+            {#if col.pillClass}
+              <span class="pill {col.pillClass(row[col.key])}">{row[col.key] ?? ''}</span>
+            {:else}
+              {row[col.key] ?? ''}
+            {/if}
           </div>
         {/each}
       </div>
@@ -100,21 +100,6 @@
 
   .data-table-row-body:hover {
     background: color-mix(in srgb, var(--color-accent) 8%, transparent);
-  }
-
-  .data-table-row-flash {
-    animation: data-table-row-flash-kf 900ms ease-out;
-  }
-
-  @keyframes data-table-row-flash-kf {
-    0% {
-      background: color-mix(in srgb, var(--color-accent) 55%, transparent);
-      filter: brightness(1.6);
-    }
-    100% {
-      background: transparent;
-      filter: brightness(1);
-    }
   }
 
   .data-table-header {
@@ -158,5 +143,23 @@
 
   .data-table-row.data-table-empty-row {
     height: 40px;
+  }
+
+  .pill {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    font-weight: 600;
+  }
+
+  .pill-success {
+    background: color-mix(in srgb, var(--color-success) 18%, transparent);
+    color: var(--color-success);
+  }
+
+  .pill-muted {
+    background: color-mix(in srgb, var(--color-text-muted) 18%, transparent);
+    color: var(--color-text-muted);
   }
 </style>
