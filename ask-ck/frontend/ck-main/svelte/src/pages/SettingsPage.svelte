@@ -13,6 +13,9 @@
   import claudeLlmIconDark from '../assets/claude-llm.png';
   import claudeLlmIconLight from '../assets/claude-llm-light.png';
 import UnderConstruction from '../lib/components/UnderConstruction.svelte';
+  import { onMount } from 'svelte';
+  import { applyConfig, loadConfig, checkHealth, describeLLMStatus, seatLlmRetiredNotice } from '../lib/services/llmConfigService.js';
+  import { checkLocalAgent as probeLocalAgent, describeAgentStatus, ckBrokerLoop } from '../lib/services/agentService.js';
 
   const tabs = [
     { id: 'general', label: 'General', icon: settingsIcon },
@@ -34,19 +37,81 @@ import UnderConstruction from '../lib/components/UnderConstruction.svelte';
   let activeProvider = 'local-llm';
 
   let localLlmMode = 'fast';
-  let localLlmModelOverride = '';
+  let localLlmKeyInput = '';
+  let localLlmKeyState = '';
 
   let claudeModel = 'sonnet';
-  let claudeModelOverride = '';
   let unitFillsRoute = '';
   let stepMatchingRoute = '';
 
-  function checkLocalLlmHealth() {
-    // TODO: wire up a real health check call to the local LLM
+  const ROUTE_MODELS = ['haiku', 'sonnet', 'opus'];
+
+  // {text, tone} — reflects whatever config Apply/cold-load last resolved, this seat or site default.
+  let llmStatus = null;
+  let retiredNotice = null;
+
+  // "Check my local agent" — one button above both cards. Pings whichever backend is
+  // currently configured (llm_health) AND the user's own ck-agent process, together.
+  let checking = false;
+  let healthResult = null;
+  let agentStatus = null;
+
+  function applyLoadedConfig(config) {
+    llmStatus = describeLLMStatus(config);
+    if (!config) return;
+    const am = (config.auth_method || '').toLowerCase();
+    if (am === 'claude_agent') {
+      activeProvider = 'claude-cli';
+      if (ROUTE_MODELS.includes(config.model)) claudeModel = config.model;
+      unitFillsRoute = ROUTE_MODELS.includes(config.unit_model) ? config.unit_model : '';
+      stepMatchingRoute = ROUTE_MODELS.includes(config.match_model) ? config.match_model : '';
+    } else if (am === 'local_llm') {
+      activeProvider = 'local-llm';
+      if (config.model === 'vllm-fast' || config.model === 'vllm-thinking') localLlmMode = config.model;
+      if (config.local_llm_key_set !== undefined) {
+        localLlmKeyState = config.local_llm_key_set ? 'key stored ✓' : '⚠ no key stored';
+      }
+    }
   }
 
-  function checkLocalAgent() {
-    // TODO: wire up a real reachability/login check for the local Claude Code agent
+  onMount(async () => {
+    retiredNotice = seatLlmRetiredNotice();
+    applyLoadedConfig(await loadConfig());
+    if (activeProvider === 'claude-cli') ckBrokerLoop();
+  });
+
+  async function applyLocalLlm() {
+    const body = {
+      provider: 'openai',
+      auth_method: 'local_llm',
+      model: localLlmMode === 'thinking' ? 'vllm-thinking' : 'vllm-fast',
+    };
+    const key = localLlmKeyInput.trim();
+    if (key) body.local_llm_key = key;
+    const config = await applyConfig(undefined, body);
+    localLlmKeyInput = '';
+    if (config) applyLoadedConfig(config);
+  }
+
+  async function applyClaude() {
+    const body = {
+      provider: 'claude',
+      auth_method: 'claude_agent',
+      model: claudeModel,
+      unit_model: unitFillsRoute,
+      match_model: stepMatchingRoute,
+    };
+    const config = await applyConfig(undefined, body);
+    if (config) applyLoadedConfig(config);
+    ckBrokerLoop();
+  }
+
+  async function checkMyLocalAgent() {
+    checking = true;
+    const [health, { status, update }] = await Promise.all([checkHealth(), probeLocalAgent()]);
+    healthResult = health;
+    agentStatus = describeAgentStatus(status, update);
+    checking = false;
   }
 </script>
 
@@ -124,6 +189,29 @@ import UnderConstruction from '../lib/components/UnderConstruction.svelte';
           headless deployment.
         </p>
 
+        {#if retiredNotice}
+          <p class="llm-notice llm-notice-warn">{retiredNotice}</p>
+        {/if}
+
+        <div class="llm-status-row">
+          <Button variant="outline" on:click={checkMyLocalAgent} disabled={checking}>
+            {checking ? 'Checking…' : 'Check my local agent'}
+          </Button>
+          {#if llmStatus}
+            <span class="provider-inline-status tone-{llmStatus.tone}">{llmStatus.text}</span>
+          {/if}
+          {#if healthResult}
+            <span class="provider-inline-status tone-{healthResult.ok ? 'ok' : 'error'}">
+              {healthResult.ok ? 'Backend reachable' : (healthResult.detail || 'Backend unreachable')}
+            </span>
+          {/if}
+          {#if agentStatus}
+            <span class="provider-inline-status tone-{agentStatus.tone}">
+              {#each agentStatus.lines as line}{line}<br />{/each}
+            </span>
+          {/if}
+        </div>
+
         <div class="provider-list">
           {#each providers as provider}
             <div class="provider-card" class:active={activeProvider === provider.id}>
@@ -146,8 +234,8 @@ import UnderConstruction from '../lib/components/UnderConstruction.svelte';
                       <input type="radio" name="local-llm-mode" value="thinking" bind:group={localLlmMode} />
                       Thinking
                     </label>
-                    <input type="text" placeholder="Local LLM API key (leave blank to keep stored key)" class="provider-text-input" bind:value={localLlmModelOverride} />
-                    <Button variant="outline" on:click={checkLocalLlmHealth}>Check Health</Button>
+                    <input type="text" placeholder="Local LLM API key (leave blank to keep stored key)" class="provider-text-input" bind:value={localLlmKeyInput} />
+                    {#if localLlmKeyState}<span class="provider-field-inline-label">{localLlmKeyState}</span>{/if}
                   </div>
                 {:else if provider.id === 'claude-cli'}
                   <p class="provider-field-label">Model</p>
@@ -164,19 +252,23 @@ import UnderConstruction from '../lib/components/UnderConstruction.svelte';
                       <input type="radio" name="claude-model" value="opus" bind:group={claudeModel} />
                       Opus
                     </label>
-                    <input type="text" class="provider-text-input" bind:value={claudeModelOverride} />
-                    <Button variant="outline" on:click={checkLocalAgent}>Check local agent</Button>
                   </div>
 
                   <p class="provider-field-label">Route</p>
                   <div class="provider-field-row">
                     <span class="provider-field-inline-label">unit fills:</span>
                     <select class="provider-select" bind:value={unitFillsRoute}>
-                      <option value=""></option>
+                      <option value="">same</option>
+                      <option value="haiku">Haiku</option>
+                      <option value="sonnet">Sonnet</option>
+                      <option value="opus">Opus</option>
                     </select>
                     <span class="provider-field-inline-label">step matching:</span>
                     <select class="provider-select" bind:value={stepMatchingRoute}>
-                      <option value=""></option>
+                      <option value="">same</option>
+                      <option value="haiku">Haiku</option>
+                      <option value="sonnet">Sonnet</option>
+                      <option value="opus">Opus</option>
                     </select>
                   </div>
                 {/if}
@@ -185,7 +277,11 @@ import UnderConstruction from '../lib/components/UnderConstruction.svelte';
               {#if activeProvider === provider.id}
                 <span class="provider-status">Using</span>
               {:else}
-                <Button variant="primary" class="provider-position" on:click={() => (activeProvider = provider.id)}>Apply</Button>
+                <Button
+                  variant="primary"
+                  class="provider-position"
+                  on:click={() => (provider.id === 'local-llm' ? applyLocalLlm() : applyClaude())}
+                >Apply</Button>
               {/if}
             </div>
           {/each}
@@ -525,6 +621,38 @@ import UnderConstruction from '../lib/components/UnderConstruction.svelte';
     font-size: 0.88rem;
     min-width: 200px;
   }
+
+  .llm-notice {
+    margin: 0 0 16px;
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    line-height: 1.5;
+  }
+
+  .llm-notice-warn {
+    background: color-mix(in srgb, var(--color-warning) 12%, transparent);
+    color: var(--color-warning);
+  }
+
+  .llm-status-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 14px;
+    margin-top: 16px;
+    margin-bottom: 14px;
+  }
+
+  .provider-inline-status {
+    font-size: 0.88rem;
+    line-height: 1.5;
+    font-style: italic;
+  }
+
+  .tone-ok { color: var(--color-success); }
+  .tone-warn { color: var(--color-warning); }
+  .tone-error { color: var(--color-error); }
 
   .provider-status,
   :global(.provider-position) {
