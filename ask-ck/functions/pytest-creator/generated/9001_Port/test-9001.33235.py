@@ -225,6 +225,16 @@ class TestSet(ATTestSet.TestSet):
         if self.fibre_supported:
             fibre_peer.portFibre = fibre_port
         self.fibre_peer = fibre_peer
+        # The fibre sweep cases (steps 9-13) are EXCLUDED before they run on a bench with no fibre
+        # link, instead of each reaching main() to fail on what init already knew: the framework's
+        # marking pass (after TestSet.configure()) reads this DUT attribute through each case's
+        # testCasePlatformWithPropertyIncl and, with skipIfExcl, grades the case UNSUPPORTED without
+        # running it - no bench power cycle (tb470, 2026-09-29: five six-unit cycles for five
+        # known-unsupported cases). Same pattern as T33234 d9a08dd.
+        dut.has_fibre_test_link = self.fibre_supported
+        if not self.fibre_supported:
+            self.log('UNSUPPORTED: no fibre pluggable link discovered on %s; the fibre speed sweep '
+                     'cases will be marked unsupported before they run' % dut.name)
         # The NEIGHBOUR switch on a fixed twisted-pair link, REQUIRED: a partner to negotiate
         # against, a polarity to force, a neighbour table to read. Named `peer`, never `dut`:
         # in ART `dut` is the DUT's own stack handle, and a partner called `dut` made every
@@ -1719,6 +1729,11 @@ class TestCase_8(ATTestCase.TestCase):
     # ART identity <family>.<case>.<TestCase> — the framework composes the same triple
     # from the filename and this class name, and the run log prints it per case.
     testCaseRef = 'AWPTCM-T33235, 9001.33235.8'
+    # Excluded before it runs on a bench with no fibre link (see TestSet.init): evaluated by the
+    # framework after TestSet.configure(); skipIfExcl makes it UNSUPPORTED without running
+    # configure()/main()/tear_down(), so no bench power cycle.
+    testCasePlatformWithPropertyIncl = {'dut': [(['.*'], ['has_fibre_test_link'])]}
+    skipIfExcl = True
     testCaseMethod = 'Before this step, set the copper test link back to `no speed` and `duplex auto` on both ends. On the fibre test link, attempt `100` whatever the port type. Apply `speed 100` and `duplex full` on the partner port, then on the DUT fibre test port. Poll `show interface <fibre test port> status` for up to 30 s, then read `show interface <fibre test port>` and `show running-config interface <fibre test port>`.\n'
     testCaseMethod += "Verify: The DUT's own answer decides, whatever the port type. If the DUT accepts the command, the fibre test port row reads `connected` with bare `100` (no `a-` prefix), and the current line reads `current speed 100`. If the DUT rejects the command with an error indication, that is the result for `100` on this port: running-config gains no `speed 100` line, and the port's previous speed and link state are unchanged. Record whether the DUT accepted `100` on the fibre test port for later steps. If the partner rejects the command, log it; judge only the DUT's accept or reject, and do not assert link-up. The console stays at the prompt with no boot output.\n"
 
@@ -1915,6 +1930,11 @@ class TestCase_9(ATTestCase.TestCase):
     # ART identity <family>.<case>.<TestCase> — the framework composes the same triple
     # from the filename and this class name, and the run log prints it per case.
     testCaseRef = 'AWPTCM-T33235, 9001.33235.9'
+    # Excluded before it runs on a bench with no fibre link (see TestSet.init): evaluated by the
+    # framework after TestSet.configure(); skipIfExcl makes it UNSUPPORTED without running
+    # configure()/main()/tear_down(), so no bench power cycle.
+    testCasePlatformWithPropertyIncl = {'dut': [(['.*'], ['has_fibre_test_link'])]}
+    skipIfExcl = True
     testCaseMethod = 'On the fibre test link, attempt `1000` whatever the port type. Apply `speed 1000` and `duplex full` on the partner port, then on the DUT fibre test port. Poll `show interface <fibre test port> status` for up to 30 s, then read `show interface <fibre test port>` and `show running-config interface <fibre test port>`.\n'
     testCaseMethod += "Verify: The DUT's own answer decides, whatever the port type. If the DUT accepts the command, the fibre test port row reads `connected` with bare `1000` (no `a-` prefix), and the current line reads `current speed 1000`. If the DUT rejects the command with an error indication, that is the result for `1000` on this port: running-config gains no `speed 1000` line, and the port's previous speed and link state are unchanged. Record whether the DUT accepted `1000` on the fibre test port for later steps. If the partner rejects the command, log it; judge only the DUT's accept or reject, and do not assert link-up. The console stays at the prompt with no boot output.\n"
 
@@ -2131,6 +2151,11 @@ class TestCase_10(ATTestCase.TestCase):
     # ART identity <family>.<case>.<TestCase> — the framework composes the same triple
     # from the filename and this class name, and the run log prints it per case.
     testCaseRef = 'AWPTCM-T33235, 9001.33235.10'
+    # Excluded before it runs on a bench with no fibre link (see TestSet.init): evaluated by the
+    # framework after TestSet.configure(); skipIfExcl makes it UNSUPPORTED without running
+    # configure()/main()/tear_down(), so no bench power cycle.
+    testCasePlatformWithPropertyIncl = {'dut': [(['.*'], ['has_fibre_test_link'])]}
+    skipIfExcl = True
     testCaseMethod = 'On the fibre test link, attempt `10000` whatever the port type. Apply `speed 10000` and `duplex full` on the partner port, then on the DUT fibre test port. Poll `show interface <fibre test port> status` for up to 30 s, then read `show interface <fibre test port>` and `show running-config interface <fibre test port>`.\n'
     testCaseMethod += "Verify: The DUT's own answer decides, whatever the port type. If the DUT accepts the command, the fibre test port row reads `connected` with bare `10000` (no `a-` prefix), and the current line reads `current speed 10000`. If the DUT rejects the command with an error indication, that is the result for `10000` on this port: running-config gains no `speed 10000` line, and the port's previous speed and link state are unchanged. Record whether the DUT accepted `10000` on the fibre test port for later steps. If the partner rejects the command, log it; judge only the DUT's accept or reject, and do not assert link-up. The console stays at the prompt with no boot output.\n"
 
@@ -2345,6 +2370,11 @@ class TestCase_11(ATTestCase.TestCase):
     # ART identity <family>.<case>.<TestCase> — the framework composes the same triple
     # from the filename and this class name, and the run log prints it per case.
     testCaseRef = 'AWPTCM-T33235, 9001.33235.11'
+    # Excluded before it runs on a bench with no fibre link (see TestSet.init): evaluated by the
+    # framework after TestSet.configure(); skipIfExcl makes it UNSUPPORTED without running
+    # configure()/main()/tear_down(), so no bench power cycle.
+    testCasePlatformWithPropertyIncl = {'dut': [(['.*'], ['has_fibre_test_link'])]}
+    skipIfExcl = True
     testCaseMethod = 'On the fibre test link, attempt `40000` whatever the port type. Apply `speed 40000` and `duplex full` on the partner port, then on the DUT fibre test port. Poll `show interface <fibre test port> status` for up to 30 s, then read `show interface <fibre test port>` and `show running-config interface <fibre test port>`.\n'
     testCaseMethod += "Verify: The DUT's own answer decides, whatever the port type. If the DUT accepts the command, the fibre test port row reads `connected` with bare `40000` (no `a-` prefix), and the current line reads `current speed 40000`. If the DUT rejects the command with an error indication, that is the result for `40000` on this port: running-config gains no `speed 40000` line, and the port's previous speed and link state are unchanged. Record whether the DUT accepted `40000` on the fibre test port for later steps. If the partner rejects the command, log it; judge only the DUT's accept or reject, and do not assert link-up. The console stays at the prompt with no boot output.\n"
 
@@ -2542,6 +2572,11 @@ class TestCase_12(ATTestCase.TestCase):
     # ART identity <family>.<case>.<TestCase> — the framework composes the same triple
     # from the filename and this class name, and the run log prints it per case.
     testCaseRef = 'AWPTCM-T33235, 9001.33235.12'
+    # Excluded before it runs on a bench with no fibre link (see TestSet.init): evaluated by the
+    # framework after TestSet.configure(); skipIfExcl makes it UNSUPPORTED without running
+    # configure()/main()/tear_down(), so no bench power cycle.
+    testCasePlatformWithPropertyIncl = {'dut': [(['.*'], ['has_fibre_test_link'])]}
+    skipIfExcl = True
     testCaseMethod = 'On the fibre test link, attempt `100000` whatever the port type. Apply `speed 100000` and `duplex full` on the partner port, then on the DUT fibre test port. Poll `show interface <fibre test port> status` for up to 30 s, then read `show interface <fibre test port>` and `show running-config interface <fibre test port>`.\n'
     testCaseMethod += "Verify: The DUT's own answer decides, whatever the port type. If the DUT accepts the command, the fibre test port row reads `connected` with bare `100000` (no `a-` prefix), and the current line reads `current speed 100000`. If the DUT rejects the command with an error indication, that is the result for `100000` on this port: running-config gains no `speed 100000` line, and the port's previous speed and link state are unchanged. Record whether the DUT accepted `100000` on the fibre test port for later steps. If the partner rejects the command, log it; judge only the DUT's accept or reject, and do not assert link-up. The console stays at the prompt with no boot output.\n"
 
