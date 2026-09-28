@@ -3,7 +3,7 @@ name: framework-run-always-noupdate
 description: DEFAULT for every run-script Ask-CK executes on hardware (Terrence 2026-09-25) — pre-load the topology's .cfg on each device and boot it, then run with --noupdate --nodefaultcfg; without them setup resets every device (default.cfg, licence strip, reboot, TFTP .rel copy)
 metadata:
   type: feedback
-  verified: 2026-09-25
+  verified: 2026-09-28
 ---
 
 **Every framework script Ask-CK runs on a bench is launched as

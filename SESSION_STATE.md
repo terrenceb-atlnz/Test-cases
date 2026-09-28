@@ -4753,3 +4753,35 @@ Supersedes the entry above on the branch's state: `pt-followups-2026-09-24` is M
   - The PDU is his, next session.
   - Open the next session by prompting him with the review plan's §A/§B.
   - The stale `sweep-fixes-2026-09-23` worktree and branch are removed; only `main` remains.
+
+## Session Close / Handoff (2026-09-28) — §A/§B answered, R1 reversed, one-pass review, three plans, the Test Composer becomes the run tool
+
+- **Orientation** found the tree clean but for `ck.db` and an untracked zip (deleted on request),
+  the gate green (pytest 1870 / 1 skipped, vitest 356), and T33234 locked by a live tab
+  elsewhere (`sess-gnh…`, heartbeating since 2026-09-25). Terrence restarted the server.
+- **Terrence's answers** to `PLAN-pt-followups-review-2026-09-24.md`: X1 confirmed; D-A confirmed
+  ("the Reviewer infinitely finding more and more script issues, and never finding them all at
+  once to be fixed as a batch"); C2 done by him; **R1 reversed** ("ALL ports on the DUT should
+  decide whether ANY speed is legal … It maps the device's capabilities"; "every device gets the
+  same treatment"); D-C decided (a), plan only.
+- **Built on branch `dut-decides-review-sweep-2026-09-28`** in a scratch worktree (X1's
+  procedure, walked through once): the extract rule + domain fact; T33235 rewritten (TC2–TC12
+  record the DUT's answer in `speedMap`, TC19/TC20 consult it; 42 exact-string edits, lint 0
+  errors before and after); the review prompt's one-pass coverage section; four tests, four
+  mutations red; memories `dut-decides-every-port-every-device`, `review-one-exhaustive-pass`;
+  plans `PLAN-family-library-first.md`, `PLAN-pt-agent-broker.md`. Branch gate: pytest 1873 / 2
+  skipped, vitest 356. **Merged by Terrence** (`7580e99`, `9e6c404`, `70ceeef`).
+- **The T33235 regression:** his UI Save had written the session's pre-`1cb72db` frame over the
+  file. The merge restored the file; then, under his tab's session id, `save_sequence` (new verify
+  on 3–13 + `publishes: speedMap`; new action on 20–21) and `save_script` with the merged file
+  (`write_files: false`). Session == file, rev 169; Sequence/Generate unconfirmed; gen_state
+  diverged → Re-chunk before Fix units.
+- **Design conversation → `PLAN-test-composer.md`:** the Run panel is deprecated; Confirm + Save
+  are the PyTest Creator's last steps; the five run functions move to the Test Composer; results
+  default to `test-composer/runs/<date>/`, the "New Script?" toggle routes into `.meta/…/test/`
+  and hands the run back to the creator's Summary page; templates later, the requirements
+  aggregate first. §8 of PLAN-pytest-creator banner-ed as superseded in part.
+- **Not done:** C3, C5, C10; the two device-testing handovers; two dead memory citations in
+  device-testing-owned shared memories (reported, not edited); `templates/setup-b/` is empty.
+- **Gate (live tree, at the wrap):** pytest 1874 passed / 1 skipped, vitest 356, both guards OK, `ck.db` signature unchanged by the gate.
+- **Next conversation (Terrence, at the wrap): "the use of the dt agent".**

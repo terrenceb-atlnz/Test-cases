@@ -1,15 +1,52 @@
 ---
-verified: 2026-09-25
+verified: 2026-09-28
 ---
 # PROGRESS.md — Ask CK Workbench (Server-Backed)
 
 **Purpose**: This file exists so future sessions can quickly understand exactly where we are, what has been built, what the priorities are, and how to continue seamlessly.
 
-**Last Updated**: 2026-09-25 afternoon (by Claude; the branch is merged; bench runs now go through device-testing's `bench-runner` agent with `--noupdate --nodefaultcfg`)
+**Last Updated**: 2026-09-28 (by Claude; §A/§B answered, R1 reversed — the DUT decides; one-pass review; three plans written, the Test Composer becomes the run tool)
 
 > **Reading note (2026-09-23 doc sweep).** Entries are frozen as written. Where an entry's
 > claim has since stopped being true, a ⚠ line under its heading says what changed.
 > Newest first. Paths in older entries predate these moves (the same as in CHANGELOG): `tool/` → `ask-ck/tools/`, `ask-ck/var/` → `ask-ck/db/`, `objective-drafting/` → `ask-ck/functions/generator/`, `pytest-create/` → `ask-ck/functions/pytest-creator/`, `js-tests/` → `tests/js/`, `ask-ck/ck-facelift/` → `ask-ck/plans/`, root reports → `docs/`, and completed plans `ask-ck/plans/` → `archive/plans/` (2026-09-11, 2026-09-23). Also retired 2026-09-23: the demo notes → `archive/plans/demo-2026-09-11/`, and `HANDOFF-generate-token-efficiency.md` + `Fragments_prompt.md` → `archive/records/`.
+
+## Latest session (2026-09-28) — §A/§B answered; the DUT decides (R1 reversed); one-pass review; three plans; the Test Composer becomes the run tool
+
+**Pick up here:** Terrence reviews the three plans written today, then the bench. In order:
+`ask-ck/plans/PLAN-test-composer.md` (§7: six decisions), `PLAN-family-library-first.md` (§3:
+three), `PLAN-pt-agent-broker.md` (§7). Nothing in any of them is built. At the wrap Terrence
+said the next conversation is **"the use of the dt agent"** (device-testing's `bench-runner`) —
+discuss before any bench work. T33235 has still run no TestCase; the PDU is his.
+
+- **Terrence's answers to the review plan (§A/§B), all recorded in its status header:**
+  - X1 confirmed ("as long as the process is smooth" — walk him through the first times; done once today, §below).
+  - D-A confirmed, with the real complaint named: the reviewer trickles findings over rounds.
+  - D-B/C2: he restarted the server and saved T33234 (its file was already equal to the session).
+  - **R1 REVERSED:** *"ALL ports on the DUT should decide whether ANY speed is legal, thats the point of the first speed steps going through all available commands. It maps the device's capabilities."* And *"every device gets the same treatment"*. Memory `dut-decides-every-port-every-device`.
+  - D-C decided (a): the broker becomes a repo tool — plan only.
+- **Shipped on branch `dut-decides-review-sweep-2026-09-28`, merged by Terrence (`7580e99`, `9e6c404`, `70ceeef`):**
+  - `pt_extract_sequence.jinja`: the legal-values table = which values to TRY, never the verdict; rule "THE DUT DECIDES — EVERY PORT AND EVERY DEVICE GETS THE SAME TREATMENT" (send, verify the branch the DUT took, a rejection is a verified result, publish the record). `_pt_domain_facts.jinja`: the hardware fact (copper SFP reads `1000BASE-T` either way; some fixed copper ports do not go below 1000).
+  - T33235: TC2–TC12 record the DUT's answer in `TestSet.speedMap` and never fail the DUT for disagreeing with a port-type classification (twelve such branches removed); TC19 takes its illegal value from the record (UNSUPPORTED when nothing was rejected); TC20 reads applicability from the record instead of re-probing. Server lint 0 errors before and after.
+  - `pt_review_script.jinja` §"Coverage — ONE exhaustive pass": every unit, file order, every kind, reported now. Evidence: the three 2026-09-24 rounds returned 19/15/17 findings with the same units re-appearing. Memory `review-one-exhaustive-pass`.
+  - Four tests, each mutation-checked red. Gate on the branch: pytest 1873 / 2 skipped, vitest 356.
+- **T33235's session re-synced (real traffic, under his tab's session id `sess-ry6a…`, rev 169):** `save_sequence` with the new verify text on steps 3–13 (+ `publishes: speedMap`) and the new action text on 20–21; then `save_script` with the merged file (`write_files: false`). Session code == file on disk. Consequences: Sequence and Generate read unconfirmed; `gen_state` = diverged → **Re-chunk from script before any Fix units / Assemble**.
+- **Found, worth knowing:**
+  - The T33234 lock at session start was a live tab elsewhere (`sess-gnh…`, heartbeating since 2026-09-25); he restarted the server.
+  - **A UI Save writes the SESSION over the FILE.** His Save on T33235 wrote the session's pre-`1cb72db` frame (bind `swi_a` alone) over the committed file. The direction for bringing a hand-edited file INTO a session is `save_script` with the file's code — the C2 recipe — never Save.
+  - Jinja prompt templates re-read on the next render (Environment default `auto_reload`): a `.jinja` edit in the live tree is live at once, with no reload.
+  - The deploy walkthrough (X1, first time): `git checkout -- <regressed file>` → `git merge --ff-only <branch>` → `git log` + gate. It went cleanly.
+- **Plans written (all plan-only):**
+  - `PLAN-test-composer.md` — Terrence: **the Run panel is deprecated; Confirm + Save to generated/ are the PyTest Creator's last steps; all five run functions move to the Test Composer** (testbox + check; bench truth via device-testing's `bench_probe.py run` over ssh; script picker over generated/; visible preflight + a requirements AGGREGATE over every saved script = the template shopping list; run). Results: default `test-composer/runs/<date>/<test>.log`; a **"New Script?"** toggle routes into `.meta/<group>/<name>/test/` and hands the run back to the creator's `step7` so the Summary page's repair loop takes it. Templates later. §8 of PLAN-pytest-creator superseded in part (banner added there).
+  - `PLAN-family-library-first.md` — the gather step is blind to the family library; assembly dedupes by NAME only; P-A..P-D.
+  - `PLAN-pt-agent-broker.md` — the bridge contract, "same session both sides", "locks are the driver's", the tool, tests.
+- **Also:** the untracked `awplus-cmdref-combined.zip` is deleted. The concurrent stream landed `a41e838` (dos_campaign.py) on main this morning.
+- **Gate (live tree, at the wrap):** pytest 1874 passed / 1 skipped, vitest 356, both guards OK, `ck.db` signature unchanged by the gate.
+- **Not done / open:**
+  - C3, C5 (T33235 on tb470), C10 unchanged.
+  - The two handovers to device-testing (`restore_cfg.py`, TESTBOX-ACCESS §3b) are still unsent — drafts in the 2026-09-25 session's scratchpad `f733e532…`.
+  - `check_memory_refs.py`: two dead citations, both in memories device-testing OWNS (shared symlinks): `no-stray-scripts.md:42` (`bench_probe.py`), `tb470-topology-and-setup.md:23` (an after-action path). Not edited here — one writer per repo; tell that stream.
+  - `test-composer/templates/setup-b/` is three EMPTY files (noticed, left alone).
 
 ## Latest session (2026-09-25, afternoon) — the first framework run reset the bench; run flags, bench-runner, merged
 

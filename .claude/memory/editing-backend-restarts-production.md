@@ -3,7 +3,7 @@ name: editing-backend-restarts-production
 description: ask-ck.service runs uvicorn --reload against the working tree, so ANY save to CK_server/*.py bounces the live server — and a reload can wedge on the agent long-polls
 metadata:
   type: project
-  verified: 2026-09-24
+  verified: 2026-09-28
 ---
 
 The hosted server (`systemd --user` unit `ask-ck.service`, LAN on :8000) runs:
@@ -70,3 +70,5 @@ and hand Terrence one `git merge --ff-only <branch>` for the live tree: one relo
 and no one needed mid-run. Edit memories and docs in the WORKTREE too — an uncommitted edit to the
 same file in the live tree blocks the fast-forward. Written into SERVER-README ("Changing the
 backend of the hosted server").
+
+**Prompt templates are the other case (verified 2026-09-28):** `templates/prompts/*.jinja` are read by a Jinja `Environment` with the default `auto_reload`, so a `.jinja` edit in the live tree is live on the NEXT render with no reload and no restart — which also means such an edit is production the moment it is saved. Same branch-and-merge discipline as `.py`.

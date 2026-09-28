@@ -1,5 +1,5 @@
 ---
-verified: 2026-09-23
+verified: 2026-09-28
 ---
 # Changelog — Ask CK
 
@@ -20,6 +20,29 @@ current working thread see
 > entries before the 2026-09-11 (afternoon) restructure cite pre-move paths (`tool/` → `ask-ck/tools/`, `ask-ck/var/` → `ask-ck/db/`, `objective-drafting/` → `ask-ck/functions/generator/`, `pytest-create/` → `ask-ck/functions/pytest-creator/`, `CK_server/static/` → `ask-ck/frontend/ck-main/current/`); archive/plans/PLAN-restructure-2026-09-11.md has the full mapping.
 > `ask-ck/ck-facelift/`, `pytest-create/` and `CK-main/` plan paths moved to `ask-ck/plans/` on 2026-09-11 and, once complete, to `archive/plans/`.
 > `js-tests/` → `tests/js/`, `e2e/` → `tests/e2e/`, `static/js/` → `ask-ck/frontend/ck-main/current/<page>/` (2026-09-11).
+
+## 2026-09-28 — the DUT decides (R1 reversed); the review sweeps once; the Test Composer is the run tool (plan)
+
+**Why:** reviewing T33235 for R1 ("a fixed copper port must accept 10/100") Terrence reversed it:
+some products do not go that slow, and the point of the sweep steps is to MAP what the device
+accepts — *"ALL ports on the DUT should decide whether ANY speed is legal"*, and every device gets
+the same treatment. A script that classifies a port from a reference table and fails the DUT for
+disagreeing is a false red on correct hardware and breaks on every other product.
+
+- **Extract prompt + domain facts:** the reference's legal-values table says which values to try,
+  never the verdict. A sweep step sends the command; the DUT's accept or reject IS the result; a
+  rejection is verified, never failed; the answer is published (`speedMap`) for later steps.
+- **T33235** rewritten to it (TC2–TC12 record, TC19/TC20 consult); its stored sequence carries
+  the same text.
+- **Review prompt:** one exhaustive pass — every unit in file order against every kind, reported
+  now. Terrence on D-A: the reviewer *"infinitely finding more and more script issues, and never
+  finding them all at once to be fixed as a batch"*; the 2-round cap only stops the bleeding.
+- **Plans, not code:** `PLAN-test-composer.md` (the Run panel is deprecated; the PyTest Creator
+  ends at Confirm + Save; the five run steps, results routing, the "New Script?" hand-back to the
+  repair loop), `PLAN-family-library-first.md`, `PLAN-pt-agent-broker.md` (D-C decided (a)).
+- **A hazard named:** a UI Save writes the session over the file. Bringing a hand-edited file
+  into a session is `save_script` with the file's code, never Save (T33235's frame regressed
+  that way on 2026-09-28 and was restored by the merge + a save_script).
 
 ## 2026-09-25 (afternoon) — hardware runs leave the bench's own setup alone; bench runs belong to bench-runner
 

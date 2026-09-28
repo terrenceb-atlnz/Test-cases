@@ -3,7 +3,7 @@ name: framework-unsupported-needs-a-failure
 description: framework TestCase result = counts: no pass+no fail → ERROR; supported=False needs a self.failed() to read UNSUPPORTED; main() still runs after configure() sets it — taught + blocking-linted since 2026-09-24 night
 metadata:
   type: reference
-  verified: 2026-09-24
+  verified: 2026-09-28
 ---
 
 Read from `/home/st-art/framework/ATTestCase.py` on tb470 (read-only), `_get_result` and `run`:

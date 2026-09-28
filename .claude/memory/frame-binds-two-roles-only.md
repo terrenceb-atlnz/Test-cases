@@ -3,7 +3,7 @@ name: frame-binds-two-roles-only
 description: RECORD (all SHIPPED 2026-09-21) — why the generated frame used to bind only {tb, peer} with copper+fibre on ONE handle (4 of 6 highs on T33234), and the four process designs A–D agreed during that repair; the frame now binds a ROLE SET (tb/copper/fibre/cusfp, pluggables optional) by FRAMEWORK DISCOVERY, never [misc] — see PLAN-frame-framework-discovery.md and PLAN-generate-state-and-sequence-sanity.md
 metadata:
   type: project
-  verified: 2026-09-21
+  verified: 2026-09-28
 ---
 
 > **UPDATE 2026-09-21 — EVERYTHING in this memory is BUILT.** Sections A–D and the FIRST TASK:

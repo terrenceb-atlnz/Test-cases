@@ -1286,7 +1286,7 @@ and what is still open are in `ask-ck/plans/PLAN-pt-followups-review-2026-09-24.
   unless the body has `extra_round: true` (the UI asks first; dry runs are never refused;
   `reset_generate` starts the count again). A review stores `unit_hashes`; `fix_units` reports a
   finding about a unit changed since as `stale` and never dispatches it, and takes
-  `{"units": [...]}`. The review prompt tells suggestions to use shapes the lint accepts.
+  `{"units": [...]}`. The review prompt tells suggestions to use shapes the lint accepts. Since 2026-09-28 the prompt also demands ONE exhaustive pass — every unit in file order against every kind, reported now — because the cap only limits rounds; Terrence's complaint was findings trickling in across them.
 - **The family library is the helper source (G7/G14).** `_build_library(..., family_code=)`
   receives the group's `library_<family>.py` from disk (`_read_family_library`). A fragment or R1
   dependency whose name the family defines is not shipped (`family_replaced`, `family_tags` — the

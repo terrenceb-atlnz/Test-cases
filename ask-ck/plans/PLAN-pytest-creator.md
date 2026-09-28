@@ -424,6 +424,15 @@ Run → parse → failures feed `POST /fix_script` (archives prior code to `hist
 
 ## 8. Server-side setup templates — DESIGN, NOT BUILT (specified 2026-09-01)
 
+> ⚠ **Superseded in part by `ask-ck/plans/PLAN-test-composer.md` §3 (2026-09-28).** Kept: §8.2
+> (run-time only, no `ck.db` change), §8.6 (upload the template into the workdir, record its
+> hash), §8.7 (verify against the real bench, never rewrite from it — device-testing's
+> `bench_probe.py diff` is that). Replaced: §8.3 storage → template pairs live in
+> `ask-ck/functions/test-composer/templates/<setup>/` (Terrence, 2026-09-25); §8.4 `[misc]`
+> claims → retired 2026-09-21, matching is `pt_preflight` plus the requirements aggregate.
+> Run, testbox and validate move out of the PyTest Creator altogether (the Run panel is
+> deprecated; the creator ends at Confirm + Save).
+
 **Status: design agreed with Terrence 2026-09-01, no code written.** Three decisions were
 taken before drafting and are settled: templates live in **both** a shared committed folder
 and a personal local one; every template **must** declare its topology-profile claims; and
