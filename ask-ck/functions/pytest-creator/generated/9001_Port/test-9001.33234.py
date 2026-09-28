@@ -22,13 +22,12 @@
 #   shutdown/no-shutdown cycle and a port reset, with the polarity configuration persisting.
 # ==================================================================
 #
-# ==== PRECONDITION — fit the pluggables BEFORE the run (Terrence, 2026-09-23) ====
-#   A COPPER (1000BASE-T) SFP and a FIBRE SFP must already be fitted in DUT cages whose
-#   [portlink]s go to a partner switch. The frame binds a pluggable role only when its module
-#   is fitted at init(), and an EMPTY cage is no role, so with no module fitted the copper-SFP
-#   and fibre cases report UNSUPPORTED. Steps 16 and 18 confirm the fitted module is recognised
-#   and cabled; they no longer ask for a fresh insertion mid-run.
-# ==================================================================
+# ==== SCOPE - Terrence's ruling, 2026-09-29 ====
+#   MDI/MDI-X applies to FIXED copper switchports only (AW+ `polarity` page: it does not
+#   apply to fiber ports, and for polarity a pluggable cage is a fibre port whatever it
+#   holds). The copper-SFP and fibre cases were stripped and steps 16-19 left the sequence;
+#   on a DUT with no fixed copper port (e.g. the IE520-28GSX, every front port a cage) the
+#   framework marks every case UNSUPPORTED before it runs.
 
 import sys
 import time
@@ -341,45 +340,34 @@ class TestSet(ATTestSet.TestSet):
         self._ck_topo = self._ck_discover(dut, dut_stack)
 
         # ---------------------------------------------------------------
-        # ROLE SET for this case (holistic review, TestSet.init):
+        # ROLE SET for this case - Terrence's ruling, 2026-09-29 (T33234 only):
+        #   MDI/MDI-X applies to FIXED copper switchports ONLY. The AW+ `polarity` page: it
+        #   "applies to copper 10BASE-T, 100BASE-T, and 1000BASE-T switch ports; it does not
+        #   apply to fiber ports" - and for MDI/MDI-X an SFP/SFP+ cage IS a fibre port whatever
+        #   module it holds (an IE520 reading `current polarity auto` on a linked copper SFP is
+        #   unsupported behaviour, not a defect). Every pluggable case was stripped from this
+        #   script and steps 16-19 left its sequence.
         #
-        #   copper    DUT copper RJ45 test port  <-> PARTNER SWITCH copper port. The link
-        #             every copper step measures at BOTH ends. REQUIRED.
-        #   cusfp     DUT cage for the COPPER SFP module <-> partner port (steps 16-17).
-        #   fibre     DUT cage for the FIBRE SFP module <-> partner port (steps 18-19).
-        #   tb        testbox data link — not needed by this case (CLI at both ends).
-        #
-        # The pluggable roles are bound FIRST so the copper role cannot consume a copper-SFP
-        # link, and `cusfp` / `fibre` are DISTINCT handles so the copper-SFP and fibre-SFP
-        # assertions are never aimed at one port attribute (holistic review, TestCase_16/17).
+        #   copper    DUT FIXED copper RJ45 test port <-> PARTNER SWITCH port. REQUIRED, and it
+        #             must be a fixed port: the copper role is bound ONLY when discovery found a
+        #             fixed twisted-pair link, never a copper SFP. With none, nothing is bound and
+        #             the framework marks every TestCase UNSUPPORTED before it runs
+        #             (testCasePlatformWithPropertyIncl on `has_fixed_copper_port` + skipIfExcl,
+        #             evaluated after TestSet.configure(); no bench power cycle).
+        #   tb        testbox data link - not needed by this case (CLI at both ends).
+        # This is a per-case ruling: the frame's media discovery is unchanged, and a copper
+        # pluggable keeps its copper identity for speed/duplex work elsewhere (T33235).
         # ---------------------------------------------------------------
-        (dut.portCuSfp, cusfp_far_port, cusfp_peer) = self._ck_bind_link(
-            setup, dut, 'cusfp', optional=True)
-        self.cusfp_supported = cusfp_peer is not None
-        if self.cusfp_supported:
-            cusfp_peer.portCuSfp = cusfp_far_port
+        dut.has_fixed_copper_port = bool(self._ck_topo.get('copper'))
+        if dut.has_fixed_copper_port:
+            (dut.portA, partner_copper_port, partner) = self._ck_bind_link(setup, dut, 'copper')
+            partner.portDut = partner_copper_port
         else:
-            self.cusfp_reason = ('no copper SFP fitted in a partner-cabled cage at init() — fit one before the run '
-                                 '(PRECONDITION)')
-        self.cusfp_peer = cusfp_peer
-        self.cusfp_far_port = cusfp_far_port
-
-        (dut.portFibre, fibre_far_port, fibre_peer) = self._ck_bind_link(
-            setup, dut, 'fibre', optional=True)
-        self.fibre_supported = fibre_peer is not None
-        if self.fibre_supported:
-            fibre_peer.portFibre = fibre_far_port
-        else:
-            self.fibre_reason = ('no fibre SFP fitted in a partner-cabled cage at init() — fit one before the run '
-                                 '(PRECONDITION)')
-        self.fibre_peer = fibre_peer
-        self.peer_fibre_port = fibre_far_port
-        # Backwards-compatible alias: `portPeer` has always meant "the DUT's fibre SFP port" in
-        # steps 18/19; keep the name pointing at exactly that.
-        dut.portPeer = dut.portFibre
-
-        (dut.portA, partner_copper_port, partner) = self._ck_bind_link(setup, dut, 'copper')
-        partner.portDut = partner_copper_port
+            self.log('UNSUPPORTED: no copper switchport on DUT; polarity does not apply to '
+                     'pluggable/fibre ports - every test case will be marked unsupported '
+                     '(data links discovered: %s)' % (', '.join(
+                         '%d %s' % (len(v), k) for k, v in self._ck_topo.items() if v) or 'none'))
+            dut.portA, partner_copper_port, partner = None, None, None
         self.peer = partner
 
         # The TESTBOX data link: optional here — this case drives everything from the CLI at
@@ -396,7 +384,9 @@ class TestSet(ATTestSet.TestSet):
         ethA = getattr(tb, 'ethA', None)
         portA = dut.portA
         peer = self.peer
-        portFibre = dut.portFibre
+        if peer is None:
+            self.log('UNSUPPORTED: no fixed copper switchport on the DUT - suite setup skipped')
+            return
         portDut = peer.portDut
         # One-time SUITE setup, runs ONCE before all test cases. Config only — no pass/fail.
         # setup: On the DUT and the link partner, enter configuration mode and set the copper
@@ -416,25 +406,13 @@ class TestSet(ATTestSet.TestSet):
             self.step1_responses.append(('partner', cmd, peer.cmd(cmd)))
         peer.mode('#')
 
-        # Fibre neighbour link: enabled, no polarity forced. OPTIONAL role - init() leaves
-        # dut.portFibre / self.fibre_peer as None on a bench without it; steps 1-15 still run.
-        fibre_peer = self.fibre_peer
-        if self.fibre_supported and portFibre is not None and fibre_peer is not None:
-            dut.mode(')#')
-            dut.cmd('interface {}'.format(portFibre.name))
-            dut.cmd('no shutdown')
-            dut.mode('#')
-            fibre_peer.mode(')#')
-            fibre_peer.cmd('interface {}'.format(fibre_peer.portFibre.name))
-            fibre_peer.cmd('no shutdown')
-            fibre_peer.mode('#')
-
     def tear_down(self):
         tb = self.tb
         dut = self.dut
         portA = dut.portA
         peer = self.peer
-        portFibre = dut.portFibre
+        if peer is None:
+            return
         portDut = peer.portDut
         # One-time SUITE cleanup, runs ONCE after all cases. No pass/fail.
         dut.mode(')#')
@@ -451,17 +429,15 @@ class TestSet(ATTestSet.TestSet):
         peer.cmd('no shutdown')
         peer.mode('#')
 
-        # OPTIONAL fibre role: None on a bench that does not declare it.
-        if self.fibre_supported and portFibre is not None:
-            dut.mode(')#')
-            dut.cmd('interface {}'.format(portFibre.name))
-            dut.cmd('no shutdown')
-            dut.mode('#')
-
 
 class TestCase_1(ATTestCase.TestCase):
     testCaseDesc = "With the straight-through copper cable connecting the DUT test port to the partner port, read 'show interface <port>' on the DUT and 'show interface <partner port>' on the partner, and read 'show interface <port> status' on both."
     testCaseRef = 'AWPTCM-T33234, 9001.33234.1'
+    # Excluded before it runs on a DUT with no fixed copper switchport (Terrence, 2026-09-29):
+    # evaluated by the framework after TestSet.configure(); skipIfExcl makes it UNSUPPORTED
+    # without running configure()/main()/tear_down(), so no bench power cycle.
+    testCasePlatformWithPropertyIncl = {'dut': [(['.*'], ['has_fixed_copper_port'])]}
+    skipIfExcl = True
     testCaseMethod = "With the straight-through copper cable connecting the DUT test port to the partner port, read 'show interface <port>' on the DUT and 'show interface <partner port>' on the partner, and read 'show interface <port> status' on both.\n"
     testCaseMethod += "Verify: 'show interface <port>' reports the link as up on both ends and prints a current polarity of either mdi or mdix on each; 'show interface <port> status' shows the port 'connected' with an auto-negotiated duplex/speed (e.g. 'a-full'). Record the resolved polarity value at each end. For a straight-through cable the two ends must report opposite roles (one mdi, one mdix).\n"
 
@@ -631,6 +607,11 @@ class TestCase_1(ATTestCase.TestCase):
 class TestCase_2(ATTestCase.TestCase):
     testCaseDesc = "On the DUT copper test port that has never been explicitly configured for polarity, read 'show running-config interface <port>' and 'show interface <port>'."
     testCaseRef = 'AWPTCM-T33234, 9001.33234.2'
+    # Excluded before it runs on a DUT with no fixed copper switchport (Terrence, 2026-09-29):
+    # evaluated by the framework after TestSet.configure(); skipIfExcl makes it UNSUPPORTED
+    # without running configure()/main()/tear_down(), so no bench power cycle.
+    testCasePlatformWithPropertyIncl = {'dut': [(['.*'], ['has_fixed_copper_port'])]}
+    skipIfExcl = True
     testCaseMethod = "On the DUT copper test port that has never been explicitly configured for polarity, read 'show running-config interface <port>' and 'show interface <port>'.\n"
     testCaseMethod += "Verify: 'show running-config interface <port>' contains no 'polarity' line, proving auto is the default; 'show interface <port>' reports a resolved current polarity of mdi or mdix (the operational role), not merely the configured mode.\n"
 
@@ -717,6 +698,11 @@ class TestCase_2(ATTestCase.TestCase):
 class TestCase_3(ATTestCase.TestCase):
     testCaseDesc = "Prompt the operator to unplug the straight-through copper cable between the DUT test port and the partner port and replace it with a crossover cable, leaving both ends on automatic polarity; then poll 'show interface <port> status' on the DUT until the port transitions down and back to 'connected'."
     testCaseRef = 'AWPTCM-T33234, 9001.33234.3'
+    # Excluded before it runs on a DUT with no fixed copper switchport (Terrence, 2026-09-29):
+    # evaluated by the framework after TestSet.configure(); skipIfExcl makes it UNSUPPORTED
+    # without running configure()/main()/tear_down(), so no bench power cycle.
+    testCasePlatformWithPropertyIncl = {'dut': [(['.*'], ['has_fixed_copper_port'])]}
+    skipIfExcl = True
     testCaseMethod = "Prompt the operator to unplug the straight-through copper cable between the DUT test port and the partner port and replace it with a crossover cable, leaving both ends on automatic polarity; then poll 'show interface <port> status' on the DUT until the port transitions down and back to 'connected'.\n"
     testCaseMethod += "Verify: Operator confirms the cable swap; the DUT test port is observed going down and then returning to 'connected' in 'show interface <port> status' within the link-up timeout.\n"
 
@@ -845,6 +831,11 @@ class TestCase_3(ATTestCase.TestCase):
 class TestCase_4(ATTestCase.TestCase):
     testCaseDesc = "With the crossover cable in place and both ends still on automatic polarity, read 'show interface <port>' on the DUT and on the partner."
     testCaseRef = 'AWPTCM-T33234, 9001.33234.4'
+    # Excluded before it runs on a DUT with no fixed copper switchport (Terrence, 2026-09-29):
+    # evaluated by the framework after TestSet.configure(); skipIfExcl makes it UNSUPPORTED
+    # without running configure()/main()/tear_down(), so no bench power cycle.
+    testCasePlatformWithPropertyIncl = {'dut': [(['.*'], ['has_fixed_copper_port'])]}
+    skipIfExcl = True
     testCaseMethod = "With the crossover cable in place and both ends still on automatic polarity, read 'show interface <port>' on the DUT and on the partner.\n"
     testCaseMethod += 'Verify: Link is up at both ends; each end reports a current polarity of mdi or mdix. With a crossover cable the two ends must resolve to the SAME role (both mdi or both mdix) - the cable supplies the crossover - and compared with the roles recorded with the straight-through cable in step 2, exactly ONE end has inverted its role.\n'
 
@@ -950,6 +941,11 @@ class TestCase_4(ATTestCase.TestCase):
 class TestCase_5(ATTestCase.TestCase):
     testCaseDesc = "With the CROSSOVER cable still in place, force the DUT copper test port to MDI: 'interface <port>' then 'polarity mdi'. Allow the link to settle, then read 'show running-config interface <port>', 'show interface <port>', 'show interface <port> status' and 'show interface <partner port>' on the partner."
     testCaseRef = 'AWPTCM-T33234, 9001.33234.5'
+    # Excluded before it runs on a DUT with no fixed copper switchport (Terrence, 2026-09-29):
+    # evaluated by the framework after TestSet.configure(); skipIfExcl makes it UNSUPPORTED
+    # without running configure()/main()/tear_down(), so no bench power cycle.
+    testCasePlatformWithPropertyIncl = {'dut': [(['.*'], ['has_fixed_copper_port'])]}
+    skipIfExcl = True
     testCaseMethod = "With the CROSSOVER cable still in place, force the DUT copper test port to MDI: 'interface <port>' then 'polarity mdi'. Allow the link to settle, then read 'show running-config interface <port>', 'show interface <port>', 'show interface <port> status' and 'show interface <partner port>' on the partner.\n"
     testCaseMethod += "Verify: Command accepted with no error; 'show running-config interface <port>' shows 'polarity mdi'; 'show interface <port>' reports current polarity mdi. The partner on automatic polarity adapts to the forced role: over a crossover cable it must resolve to the SAME role, so 'show interface <partner port>' reports current polarity mdi and 'show interface <port> status' reads 'connected'.\n"
 
@@ -1068,6 +1064,11 @@ class TestCase_5(ATTestCase.TestCase):
 class TestCase_6(ATTestCase.TestCase):
     testCaseDesc = "With the crossover cable still in place, force the DUT copper test port to MDI-X ('interface <port>' then 'polarity mdix'). Then force the PARTNER port to MDI ('interface <partner port>', 'polarity mdi') - the role that does NOT pair with MDI-X over a crossover cable - allow the link to settle and read 'show interface <port> status' on the DUT. Then force the partner port to MDI-X ('polarity mdix'), allow the link to settle, and read 'show running-config interface <port>', 'show interface <port>' and 'show interface <port> status' on the DUT. Finally return the partner port to 'polarity auto'."
     testCaseRef = 'AWPTCM-T33234, 9001.33234.6'
+    # Excluded before it runs on a DUT with no fixed copper switchport (Terrence, 2026-09-29):
+    # evaluated by the framework after TestSet.configure(); skipIfExcl makes it UNSUPPORTED
+    # without running configure()/main()/tear_down(), so no bench power cycle.
+    testCasePlatformWithPropertyIncl = {'dut': [(['.*'], ['has_fixed_copper_port'])]}
+    skipIfExcl = True
     testCaseMethod = "With the crossover cable still in place, force the DUT copper test port to MDI-X ('interface <port>' then 'polarity mdix'). Then force the PARTNER port to MDI ('interface <partner port>', 'polarity mdi') - the role that does NOT pair with MDI-X over a crossover cable - allow the link to settle and read 'show interface <port> status' on the DUT. Then force the partner port to MDI-X ('polarity mdix'), allow the link to settle, and read 'show running-config interface <port>', 'show interface <port>' and 'show interface <port> status' on the DUT. Finally return the partner port to 'polarity auto'.\n"
     testCaseMethod += "Verify: All commands accepted with no CLI error; DUT running-config shows 'polarity mdix'. With the partner forced to MDI the link is DOWN - 'show interface <port> status' does not read 'connected' - the mismatched MDI-X/MDI pairing over a crossover cable. With the partner forced to MDI-X the link returns to 'connected' and 'show interface <port>' reports current polarity mdix, proving the forced setting is the operational role.\n"
 
@@ -1185,6 +1186,11 @@ class TestCase_6(ATTestCase.TestCase):
 class TestCase_7(ATTestCase.TestCase):
     testCaseDesc = "Prompt the operator to replace the crossover cable with the straight-through cable between the DUT test port and the partner port; then poll 'show interface <port> status' on the DUT for the link-state transition."
     testCaseRef = 'AWPTCM-T33234, 9001.33234.7'
+    # Excluded before it runs on a DUT with no fixed copper switchport (Terrence, 2026-09-29):
+    # evaluated by the framework after TestSet.configure(); skipIfExcl makes it UNSUPPORTED
+    # without running configure()/main()/tear_down(), so no bench power cycle.
+    testCasePlatformWithPropertyIncl = {'dut': [(['.*'], ['has_fixed_copper_port'])]}
+    skipIfExcl = True
     testCaseMethod = "Prompt the operator to replace the crossover cable with the straight-through cable between the DUT test port and the partner port; then poll 'show interface <port> status' on the DUT for the link-state transition.\n"
     testCaseMethod += "Verify: Operator confirms the cable swap; the DUT test port state change is observed in 'show interface <port> status'.\n"
 
@@ -1310,6 +1316,11 @@ class TestCase_7(ATTestCase.TestCase):
 class TestCase_8(ATTestCase.TestCase):
     testCaseDesc = "With the STRAIGHT-THROUGH cable in place, force the DUT copper test port to MDI-X ('interface <port>', 'polarity mdix'), allow the link to settle, then read 'show running-config interface <port>', 'show interface <port>', 'show interface <port> status' and 'show interface <partner port>' on the partner."
     testCaseRef = 'AWPTCM-T33234, 9001.33234.8'
+    # Excluded before it runs on a DUT with no fixed copper switchport (Terrence, 2026-09-29):
+    # evaluated by the framework after TestSet.configure(); skipIfExcl makes it UNSUPPORTED
+    # without running configure()/main()/tear_down(), so no bench power cycle.
+    testCasePlatformWithPropertyIncl = {'dut': [(['.*'], ['has_fixed_copper_port'])]}
+    skipIfExcl = True
     testCaseMethod = "With the STRAIGHT-THROUGH cable in place, force the DUT copper test port to MDI-X ('interface <port>', 'polarity mdix'), allow the link to settle, then read 'show running-config interface <port>', 'show interface <port>', 'show interface <port> status' and 'show interface <partner port>' on the partner.\n"
     testCaseMethod += "Verify: Running-config shows 'polarity mdix' and 'show interface <port>' reports current polarity mdix. The partner on automatic polarity adapts: over a straight-through cable it must resolve to the COMPLEMENTARY role, so 'show interface <partner port>' reports current polarity mdi and 'show interface <port> status' reads 'connected'.\n"
 
@@ -1440,6 +1451,11 @@ class TestCase_8(ATTestCase.TestCase):
 class TestCase_9(ATTestCase.TestCase):
     testCaseDesc = "With the straight-through cable still in place, force the DUT copper test port to MDI ('interface <port>', 'polarity mdi'). Then force the PARTNER port to MDI ('interface <partner port>', 'polarity mdi') - the role that does NOT pair with MDI over a straight-through cable - allow the link to settle and read 'show interface <port> status' on the DUT. Then force the partner port to MDI-X ('polarity mdix'), allow the link to settle, and read 'show running-config interface <port>', 'show interface <port>' and 'show interface <port> status' on the DUT. Finally return the partner port to 'polarity auto'."
     testCaseRef = 'AWPTCM-T33234, 9001.33234.9'
+    # Excluded before it runs on a DUT with no fixed copper switchport (Terrence, 2026-09-29):
+    # evaluated by the framework after TestSet.configure(); skipIfExcl makes it UNSUPPORTED
+    # without running configure()/main()/tear_down(), so no bench power cycle.
+    testCasePlatformWithPropertyIncl = {'dut': [(['.*'], ['has_fixed_copper_port'])]}
+    skipIfExcl = True
     testCaseMethod = "With the straight-through cable still in place, force the DUT copper test port to MDI ('interface <port>', 'polarity mdi'). Then force the PARTNER port to MDI ('interface <partner port>', 'polarity mdi') - the role that does NOT pair with MDI over a straight-through cable - allow the link to settle and read 'show interface <port> status' on the DUT. Then force the partner port to MDI-X ('polarity mdix'), allow the link to settle, and read 'show running-config interface <port>', 'show interface <port>' and 'show interface <port> status' on the DUT. Finally return the partner port to 'polarity auto'.\n"
     testCaseMethod += "Verify: All commands accepted with no CLI error; DUT running-config shows 'polarity mdi'. With the partner forced to MDI the link is DOWN - 'show interface <port> status' does not read 'connected' - the mismatched MDI/MDI pairing over a straight-through cable. With the partner forced to MDI-X the link returns to 'connected' and 'show interface <port>' reports current polarity mdi, proving the forced setting is the operational role.\n"
 
@@ -1558,6 +1574,11 @@ class TestCase_9(ATTestCase.TestCase):
 class TestCase_10(ATTestCase.TestCase):
     testCaseDesc = "With a forced polarity still applied and a known link state recorded, attempt invalid polarity values on the DUT copper test port: 'polarity mdi-x', 'polarity crossover', 'polarity 1' and 'polarity' with no argument. Capture the CLI response to each, then re-read 'show running-config interface <port>' and 'show interface <port> status'."
     testCaseRef = 'AWPTCM-T33234, 9001.33234.10'
+    # Excluded before it runs on a DUT with no fixed copper switchport (Terrence, 2026-09-29):
+    # evaluated by the framework after TestSet.configure(); skipIfExcl makes it UNSUPPORTED
+    # without running configure()/main()/tear_down(), so no bench power cycle.
+    testCasePlatformWithPropertyIncl = {'dut': [(['.*'], ['has_fixed_copper_port'])]}
+    skipIfExcl = True
     testCaseMethod = "With a forced polarity still applied and a known link state recorded, attempt invalid polarity values on the DUT copper test port: 'polarity mdi-x', 'polarity crossover', 'polarity 1' and 'polarity' with no argument. Capture the CLI response to each, then re-read 'show running-config interface <port>' and 'show interface <port> status'.\n"
     testCaseMethod += "Verify: Each attempt is rejected by the CLI parser with an error (unrecognised/incomplete command) and none is accepted silently; 'show running-config interface <port>' still shows the previously applied polarity value unchanged, and 'show interface <port> status' shows the same link state as before the attempts.\n"
 
@@ -1690,6 +1711,11 @@ class TestCase_10(ATTestCase.TestCase):
 class TestCase_11(ATTestCase.TestCase):
     testCaseDesc = "Leaving the forced polarity in place on the DUT copper test port, record the configured polarity and the operational role, then reset the port (use the interface reset/'no shutdown' after a port reset command as supported on the platform, e.g. shut/no shut driven as a port reset) and wait for the link to return."
     testCaseRef = 'AWPTCM-T33234, 9001.33234.11'
+    # Excluded before it runs on a DUT with no fixed copper switchport (Terrence, 2026-09-29):
+    # evaluated by the framework after TestSet.configure(); skipIfExcl makes it UNSUPPORTED
+    # without running configure()/main()/tear_down(), so no bench power cycle.
+    testCasePlatformWithPropertyIncl = {'dut': [(['.*'], ['has_fixed_copper_port'])]}
+    skipIfExcl = True
     testCaseMethod = "Leaving the forced polarity in place on the DUT copper test port, record the configured polarity and the operational role, then reset the port (use the interface reset/'no shutdown' after a port reset command as supported on the platform, e.g. shut/no shut driven as a port reset) and wait for the link to return.\n"
     testCaseMethod += "Verify: After the reset, 'show running-config interface <port>' still shows the same forced polarity value — the configuration persists across the reset; once 'show interface <port> status' reads 'connected', 'show interface <port>' reports a current polarity equal to the forced configured value.\n"
 
@@ -1842,6 +1868,11 @@ class TestCase_11(ATTestCase.TestCase):
 class TestCase_12(ATTestCase.TestCase):
     testCaseDesc = "Return the DUT copper test port from the forced setting to automatic crossover: 'interface <port>' then 'polarity auto'. Allow the link to settle and read 'show running-config interface <port>' and 'show interface <port>'."
     testCaseRef = 'AWPTCM-T33234, 9001.33234.12'
+    # Excluded before it runs on a DUT with no fixed copper switchport (Terrence, 2026-09-29):
+    # evaluated by the framework after TestSet.configure(); skipIfExcl makes it UNSUPPORTED
+    # without running configure()/main()/tear_down(), so no bench power cycle.
+    testCasePlatformWithPropertyIncl = {'dut': [(['.*'], ['has_fixed_copper_port'])]}
+    skipIfExcl = True
     testCaseMethod = "Return the DUT copper test port from the forced setting to automatic crossover: 'interface <port>' then 'polarity auto'. Allow the link to settle and read 'show running-config interface <port>' and 'show interface <port>'.\n"
     testCaseMethod += "Verify: Command accepted; 'show running-config interface <port>' no longer shows 'polarity mdi' or 'polarity mdix' (auto is the default, so either no polarity line or 'polarity auto' appears) — no forced polarity remains; 'show interface <port>' reports an automatically resolved current polarity of mdi or mdix and the link is up.\n"
 
@@ -1944,6 +1975,11 @@ class TestCase_12(ATTestCase.TestCase):
 class TestCase_13(ATTestCase.TestCase):
     testCaseDesc = "On the copper test port now running with an automatically resolved role, record the resolved polarity from 'show interface <port>' and the polarity configuration from 'show running-config interface <port>'. Then apply 'interface <port>', 'shutdown', wait for the port to go down, apply 'no shutdown' and wait for the link to return."
     testCaseRef = 'AWPTCM-T33234, 9001.33234.13'
+    # Excluded before it runs on a DUT with no fixed copper switchport (Terrence, 2026-09-29):
+    # evaluated by the framework after TestSet.configure(); skipIfExcl makes it UNSUPPORTED
+    # without running configure()/main()/tear_down(), so no bench power cycle.
+    testCasePlatformWithPropertyIncl = {'dut': [(['.*'], ['has_fixed_copper_port'])]}
+    skipIfExcl = True
     testCaseMethod = "On the copper test port now running with an automatically resolved role, record the resolved polarity from 'show interface <port>' and the polarity configuration from 'show running-config interface <port>'. Then apply 'interface <port>', 'shutdown', wait for the port to go down, apply 'no shutdown' and wait for the link to return.\n"
     testCaseMethod += "Verify: 'show interface <port> status' shows the port going out of 'connected' after shutdown and returning to 'connected' after no shutdown; 'show interface <port>' then reports the same resolved current polarity value recorded before the cycle; 'show running-config interface <port>' shows the polarity configuration unchanged.\n"
 
@@ -2082,6 +2118,11 @@ class TestCase_13(ATTestCase.TestCase):
 class TestCase_14(ATTestCase.TestCase):
     testCaseDesc = "On the same copper test port, exercise polarity and duplex changes in sequence: 'duplex full' then 'polarity mdi'; 'shutdown' then 'no shutdown'; 'duplex auto' then 'polarity auto'; 'polarity mdix' then 'duplex full'; finally 'polarity auto' and 'duplex auto'. Read 'show running-config interface <port>', 'show interface <port>' and 'show interface <port> status' after each pair."
     testCaseRef = 'AWPTCM-T33234, 9001.33234.14'
+    # Excluded before it runs on a DUT with no fixed copper switchport (Terrence, 2026-09-29):
+    # evaluated by the framework after TestSet.configure(); skipIfExcl makes it UNSUPPORTED
+    # without running configure()/main()/tear_down(), so no bench power cycle.
+    testCasePlatformWithPropertyIncl = {'dut': [(['.*'], ['has_fixed_copper_port'])]}
+    skipIfExcl = True
     testCaseMethod = "On the same copper test port, exercise polarity and duplex changes in sequence: 'duplex full' then 'polarity mdi'; 'shutdown' then 'no shutdown'; 'duplex auto' then 'polarity auto'; 'polarity mdix' then 'duplex full'; finally 'polarity auto' and 'duplex auto'. Read 'show running-config interface <port>', 'show interface <port>' and 'show interface <port> status' after each pair.\n"
     testCaseMethod += "Verify: Every command is accepted with no CLI error in the order issued; after each pair 'show running-config interface <port>' reflects exactly the last applied duplex and polarity values, and 'show interface <port>' reports a current duplex and current polarity consistent with that configuration (forced values match the configuration; with auto set, 'show interface <port> status' shows an auto-negotiated duplex such as 'a-full' and a resolved polarity of mdi or mdix).\n"
 
@@ -2388,476 +2429,6 @@ class TestCase_14(ATTestCase.TestCase):
         dut.mode('#')
 
 
-class TestCase_15(ATTestCase.TestCase):
-    testCaseDesc = "Prompt the operator to insert a copper SFP module into a pluggable-capable port on the DUT and connect it with a straight-through cable to the partner port; then poll 'show interface <port> status' and 'show system pluggable' until the module is detected."
-    testCaseRef = 'AWPTCM-T33234, 9001.33234.15'
-    testCaseMethod = "Prompt the operator to insert a copper SFP module into a pluggable-capable port on the DUT and connect it with a straight-through cable to the partner port; then poll 'show interface <port> status' and 'show system pluggable' until the module is detected.\n"
-    testCaseMethod += "Verify: Operator confirms insertion; 'show system pluggable' lists the module in the SFP port and identifies it as a copper/1000BASE-T transceiver; 'show interface <port> status' transitions to 'connected' within the link-up timeout.\n"
-
-    def configure(self):
-        tb = self.testSet.tb
-        dut = self.testSet.dut
-        # This case needs the DEDICATED copper-SFP pluggable role, never the fibre
-        # handle (holistic review, TestCase_16/17).
-        if not getattr(self.testSet, 'cusfp_supported', False):
-            # No pluggable link: skip this precondition; main() reports UNSUPPORTED.
-            return
-        portCuSfp = dut.portCuSfp
-        cusfp_peer = self.testSet.cusfp_peer
-        far_port = self.testSet.cusfp_far_port
-        # Precondition: the pluggable-capable port under test and its partner are
-        # brought back to default auto-negotiation (speed/duplex/polarity) and left
-        # enabled, so the fitted module can negotiate freely.
-        configureDefaultPort(self, dut, portCuSfp)
-        configureDefaultPort(self, cusfp_peer, far_port)
-        dut.mode(')#')
-        dut.cmd('interface {}'.format(portCuSfp.name))
-        dut.cmd('no shutdown')
-        dut.mode('#')
-
-    def main(self):
-        # ART 6000_link_check/library_6000.py lines 657-691
-        tb = self.testSet.tb
-        dut = self.testSet.dut
-        if not getattr(self.testSet, 'cusfp_supported', False):
-            # Bench-capability gap, not a product result: the framework's UNSUPPORTED result,
-            # so the case is reported as not applicable rather than as a silent pass.
-            self.supported = False
-            self.failed('no copper-SFP pluggable link declared on this bench; case not applicable. '
-                        '{}'.format(getattr(self.testSet, 'cusfp_reason', '')))
-            return
-        portCuSfp = dut.portCuSfp
-        far_port = self.testSet.cusfp_far_port
-        self.log("STEP 16: Prompt the operator to insert a copper SFP module into a pluggable-capable port on the DUT and connect it with a straight-through cable to the partner port; then poll 'show interface <port> status' and 'show system pluggable' until the module is detected.")
-        # PHYSICAL: the operator acts on the hardware, then we poll for the state change.
-        port = portCuSfp
-        # PRECONDITION (header): the module was fitted before the run, since the frame binds a
-        # pluggable role only from a fitted module. This step confirms the cabling, then
-        # polls for recognition.
-        self.log("OPERATOR: confirm the copper SFP module fitted in {} is connected with a "
-                 "straight-through cable to partner port {}.".format(port.name, far_port.name))
-
-        confirmed = yesNo(
-            'The COPPER (1000BASE-T) SFP module fitted in DUT port {} must be connected with a '
-            'STRAIGHT-THROUGH cable to partner port {}. Confirm when it is'.format(
-                port.name, far_port.name))
-        if not confirmed:
-            self.failed('Operator did not confirm the copper SFP module in {} is cabled'.format(
-                port.name))
-            return
-        self.passed('Operator confirmed the copper SFP module in {} and the '
-                    'straight-through connection to {}'.format(port.name, far_port.name))
-
-        deadline = time.time() + 120
-        status_output = ''
-        pluggable_output = ''
-        state = None
-        copper_seen = False
-        while time.time() < deadline:
-            dut.mode('#')
-            status_output = dut.cmd('show interface {} status'.format(port.name), log=False)
-            pluggable_output = dut.cmd('show system pluggable {}'.format(port.name), log=False)
-            state, _row = link_state_token(status_output, port.name)
-            copper_seen = bool(COPPER_TYPE_RE.search(pluggable_output))
-            if state == 'connected' and copper_seen:
-                break
-            self.log('Waiting for the copper SFP module in {} to be recognised and the link to come '
-                     'up.'.format(port.name))
-            time.sleep(3)
-        self.log('OBSERVED: show system pluggable {}:\n{}\nshow interface {} status:\n{}'.format(
-            port.name, pluggable_output, port.name, status_output))
-
-        # Attribute the module type to the port's OWN row (same shape as TestCase_17), so a
-        # type string printed for another port or in a header cannot satisfy this step.
-        # `show system pluggable` prints `1.0.x` without the `port` prefix on some releases.
-        plug_row = status_row(pluggable_output, port.name) or status_row(
-            pluggable_output, port.name[len('port'):])
-        if plug_row is None:
-            self.failed("{} missing from 'show system pluggable' output: {}".format(
-                port.name, pluggable_output))
-            return
-        copper_match = COPPER_TYPE_RE.search(plug_row)
-        if copper_match and FIBRE_TYPE_RE.search(plug_row):
-            self.failed("'show system pluggable' row for {} matches BOTH a copper and a fibre type; "
-                        "cannot attribute the module: {}".format(port.name, plug_row.strip()))
-            return
-        if copper_match:
-            self.passed(
-                "'show system pluggable' identifies the module in {} as a copper transceiver: "
-                "{}".format(port.name, copper_match.group(0)))
-        else:
-            self.failed(
-                "'show system pluggable' did not list a copper/1000BASE-T transceiver on {} within "
-                "the link-up timeout: {}".format(port.name, pluggable_output))
-            return
-
-        # Media re-check: init() bound this role from the module fitted then. It must still be
-        # the copper role before steps 16/17 can mean anything.
-        if not assert_role_media_now(self, dut, port, 'cusfp'):
-            return
-
-        if state == 'connected':
-            self.passed(
-                "'show interface {} status' transitioned to connected within the link-up "
-                "timeout".format(port.name))
-        else:
-            self.failed(
-                "'show interface {} status' did not reach connected within the link-up timeout "
-                "(state {!r})".format(port.name, state))
-
-    def tear_down(self):
-        tb = self.testSet.tb
-        dut = self.testSet.dut
-        if not getattr(self.testSet, 'cusfp_supported', False):
-            return
-        # Mirror configure(): return both ends of the link to default
-        # auto-negotiation, undoing any settings the operator or main() left behind.
-        configureDefaultPort(self, dut, dut.portCuSfp)
-        configureDefaultPort(self, self.testSet.cusfp_peer, self.testSet.cusfp_far_port)
-
-
-class TestCase_16(ATTestCase.TestCase):
-    testCaseDesc = "With the copper SFP module linked to the partner over a straight-through cable and polarity left at the default automatic setting on both ends, read 'show interface <SFP port>' on the DUT and 'show interface <partner port>' on the partner."
-    testCaseRef = 'AWPTCM-T33234, 9001.33234.16'
-    testCaseMethod = "With the copper SFP module linked to the partner over a straight-through cable and polarity left at the default automatic setting on both ends, read 'show interface <SFP port>' on the DUT and 'show interface <partner port>' on the partner.\n"
-    testCaseMethod += "Verify: The SFP port link is up; 'show interface <SFP port>' reports a resolved current polarity of mdi or mdix for the copper SFP port, and the partner reports the complementary role — automatic crossover resolution works over the copper SFP module as it does on a fixed copper port. Where the platform does not report polarity for a pluggable copper port, record that the field is not presented rather than asserting a value.\n"
-
-    def configure(self):
-        tb = self.testSet.tb
-        dut = self.testSet.dut
-        if not getattr(self.testSet, 'cusfp_supported', False):
-            # No pluggable link: skip this precondition; main() reports UNSUPPORTED.
-            return
-        # This step presumes both ends are still at the factory default (auto)
-        # polarity/speed/duplex over the straight-through copper SFP link.
-        configureDefaultPort(self, dut, dut.portCuSfp)
-        configureDefaultPort(self, self.testSet.cusfp_peer, self.testSet.cusfp_far_port)
-        time.sleep(3)
-
-    def main(self):
-        # legacy 5000_mdi_mdix/library_5000.py lines 207-238
-        tb = self.testSet.tb
-        dut = self.testSet.dut
-        if not getattr(self.testSet, 'cusfp_supported', False):
-            # Bench-capability gap, not a product result: the framework's UNSUPPORTED result,
-            # so the case is reported as not applicable rather than as a silent pass.
-            self.supported = False
-            self.failed('no copper-SFP pluggable link declared on this bench; case not applicable. '
-                        '{}'.format(getattr(self.testSet, 'cusfp_reason', '')))
-            return
-        portCuSfp = dut.portCuSfp
-        cusfp_peer = self.testSet.cusfp_peer
-        far_port = self.testSet.cusfp_far_port
-        self.log("STEP 17: With the copper SFP module linked to the partner over a straight-through cable and polarity left at the default automatic setting on both ends, read 'show interface <SFP port>' on the DUT and 'show interface <partner port>' on the partner.")
-
-        waitForLinkState(self, dut, portCuSfp, 'connected', 60)
-
-        dut.mode('#')
-        dutOutput = dut.cmd('show interface {}'.format(portCuSfp.name))
-        cusfp_peer.mode('#')
-        peerOutput = cusfp_peer.cmd('show interface {}'.format(far_port.name))
-        self.log('OBSERVED: DUT show interface {}: {}\nPartner show interface {}: {}'.format(
-            portCuSfp.name, dutOutput, far_port.name, peerOutput))
-
-        if 'Link is UP' not in dutOutput:
-            self.failed('DUT copper-SFP port {} show interface does not report Link is UP: {}'.format(
-                portCuSfp.name, dutOutput))
-            return
-        self.passed('DUT copper-SFP port {} link is UP'.format(portCuSfp.name))
-
-        dut_polarity = current_polarity(dutOutput)
-        peer_polarity = current_polarity(peerOutput)
-        self.log('RECORDED resolved roles: DUT copper-SFP {} = {!r}, partner {} = {!r}'.format(
-            portCuSfp.name, dut_polarity, far_port.name, peer_polarity))
-
-        # The partner end is a FIXED copper switch port that step 2 already proved reports a
-        # current polarity, so a missing field THERE is an observation failure - the verify's
-        # 'not presented' allowance is granted to the DUT's pluggable copper port only.
-        if peer_polarity not in ('mdi', 'mdix'):
-            self.failed('Partner port {} did not report a current polarity of mdi or mdix (got {!r}): '
-                        '{}'.format(far_port.name, peer_polarity, peerOutput))
-            return
-        self.passed('Partner port {} resolved current polarity is {}'.format(far_port.name, peer_polarity))
-
-        if dut_polarity is None:
-            # Documented alternative outcome: the field is genuinely not presented for a
-            # pluggable copper port on this platform. Both ends were read and recorded above;
-            # the complementary comparison cannot run without a DUT role, so it is recorded as
-            # not adjudicated rather than asserted.
-            self.passed('DUT port {} current polarity field is not presented on this platform for the '
-                        'pluggable copper port; recorded as not presented (partner reports {}), the '
-                        'complementary comparison is not adjudicated'.format(portCuSfp.name, peer_polarity))
-            return
-
-        if dut_polarity not in ('mdi', 'mdix'):
-            self.failed('DUT port {} resolved current polarity is {!r}, expected mdi or mdix'.format(
-                portCuSfp.name, dut_polarity))
-            return
-        self.passed('DUT copper-SFP port {} resolved current polarity is {}'.format(
-            portCuSfp.name, dut_polarity))
-
-        expected = complement_of(dut_polarity)
-        if peer_polarity == expected:
-            self.passed('Partner port {} resolved complementary polarity {} to DUT polarity {} - '
-                        'automatic crossover resolution works over the copper SFP module'.format(
-                            far_port.name, peer_polarity, dut_polarity))
-        else:
-            self.failed('Partner port {} resolved polarity {!r}, expected complementary {!r} to DUT '
-                        'polarity {!r}'.format(far_port.name, peer_polarity, expected, dut_polarity))
-
-    def tear_down(self):
-        tb = self.testSet.tb
-        dut = self.testSet.dut
-        if not getattr(self.testSet, 'cusfp_supported', False):
-            return
-        # main() only performed reads; restore both ends to the default (auto)
-        # configuration established in configure(), mirroring it exactly.
-        configureDefaultPort(self, dut, dut.portCuSfp)
-        configureDefaultPort(self, self.testSet.cusfp_peer, self.testSet.cusfp_far_port)
-
-
-class TestCase_17(ATTestCase.TestCase):
-    testCaseDesc = "Prompt the operator to insert a fibre SFP module into a pluggable-capable port on the DUT and connect it to a matching fibre partner port; then poll 'show system pluggable' and 'show interface <fibre port> status' until the module is recognised and the link is up."
-    testCaseRef = 'AWPTCM-T33234, 9001.33234.17'
-    testCaseMethod = "Prompt the operator to insert a fibre SFP module into a pluggable-capable port on the DUT and connect it to a matching fibre partner port; then poll 'show system pluggable' and 'show interface <fibre port> status' until the module is recognised and the link is up.\n"
-    testCaseMethod += "Verify: Operator confirms insertion; 'show system pluggable' identifies the module as a fibre transceiver and 'show interface <fibre port> status' reads 'connected'.\n"
-
-    def configure(self):
-        tb = self.testSet.tb
-        dut = self.testSet.dut
-        if not getattr(self.testSet, 'fibre_supported', False):
-            # No pluggable link: skip this precondition; main() reports UNSUPPORTED.
-            return
-        portFibre = dut.portFibre
-        # Physical-media step: the module is fitted before the run (PRECONDITION); make
-        # sure the port is administratively enabled so the link can establish.
-        dut.mode(')#')
-        dut.cmd('interface {}'.format(portFibre.name))
-        dut.cmd('no shutdown')
-        dut.mode('#')
-        fibre_peer = self.testSet.fibre_peer
-        fibre_peer.mode(')#')
-        fibre_peer.cmd('interface {}'.format(fibre_peer.portFibre.name))
-        fibre_peer.cmd('no shutdown')
-        fibre_peer.mode('#')
-
-    def main(self):
-        # ART 6000_link_check/library_6000.py lines 657-691
-        tb = self.testSet.tb
-        dut = self.testSet.dut
-        if not getattr(self.testSet, 'fibre_supported', False):
-            self.supported = False
-            self.failed('no fibre pluggable link declared on this bench; case not applicable. '
-                        '{}'.format(getattr(self.testSet, 'fibre_reason', '')))
-            return
-        portFibre = dut.portFibre
-        fibre_peer = self.testSet.fibre_peer
-        far_port = fibre_peer.portFibre
-        self.log("STEP 18: Prompt the operator to insert a fibre SFP module into a pluggable-capable port on the DUT and connect it to a matching fibre partner port; then poll 'show system pluggable' and 'show interface <fibre port> status' until the module is recognised and the link is up.")
-        # PHYSICAL: the pluggable-capable FIBRE port on this topology is the fibre
-        # neighbour link (dut.portFibre <-> fibre_peer.portFibre) — a handle distinct
-        # from the copper-SFP role used by steps 16/17.
-        port = portFibre
-        # PRECONDITION (header): the module was fitted before the run, since the frame binds a
-        # pluggable role only from a fitted module. This step confirms the cabling, then
-        # polls for recognition.
-        self.log('OPERATOR: confirm the fibre SFP module fitted in {} on the DUT is connected to '
-                 '{} on the partner switch.'.format(port.name, far_port.name))
-
-        confirmed = yesNo(
-            'The FIBRE SFP module fitted in DUT port {} must be connected to the matching fibre '
-            'partner port {}. Confirm when it is'.format(port.name, far_port.name))
-        if not confirmed:
-            self.failed('Operator did not confirm the fibre SFP module in {} is cabled'.format(
-                port.name))
-            return
-        self.passed('Operator confirmed the fibre SFP module in {} and the fibre '
-                    'connection to {}'.format(port.name, far_port.name))
-
-        deadline = time.time() + 120
-        output = ''
-        state = None
-        row = None
-        while time.time() < deadline:
-            dut.mode('#')
-            output = dut.cmd('show interface {} status'.format(port.name), log=False)
-            state, row = link_state_token(output, port.name)
-            if state == 'connected':
-                break
-            self.log('Waiting for the fibre SFP module in {} to be recognised and the link to come '
-                     'up.'.format(port.name))
-            time.sleep(3)
-        self.log('OBSERVED: {}'.format(output))
-
-        if state == 'connected':
-            self.passed('{} show interface status row reads connected: {}'.format(port.name, row))
-        else:
-            self.failed('{} show interface status did not reach connected (state {!r}): {}'.format(
-                port.name, state, row))
-            return
-
-        pluggable_output = dut.cmd('show system pluggable {}'.format(port.name))
-        self.log('OBSERVED: {}'.format(pluggable_output))
-        # `show system pluggable` prints `1.0.x` without the `port` prefix on some releases.
-        plug_row = status_row(pluggable_output, port.name) or status_row(
-            pluggable_output, port.name[len('port'):])
-        if plug_row is None:
-            self.failed('{} missing from show system pluggable output'.format(port.name))
-            return
-
-        # Identify the media by matching a known fibre transceiver type ANYWHERE in the
-        # row, and reject a copper 1000BASE-T match — do not guess at the column order
-        # (holistic review, TestCase_17).
-        fibre_match = FIBRE_TYPE_RE.search(plug_row)
-        copper_match = COPPER_TYPE_RE.search(plug_row)
-        if fibre_match and not copper_match:
-            self.passed('show system pluggable identifies {} as a fibre transceiver: {} (row: {})'.format(
-                port.name, fibre_match.group(0), plug_row.strip()))
-            # Media re-check: init() bound this role from the module fitted then.
-            assert_role_media_now(self, dut, port, 'fibre')
-        elif copper_match:
-            self.failed('show system pluggable identifies {} as a COPPER transceiver ({}), a fibre '
-                        'module is required for this step: {}'.format(
-                            port.name, copper_match.group(0), plug_row.strip()))
-        else:
-            self.failed('show system pluggable did not identify {} as a fibre transceiver: {}'.format(
-                port.name, plug_row.strip()))
-
-    def tear_down(self):
-        tb = self.testSet.tb
-        dut = self.testSet.dut
-        # Physical-media step: no device configuration was applied by main() to revert;
-        # the operator-driven pluggable swap is left for the next case's own precondition.
-        pass
-
-
-class TestCase_18(ATTestCase.TestCase):
-    testCaseDesc = "Record the fibre SFP port's link state from 'show interface <fibre port> status', then attempt to apply polarity configuration to it: 'interface <fibre port>' then 'polarity mdi', and again 'polarity mdix'. Capture the CLI response to each, then re-read 'show running-config interface <fibre port>' and 'show interface <fibre port> status'."
-    testCaseRef = 'AWPTCM-T33234, 9001.33234.18'
-    testCaseMethod = "Record the fibre SFP port's link state from 'show interface <fibre port> status', then attempt to apply polarity configuration to it: 'interface <fibre port>' then 'polarity mdi', and again 'polarity mdix'. Capture the CLI response to each, then re-read 'show running-config interface <fibre port>' and 'show interface <fibre port> status'.\n"
-    testCaseMethod += "Verify: The DUT reports the setting as not applicable to this media type — either the command is rejected with an error or a message indicating polarity is not supported on fibre media, rather than being accepted silently; 'show running-config interface <fibre port>' shows no forced polarity applied where the command was refused; 'show interface <fibre port> status' reads 'connected' both before and after the attempts, confirming no change to link state. Where the platform accepts the command on a fibre port but ignores it, record that 'show interface <fibre port>' presents no resolved mdi/mdix role for the fibre media.\n"
-
-    def configure(self):
-        tb = self.testSet.tb
-        dut = self.testSet.dut
-        if not getattr(self.testSet, 'fibre_supported', False):
-            # No pluggable link: skip this precondition; main() reports UNSUPPORTED.
-            return
-        portFibre = dut.portFibre
-        # Ensure the fibre SFP port starts this step at its default polarity/speed/duplex
-        # settings, undisturbed by any earlier case's leftover configuration, and enabled.
-        configureDefaultPort(self, dut, portFibre)
-        dut.mode(')#')
-        dut.cmd('interface {}'.format(portFibre.name))
-        dut.cmd('no shutdown')
-        dut.mode('#')
-        time.sleep(3)
-
-    def main(self):
-        # legacy 5703_Speed_Duplex_Polarity/test-5000.1003.py lines 228-262 (py2→py3)
-        tb = self.testSet.tb
-        dut = self.testSet.dut
-        if not getattr(self.testSet, 'fibre_supported', False):
-            self.supported = False
-            self.failed('no fibre pluggable link declared on this bench; case not applicable. '
-                        '{}'.format(getattr(self.testSet, 'fibre_reason', '')))
-            return
-        portFibre = dut.portFibre
-        self.log("STEP 19: Record the fibre SFP port's link state from 'show interface <fibre port> status', then attempt to apply polarity configuration to it: 'interface <fibre port>' then 'polarity mdi', and again 'polarity mdix'. Capture the CLI response to each, then re-read 'show running-config interface <fibre port>' and 'show interface <fibre port> status'.")
-
-        waitForLinkState(self, dut, portFibre, 'connected', 60)
-
-        dut.mode('#')
-        status_before = dut.cmd('show interface {} status'.format(portFibre.name))
-        before_state, before_row = link_state_token(status_before, portFibre.name)
-        self.log('OBSERVED: state={!r} row={}'.format(before_state, before_row))
-
-        if before_state != 'connected':
-            self.failed('fibre port {} not reading connected before polarity attempts (state {!r}): '
-                        '{}'.format(portFibre.name, before_state, status_before))
-            return
-        self.passed('fibre port {} status is connected before polarity attempts'.format(portFibre.name))
-
-        dut.mode(')#')
-        dut.cmd('interface {}'.format(portFibre.name))
-        response_mdi = dut.cmd('polarity mdi')
-        response_mdix = dut.cmd('polarity mdix')
-        dut.mode('#')
-
-        self.log('OBSERVED: polarity mdi response: {}'.format(response_mdi))
-        self.log('OBSERVED: polarity mdix response: {}'.format(response_mdix))
-
-        refused_mdi = cli_refused_for_media(response_mdi)
-        refused_mdix = cli_refused_for_media(response_mdix)
-
-        running_config = dut.cmd('show running-config interface {}'.format(portFibre.name))
-        self.log('OBSERVED: {}'.format(running_config))
-        forced_in_config = re.search(r'^\s*polarity\s+(mdi|mdix)\s*$', running_config, re.M)
-
-        if refused_mdi and refused_mdix:
-            self.passed('polarity mdi/mdix reported as not applicable on fibre port {}: mdi response '
-                        '{!r}, mdix response {!r}'.format(
-                            portFibre.name, response_mdi.strip(), response_mdix.strip()))
-            if forced_in_config:
-                self.failed('fibre port {} running-config shows forced polarity despite command '
-                            'refusal: {}'.format(portFibre.name, running_config))
-            else:
-                self.passed('fibre port {} running-config shows no forced polarity applied, as '
-                            'expected'.format(portFibre.name))
-            # The refusal claim is backed by OBSERVED state, not by the wording alone (the
-            # marker list deliberately includes the bare media noun): fibre must present no
-            # resolved mdi/mdix role either way.
-            show_int = dut.cmd('show interface {}'.format(portFibre.name))
-            self.log('OBSERVED: {}'.format(show_int))
-            resolved = current_polarity(show_int)
-            if resolved in ('mdi', 'mdix'):
-                self.failed('fibre port {} presents a resolved current polarity {!r} despite the refusal '
-                            'message: {}'.format(portFibre.name, resolved, show_int))
-                return
-            self.passed('fibre port {} presents no resolved mdi/mdix role (current polarity {!r}), '
-                        'consistent with the refusal'.format(portFibre.name, resolved))
-        else:
-            # Documented alternative: the platform accepts the command but ignores it for
-            # fibre media. Then the port must present NO resolved mdi/mdix role. Parse the
-            # 'current polarity' field specifically, never a bare substring scan that would
-            # also match a 'configured polarity' line (holistic review, TestCase_18).
-            self.log('INFO: the platform did not refuse polarity on fibre port {} (mdi {!r}, mdix '
-                     '{!r}); adjudicating the "accepted but ignored" branch'.format(
-                         portFibre.name, response_mdi.strip(), response_mdix.strip()))
-            show_int = dut.cmd('show interface {}'.format(portFibre.name))
-            self.log('OBSERVED: {}'.format(show_int))
-            resolved = current_polarity(show_int)
-            if resolved in ('mdi', 'mdix'):
-                self.failed('fibre port {} presents a resolved current polarity {!r} despite fibre '
-                            'media, and the command was neither rejected nor reported as not '
-                            'applicable: {}'.format(portFibre.name, resolved, show_int))
-                return
-            self.passed(
-                'polarity command accepted but ignored on fibre port {}: show interface presents no '
-                'resolved mdi/mdix role for the fibre media (current polarity {!r})'.format(
-                    portFibre.name, resolved))
-
-        status_after = dut.cmd('show interface {} status'.format(portFibre.name))
-        after_state, after_row = link_state_token(status_after, portFibre.name)
-        self.log('OBSERVED: state={!r} row={}'.format(after_state, after_row))
-        if after_state == 'connected':
-            self.passed('fibre port {} status remains connected after polarity attempts: {}'.format(
-                portFibre.name, after_row))
-        else:
-            self.failed('fibre port {} link state changed after polarity attempts: {!r} -> {!r} '
-                        '({})'.format(portFibre.name, before_state, after_state, after_row))
-
-    def tear_down(self):
-        tb = self.testSet.tb
-        dut = self.testSet.dut
-        if not getattr(self.testSet, 'fibre_supported', False):
-            return
-        portFibre = dut.portFibre
-        # Restore the fibre SFP port to default speed/duplex/polarity in case the
-        # platform silently accepted the polarity mdi/mdix commands applied in main().
-        configureDefaultPort(self, dut, portFibre)
-
-
 if __name__ == '__main__':
     ts = TestSet()
     ts.add_testCase(TestCase_1())
@@ -2874,8 +2445,4 @@ if __name__ == '__main__':
     ts.add_testCase(TestCase_12())
     ts.add_testCase(TestCase_13())
     ts.add_testCase(TestCase_14())
-    ts.add_testCase(TestCase_15())
-    ts.add_testCase(TestCase_16())
-    ts.add_testCase(TestCase_17())
-    ts.add_testCase(TestCase_18())
     ts.run(sys.argv)
