@@ -13,6 +13,7 @@
   import pytestIcon from '../assets/icons/pytest.svg';
   import testComposerIcon from '../assets/icons/list-check.svg';
   import zephyrIcon from '../assets/icons/getzephyr-icon.svg';
+  import { fetchAdminStatus, describeAdminStatus, resetWorkspaceLlmConfig, resetAllSessions, restartServer } from '../lib/services/adminService.js';
 
   export let onNavigate = (pageId) => {};
 
@@ -27,82 +28,128 @@
 
   $: askCKLogo = $resolvedTheme === 'dark' ? askCKLogoLight : askCKLogoDark;
 
-  let logoClicks = 0;
   let isAdmin = false;
+  let adminStatusText = 'Loading status…';
 
-  function handleLogoClick() {
+  function handleLogoDblClick() {
     if (isAdmin) return;
-    logoClicks += 1;
-    if (logoClicks >= 8) {
-      isAdmin = true;
-    }
+    isAdmin = true;
+    fetchAdminStatus().then((data) => { adminStatusText = describeAdminStatus(data); });
   }
 
-  function resetCurrentCaseSession() {
-    // TODO: wire up a real reset of the current case session
+  // Single ConfirmModal/StatusModal pair, reused across admin actions — only one can be
+  // open at a time anyway, so per-action instances would just be dead weight.
+  let confirmOpen = false;
+  let confirmTitle = '';
+  let confirmMessage = '';
+  let confirmOnConfirm = () => {};
+
+  let statusOpen = false;
+  let statusKind = 'success';
+  let statusTitle = '';
+  let statusMessage = '';
+
+  function askConfirm(title, message, onConfirm) {
+    confirmTitle = title;
+    confirmMessage = message;
+    confirmOnConfirm = onConfirm;
+    confirmOpen = true;
   }
 
-  function resetWorkspaceLlmConfig() {
-    // TODO: wire up a real reset of the workspace LLM config
+  function showStatus(kind, title, message) {
+    statusKind = kind;
+    statusTitle = title;
+    statusMessage = message;
+    statusOpen = true;
   }
 
-  function resetAllSessions() {
-    // TODO: wire up a real reset of all sessions
+  function handleResetWorkspaceLlmConfig() {
+    askConfirm(
+      'Reset the workspace LLM config?',
+      "The saved provider/login default will be cleared (you can re-apply it on Configure). Cases and corpora are untouched.",
+      async () => {
+        try {
+          const d = await resetWorkspaceLlmConfig();
+          showStatus('success', 'Workspace LLM config reset', 'Cleared: ' + (d.cleared || []).join(', '));
+        } catch (e) {
+          showStatus('error', 'Reset failed', String(e));
+        }
+      }
+    );
   }
 
-  function restartServer() {
-    // TODO: wire up a real server restart/reload
+  function handleResetAllSessions() {
+    askConfirm(
+      'Reset ALL sessions?',
+      "EVERY case's wizard/pytest progress and the workspace LLM default will be cleared. This does NOT touch corpora (Zephyr/TestLink/ATP) — only your working sessions.",
+      async () => {
+        try {
+          const d = await resetAllSessions();
+          showStatus('success', 'All sessions reset', 'Cleared: ' + (d.cleared || []).join(', ') + ' — reload the page for a clean slate.');
+        } catch (e) {
+          showStatus('error', 'Reset failed', String(e));
+        }
+      }
+    );
   }
 
-  // TEMP: quick access to preview/style the modal components — remove once done.
-  let showConfirmModalPreview = false;
-  let showStatusModalPreview = false;
+  function handleRestartServer() {
+    askConfirm(
+      'Restart the server?',
+      'The app reloads (dev server runs with --reload). The page will briefly lose connection and then reconnect.',
+      async () => {
+        try {
+          await restartServer();
+          adminStatusText = 'Restarting… reconnecting in a moment.';
+          setTimeout(() => window.location.reload(), 2500);
+        } catch (e) {
+          showStatus('error', 'Restart failed', String(e));
+        }
+      }
+    );
+  }
 </script>
 
 <div class="home-hero">
-    <button type="button" class="logo-button" on:click={handleLogoClick} aria-label="Ask CK logo">
+    <button type="button" class="logo-button" on:dblclick={handleLogoDblClick} aria-label="Ask CK logo">
       <img src={isAdmin ? askCKAdmin : askCKLogo} alt="Ask CK logo" />
     </button>
     <h1>{isAdmin ? 'Welcome Admin' : 'Welcome to Ask CK'}</h1>
-    <p>Ask CK is a server-backed test-engineering workbench for the AWPTCM test-case program. It brings the tools for enriching manual test cases, mapping them to automation, and turning them into runnable scripts into one place. Pick a tool from below, or read the step-by-step guides inside the Help section. Most tools use an LLM via a local subscription CLI — set that up first under <span style="font-weight: bold;">LLM → Configure</span>.</p>
-</div>
-
-<!-- TEMP: preview buttons for styling the modal components — remove once done. -->
-<!-- <div class="temp-modal-preview">
-  <Button variant="outline" on:click={() => (showConfirmModalPreview = true)}>TEMP: Preview ConfirmModal</Button>
-  <Button variant="outline" on:click={() => (showStatusModalPreview = true)}>TEMP: Preview StatusModal</Button>
-</div> -->
+    {#if !isAdmin}
+      <p>Ask CK is a server-backed test-engineering workbench for the AWPTCM test-case program. It brings the tools for enriching manual test cases, mapping them to automation, and turning them into runnable scripts into one place. Pick a tool from below, or read the step-by-step guides inside the Help section. Most tools use an LLM via a local subscription CLI — set that up first under <span style="font-weight: bold;">LLM → Configure</span>.</p>
+    {/if}
+  </div>
 
 <ConfirmModal
-  bind:open={showConfirmModalPreview}
-  title="Are you sure?"
-  message="This is a preview of ConfirmModal's content and styling."
-  confirmText="Continue"
-  cancelText="Cancel"
+  bind:open={confirmOpen}
+  title={confirmTitle}
+  message={confirmMessage}
+  onConfirm={confirmOnConfirm}
 />
 
 <StatusModal
-  bind:open={showStatusModalPreview}
-  status="success"
-  title="Export was successful"
-  message="AWPTCM-T44318 — (315) AdvancedManagement_AMF - AMF Master support saved on the server at ask-ck/objective-drafting/refined-cases/IPv6/AWPTCM-T44191/ (traceability.md, AWPTCM-T44191-session.json, zephyr_payload.json). Drop-in for refined-cases + upload tooling."
+  bind:open={statusOpen}
+  status={statusKind}
+  title={statusTitle}
+  message={statusMessage}
 />
 
 {#if isAdmin}
   <div class="admin-panel">
+    <p class="admin-status">{adminStatusText}</p>
+
     <div class="admin-section">
       <p class="admin-section-label">Session state</p>
       <div class="admin-actions">
-        <Button variant="outline" on:click={resetCurrentCaseSession}>Reset current case session</Button>
-        <Button variant="outline" on:click={resetWorkspaceLlmConfig}>Reset workspace LLM config</Button>
-        <Button variant="outline" on:click={resetAllSessions}>Reset ALL sessions</Button>
+        <Button variant="outline" on:click={handleResetWorkspaceLlmConfig}>Reset workspace LLM config</Button>
+        <Button variant="outline" on:click={handleResetAllSessions}>Reset ALL sessions</Button>
       </div>
     </div>
 
     <div class="admin-section">
       <p class="admin-section-label">Server</p>
       <div class="admin-actions">
-        <Button variant="outline" on:click={restartServer}>Restart server (reload)</Button>
+        <Button variant="outline" on:click={handleRestartServer}>Restart server (reload)</Button>
       </div>
     </div>
   </div>
@@ -170,7 +217,13 @@
         gap: 28px;
         max-width: 720px;
         margin: 0 auto;
-        padding: 24px 24px;
+        padding: 0px 24px;
+    }
+
+    .admin-status {
+        margin: 0;
+        font-size: 0.9rem;
+        color: var(--color-text-muted);
     }
 
     .admin-section-label {
@@ -186,13 +239,6 @@
         display: flex;
         flex-wrap: wrap;
         gap: 12px;
-    }
-
-    .temp-modal-preview {
-        display: flex;
-        justify-content: center;
-        gap: 12px;
-        margin-bottom: 24px;
     }
 
 </style>
