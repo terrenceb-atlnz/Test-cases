@@ -5,11 +5,51 @@ verified: 2026-09-28
 
 **Purpose**: This file exists so future sessions can quickly understand exactly where we are, what has been built, what the priorities are, and how to continue seamlessly.
 
-**Last Updated**: 2026-09-28 (by Claude; §A/§B answered, R1 reversed — the DUT decides; one-pass review; three plans written, the Test Composer becomes the run tool)
+**Last Updated**: 2026-09-28 evening (by Claude; the dt agent: STANDING-ORDERS + `/test-mode` in device-testing — nothing in this repo changed)
 
 > **Reading note (2026-09-23 doc sweep).** Entries are frozen as written. Where an entry's
 > claim has since stopped being true, a ⚠ line under its heading says what changed.
 > Newest first. Paths in older entries predate these moves (the same as in CHANGELOG): `tool/` → `ask-ck/tools/`, `ask-ck/var/` → `ask-ck/db/`, `objective-drafting/` → `ask-ck/functions/generator/`, `pytest-create/` → `ask-ck/functions/pytest-creator/`, `js-tests/` → `tests/js/`, `ask-ck/ck-facelift/` → `ask-ck/plans/`, root reports → `docs/`, and completed plans `ask-ck/plans/` → `archive/plans/` (2026-09-11, 2026-09-23). Also retired 2026-09-23: the demo notes → `archive/plans/demo-2026-09-11/`, and `HANDOFF-generate-token-efficiency.md` + `Fragments_prompt.md` → `archive/records/`.
+
+## Latest session (2026-09-28, evening) — the dt agent: standing orders + `/test-mode`, the one-session campaign bundle (all in device-testing)
+
+**Pick up here:** nothing in this repo changed this evening; the work landed in
+`../device-testing` (`9ff73e1` STANDING-ORDERS.md, `33fcb18` `/test-mode`), both committed, not
+pushed. What it means for Ask-CK: **a tb470 run now goes through device-testing's `/test-mode`**
+(one session = sentinel + `bench-runner` subagents, TRIAGE then RUN, `--resume`); `bench-runner`
+gate 8 refuses a dispatch that does not say `sentinel: parent` (or name a live peer sentinel),
+and this repo's `test-composer` agent hands runs to `bench-runner`, so
+`PLAN-test-composer.md` §2 step 5 has a new open point (g). Memory
+`tb470-runs-go-through-test-mode`. Otherwise the pick-up is unchanged from the morning entry:
+the three plans await Terrence's decisions; T33235 has still run no TestCase.
+
+- **The conversation:** what the device-testing agent can do without Ask-CK (probe, drivers,
+  campaign queue, 72-case record), the 11 boss-demo questions answered twice, how to run a list
+  of tests on tb470, then Terrence's standing answers (all units in play incl. 4050 + x230; full
+  authority to configure/deconfigure, tidy between unrelated cases; **one log per case whose
+  NAME is the verdict** — `<id>.log` = PASS only, else `-fail`/`-partial`/`-skip`; triage = N
+  runnable / M blocked-by-topology with the EXACT change / K other) → `STANDING-ORDERS.md`
+  (device-testing), plus PDU outlets x230 A / 4050 G / standalone H in `tb470.static`.
+- **The bundle design:** he rejected two terminals ("coalesced into one device-testing agent
+  that does both parts equally"). Judged viable as ONE session from the harness facts (a
+  parent and a background subagent message each other mid-task; a subagent that ends early
+  NOTIFIES its parent, so rescue is deterministic where 09-22 had an idle timer; nothing can
+  start a second interactive session). Built as `/test-mode`: queue file first (the resume
+  point), `sentinel.sh SELF=1` on the session's own transcript, the 15-min cron, TRIAGE
+  dispatch shown verbatim, one gate question (proceed / reconfigure → re-triage), RUN dispatch
+  **one subagent per queue group**, continue an early-ended subagent by name, summary from the
+  queue + log names, `/wrap-dt`. The multi-hour question suggests tmux (a bare terminal is no
+  safer than the editor; tmux detaches the process — standard behaviour, not measured here).
+- **Found by dry-running the watcher in self mode against this session's real dirs:** two
+  feedback loops (its own transcript; its own task-output file). Both fixed and re-run clean.
+- **Unverified, written defensively:** the subagent→parent address (docs say `to: "main"`);
+  that a Monitor event / subagent completion wakes an idle parent (the kit's 09-28 test and the
+  Agent tool contract say so). The first real campaign is the proof — start with two cases.
+- **Not done:** everything in the morning entry's "Not done"; `no-stray-scripts` (a
+  device-testing-owned shared memory) was used and checks out (the hook exists) but was not
+  stamped, to keep one writer per repo.
+- **Gate (live tree, at this wrap):** pytest 1874 passed / 1 skipped, vitest 356, both guards
+  OK, `ck.db` signature unchanged.
 
 ## Latest session (2026-09-28) — §A/§B answered; the DUT decides (R1 reversed); one-pass review; three plans; the Test Composer becomes the run tool
 

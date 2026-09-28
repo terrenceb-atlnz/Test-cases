@@ -48,6 +48,7 @@
 - [grep shim honors .gitignore](grep-shim-honors-gitignore.md) — `grep` is a FUNCTION wrapping ugrep --ignore-files, so 0 hits in .venv/ node_modules/ var/ looks like absence; use `command grep`
 
 <!-- hardware / testbox lane (was a separate store keyed on ~/testbox_home until 2026-07-30) -->
+- [tb470 runs go through /test-mode](tb470-runs-go-through-test-mode.md) — since 2026-09-28: device-testing session, ONE session = sentinel + bench-runner subagents; gate 8 refuses a bare dispatch; STANDING-ORDERS = log NAME is the verdict
 - [PyTest Creator (Ask CK)](pytest-creator-askck.md) — 7-step flow; tracker at ask-ck/plans/PLAN-pytest-creator.md; Part 3b needs tb470 wiring
 - [Testbox console access](testbox-console-access.md) — ssh tbNNN → uN alias → /dev/uN; drive it with pyserial, not minicom
 - [.setup declares topology](setup-file-declares-topology.md) — stack, stackports and cabling are declared there; never infer them from case text; verify consoles are live

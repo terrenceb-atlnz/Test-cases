@@ -11,6 +11,15 @@ verified: 2026-09-28
 >
 > Supersedes, in part, `PLAN-pytest-creator.md` §8 (server-side setup templates, designed
 > 2026-09-01): see §3 for what is kept and what his later decisions replaced.
+>
+> **2026-09-28 evening — new open point (g), for §7:** a tb470 run is now dispatched through
+> device-testing's `/test-mode` (one session = sentinel + `bench-runner` subagents; `bench-runner`
+> gate 8 refuses a dispatch that does not say `sentinel: parent` or name a live peer sentinel).
+> §2 step 5 "Run" must decide how the Composer's run reaches the bench: (1) the server run path
+> (`pt_exec`) with no sentinel — allowed by gate 7 but it runs none of the bench gates; (2) hand
+> the script to `/test-mode` (a device-testing session) and read the result back via
+> `run_result/{key}`; (3) the Composer's own agent dispatches `bench-runner` and arms the kit
+> itself. Undecided; Terrence's call.
 
 ## 0. The ask — Terrence, 2026-09-28
 

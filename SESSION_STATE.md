@@ -4785,3 +4785,14 @@ Supersedes the entry above on the branch's state: `pt-followups-2026-09-24` is M
   device-testing-owned shared memories (reported, not edited); `templates/setup-b/` is empty.
 - **Gate (live tree, at the wrap):** pytest 1874 passed / 1 skipped, vitest 356, both guards OK, `ck.db` signature unchanged by the gate.
 - **Next conversation (Terrence, at the wrap): "the use of the dt agent".**
+
+## Session Close / Handoff (2026-09-28, evening) — the dt agent conversation; `/test-mode` built in device-testing
+
+No Ask-CK code or doc changed apart from this handoff, the PROGRESS entry, one plan status line
+and one memory. The deliverables are in `../device-testing`: `9ff73e1` (STANDING-ORDERS.md,
+PDU outlets) and `33fcb18` (`/test-mode`, the one-session sentinel + bench-runner bundle;
+`sentinel.sh SELF=1`; bench-runner TRIAGE/RUN modes and gate 8 `sentinel: parent`; orient-dt §0/§9e/§10;
+wrap-dt §1; memories). Consequence here: a tb470 run is dispatched through `/test-mode`, so
+`PLAN-test-composer.md` §2 step 5 gained open point (g). Gate green at the wrap (pytest 1874/1
+skipped, vitest 356). `main` is 30 ahead of `origin/main` after this wrap's commit; Terrence pushes
+both repos.
