@@ -24,6 +24,9 @@
     onClose && onClose();
   }
 
+  /**
+     * @param {{ key: string; }} event
+     */
   function handleBackdropKeydown(event) {
     if (event.key === 'Escape') handleClose();
   }
@@ -58,6 +61,7 @@
         <p class="modal-message">{message}</p>
       {/if}
       <div class="modal-actions">
+        <slot name="actions" />
         <Button variant="primary" on:click={handleClose}>{closeText}</Button>
       </div>
     </div>
@@ -78,7 +82,8 @@
 
   .modal-dialog {
     width: 100%;
-    max-width: 420px;
+    min-width: 420px;
+    max-width: 500px;
     padding: 24px;
     border-radius: 12px;
     border: 1px solid var(--color-border-surface);
@@ -117,7 +122,8 @@
 
   .modal-title {
     margin: 0;
-    font-size: 1.05rem;
+    font-size: 1.2rem;
+    margin-bottom: 8px;
     font-weight: 700;
     color: var(--color-success);
   }
@@ -136,5 +142,6 @@
   .modal-actions {
     display: flex;
     justify-content: flex-end;
+    gap: 12px;
   }
 </style>

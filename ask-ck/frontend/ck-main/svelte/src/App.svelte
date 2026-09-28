@@ -50,6 +50,34 @@
   /** @type {string} */
   let activePage = 'home';
 
+  // Bumped to force PyTestPage to remount from scratch — used both for "Create Another
+  // PyTest" (caseId omitted) and for switching to a different case mid-session (caseId given),
+  // so a stale case's downstream state (sequence/scripts/fragments/generate/...) can never leak
+  // into the next one: the whole component instance is thrown away and re-initialized instead of
+  // trying to manually reset every field.
+  let pytestInstanceKey = 0;
+
+  /** @type {string | null} */
+  let pendingPytestCaseId = null;
+
+  /** @param {string | null} [caseId] */
+  function resetPytest(caseId = null) {
+    pendingPytestCaseId = caseId;
+    pytestInstanceKey += 1;
+  }
+
+  // Same remount-on-case-switch mechanism, for the Objective Generator.
+  let generatorInstanceKey = 0;
+
+  /** @type {string | null} */
+  let pendingGeneratorCaseId = null;
+
+  /** @param {string | null} [caseId] */
+  function resetGenerator(caseId = null) {
+    pendingGeneratorCaseId = caseId;
+    generatorInstanceKey += 1;
+  }
+
   /** @type {boolean} */
   let sidebarCollapsed = false;
 
@@ -138,9 +166,13 @@
       {:else if activePage === 'settings'}
         <SettingsPage />
       {:else if activePage === 'generator'}
-        <CaseGeneratorPage />
+        {#key generatorInstanceKey}
+          <CaseGeneratorPage onCreateAnother={resetGenerator} initialCaseId={pendingGeneratorCaseId} />
+        {/key}
       {:else if activePage === 'pytest'}
-        <PyTestPage />
+        {#key pytestInstanceKey}
+          <PyTestPage onNavigate={selectPage} onCreateAnother={resetPytest} initialCaseId={pendingPytestCaseId} />
+        {/key}
       {:else if activePage === 'composer'}
         <TestComposerPage />
       {:else if activePage === 'zephyr'}

@@ -32,6 +32,9 @@
     onCancel && onCancel();
   }
 
+  /**
+     * @param {{ key: string; }} event
+     */
   function handleBackdropKeydown(event) {
     if (event.key === 'Escape') handleCancel();
   }
@@ -80,7 +83,7 @@
 
   .modal-dialog {
     width: 100%;
-    max-width: 420px;
+    max-width: 450px;
     padding: 24px;
     border-radius: 12px;
     border: 1px solid var(--color-border-surface);
@@ -89,8 +92,9 @@
   }
 
   .modal-title {
-    margin: 0 0 8px;
-    font-size: 1.05rem;
+    margin: 0;
+    font-size: 1.2rem;
+    margin-bottom: 8px;
     font-weight: 700;
     color: var(--color-text-heading);
   }

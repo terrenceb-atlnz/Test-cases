@@ -1,7 +1,8 @@
 <script>
 // @ts-nocheck
 
-  import { tick } from 'svelte';
+  import { tick, onMount } from 'svelte';
+  import { mockDelay } from '../lib/services/mockDelay.js';
   import PageCard from '../lib/components/PageCard.svelte';
   import PageHeader from '../lib/components/PageHeader.svelte';
   import ToolHeader from '../lib/components/ToolHeader.svelte';
@@ -16,6 +17,19 @@
   import FragmentCard from '../lib/components/FragmentCard.svelte';
   import EditableField from '../lib/components/EditableField.svelte';
   import UnderConstruction from '../lib/components/UnderConstruction.svelte';
+  import StatusModal from '../lib/components/StatusModal.svelte';
+
+  /** @type {((pageId: string) => void) | null} */
+  export let onNavigate = null;
+
+  /** @type {((caseId?: string | null) => void) | null} Remounts this whole PyTest Creator
+      session from scratch — with no case id for "Create Another PyTest", or with one to switch
+      straight into a different case without leaking any of this instance's state into it */
+  export let onCreateAnother = null;
+
+  /** @type {string | null} Case id to auto-load on mount (set when this instance was remounted
+      specifically to switch cases, via `onCreateAnother(caseId)`) */
+  export let initialCaseId = null;
 
   import briefcaseIcon from '../assets/icons/briefcase.svg';
   import listSortIcon from '../assets/icons/list-sort-descending.svg';
@@ -80,12 +94,32 @@
   ];
 
   function loadAndConfirm(caseId) {
+    // maxStepReached > 0 means a case was already loaded and progressed past Cases in this
+    // instance — switching to a different one now would leave every downstream field (sequence,
+    // script search, fragments, generate, ...) still holding the old case's data. Rather than
+    // manually resetting each of those, remount the whole page fresh with the new case id.
+    if (maxStepReached > 0) {
+      onCreateAnother && onCreateAnother(caseId);
+      return;
+    }
+
     const loadedCase = [...openPartialCases, ...completeCases].find((c) => c.id === caseId);
     if (loadedCase) {
       title = loadedCase.label;
     }
     currentStep = 1;
   }
+
+  // A fresh instance remounted specifically to switch cases (onCreateAnother(caseId)) loads that
+  // case immediately instead of landing back on the blank Cases picker. Deferred to onMount —
+  // calling this during the component's own initialization (before every other `let`/`$:` below
+  // it in this file has finished setting up) trips Svelte's reactivity scheduler into running a
+  // reactive block against a not-yet-initialized variable, throwing a temporal-dead-zone error.
+  onMount(() => {
+    if (initialCaseId) {
+      loadAndConfirm(initialCaseId);
+    }
+  });
 
   function exportSession() {
     // TODO: wire up real export
@@ -118,9 +152,17 @@
 
   let sequencedTestSteps = [];
 
-  function extractSequence() {
+  let isExtractingSequence = false;
+
+  async function extractSequence() {
     // TODO: replace with a real LLM extraction call
-    sequencedTestSteps = mockSequencedTestSteps.map((s) => ({ ...s }));
+    isExtractingSequence = true;
+    try {
+      await mockDelay();
+      sequencedTestSteps = mockSequencedTestSteps.map((s) => ({ ...s }));
+    } finally {
+      isExtractingSequence = false;
+    }
   }
 
   function reviewAndConfirmSequence() {
@@ -130,17 +172,17 @@
 
   const scriptColumns = [
     { key: 'name', label: 'Script', width: 2 },
-    { key: 'source', label: 'Source', width: 1 },
-    { key: 'description', label: 'Description', width: 3 }
+    { key: 'coverage', label: 'Cov', width: 1, pillClass: (v) => (v === 'Full' ? 'pill-success' : 'pill-muted') },
+    { key: 'why', label: 'Why', width: 3 }
   ];
 
   // Mock reusable-script pool — replace with a real script index search later
   const scriptPool = [
-    { id: 'script-1', name: 'test_port_speed_set', source: 'test_scripts', description: "Sets port speed using the 'speed <n>' CLI command." },
-    { id: 'script-2', name: 'test_port_duplex_set', source: 'test_scripts', description: "Sets port duplex mode using 'duplex full/half'." },
-    { id: 'script-3', name: 'test_port_autoneg_toggle', source: 'testsuites_art', description: 'Toggles auto-negotiation on a port and verifies the resulting state.' },
-    { id: 'script-4', name: 'test_port_link_status', source: 'testsuites_art', description: 'Polls and asserts link status after a configuration change.' },
-    { id: 'script-5', name: 'test_port_reset', source: 'test_scripts', description: 'Resets a port to its default configuration.' }
+    { id: 'script-1', name: 'test_port_speed_set', coverage: 'Full', why: "Sets port speed using the 'speed <n>' CLI command — matches this step's action exactly." },
+    { id: 'script-2', name: 'test_port_duplex_set', coverage: 'Full', why: "Sets port duplex mode using 'duplex full/half' — matches this step's action exactly." },
+    { id: 'script-3', name: 'test_port_autoneg_toggle', coverage: 'Partial', why: 'Toggles auto-negotiation and verifies the resulting state, but does not assert the specific values this step requires.' },
+    { id: 'script-4', name: 'test_port_link_status', coverage: 'Partial', why: 'Polls and asserts link status after a configuration change — covers the verify half of this step but not the trigger.' },
+    { id: 'script-5', name: 'test_port_reset', coverage: 'Full', why: "Resets a port to its default configuration — matches this step's teardown intent exactly." }
   ];
 
   const SUMMARY_STEP_ID = '__summary__';
@@ -209,35 +251,47 @@
     activeStepId = stepId;
   }
 
-  function suggestForStep(stepId) {
+  let isSuggestingForStep = false;
+
+  async function suggestForStep(stepId) {
     // TODO: replace with a real script search / LLM suggestion call
-    scriptSearchState[stepId].candidates = [...scriptPool];
-    scriptSearchState[stepId].selectedCandidateIds = [];
-    scriptSearchState = scriptSearchState;
+    isSuggestingForStep = true;
+    try {
+      await mockDelay();
+      scriptSearchState[stepId].candidates = [...scriptPool];
+      scriptSearchState[stepId].selectedCandidateIds = [];
+      scriptSearchState = scriptSearchState;
+    } finally {
+      isSuggestingForStep = false;
+    }
   }
 
-  function suggestAllSteps() {
+  let isSuggestingAllSteps = false;
+
+  async function suggestAllSteps() {
     // TODO: replace with a real script search / LLM suggestion call across all steps
-    for (const step of sequencedTestSteps) {
-      scriptSearchState[step.id].candidates = [...scriptPool];
-      scriptSearchState[step.id].selectedCandidateIds = [];
+    isSuggestingAllSteps = true;
+    try {
+      await mockDelay();
+      for (const step of sequencedTestSteps) {
+        scriptSearchState[step.id].candidates = [...scriptPool];
+        scriptSearchState[step.id].selectedCandidateIds = [];
+      }
+      scriptSearchState = scriptSearchState;
+    } finally {
+      isSuggestingAllSteps = false;
     }
-    scriptSearchState = scriptSearchState;
   }
 
   function searchForStep(stepId) {
     // TODO: replace with a real keyword search call
     const q = scriptSearchState[stepId].search.trim().toLowerCase();
     scriptSearchState[stepId].candidates = q
-      ? scriptPool.filter((s) => s.name.toLowerCase().includes(q) || s.description.toLowerCase().includes(q))
+      ? scriptPool.filter((s) => s.name.toLowerCase().includes(q) || s.why.toLowerCase().includes(q))
       : [...scriptPool];
     scriptSearchState[stepId].selectedCandidateIds = [];
     scriptSearchState = scriptSearchState;
   }
-
-  // Briefly flashes newly-chosen rows in the "Chosen" table so it's clear where they landed.
-  let flashChosenIds = [];
-  let flashChosenTimeout;
 
   function chooseSelectedForStep(stepId) {
     const state = scriptSearchState[stepId];
@@ -247,10 +301,6 @@
     scriptSearchState[stepId].candidates = state.candidates.filter((c) => !state.selectedCandidateIds.includes(c.id));
     scriptSearchState[stepId].selectedCandidateIds = [];
     scriptSearchState = scriptSearchState;
-
-    flashChosenIds = moving.map((c) => c.id);
-    clearTimeout(flashChosenTimeout);
-    flashChosenTimeout = setTimeout(() => { flashChosenIds = []; }, 900);
   }
 
   function clearSelectedForStep(stepId) {
@@ -403,17 +453,25 @@
     fragmentActiveStepId = stepId;
   }
 
-  function gatherFragments() {
+  let isGatheringFragments = false;
+
+  async function gatherFragments() {
     // TODO: replace with a real code-reuse search / LLM call
-    for (const step of sequencedTestSteps) {
-      if (!fragmentGroups[step.id]) {
-        fragmentGroups[step.id] = (mockFragmentGroups[step.id] ?? []).map((f) => ({ ...f }));
-        fragmentSelectedIds[step.id] = fragmentGroups[step.id].filter((f) => f.recommended).map((f) => f.id);
-        expandedFragmentIds[step.id] = [];
+    isGatheringFragments = true;
+    try {
+      await mockDelay();
+      for (const step of sequencedTestSteps) {
+        if (!fragmentGroups[step.id]) {
+          fragmentGroups[step.id] = (mockFragmentGroups[step.id] ?? []).map((f) => ({ ...f }));
+          fragmentSelectedIds[step.id] = fragmentGroups[step.id].filter((f) => f.recommended).map((f) => f.id);
+          expandedFragmentIds[step.id] = [];
+        }
       }
+      fragmentGroups = fragmentGroups;
+      fragmentSelectedIds = fragmentSelectedIds;
+    } finally {
+      isGatheringFragments = false;
     }
-    fragmentGroups = fragmentGroups;
-    fragmentSelectedIds = fragmentSelectedIds;
   }
 
   function toggleFragmentSelected(stepId, fragmentId) {
@@ -532,21 +590,37 @@
     generateActiveUnitId = unitId;
   }
 
-  function generateUnitCode(unitId) {
+  let isGeneratingUnit = false;
+
+  async function generateUnitCode(unitId) {
     // TODO: replace with a real LLM call — sends exactly the (possibly edited) prompt text shown
-    const unit = generateUnits.find((u) => u.id === unitId);
-    generateState[unitId].code = mockCodeForUnit(unit);
-    generateState = generateState;
+    isGeneratingUnit = true;
+    try {
+      await mockDelay();
+      const unit = generateUnits.find((u) => u.id === unitId);
+      generateState[unitId].code = mockCodeForUnit(unit);
+      generateState = generateState;
+    } finally {
+      isGeneratingUnit = false;
+    }
   }
 
-  function generateAllUnits() {
+  let isGeneratingAllUnits = false;
+
+  async function generateAllUnits() {
     // TODO: replace with a real LLM call across all units
-    for (const unit of generateUnits) {
-      if (!generateState[unit.id].code) {
-        generateState[unit.id].code = mockCodeForUnit(unit);
+    isGeneratingAllUnits = true;
+    try {
+      await mockDelay();
+      for (const unit of generateUnits) {
+        if (!generateState[unit.id].code) {
+          generateState[unit.id].code = mockCodeForUnit(unit);
+        }
       }
+      generateState = generateState;
+    } finally {
+      isGeneratingAllUnits = false;
     }
-    generateState = generateState;
   }
 
   function advanceGenerateUnit() {
@@ -605,12 +679,19 @@
 
   let scriptFeedback = '';
   let showScriptFeedback = false;
+  let isReviewingWithLlm = false;
 
-  function reviewWithLlm() {
+  async function reviewWithLlm() {
     // TODO: replace with a real holistic-review LLM call
-    scriptFeedback =
-      "The assembled script consistently uses the AMF cluster fixtures established in setUp() across every TestCase, and the assertions map cleanly back to each sequence step's verify condition. No cross-step ordering issues detected.";
-    showScriptFeedback = true;
+    isReviewingWithLlm = true;
+    try {
+      await mockDelay();
+      scriptFeedback =
+        "The assembled script consistently uses the AMF cluster fixtures established in setUp() across every TestCase, and the assertions map cleanly back to each sequence step's verify condition. No cross-step ordering issues detected.";
+      showScriptFeedback = true;
+    } finally {
+      isReviewingWithLlm = false;
+    }
   }
 
   // Both "fix" actions invalidate the current assembly/lint/review and send the user back to
@@ -628,26 +709,88 @@
     scrollToTop();
   }
 
-  function fixUnitsWithLlm() {
+  let isFixingUnits = false;
+
+  async function fixUnitsWithLlm() {
     // TODO: replace with a real per-unit LLM fix call
-    confirmedGenerateUnits = [];
-    backToSummaryForFix();
+    isFixingUnits = true;
+    try {
+      await mockDelay();
+      confirmedGenerateUnits = [];
+      backToSummaryForFix();
+    } finally {
+      isFixingUnits = false;
+    }
   }
 
-  function fixWholeScriptWithLlm() {
+  let showFixWholeScriptModal = false;
+
+  function handleFixWholeScriptClick() {
+    showFixWholeScriptModal = true;
+  }
+
+  let isFixingWholeScript = false;
+
+  async function fixWholeScriptWithLlm() {
     // TODO: replace with a real whole-script LLM fix call
-    backToSummaryForFix();
+    isFixingWholeScript = true;
+    try {
+      await mockDelay();
+      backToSummaryForFix();
+    } finally {
+      isFixingWholeScript = false;
+    }
   }
 
-  function saveAndFinish() {
-    currentStep = 5;
-    scrollToTop();
+  // Any LLM call in flight anywhere on the Generate step (a unit, the batch generate, the
+  // holistic review, or either fix) puts every arrow in its row into the loading state.
+  $: generateRowLoading =
+    isGeneratingUnit || isGeneratingAllUnits || isReviewingWithLlm || isFixingUnits || isFixingWholeScript;
+
+  let showSaveModal = false;
+  let saveStatus = 'success';
+  let saveStatusMessage = '';
+  let isSaving = false;
+  let stepperCompleted = false;
+
+  async function saveScript() {
+    // TODO: replace with a real save API call
+    await mockDelay();
+    const saveSucceeded = true;
+    return saveSucceeded
+      ? { status: 'success', message: 'Your PyTest script has been saved.' }
+      : { status: 'error', message: 'Something went wrong while saving your PyTest script. Please try again.' };
+  }
+
+  async function saveAndFinish() {
+    isSaving = true;
+    try {
+      const result = await saveScript();
+      saveStatus = result.status;
+      saveStatusMessage = result.message;
+      showSaveModal = true;
+      if (result.status === 'success') {
+        stepperCompleted = true;
+      }
+    } finally {
+      isSaving = false;
+    }
+  }
+
+  function goToComposer() {
+    showSaveModal = false;
+    onNavigate && onNavigate('composer');
+  }
+
+  function createAnotherPytest() {
+    showSaveModal = false;
+    onCreateAnother && onCreateAnother();
   }
 </script>
 
 <ToolHeader title={title} tool="PYTEST CREATOR" icon={pyTestIcon} />
 
-<Stepper {steps} {currentStep} {maxStepReached} onStepClick={goToStep} />
+<Stepper {steps} {currentStep} {maxStepReached} {stepperCompleted} onStepClick={goToStep} />
 
 <div class="tool-page">
   {#if currentStep === 0}
@@ -659,7 +802,7 @@
     <Table columns={manualColumns} rows={manualTestSteps} selectable={false} />
 
     <div class="step-actions">
-      <Button variant="primary" sparkle on:click={extractSequence}>Extract Sequence (LLM)</Button>
+      <Button variant="primary" sparkle loading={isExtractingSequence} on:click={extractSequence}>Extract Sequence (LLM)</Button>
     </div>
 
     <p class="step-table-label">Test Steps (Sequenced)</p>
@@ -680,6 +823,7 @@
           label={i + 1}
           status={stepStatuses[step.id] ?? 'none'}
           active={activeStepId === step.id}
+          loading={isSuggestingForStep || isSuggestingAllSteps}
           onClick={() => selectStep(step.id)}
         />
       {/each}
@@ -689,13 +833,14 @@
           wide={true}
           status={summaryStatus}
           active={activeStepId === SUMMARY_STEP_ID}
+          loading={isSuggestingForStep || isSuggestingAllSteps}
           onClick={() => selectStep(SUMMARY_STEP_ID)}
         />
       {/if}
     </div>
 
     <div class="script-search-toolbar">
-      <Button variant="primary" sparkle disabled={sequencedTestSteps.length === 0} on:click={suggestAllSteps}>Suggest All Steps (LLM)</Button>
+      <Button variant="primary" sparkle disabled={sequencedTestSteps.length === 0} loading={isSuggestingAllSteps} on:click={suggestAllSteps}>Suggest All Steps (LLM)</Button>
       <div class="script-search-progress" role="progressbar" aria-valuenow={coveragePercent} aria-valuemin="0" aria-valuemax="100">
         <div class="script-search-progress-fill" style="width: {coveragePercent}%"></div>
       </div>
@@ -747,7 +892,7 @@
             buttonLabel="Search"
             onSearch={() => searchForStep(activeStep.id)}
           />
-          <Button variant="primary" sparkle on:click={() => suggestForStep(activeStep.id)}>Suggest for Step {activeStepIndex + 1} (LLM)</Button>
+          <Button variant="primary" sparkle loading={isSuggestingForStep} on:click={() => suggestForStep(activeStep.id)}>Suggest for Step {activeStepIndex + 1} (LLM)</Button>
         </div>
 
         <p class="step-table-label">Candidates — tick rows and choose to shortlist them for this step</p>
@@ -758,7 +903,7 @@
         </div>
 
         <p class="step-table-label">Chosen for this sequence step</p>
-        <Table columns={scriptColumns} rows={scriptSearchState[activeStepId].chosen} bind:selected={scriptSearchState[activeStepId].selectedChosenIds} flashIds={flashChosenIds} />
+        <Table columns={scriptColumns} rows={scriptSearchState[activeStepId].chosen} bind:selected={scriptSearchState[activeStepId].selectedChosenIds} />
 
         <div class="testlink-final-actions">
           <Button variant="outline" on:click={() => clearSelectedForStep(activeStep.id)}>Clear Selected</Button>
@@ -791,6 +936,7 @@
           label={i + 1}
           status={fragmentStepStatuses[step.id] ?? 'none'}
           active={fragmentActiveStepId === step.id}
+          loading={isGatheringFragments}
           onClick={() => selectFragmentStep(step.id)}
         />
       {/each}
@@ -800,13 +946,14 @@
           wide={true}
           status={fragmentsSummaryStatus}
           active={fragmentActiveStepId === FRAGMENTS_SUMMARY_STEP_ID}
+          loading={isGatheringFragments}
           onClick={() => selectFragmentStep(FRAGMENTS_SUMMARY_STEP_ID)}
         />
       {/if}
     </div>
 
     <div class="script-search-toolbar">
-      <Button variant="primary" sparkle disabled={sequencedTestSteps.length === 0} on:click={gatherFragments}>Gather Fragments (LLM)</Button>
+      <Button variant="primary" sparkle disabled={sequencedTestSteps.length === 0} loading={isGatheringFragments} on:click={gatherFragments}>Gather Fragments (LLM)</Button>
       <div class="script-search-progress" role="progressbar" aria-valuenow={fragmentsCoveragePercent} aria-valuemin="0" aria-valuemax="100">
         <div class="script-search-progress-fill" style="width: {fragmentsCoveragePercent}%"></div>
       </div>
@@ -905,6 +1052,7 @@
           wide={unit.kind === 'setup'}
           status={generateUnitStatuses[unit.id] ?? 'none'}
           active={generateActiveUnitId === unit.id}
+          loading={generateRowLoading}
           onClick={() => selectGenerateUnit(unit.id)}
         />
       {/each}
@@ -914,6 +1062,7 @@
           wide={true}
           status={generateSummaryStatus}
           active={generateActiveUnitId === GENERATE_SUMMARY_STEP_ID}
+          loading={generateRowLoading}
           onClick={() => selectGenerateUnit(GENERATE_SUMMARY_STEP_ID)}
         />
         <ArrowStep
@@ -921,13 +1070,14 @@
           wide={true}
           status={generateReviewStatus}
           active={generateActiveUnitId === GENERATE_REVIEW_STEP_ID}
+          loading={generateRowLoading}
           onClick={() => selectGenerateUnit(GENERATE_REVIEW_STEP_ID)}
         />
       {/if}
     </div>
 
     <div class="script-search-toolbar">
-      <Button variant="primary" sparkle disabled={generateUnits.length === 0} on:click={generateAllUnits}>Generate All Units (LLM)</Button>
+      <Button variant="primary" sparkle disabled={generateUnits.length === 0} loading={isGeneratingAllUnits} on:click={generateAllUnits}>Generate All Units (LLM)</Button>
       <div class="script-search-progress" role="progressbar" aria-valuenow={generateCoveragePercent} aria-valuemin="0" aria-valuemax="100">
         <div class="script-search-progress-fill" style="width: {generateCoveragePercent}%"></div>
       </div>
@@ -994,7 +1144,7 @@
           <p><strong>{generateActiveUnit.title}</strong> - {generateActiveUnit.detail}</p>
         </div>
         <div class="step-generate">
-          <Button variant="primary" sparkle on:click={() => generateUnitCode(generateActiveUnitId)}>Generate (LLM)</Button>
+          <Button variant="primary" sparkle loading={isGeneratingUnit} on:click={() => generateUnitCode(generateActiveUnitId)}>Generate (LLM)</Button>
         </div>
         <div class="generate-panes">
           <div class="generate-pane generate-pane-prompt">
@@ -1033,7 +1183,7 @@
           <p class="fragment-empty">Assemble &amp; Lint the script on the Summary step first.</p>
         {:else}
           <div class="step-actions">
-            <Button variant="primary" sparkle on:click={reviewWithLlm}>Review with LLM</Button>
+            <Button variant="primary" sparkle loading={isReviewingWithLlm} on:click={reviewWithLlm}>Review with LLM</Button>
           </div>
 
           {#if showScriptFeedback}
@@ -1042,12 +1192,34 @@
               <p class="holistic-review">{scriptFeedback}</p>
             </div>
             <div class="step-actions">
-              <Button variant="primary" sparkle on:click={fixUnitsWithLlm}>Fix Units (LLM)</Button>
-              <Button variant="primary" sparkle on:click={fixWholeScriptWithLlm}>Fix Whole Script (LLM)</Button>
+              <Button variant="primary" sparkle loading={isFixingUnits} on:click={fixUnitsWithLlm}>Fix Units (LLM)</Button>
+              <Button variant="primary" sparkle loading={isFixingWholeScript} on:click={handleFixWholeScriptClick}>Fix Whole Script (LLM)</Button>
             </div>
             <div class="step-actions">
-              <Button variant="success" on:click={saveAndFinish}>Save and Finish</Button>
+              <Button variant="success" loading={isSaving} on:click={saveAndFinish}>Save and Finish</Button>
             </div>
+
+            <ConfirmModal
+              bind:open={showFixWholeScriptModal}
+              title="Warning"
+              message="Fixing the whole script could exhaust a large portion of your AI token usage. Would you still like to continue?"
+              confirmText="Continue"
+              cancelText="Cancel"
+              onConfirm={fixWholeScriptWithLlm}
+            />
+
+            <StatusModal
+              bind:open={showSaveModal}
+              status={saveStatus}
+              title={saveStatus === 'success' ? 'Save successful' : 'Save failed'}
+              message={saveStatusMessage}
+              closeText="Close"
+            >
+              <svelte:fragment slot="actions">
+                <Button variant="outline" on:click={createAnotherPytest}>Create Another PyTest</Button>
+                <Button variant="outline" on:click={goToComposer}>Compose Test</Button>
+              </svelte:fragment>
+            </StatusModal>
           {/if}
         {/if}
       {/if}

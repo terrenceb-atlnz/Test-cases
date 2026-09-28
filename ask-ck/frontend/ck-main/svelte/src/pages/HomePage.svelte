@@ -84,8 +84,8 @@
 <StatusModal
   bind:open={showStatusModalPreview}
   status="success"
-  title="Preview status"
-  message="This is a preview of StatusModal's content and styling."
+  title="Export was successful"
+  message="AWPTCM-T44318 — (315) AdvancedManagement_AMF - AMF Master support saved on the server at ask-ck/objective-drafting/refined-cases/IPv6/AWPTCM-T44191/ (traceability.md, AWPTCM-T44191-session.json, zephyr_payload.json). Drop-in for refined-cases + upload tooling."
 />
 
 {#if isAdmin}

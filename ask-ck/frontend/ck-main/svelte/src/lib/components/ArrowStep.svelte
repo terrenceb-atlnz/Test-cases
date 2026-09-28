@@ -14,6 +14,10 @@
   /** @type {boolean} Extend the arrow's straight body (not a uniform stretch) for longer labels */
   export let wide = false;
 
+  /** @type {boolean} An LLM/API call affecting this step-row is in flight — swaps the label for
+      the `.loader` dots until it resolves */
+  export let loading = false;
+
   const normalPath = `M31.697,15.287
     c-0.011-0.011-6.947-6.993-6.947-6.993c-0.203-0.203-0.47-0.298-0.735-0.291c-0.008,0-0.015-0.005-0.023-0.005h-23
     c-0.88,0-1.32,1.109-0.705,1.727l6.242,6.295l-6.169,6.222C-0.305,22.859-0.009,24,1.203,23.998h22.78
@@ -51,6 +55,7 @@
   class:arrow-covered={status === 'covered'}
   class:arrow-step-active={active}
   aria-pressed={active}
+  aria-busy={loading}
   aria-label={`Sequence step ${label}`}
   on:click={() => onClick && onClick()}
 >
@@ -62,7 +67,13 @@
       stroke-width="1"
     />
   </svg>
-  <span class="arrow-label">{label}</span>
+  <span class="arrow-label">
+    {#if loading}
+      <span class="loader" aria-hidden="true"></span>
+    {:else}
+      {label}
+    {/if}
+  </span>
 </button>
 
 <style>
@@ -172,4 +183,16 @@
   .arrow-step-active .arrow-label {
     color: var(--color-arrow-step-active-text);
   }
+
+  /* HTML: <div class="loader"></div> — sized to fit the label area and recolored to
+     currentColor (was a hardcoded #000) so it reads correctly against every status/theme. */
+  .loader {
+    display: block;
+    width: 28px;
+    aspect-ratio: 4;
+    background: radial-gradient(circle closest-side,currentColor 90%,#0000) 0/calc(100%/3) 100% space;
+    clip-path: inset(0 100% 0 0);
+    animation: l1 1s steps(4) infinite;
+  }
+  @keyframes l1 {to{clip-path: inset(0 -34% 0 0)}}
 </style>
