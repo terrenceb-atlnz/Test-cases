@@ -142,6 +142,15 @@ show lldp
      `(config-if)#` makes the NEXT TestCase's commands run in the wrong mode.
    - `cmd()` accepts `log=False` (real kwarg: `cmd(command, timeOut, maxWait, interval,
      log, debug, retry)`) — use it for noisy polling only.
+   - **Restart the DUT with `dev.reboot('', timeOut=900)`** — `''` keeps the current startup
+     config. `dev.reboot(None, …)` (17 corpus scripts, the `deviceReboot` fragment) means
+     CLEAR IT: the framework sends `del force default.cfg`, `no boot config-file`, `erase
+     startup-config` and the DUT comes back factory-defaulted (read on tb470, 2026-09-29).
+     `timeOut=-1` is NOT "wait forever" on the live framework — its console send handles
+     0 and >0 only, so it returns at once and the next command runs against a booting
+     DUT; give a real bound (a 3-member stack takes minutes). Both are BLOCKING lint errors.
+     A "persists across reload" step is `copy running-config startup-config` in
+     configure(), then `reboot('', timeOut=900)`, then `dev.mode('#')` before any `show`.
 3d. **CAPABILITY GATING IS DONE AT RUN TIME, THE ART WAY — never by inventing a platform
    list.** The script runs unchanged on every platform, and absence of a command from the
    CLI reference means UNKNOWN, not unsupported. So do NOT add `testCaseExcl` /

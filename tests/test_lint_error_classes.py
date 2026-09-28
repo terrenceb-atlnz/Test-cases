@@ -83,6 +83,10 @@ BLOCKING = [
     # 2026-09-24 (G11): the flag with no fail reports ERROR, not UNSUPPORTED — the run's result
     # is wrong on that path every time, so no reviewer judgement makes it right.
     "unsupported: TestCase_15.main() line 2390 sets `self.supported = False` with no `self.failed()` — the framework reports that as ERROR, not UNSUPPORTED",
+    # 2026-09-29 (T33235 TestCase_33, tb470 sentinel): `.reboot(None, …)` erases the startup config
+    # and factory-defaults the bench; the same site also raises the `timeOut=-1` (does not wait)
+    # finding. Neither is a reviewer's call.
+    "reboot: TestCase_33.main() line 6014 calls `.reboot(None, …)` — confFile=None ERASES the startup config",
 ]
 
 POLICY = [

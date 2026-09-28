@@ -55,6 +55,14 @@ UNSUPPORTED as the flag FOLLOWED BY `self.failed()` (the flag alone reports ERRO
 restores with the documented negation) and 3f (`show system pluggable` prints bare port names;
 use ck_media). The rendered diff was checked to be those four hunks and nothing else.
 
+SNAPSHOT UPDATED 2026-09-29 (Terrence: "fix everything that has been identified by yourself and
+the other session" — the tb470 sentinel's T33235 TestCase_33 finding): rule 3b gained one bullet,
+`dev.reboot('', timeOut=900)` — `''` keeps the startup config, `None` erases it (`del force
+default.cfg` / `no boot config-file` / `erase startup-config`, framework `Switch.reboot` read on
+tb470) and `timeOut=-1` does not wait on the live framework. Both are now BLOCKING lint errors
+(`_lint_reboot_clears_config`, tests/test_pt_reboot_lint.py). The rendered diff was checked to
+be that one nine-line hunk and nothing else.
+
 Everything below still holds: the rules live in one file, and any FURTHER change to the
 rendered whole-script prompt must be as deliberate as these two were.
 """

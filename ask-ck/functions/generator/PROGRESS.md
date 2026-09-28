@@ -53,6 +53,12 @@ the three plans await Terrence's decisions; T33235 has still run no TestCase.
 
 ## Latest session (2026-09-28) — §A/§B answered; the DUT decides (R1 reversed); one-pass review; three plans; the Test Composer becomes the run tool
 
+> ⚠ **2026-09-29:** the D-B/C2 line below ("its file was already equal to the session") was
+> wrong. T33234's `ck.db` session held the pre-`1cb72db` frame (bound `swi_a` alone) and the
+> pre-D-B UNSUPPORTED paths, 518 characters behind the committed file, and both sessions held the
+> pre-`5f6427b` `library_9001.py`. Re-synced from disk on 2026-09-29 with `save_script`
+> (`write_files: false`) and re-chunked; see that day's entry.
+
 **Pick up here:** Terrence reviews the three plans written today, then the bench. In order:
 `ask-ck/plans/PLAN-test-composer.md` (§7: six decisions), `PLAN-family-library-first.md` (§3:
 three), `PLAN-pt-agent-broker.md` (§7). Nothing in any of them is built. At the wrap Terrence

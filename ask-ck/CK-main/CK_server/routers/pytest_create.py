@@ -3669,6 +3669,67 @@ def _lint_unsupported_without_failure(tree) -> List[str]:
     return out
 
 
+def _lint_reboot_clears_config(tree) -> List[str]:
+    """`.reboot(None, ...)` factory-defaults the DUT; `timeOut=-1` does not wait (2026-09-29).
+
+    Read from the framework on tb470 by the device-testing sentinel (`ATDrivers/ATSwitch.py`
+    `Switch.reboot(confFile='', stackId=0, timeOut=-1)`): `confFile=None` means CLEAR the
+    configuration — `del force default.cfg`, `no boot config-file`, `erase startup-config`, then
+    `reboot` — so the DUT comes back with no config, at the forced password-change dialog the
+    framework login does not handle; if the boot pointer named the bench config, that file is
+    gone too. `''` reboots into the current config. And `timeOut=-1` is not "forever": the live
+    console send handles 0 and >0 only, so the call returns at once and the next command runs
+    against a booting DUT. T33235's TestCase_33 copied both from the corpus `deviceReboot`
+    fragment (17 corpus scripts use `reboot(None, timeOut=-1)` verbatim). BLOCKING: the first
+    resets the bench, the second fails the verify on every stack."""
+    import ast as ast_mod
+
+    def _is_none(node):
+        return isinstance(node, ast_mod.Constant) and node.value is None
+
+    def _is_minus_one(node):
+        return (isinstance(node, ast_mod.UnaryOp) and isinstance(node.op, ast_mod.USub)
+                and isinstance(node.operand, ast_mod.Constant) and node.operand.value == 1)
+
+    def _calls(fn):
+        for n in ast_mod.walk(fn):
+            if (isinstance(n, ast_mod.Call) and isinstance(n.func, ast_mod.Attribute)
+                    and n.func.attr == "reboot"):
+                yield n
+
+    def _scopes():
+        for node in tree.body:
+            if isinstance(node, ast_mod.ClassDef):
+                for m in node.body:
+                    if isinstance(m, ast_mod.FunctionDef):
+                        yield f"{node.name}.{m.name}()", m
+            elif isinstance(node, ast_mod.FunctionDef):
+                yield f"{node.name}()", node
+
+    out: List[str] = []
+    for where, fn in _scopes():
+        for call in _calls(fn):
+            conf = call.args[0] if call.args else None
+            timeout = call.args[2] if len(call.args) > 2 else None
+            for kw in call.keywords:
+                if kw.arg == "confFile":
+                    conf = kw.value
+                elif kw.arg == "timeOut":
+                    timeout = kw.value
+            if _is_none(conf):
+                out.append(
+                    f"reboot: {where} line {call.lineno} calls `.reboot(None, …)` — confFile=None "
+                    f"ERASES the startup config (`del force default.cfg`, `no boot config-file`, "
+                    f"`erase startup-config`) before rebooting, so the DUT comes back "
+                    f"factory-defaulted; pass `''` to reboot into the current config")
+            if _is_minus_one(timeout):
+                out.append(
+                    f"reboot: {where} line {call.lineno} calls `.reboot(…, timeOut=-1)` — the live "
+                    f"framework's console send handles 0 and >0 only, so -1 returns without waiting "
+                    f"and the next command runs against a booting DUT; give a real bound (a "
+                    f"3-member stack needs ~900 s)")
+    return out
+
 def _lint_pluggable_port_key(tree, code: str) -> List[str]:
     """G12: a method that reads `show system pluggable` and matches its rows against a port's
     `.name` itself. That table prints `1.0.2`, not `port1.0.2`, on some releases, so the lookup
@@ -4425,6 +4486,8 @@ def _lint_generated(sess: PtSession) -> dict:
             errors.append(_e)
         warnings.extend(_lint_verdict_echo(tree, (sess.step2 or {}).get("sequence") or []))
         for _e in _lint_unsupported_without_failure(tree):     # G11, 2026-09-24
+            errors.append(_e)
+        for _e in _lint_reboot_clears_config(tree):          # T33235 TestCase_33, 2026-09-29
             errors.append(_e)
         warnings.extend(_lint_pluggable_port_key(tree, code))   # G12, 2026-09-24
         warnings.extend(_lint_config_not_restored(tree))        # G13, 2026-09-24

@@ -53,3 +53,10 @@
   negotiate down to it; a forced 100/full DUT against an auto partner typically links at 100 but
   the partner may fall to HALF duplex (parallel detection) — a duplex mismatch that passes link
   checks and fails traffic. State the expected duplex at BOTH ends when the step forces one.
+- **`reboot(None)` factory-defaults the DUT; `reboot('')` keeps its config.** The framework's
+  `Switch.reboot(confFile='', stackId=0, timeOut=-1)`: `''` = reboot as-is, a file name = set
+  that boot config first, `None` = `del force default.cfg` + `no boot config-file` + `erase
+  startup-config` before the reboot. And `timeOut=-1` does NOT wait on the live framework
+  (its console send handles 0 and >0 only). A "reload and verify persistence" step is
+  `copy running-config startup-config`, then `reboot('', timeOut=900)`, then `mode('#')`.
+  (T33235 TestCase_33, tb470 sentinel, 2026-09-29.)

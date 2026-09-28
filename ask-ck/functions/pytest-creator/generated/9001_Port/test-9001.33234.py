@@ -239,9 +239,33 @@ class TestSet(ATTestSet.TestSet):
                 else:
                     bucket = 'unknown'
                 found[bucket].append((near, far_port, far))
+        # Deterministic order, aggregator members LAST (tb470 sentinel, 2026-09-29):
+        # get_all_port_links() walks Stack.members, a SET, so the same bench handed out a
+        # different port run to run; and a port in a static-channel-group / channel-group is
+        # an aggregator member, where a speed/duplex change on ONE member is an aggregator
+        # artefact. Not skipped (the DUT decides; the tester may take the link out of its
+        # aggregator for the run) - preferred against, and named in the log and at binding.
+        self._ck_lag_ports = set()
+        for v in found.values():
+            for near, far_port, far in v:
+                if near.name.startswith('port') and re.search(
+                        r'^\s*(static-)?channel-group\b',
+                        dut.cmd('show running-config interface %s' % near.name), re.M):
+                    self._ck_lag_ports.add(near.name)
+
+        def _natural(s):
+            return [int(t) if t.isdigit() else t for t in re.split(r'(\d+)', s)]
+
+        def _order(link):
+            near, far_port, far = link
+            return (near.name in self._ck_lag_ports, _natural(near.name),
+                    _natural(getattr(far, 'name', 'tb')), _natural(far_port.name))
+        for v in found.values():
+            v.sort(key=_order)
         self.log('topology discovered on %s: %s' % (dut.name, '; '.join(
-            '%s=%s' % (k, ','.join('%s<->%s.%s' % (n.name, getattr(f, 'name', 'tb'), p.name)
-                                    for n, p, f in v))
+            '%s=%s' % (k, ','.join('%s%s<->%s.%s' % (
+                n.name, ' [LAG member]' if n.name in self._ck_lag_ports else '',
+                getattr(f, 'name', 'tb'), p.name) for n, p, f in v))
             for k, v in found.items() if v) or 'NO data links declared'))
         return found
 
@@ -273,6 +297,11 @@ class TestSet(ATTestSet.TestSet):
                 far = self._ck_far[far.name]
             self.log('topology: role %r -> %s %s <-> %s %s (%s)' % (
                 role, dut.name, near.name, getattr(far, 'name', 'tb'), far_port.name, bucket))
+            if near.name in getattr(self, '_ck_lag_ports', ()):
+                self.log('WARNING: %s %s is an aggregator member (channel-group in its running-config): '
+                         'a speed/duplex change on ONE member is an aggregator artefact, not a port '
+                         'result - take it out of the aggregator for the run, or cable a standalone '
+                         'link, before trusting this role' % (dut.name, near.name))
             return near, far_port, far
         have = ', '.join('%d %s' % (len(v), k) for k, v in self._ck_topo.items() if v) or 'none'
         why = ("BENCH PROBLEM, not a product defect: no unused %s link on %s (data links "
