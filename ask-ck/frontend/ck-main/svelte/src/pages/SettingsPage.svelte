@@ -199,12 +199,12 @@ import UnderConstruction from '../lib/components/UnderConstruction.svelte';
             Claude login, brokered through this browser tab. Your seat is never shared with
             other users, and the server never sees your credentials.
           </p>
-          <ol>
+          <!-- <ol>
             <li>On your machine, install Claude Code (anthropic.com/claude-code) and run <code>claude → /login</code>.</li>
             <li>Start the agent: <code>cd ask-ck/agent && ./run-agent.sh</code> (leave it running). See <code>ask-ck/agent/README.md</code>.</li>
             <li>Click <strong>"Check my local agent"</strong> to confirm it's reachable and logged in.</li>
             <li>Click <strong>"Apply / Login"</strong>. Leave Model blank to use the CLI's default.</li>
-          </ol>
+          </ol> -->
           <p class="llm-note-footer"><em>Usage counts against your own Claude seat's limits. If a call fails, make sure the agent is still running and you're logged in.</em></p>
         </div>
       </div>

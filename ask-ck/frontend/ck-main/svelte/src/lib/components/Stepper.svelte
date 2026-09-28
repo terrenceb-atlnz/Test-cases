@@ -10,6 +10,9 @@
   /** @type {number} Furthest step index reached so far (stays put when navigating back) */
   export let maxStepReached = 0;
 
+  /** @type {boolean} Furthest step index reached so far (stays put when navigating back) */
+  export let stepperCompleted = false;
+
   /** @type {((index: number) => void) | null} Called when a visited step's node is clicked */
   export let onStepClick = null;
 </script>
@@ -18,6 +21,7 @@
   {#each steps as step, i}
     <div
       class="stepper-step"
+      class:finished={stepperCompleted}
       class:completed={i !== currentStep && i <= maxStepReached}
       class:current={i === currentStep}
     >
@@ -25,6 +29,7 @@
         type="button"
         class="stepper-node"
         class:completed={i !== currentStep && i <= maxStepReached}
+        class:finished={stepperCompleted}
         class:current={i === currentStep}
         class:pending={i > maxStepReached}
         disabled={!(onStepClick && i !== currentStep && i <= maxStepReached)}
@@ -34,6 +39,7 @@
       >
         <img class="stepper-icon" src={step.icon || arrowRightIcon} alt="" aria-hidden="true" />
       </button>
+
       <span class="stepper-label" class:current={i === currentStep}>{i + 1}. {step.label}</span>
     </div>
   {/each}
@@ -119,6 +125,21 @@
 
   .stepper-node.completed:hover {
     filter: brightness(1.1);
+  }
+
+  .stepper-node.finished {
+    border-color: var(--color-success);
+    background: var(--color-success);
+    cursor: pointer;
+  }
+
+  .stepper-step.finished:not(:first-child)::after {
+    background: var(--color-success);
+  }
+
+  .stepper-node.current.finished{
+    border-color: var(--color-success);
+    background: var(--color-bg-content);
   }
 
   .stepper-icon {
