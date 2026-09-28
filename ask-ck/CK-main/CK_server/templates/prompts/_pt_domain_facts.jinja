@@ -60,3 +60,7 @@
   (its console send handles 0 and >0 only). A "reload and verify persistence" step is
   `copy running-config startup-config`, then `reboot('', timeOut=900)`, then `mode('#')`.
   (T33235 TestCase_33, tb470 sentinel, 2026-09-29.)
+- **`no polarity` is refused; the default form is `polarity auto`.** `polarity {auto|mdi|mdix}`
+  has no `no` form (neither has `duplex`); the IE520 and the x230 answer `no polarity` with
+  `% Invalid input detected at '^' marker`. A defaulting list is `no speed`, `duplex auto`,
+  `polarity auto`, `no shutdown`. (T33234 on tb470, 2026-09-29.)

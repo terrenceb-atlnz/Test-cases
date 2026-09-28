@@ -136,7 +136,11 @@
    So `tear_down()` restores what `configure()` and `main()` changed, on BOTH ends of the
    link. Where the CLI reference documents a `no` form, use it (`no speed`, not `speed auto`)
    — the negation is what removes the line from the running-config. A command with no `no`
-   form in its syntax (`duplex {auto|full|half}`) is restored to its default (`duplex auto`).
+   form in its syntax (`duplex {auto|full|half}`, `polarity {auto|mdi|mdix}`) is restored to
+   its default VALUE (`duplex auto`, `polarity auto`). `no polarity` is REFUSED (`% Invalid
+   input`) on the IE520 and the x230 (tb470, 2026-09-29): as a defaulting command it failed
+   STEP 1 of every TestCase, and each failed case power-cycled the whole bench. A lint warns
+   on every `no <cmd>` whose reference syntax documents no `no` form.
 3f. **`show system pluggable` names ports WITHOUT the `port` prefix on some releases**
    (`1.0.2`, not `port1.0.2`), so a row lookup keyed on `port.name` silently finds nothing
    there and every decision built on it falls back. Ask the frame's own parser instead:

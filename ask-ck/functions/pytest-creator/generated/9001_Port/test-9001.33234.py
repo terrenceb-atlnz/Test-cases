@@ -407,12 +407,12 @@ class TestSet(ATTestSet.TestSet):
         # method is config-only and may hold no verdict.
         self.step1_responses = []
         dut.mode(')#')
-        for cmd in ('interface {}'.format(portA.name), 'duplex auto', 'no polarity', 'no shutdown'):
+        for cmd in ('interface {}'.format(portA.name), 'duplex auto', 'polarity auto', 'no shutdown'):
             self.step1_responses.append(('DUT', cmd, dut.cmd(cmd)))
         dut.mode('#')
 
         peer.mode(')#')
-        for cmd in ('interface {}'.format(portDut.name), 'duplex auto', 'no polarity', 'no shutdown'):
+        for cmd in ('interface {}'.format(portDut.name), 'duplex auto', 'polarity auto', 'no shutdown'):
             self.step1_responses.append(('partner', cmd, peer.cmd(cmd)))
         peer.mode('#')
 
@@ -439,14 +439,14 @@ class TestSet(ATTestSet.TestSet):
         # One-time SUITE cleanup, runs ONCE after all cases. No pass/fail.
         dut.mode(')#')
         dut.cmd('interface {}'.format(portA.name))
-        dut.cmd('no polarity')
+        dut.cmd('polarity auto')
         dut.cmd('duplex auto')
         dut.cmd('no shutdown')
         dut.mode('#')
 
         peer.mode(')#')
         peer.cmd('interface {}'.format(portDut.name))
-        peer.cmd('no polarity')
+        peer.cmd('polarity auto')
         peer.cmd('duplex auto')
         peer.cmd('no shutdown')
         peer.mode('#')
@@ -709,8 +709,8 @@ class TestCase_2(ATTestCase.TestCase):
         dut.mode(')#')
         dut.cmd('interface {}'.format(portA.name))
         dut.cmd('no speed')
-        dut.cmd('no duplex')
-        dut.cmd('no polarity')
+        dut.cmd('duplex auto')
+        dut.cmd('polarity auto')
         dut.mode('#')
 
 

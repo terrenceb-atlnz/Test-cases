@@ -3730,6 +3730,82 @@ def _lint_reboot_clears_config(tree) -> List[str]:
                     f"3-member stack needs ~900 s)")
     return out
 
+def _cli_syntax_forms(words: List[str]) -> Optional[List[str]]:
+    """The CLI reference's syntax forms for the LONGEST command name that prefixes `words`
+    (`['lldp', 'run']` → the `lldp run` page), or None when the reference has no such command
+    — unknown is not the same as undocumented. Read-only over ck.db through `cli_lookup`; any
+    failure reads as unknown, so this can never block the pipeline."""
+    try:
+        import sys as _sys
+        tool_dir = str(Path(__file__).resolve().parents[3] / "frontend" / "ck-main" / "current" / "pytest-creator")
+        if tool_dir not in _sys.path:
+            _sys.path.insert(0, tool_dir)
+        import cli_lookup
+        conn = cli_lookup._conn()
+        for n in range(len(words), 0, -1):
+            name = " ".join(words[:n])
+            targets = cli_lookup.resolve_command(name, conn) or [name]
+            ph = ",".join("?" for _ in targets)
+            rows = conn.execute(f"SELECT syntax FROM cli_commands WHERE command IN ({ph})", tuple(targets)).fetchall()
+            forms = [f for (raw,) in rows for f in (json.loads(raw) if raw else []) if isinstance(f, str)]
+            if rows:
+                return forms
+        return None
+    except Exception:
+        return None
+
+
+def _lint_undocumented_no_form(tree) -> List[str]:
+    """A `no <cmd>` the CLI reference gives no `no` form for (T33234 on tb470, 2026-09-29).
+
+    `configureDefaultPort` and T33234's own configure()/tear_down() sent `no polarity`; the IE520
+    and the x230 refuse it (`% Invalid input detected at '^' marker` — `polarity {auto|mdi|mdix}`
+    has no `no` form), STEP 1 of every case failed on the refusal, and each failure power-cycled
+    the bench. Fill rule 3e already says: the documented `no` form where there is one, else the
+    default VALUE. This checks the first half against the reference: every `no <cmd>` literal
+    sent through `.cmd()` (directly, or from a tuple/list a loop feeds to `.cmd()`) whose command
+    page exists and lists no `no …` form. A WARNING, not an error: the reference is incomplete
+    (`no duplex` is undocumented and accepted, verified 2026-09-25) and the DUT decides."""
+    import ast as ast_mod
+    cands: List[Tuple[str, int]] = []
+    for fn in [n for n in ast_mod.walk(tree) if isinstance(n, ast_mod.FunctionDef)]:
+        for _dev, cmd, ln in _cmd_literals(fn):
+            cands.append((cmd, ln))
+        for loop in [n for n in ast_mod.walk(fn) if isinstance(n, ast_mod.For)]:
+            if not (isinstance(loop.target, ast_mod.Name) and isinstance(loop.iter, (ast_mod.Tuple, ast_mod.List))):
+                continue
+            feeds = any(isinstance(n, ast_mod.Call) and isinstance(n.func, ast_mod.Attribute)
+                        and n.func.attr == "cmd" and n.args
+                        and isinstance(n.args[0], ast_mod.Name) and n.args[0].id == loop.target.id
+                        for n in ast_mod.walk(loop))
+            if not feeds:
+                continue
+            for el in loop.iter.elts:
+                if isinstance(el, ast_mod.Constant) and isinstance(el.value, str):
+                    cands.append((" ".join(el.value.split()).lower(), el.lineno))
+    out: List[str] = []
+    seen = set()
+    cache: Dict[Tuple[str, ...], Optional[List[str]]] = {}
+    for cmd, ln in sorted(set(cands), key=lambda t: t[1]):
+        toks = cmd.split()
+        if len(toks) < 2 or toks[0] != "no":
+            continue
+        words = tuple(toks[1:])
+        if words not in cache:
+            cache[words] = _cli_syntax_forms(list(words))
+        forms = cache[words]
+        if forms is None or any(f.strip().lower().startswith("no ") for f in forms):
+            continue
+        if words in seen:
+            continue
+        seen.add(words)
+        out.append(
+            f"noform: line {ln} sends `{cmd}` but the CLI reference's syntax for `{' '.join(words)}` "
+            f"documents no `no` form ({'; '.join(forms[:2]) or 'no syntax recorded'}) — `no polarity` "
+            f"is refused on the IE520 and the x230; restore with the default value (`{words[0]} auto`) "
+            f"unless the DUT is known to accept the negation")
+    return out
+
 def _lint_pluggable_port_key(tree, code: str) -> List[str]:
     """G12: a method that reads `show system pluggable` and matches its rows against a port's
     `.name` itself. That table prints `1.0.2`, not `port1.0.2`, on some releases, so the lookup
@@ -4489,6 +4565,7 @@ def _lint_generated(sess: PtSession) -> dict:
             errors.append(_e)
         for _e in _lint_reboot_clears_config(tree):          # T33235 TestCase_33, 2026-09-29
             errors.append(_e)
+        warnings.extend(_lint_undocumented_no_form(tree))      # T33234 `no polarity`, 2026-09-29
         warnings.extend(_lint_pluggable_port_key(tree, code))   # G12, 2026-09-24
         warnings.extend(_lint_config_not_restored(tree))        # G13, 2026-09-24
         warnings.extend(_lint_published_unguarded(                # C7 (G15), 2026-09-25

@@ -167,17 +167,20 @@ def configurePort(testCase, device, port, setting, value, settle=0):
 def configureDefaultPort(testCase, device, port):
     """Return a port to its factory default speed/duplex/polarity and enable it.
 
-    `no speed` / `no duplex` / `no polarity` are the documented negations. The
-    commands are issued unconditionally; a platform that does not implement
-    `polarity` on the given media simply refuses that one line, which is logged
-    and not treated as a helper failure — the caller's own verify decides what
-    the refusal means.
+    `no speed` and `no shutdown` are the documented negations; `duplex` and `polarity`
+    have NO `no` form in their syntax (`duplex {auto|full|half}`, `polarity {auto|mdi|mdix}`)
+    and are returned to their default VALUE. `no polarity` is refused with `% Invalid input`
+    on the IE520 and the x230 (tb470, 2026-09-29) — and a refused defaulting command failed
+    STEP 1 of every TestCase, each failure power-cycling the whole bench. The commands are
+    issued unconditionally; a platform that does not implement `polarity` on the given
+    media refuses that one line, which is logged and not treated as a helper failure — the
+    caller's own verify decides what the refusal means.
     """
     if port is None:
         return False
     device.mode(')#')
     device.cmd('interface {}'.format(port.name))
-    for cmd in ('no speed', 'no duplex', 'no polarity', 'no shutdown'):
+    for cmd in ('no speed', 'duplex auto', 'polarity auto', 'no shutdown'):
         response = device.cmd(cmd)
         if checkInvalidCmd(response):
             testCase.log('configureDefaultPort: "{}" refused on {} {}: {}'.format(

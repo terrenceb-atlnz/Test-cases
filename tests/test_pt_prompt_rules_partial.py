@@ -63,6 +63,12 @@ tb470) and `timeOut=-1` does not wait on the live framework. Both are now BLOCKI
 (`_lint_reboot_clears_config`, tests/test_pt_reboot_lint.py). The rendered diff was checked to
 be that one nine-line hunk and nothing else.
 
+SNAPSHOT UPDATED 2026-09-29, second time (same instruction; the tb470 sentinel's T33234 finding):
+rule 3e now names `polarity {auto|mdi|mdix}` beside `duplex` as a command with no `no` form —
+`no polarity` is refused on the IE520 and the x230 and, as a defaulting command, failed STEP 1 of
+every case — and says a lint (`noform:`, a warning) flags a `no <cmd>` the reference gives no
+`no` form for. The rendered diff was checked to be that one hunk inside 3e and nothing else.
+
 Everything below still holds: the rules live in one file, and any FURTHER change to the
 rendered whole-script prompt must be as deliberate as these two were.
 """
