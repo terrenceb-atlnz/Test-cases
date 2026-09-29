@@ -265,7 +265,7 @@ What a reload costs users: a few seconds' outage; in-flight LLM calls (Generate 
 are killed; case locks (in memory) are dropped — whether open tabs re-take them is a Phase 0
 checklist item; `ck.db` sessions survive.
 
-## 7. Phase 1 — the variable mapping (DRAFT, for Terrence before any CSS changes)
+## 7. Phase 1 — the variable mapping (DRAFT, for Terrence before any CSS changes; severity settled)
 
 `restyle/styles.css` keeps today's 35 variable *names* — so its 270 `var()` uses need no edit —
 and re-points each at an ATUI token. Both themes come from ATUI (`restyle/atui/atui-tokens.css`:
@@ -294,7 +294,7 @@ its readme says (hover = an overlay, never a new colour; focus = a 3px active-ac
 | `--accent-text` | accent-coloured text | `--token-text-active` |
 | `--status-critical` / `-muted` | severity: critical | `--token-state-error-accent` / `--token-state-error-background` |
 | `--status-high` / `-muted` | severity: high | `--token-state-warning-accent` / `--token-state-warning-background` |
-| `--status-medium` / `-muted` | severity: medium | **no ATUI equivalent — see note** |
+| `--status-medium` / `-muted` | severity: medium | `--chart-alert-2` (ATUI's chart amber) / its 15% tint over `--token-surface-foreground` — option (b) |
 | `--status-low` / `-muted` | severity: low | `--token-text-muted` / `--token-surface-1` |
 | `--status-success` / `-muted` | pass, done | `--token-state-success-accent` / `--token-state-success-background` |
 | `--focus-ring` | focus outline | `color-mix(in srgb, var(--token-state-active-accent) 50%, transparent)`, 3px |
@@ -311,5 +311,7 @@ uses); ATUI's states are error / warning / success / info, and its alert chart p
 green / amber / red / grey. Options: (a) medium shares high's amber (loses the distinction);
 (b) medium = ATUI's chart amber `--chart-alert-2`, high = the warning accent (keeps four
 levels, two of them close in hue); (c) medium = `--token-state-info-accent` (blue — keeps it
-distinct but blue reads as "info", not severity). **Terrence's call.**
+distinct but blue reads as "info", not severity). **Terrence, 2026-09-30: (b).** The `-muted`
+tint is my construction (ATUI defines no background for chart colours) — shown in the Phase 1
+checklist so it can be judged by eye.
 
