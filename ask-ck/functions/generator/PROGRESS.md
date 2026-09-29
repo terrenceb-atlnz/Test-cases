@@ -5,13 +5,111 @@ verified: 2026-09-28
 
 **Purpose**: This file exists so future sessions can quickly understand exactly where we are, what has been built, what the priorities are, and how to continue seamlessly.
 
-**Last Updated**: 2026-09-28 evening (by Claude; the dt agent: STANDING-ORDERS + `/test-mode` in device-testing — nothing in this repo changed)
+**Last Updated**: 2026-09-30 (by Claude; wrap of 2026-09-29 — T33234/T33235 on tb470, four fixes, the first real TestCase results)
 
 > **Reading note (2026-09-23 doc sweep).** Entries are frozen as written. Where an entry's
 > claim has since stopped being true, a ⚠ line under its heading says what changed.
 > Newest first. Paths in older entries predate these moves (the same as in CHANGELOG): `tool/` → `ask-ck/tools/`, `ask-ck/var/` → `ask-ck/db/`, `objective-drafting/` → `ask-ck/functions/generator/`, `pytest-create/` → `ask-ck/functions/pytest-creator/`, `js-tests/` → `tests/js/`, `ask-ck/ck-facelift/` → `ask-ck/plans/`, root reports → `docs/`, and completed plans `ask-ck/plans/` → `archive/plans/` (2026-09-11, 2026-09-23). Also retired 2026-09-23: the demo notes → `archive/plans/demo-2026-09-11/`, and `HANDOFF-generate-token-efficiency.md` + `Fragments_prompt.md` → `archive/records/`.
 
+## Latest session (2026-09-29, wrapped 2026-09-30) — T33234 and T33235 on tb470: four fixes, the first real TestCase results, UNSUPPORTED without a bench power cycle
+
+**Pick up here:** the four commits below were made on 2026-09-29 by session `test-cases-43`, which
+never wrapped. This entry was written on 2026-09-30 by a different session from the commits, the
+device-testing records and the sentinel's messages; no code changed at the wrap. In order:
+1. **T33235 re-run on `3454bc0`** is device-testing queue row 4, **BLOCKED on Terrence**. The fibre
+   is now cabled (stack port4.0.26, AT-SPSX 1G ↔ IE520-sa port1.0.26), but `bench_probe.py apply`
+   (the `[portlink]` + `.setup` change) is his. This run is the first to exercise the fibre cases
+   8–12. Note that `3454bc0`'s *no-fibre* skip has never run, and with fibre fitted this re-run
+   will not exercise it either.
+2. **Decision for Terrence: teach the declarative gate?** Today proved two UNSUPPORTED shapes
+   (below). The generator still teaches only the in-`main()` one, and each case in that shape pays
+   a whole-bench power cycle. Nothing is changed yet; see "Open".
+3. **Modbus case texts (owner question, not started):** see "Open".
+4. The three plans still await Terrence (`PLAN-test-composer.md` §7 incl. (g),
+   `PLAN-family-library-first.md` §3, `PLAN-pt-agent-broker.md` §7).
+
+- **Shipped 2026-09-29 (all from live tb470 runs through the device-testing sentinel):**
+  - `4ef0dc4`: T33235 TestCase_33 had copied `dut.reboot(None, timeOut=-1)` from the corpus
+    deviceReboot fragment. On the live framework, `confFile=None` runs `del force default.cfg` /
+    `no boot config-file` / `erase startup-config`, which would have factory-defaulted the
+    3-member stack. It is now `dut.reboot('', timeOut=900)`, backed by the BLOCKING lint
+    `_lint_reboot_clears_config`. Frame: `_ck_discover` sorts every bucket in natural port order,
+    puts channel-group members LAST and names them `[LAG member]`, because
+    `get_all_port_links()` walks a set, so the chosen port changed from run to run.
+  - `b734b40`: `no polarity` is refused by the IE520 and the x230 (`polarity` has no no-form). The
+    library's `configureDefaultPort` and T33234 now send `polarity auto` / `duplex auto`. New
+    WARNING lint `_lint_undocumented_no_form` (`noform:`). It is a warning rather than an error
+    because the reference is incomplete (`no duplex` is undocumented but accepted).
+  - `d9a08dd`: Terrence's ruling, **T33234 only**. For MDI/MDI-X an SFP/SFP+ cage is a fibre port
+    whatever module it holds. The pluggable cases (Zephyr steps 16–19) were removed, leaving 14
+    cases and a 15-step stored sequence; Zephyr steps 6–7 now show as uncovered, by ruling. init
+    sets `dut.has_fixed_copper_port`, and every case carries
+    `testCasePlatformWithPropertyIncl = {'dut': [(['.*'], ['has_fixed_copper_port'])]}` +
+    `skipIfExcl = True`. Scope is polarity only: a copper pluggable keeps its copper identity for
+    speed/duplex (T33235's `cusfp` role is untouched).
+  - `3454bc0`: the same gate on T33235 TestCase_8..12 via `dut.has_fibre_test_link`. Their in-`main()`
+    guards stay.
+  - Each commit's message records: both sessions re-synced from disk and re-chunked, server lint
+    0 errors, gate pytest 1889 / 1 skipped, vitest 356.
+- **⚠ Correction to the `d9a08dd` and `3454bc0` commit messages (the commits were left as they
+  are):** both say the framework's `run()` skips the marked cases' methods *because* `skipIfExcl`
+  is set. **That is not what happens in a normal run.** Without `-u`/`--unsupported`, the
+  framework's marking pass (after `TestSet.configure()`) marks the case, and the run loop **drops
+  it before `TestCase.run()` is ever called**. `skipIfExcl` is reached only under `-u`. The
+  outcome is identical (UNSUPPORTED, not run, no power cycle), and the scripts are correct. Source:
+  the tb470 sentinel `device-testing-61`, from the run-3 log below. There is no "Skipping TestCase
+  methods because skipIfExcl is set" line in it.
+- **Bench results (device-testing records, `IE520/port-2026-09-29/`):**
+  - T33234 run 2 (08:48–08:57, before `b734b40`): FAIL on `no polarity` (I-3), plus the IE520
+    copper-SFP showing no mdi/mdix role (I-5 → the ruling above). The framework PDU-cycled all
+    six units after each failed case (I-4). Terrence accepts that restart; what he does not
+    accept is a systematic script defect that makes every case pay it.
+  - **T33235 run 1 (12:17–12:57, on `b734b40`): the first real TestCases.** Cases 1–7 (copper)
+    **PASS**: 10 rejected; 100/1000 fixed OK; 2500/5000/10000 rejected. Cases 8–12 (fibre) each
+    hit `self.supported = False; self.failed('…not applicable')` in `main()` with no fibre link,
+    and **each cost a full-bench power cycle** (five in all, about 4 min each). Terrence stopped
+    the run ("useless" without fibre); cases 13–30 did not run. Bench restored, probe MATCH. Log
+    `33235-partial.log`, device-testing `1933be7`.
+  - **T33234 run 3 (13:38–13:40, on `d9a08dd`): rc 0, all 14 cases UNSUPPORTED, none run, 0 power
+    cycles.** `dut` resolved to the `swi_a` handle the attribute was set on. Marking line per case:
+    *"Test case N has been marked as unsupported on .\* platform without property
+    has_fixed_copper_port, for device swi_a"*. Bench restored, configs IDENTICAL. Log
+    `33234-skip.log`, device-testing `592761b`. No bench change unblocks this case: the
+    IE520-28GSX has no fixed copper port.
+- **The two UNSUPPORTED shapes, now both observed on the live framework:**
+  - *In `main()`* (`self.supported = False` + `self.failed()`, taught by `pt_fill_rules` §3d and
+    enforced by the `unsupported:` lint): the case runs, and the `failed()` trips the framework's
+    "Setup is no longer reliable" whole-bench restart.
+  - *Declarative* (a device attribute set in `init`, plus `testCasePlatformWithPropertyIncl` on
+    the case): the case is dropped before it runs, with no restart. It can only use facts known at
+    init/configure time. Today it lives only in the two committed scripts: no prompt, frame or
+    lint teaches it (a grep of every tracked `.py`/`.jinja` matches only those two files). Memory
+    `framework-unsupported-needs-a-failure` carries both.
+- **Found in other device-testing work that day (Modbus group, `IE520/modbus-2026-09-29/README.md`):**
+  the AWPTCM step texts of **T22650** and **T22652** carry Modbus **Mapping Version 1** register
+  addresses (0x3600…), but the IE520 serves **Mapping Version 5** (system block 0x0001…, alarms at
+  0x3000, 6 words per alarm, per-member blocks by unit id = stack member). T22652 PASSED at the
+  version-5 addresses. T22650 FAILED step 5 on a different point: alarm count 0x0049 = 124 against
+  93 in the CLI, because it counts a provisioned-but-absent stack member.
+- **Open:**
+  - **Modbus case texts: owner question for Terrence, not started.** Who updates T22650/T22652's
+    AWPTCM text to the version-5 addresses, and is T22650's 124-vs-93 a product defect or a
+    case-expectation issue? Nothing in this repo touches either case yet.
+  - **Declarative UNSUPPORTED gate: teach it or not (Terrence).** Options: teach it in
+    `pt_fill_rules` and the frame for init-time facts (missing role, absent media), or leave it
+    hand-applied. Either way the `unsupported:` lint and §3d stay correct for runtime-only facts.
+  - T33235 row 4 (above); C3, C10 of `PLAN-pt-followups-review-2026-09-24.md` unchanged.
+  - Unchanged from 2026-09-28: the two device-testing handovers (`restore_cfg.py`, TESTBOX-ACCESS
+    §3b), the two dead citations in device-testing-owned memories, and the empty
+    `test-composer/templates/setup-b/`.
+- **Gate (live tree, at this wrap, 2026-09-30):** pytest 1889 passed / 1 skipped, vitest 356, both
+  guards OK, `ck.db` signature unchanged by the gate. `ck.db` shows modified from real traffic
+  (the 09-29 session re-syncs), which is legitimate.
+
 ## Latest session (2026-09-28, evening) — the dt agent: standing orders + `/test-mode`, the one-session campaign bundle (all in device-testing)
+
+> ⚠ **2026-09-29:** "T33235 has still run no TestCase" stopped being true. Run 1 on 2026-09-29
+> passed cases 1–7; see that day's entry.
 
 **Pick up here:** nothing in this repo changed this evening; the work landed in
 `../device-testing` (`9ff73e1` STANDING-ORDERS.md, `33fcb18` `/test-mode`), both committed, not

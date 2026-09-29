@@ -21,6 +21,29 @@ current working thread see
 > `ask-ck/ck-facelift/`, `pytest-create/` and `CK-main/` plan paths moved to `ask-ck/plans/` on 2026-09-11 and, once complete, to `archive/plans/`.
 > `js-tests/` → `tests/js/`, `e2e/` → `tests/e2e/`, `static/js/` → `ask-ck/frontend/ck-main/current/<page>/` (2026-09-11).
 
+## 2026-09-29 — bench-safety lints; UNSUPPORTED without a bench power cycle (from the first tb470 runs)
+
+**Why:** the first live runs of T33234/T33235 on tb470 showed three ways a generated script
+damages or wastes the bench. A `dut.reboot(None, ...)` copied from the corpus erases
+startup-config. A `no polarity` the DUT refuses fails step 1 of every case. And the framework
+power-cycles all six bench units after ANY failed TestCase, including a case that fails only to
+report "not applicable". Terrence accepts that restart for real failures, not for a script's
+systematic defect.
+
+- **`_lint_reboot_clears_config` (BLOCKING):** flags `.reboot(None, ...)` and `timeOut=-1`.
+  The fill rules and domain facts teach `dut.reboot('', timeOut=900)` (`4ef0dc4`).
+- **`_lint_undocumented_no_form` (WARNING, `noform:`):** flags a `no <cmd>` whose CLI-reference
+  page lists no no-form. It is a warning because the reference is incomplete and the DUT decides.
+  `configureDefaultPort` now sends `polarity auto` (`b734b40`).
+- **Frame:** `_ck_discover` orders ports deterministically and puts aggregator members last,
+  named. `get_all_port_links()` walks a set, so the bound port changed from run to run (`4ef0dc4`).
+- **Declarative UNSUPPORTED, in two scripts only (`d9a08dd`, `3454bc0`):** init sets a device
+  attribute, and the case carries `testCasePlatformWithPropertyIncl`. Without `-u`, the
+  framework drops a marked case before `run()`: UNSUPPORTED, no power cycle. (The commit messages
+  credit `skipIfExcl`; that path is only reached under `-u`.) The prompts still teach only the
+  in-`main()` `supported=False` + `failed()` shape, which costs a restart per case. Whether to
+  teach the declarative shape is open (PROGRESS 2026-09-29).
+
 ## 2026-09-28 — the DUT decides (R1 reversed); the review sweeps once; the Test Composer is the run tool (plan)
 
 **Why:** reviewing T33235 for R1 ("a fixed copper port must accept 10/100") Terrence reversed it:

@@ -4796,3 +4796,30 @@ wrap-dt §1; memories). Consequence here: a tb470 run is dispatched through `/te
 `PLAN-test-composer.md` §2 step 5 gained open point (g). Gate green at the wrap (pytest 1874/1
 skipped, vitest 356). `main` is 30 ahead of `origin/main` after this wrap's commit; Terrence pushes
 both repos.
+
+## Session Close / Handoff (2026-09-29, wrapped 2026-09-30) — T33234/T33235 on tb470; UNSUPPORTED without a power cycle
+
+The 2026-09-29 work (`4ef0dc4`, `b734b40`, `d9a08dd`, `3454bc0`, session `test-cases-43`) was never
+wrapped. This entry was written on 2026-09-30 by another session from the commits, device-testing's
+records and the tb470 sentinel's messages. No code changed at the wrap. What landed:
+- a BLOCKING reboot lint (T33235 would have factory-defaulted the stack);
+- `polarity auto` plus a `noform:` warning lint;
+- deterministic frame discovery with LAG members last;
+- T33234 stripped of pluggable cases by Terrence's ruling;
+- a declarative UNSUPPORTED gate on T33234 and on T33235's fibre cases.
+
+On tb470, T33235 run 1 passed its copper cases 1–7 (the first real TestCases), and its fibre
+cases 8–12 cost five bench power cycles. T33234 run 3 on `d9a08dd` went all-UNSUPPORTED with 0
+power cycles.
+
+**Correction:** the `d9a08dd`/`3454bc0` messages credit `skipIfExcl`. In a normal run (no `-u`) the
+framework drops marked cases before `run()`, so `skipIfExcl` never participates; the scripts are
+correct.
+
+Open:
+- the T33235 re-run (Terrence's apply of the new fibre link);
+- whether to teach the declarative gate (Terrence);
+- the Modbus Mapping-Version-1 addresses in T22650/T22652 (owner question, not started).
+
+Gate green at the wrap (pytest 1889/1 skipped, vitest 356). Full detail: PROGRESS 2026-09-29.
+The 2026-09-28 lines saying "T33235 has still run no TestCase" are superseded by this entry.

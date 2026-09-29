@@ -39,6 +39,11 @@ verified: 2026-09-24
 > - **D-C DECIDED (a)** — plan written: `PLAN-pt-agent-broker.md`. Not built.
 > - C3, C5, C10 unchanged. The untracked zip is deleted.
 >
+> **2026-09-29 (wrapped 2026-09-30): C5 advanced, not done.** T33235 ran on tb470 on `b734b40`:
+> cases 1–7 PASS, cases 8–12 cost five bench power cycles with no fibre link, and Terrence stopped
+> the run. Fixes `4ef0dc4`, `b734b40`, `3454bc0`. The re-run on `3454bc0` waits for Terrence's
+> `bench_probe.py apply` of the new fibre link (device-testing queue row 4). See PROGRESS 2026-09-29.
+>
 > Still open before 2026-09-28: §A (confirm), §B (D-C), C2, C3, C5 and C10 — each needs Terrence, the bench or a
 > `ck.db` corpus edit. Written at the end of executing
 > `archive/plans/PLAN-pt-drive-followups-2026-09-24.md` (every item of which landed on branch
