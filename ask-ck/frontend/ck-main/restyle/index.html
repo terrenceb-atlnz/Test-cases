@@ -2,6 +2,10 @@
 <html lang="en" class="dark" data-ui="atui">
 <head>
 <meta charset="utf-8">
+<!-- Apply the saved theme before first paint: shared/theme.js runs only after the module graph loads,
+     so without this a light-mode page flashes dark on every load (and every Classic/ATUI swap).
+     Same rule as theme.js: saved choice, else the OS preference, else dark. -->
+<script>try{var t=localStorage.getItem('theme')||(matchMedia('(prefers-color-scheme: light)').matches?'light':'dark');var c=document.documentElement.classList;c.remove('dark','light');c.add(t==='light'?'light':'dark');}catch(e){}</script>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="description" content="Ask CK — server-backed test-engineering workbench for enriching AWPTCM manual test cases and turning them into runnable automation scripts.">
 <title>Ask CK — Test Tooling Workbench</title>

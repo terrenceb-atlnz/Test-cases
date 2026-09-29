@@ -93,3 +93,15 @@ def test_root_still_serves_current(client):
 def test_restyle_static_serves_its_own_files(client):
     assert client.get("/restyle/static/styles.css").status_code == 200
     assert client.get("/restyle/static/atui/fonts/inter-latin-wght-normal.woff2").status_code == 200
+
+
+def test_both_pages_apply_the_saved_theme_before_first_paint():
+    # Terrence 2026-09-30: swapping in light mode flashed dark, because the page ships
+    # class="dark" and shared/theme.js runs only after the module graph loads. An inline
+    # <head> script must set the class before any stylesheet is applied.
+    for page in (CURRENT, RESTYLE):
+        html = page.read_text(encoding="utf-8")
+        boot = html.find("localStorage.getItem('theme')")
+        sheet = html.find('<link rel="stylesheet"')
+        assert boot != -1, f"{page.parent.name}/index.html has no pre-paint theme script"
+        assert boot < sheet, f"{page.parent.name}/index.html applies the theme after its stylesheet"
