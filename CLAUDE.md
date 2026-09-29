@@ -61,8 +61,9 @@ prompt rules reverted on 2026-08-05 came from a single autonomous commit.
 1. **`ask-ck/db/ck.db` is the permanent single source of truth.** Built once, shipped via Git
    LFS, **not** gitignored, **not** rebuildable. No courier JSON, no corpus APIs, no re-fetch.
    **It is committed DELIBERATELY, never swept up by a wrap (2026-09-30).** Live traffic dirties
-   it constantly and every commit that includes it uploads a *new* ~465 MB LFS object — the old
-   one is never replaced, so 15 commits had spent ~7 GB of a 10 GB quota. It therefore carries
+   it constantly and every commit that includes it moves a *new* ~465 MB LFS object against the
+   account's **monthly LFS bandwidth allowance** (upload and download — Terrence, 2026-09-30,
+   after a "90% of bandwidth" warning; not a storage quota). It therefore carries
    `git update-index --skip-worktree`, so it no longer appears in `git status` and cannot be
    staged by accident. **Do not clear that flag to "fix" the missing file** — it is deliberate.
    To take a real snapshot, and only when the corpus has genuinely changed:

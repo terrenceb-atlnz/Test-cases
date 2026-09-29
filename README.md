@@ -122,8 +122,8 @@ guards in the test gate.
 1. **`ask-ck/db/ck.db` is the permanent single source of truth.** Built **once**, shipped via
    Git LFS, **not** gitignored, **not** rebuildable. A fresh clone gets a complete, populated,
    semantically-searchable database with no build step. `ask-ck/tools/build_db.py` is kept only as
-   provenance and refuses to run. **It is committed deliberately, never routinely** — LFS charges
-   for every version ever pushed, and this file is ~465 MB, so it carries
+   provenance and refuses to run. **It is committed deliberately, never routinely** — every
+   version moves ~465 MB against the account's monthly LFS bandwidth allowance, so it carries
    `git update-index --skip-worktree` and does not appear in `git status`. See CLAUDE.md
    invariant 1 for how to take a snapshot, and why `.gitignore` is the wrong tool.
 2. **The server reads corpora only from `ck.db`** — zero runtime JSON. Guard:

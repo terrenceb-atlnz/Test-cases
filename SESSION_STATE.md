@@ -4827,6 +4827,13 @@ The 2026-09-28 lines saying "T33235 has still run no TestCase" are superseded by
 
 ## Session Close / Handoff (2026-09-30) — Git LFS quota; ck.db is committed deliberately now
 
+> ⚠ **Corrected later on 2026-09-30 (Terrence):** the warning was *"You have used 90% of the Git
+> LFS bandwidth included for the terrenceb-atlnz account"* — a **monthly upload/download bandwidth**
+> allowance, not storage, so the "every version ever pushed / ~7 GB of a 10 GB quota" reading below
+> was the wrong premise. **Decided:** no GitHub Support purge, no re-push of `ck.db`, nobody to
+> warn; leave it as it is and revisit only if a problem recurs. The `skip-worktree` flag stays —
+> each `ck.db` commit still costs ~465 MB of bandwidth. The "Blocked on Terrence" item is closed.
+
 Terrence asked whether the LFS bill counts historical commits or only the current file. It counts
 **every version ever pushed** — a new version adds an object and never replaces one, and neither
 deleting the file nor rewriting history reclaims anything (`3684a4f`, "history wipe", freed none).
@@ -4869,3 +4876,16 @@ T22650/T22652; `setup-b/` is still three empty files; the single-TestCase operan
 
 Gate: EXIT=0 — both guards OK, pytest 1889 / 1 skipped, vitest 356 in 32 files, ck.db untouched.
 
+
+## Session Close / Handoff (2026-09-30, later) — the LFS warning was bandwidth, not storage
+
+Terrence corrected the premise of the previous entry: the warning is *"90% of the Git LFS
+bandwidth included"* — a monthly upload/download allowance, not storage. **Decided:** no purge, no
+re-push of `ck.db`, nobody to warn; revisit only if a problem recurs. `skip-worktree` stays.
+
+Updated to match: CLAUDE.md + README invariant 1 and two memories rewritten; ⚠ lines added under
+the 2026-09-30 entries in PROGRESS, CHANGELOG and this file. The previous entry's "Blocked on
+Terrence" line is superseded by this one. No code changed. Everything else it carried over is
+still open, unchanged — see PROGRESS 2026-09-30 (later).
+
+Gate: EXIT=0 — both guards OK, pytest 1889 / 1 skipped, vitest 356 in 32 files, ck.db untouched.

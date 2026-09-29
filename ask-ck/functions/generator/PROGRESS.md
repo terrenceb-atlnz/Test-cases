@@ -5,13 +5,45 @@ verified: 2026-09-28
 
 **Purpose**: This file exists so future sessions can quickly understand exactly where we are, what has been built, what the priorities are, and how to continue seamlessly.
 
-**Last Updated**: 2026-09-30 (by Claude; Git LFS quota — ck.db is committed deliberately now)
+**Last Updated**: 2026-09-30, later (by Claude; the LFS warning was bandwidth, not storage — nothing blocked)
 
 > **Reading note (2026-09-23 doc sweep).** Entries are frozen as written. Where an entry's
 > claim has since stopped being true, a ⚠ line under its heading says what changed.
 > Newest first. Paths in older entries predate these moves (the same as in CHANGELOG): `tool/` → `ask-ck/tools/`, `ask-ck/var/` → `ask-ck/db/`, `objective-drafting/` → `ask-ck/functions/generator/`, `pytest-create/` → `ask-ck/functions/pytest-creator/`, `js-tests/` → `tests/js/`, `ask-ck/ck-facelift/` → `ask-ck/plans/`, root reports → `docs/`, and completed plans `ask-ck/plans/` → `archive/plans/` (2026-09-11, 2026-09-23). Also retired 2026-09-23: the demo notes → `archive/plans/demo-2026-09-11/`, and `HANDOFF-generate-token-efficiency.md` + `Fragments_prompt.md` → `archive/records/`.
 
+## Latest session (2026-09-30, later) — the LFS warning was bandwidth, not storage; nothing is blocked on it
+
+Orientation, then a correction from Terrence. The GitHub warning reads *"You have used 90% of the
+Git LFS bandwidth included for the terrenceb-atlnz account"* — a **monthly upload/download
+bandwidth** allowance, not a storage quota. The entry below was built on the storage reading.
+
+**Terrence's decisions:** no GitHub Support purge; `ck.db` is not re-pushed; nobody needs warning;
+leave it where it is and revisit only if a problem recurs. `skip-worktree` on `ck.db` stays — each
+commit of it still moves ~465 MB against the bandwidth allowance.
+
+**Records updated to match:** CLAUDE.md and README invariant 1, memories `db-is-permanent-source`
+and `shared-tree-status-has-short-shelf-life` (rewritten — they are current truth); a ⚠ line under
+the 2026-09-30 entries in this file, SESSION_STATE and CHANGELOG (frozen — annotated, not
+rewritten). `a6a0270`'s commit message still states the storage premise; the ⚠ lines correct it.
+No code changed.
+
+**Still open (carried over, all untouched):** T33235's re-run on `3454bc0`, blocked on the
+`bench_probe.py apply` of the new fibre link; whether to teach the declarative UNSUPPORTED gate
+(Terrence); the Modbus mapping-version-1-vs-5 mismatch in T22650/T22652 (owner question); R6's 4th
+bar (Terrence's scratch-server Opus run); `setup-b/` is three empty files; the single-TestCase
+operand is unverified against the live framework.
+
+Gate: EXIT=0 — both guards OK, pytest **1889 / 1 skipped**, vitest **356 in 32 files**,
+`ck.db` untouched.
+
 ## Latest session (2026-09-30) — Git LFS quota: ck.db is committed deliberately now
+
+> ⚠ **Corrected later on 2026-09-30 (Terrence):** the warning was *"You have used 90% of the Git
+> LFS bandwidth included for the terrenceb-atlnz account"* — a **monthly upload/download bandwidth**
+> allowance, not storage, so the "every version ever pushed / ~7 GB of a 10 GB quota" reading below
+> was the wrong premise. **Decided:** no GitHub Support purge, no re-push of `ck.db`, nobody to
+> warn; leave it as it is and revisit only if a problem recurs. The `skip-worktree` flag stays —
+> each `ck.db` commit still costs ~465 MB of bandwidth. The "Blocked on Terrence" item is closed.
 
 Terrence: *"the git LFS has complained to me recently about using 9 gb of my 10 total free gb
 usage. is that including historical commits or is it just the most-recent LFS file on record?"*

@@ -43,8 +43,8 @@ quoting (190 mine + 18 theirs).
   followed by a bare `git commit`, and that one swept a new ~460 MB LFS object onto `origin`.
   Not harmful *then* (a valid LFS pointer holding real session traffic) but it was neither
   intended nor asked for, and I had asserted the opposite without checking `git show --name-only`.
-  **It was not free either:** LFS bills every version ever pushed, and by 2026-09-30 fifteen such
-  commits had spent ~7 GB of a 10 GB quota. Since 2026-09-30 `ck.db` carries
+  **It was not free either:** each such commit moves ~465 MB against the account's monthly LFS
+  bandwidth allowance, which hit 90% on 2026-09-30. Since 2026-09-30 `ck.db` carries
   `git update-index --skip-worktree`, so this particular accident is now mechanically impossible
   — see [[db-is-permanent-source]] and CLAUDE.md invariant 1 before "fixing" its absence from
   `git status`.

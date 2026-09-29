@@ -22,9 +22,12 @@ Consequences (all agreed explicitly):
 
 **COMMIT IT DELIBERATELY, NOT ROUTINELY (2026-09-30).** Consequence 4 above is still right —
 it is committed, not gitignored — but "commit it" was read as "commit it whenever it changes",
-and live traffic dirties it constantly. **Git LFS bills every version ever pushed, not the
-current one**, so 15 commits of a 465 MB file had spent ~7 GB of a 10 GB quota, and neither
-deleting a file nor rewriting history reclaims any of it. It now carries
+and live traffic dirties it constantly. **Every commit of it moves ~465 MB against the
+account's monthly Git LFS bandwidth allowance** (upload and download) — Terrence, 2026-09-30,
+after GitHub warned "90% of the Git LFS bandwidth". It is bandwidth, not storage: an earlier
+reading that session ("LFS bills every version ever pushed, ~7 GB of a 10 GB quota") was the
+wrong premise. Terrence's decisions: no GitHub Support purge, no re-push of `ck.db`, leave it
+as it is and revisit only if a problem recurs. It now carries
 `git update-index --skip-worktree`, so it cannot be swept into a wrap; CLAUDE.md invariant 1
 holds the snapshot procedure. `.gitignore` is NOT the alternative: the file is tracked, so
 ignoring it does nothing until `git rm --cached`, which records a deletion and leaves a fresh

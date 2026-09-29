@@ -23,6 +23,13 @@ current working thread see
 
 ## 2026-09-30 — ck.db is committed deliberately, not routinely (Git LFS quota)
 
+> ⚠ **Corrected later on 2026-09-30 (Terrence):** the warning was *"You have used 90% of the Git
+> LFS bandwidth included for the terrenceb-atlnz account"* — a **monthly upload/download bandwidth**
+> allowance, not storage, so the "every version ever pushed / ~7 GB of a 10 GB quota" reading below
+> was the wrong premise. **Decided:** no GitHub Support purge, no re-push of `ck.db`, nobody to
+> warn; leave it as it is and revisit only if a problem recurs. The `skip-worktree` flag stays —
+> each `ck.db` commit still costs ~465 MB of bandwidth. The "Blocked on Terrence" item is closed.
+
 **Why this is a product change and not housekeeping:** it alters how the repo's single source of
 truth is versioned, and the previous behaviour was quietly spending a finite shared resource.
 
