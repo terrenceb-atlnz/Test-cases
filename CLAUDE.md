@@ -60,6 +60,22 @@ prompt rules reverted on 2026-08-05 came from a single autonomous commit.
 
 1. **`ask-ck/db/ck.db` is the permanent single source of truth.** Built once, shipped via Git
    LFS, **not** gitignored, **not** rebuildable. No courier JSON, no corpus APIs, no re-fetch.
+   **It is committed DELIBERATELY, never swept up by a wrap (2026-09-30).** Live traffic dirties
+   it constantly and every commit that includes it uploads a *new* ~465 MB LFS object — the old
+   one is never replaced, so 15 commits had spent ~7 GB of a 10 GB quota. It therefore carries
+   `git update-index --skip-worktree`, so it no longer appears in `git status` and cannot be
+   staged by accident. **Do not clear that flag to "fix" the missing file** — it is deliberate.
+   To take a real snapshot, and only when the corpus has genuinely changed:
+
+   ```bash
+   git update-index --no-skip-worktree ask-ck/db/ck.db
+   git add ask-ck/db/ck.db && git commit -m "db: <what changed>"
+   git update-index --skip-worktree ask-ck/db/ck.db     # put it back
+   ```
+
+   `.gitignore` is NOT the tool for this: the file is tracked, so ignoring it does nothing until
+   `git rm --cached`, which records a deletion — a fresh clone would get no database at all.
+   The flag is per-clone local state; a new clone starts without it and should set it.
 2. **The server reads corpora only from `ck.db`** — zero runtime JSON. Guard:
    `ask-ck/tools/guard_db_only.py`.
 3. **`/home/st-art/framework` is read-only.** Never write, edit or redirect into it; copy to a
