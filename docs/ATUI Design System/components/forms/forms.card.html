@@ -1,0 +1,30 @@
+<!-- @dsCard group="Components" viewport="700x560" name="Forms" -->
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><link rel="stylesheet" href="../../styles.css">
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="../../_ds_bundle.js"></script>
+<style>body{padding:16px;background:var(--token-surface-foreground);color:var(--token-text-foreground)}.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.col{display:flex;flex-direction:column;gap:12px}.lab{font-size:11px;color:var(--token-text-muted);width:92px;flex:none}</style>
+</head><body><button id="theme-toggle" onclick="var d=document.documentElement;d.dataset.theme=d.dataset.theme==='dark'?'light':'dark';" style="position:fixed;top:8px;right:8px;z-index:10000;font:500 11px var(--token-font-family-base);padding:4px 8px;border-radius:var(--token-border-radius-md);border:1px solid var(--token-border-muted);background:var(--token-surface-2);color:var(--token-text-foreground);cursor:pointer">Light / Dark</button><div id="root"></div>
+<script type="text/babel">
+const NS = window.ATUIDesignSystem_dbdde4;
+const { Input, Select, MultiSelect, InputNumeric, Search, InputRange, Checkbox, RadioGroup, ToggleSwitch, ButtonSwitch, ButtonGroup, ChipList, TimeRange, SrcDest } = NS;
+function App(){ return (<div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16}}>
+<Input label="Hostname" required value="AT-x550-hq-01" clearable hint_text="Shown in the device list" />
+<Input label="IP address" invalid value="10.0.0" error_text="Enter a valid IPv4 address" />
+<Select label="Site" value="akl" options={[{value:"akl",label:"Auckland HQ"},{value:"wlg",label:"Wellington"}]} width="100%" />
+<MultiSelect label="Tags" value={["core","poe"]} options={[{value:"core",label:"Core"},{value:"poe",label:"PoE"},{value:"edge",label:"Edge"}]} width="100%" />
+<InputNumeric label="VLAN ID" value={10} min={1} max={4094} />
+<Search placeholder="Search devices" width="100%" />
+<InputRange label="Alert threshold (%)" value={80} />
+<Input label="Read only" readonly value="x530-28GTXm" />
+<div><Checkbox label="Enable LLDP" hint_text="Advertise on all ports" checked /><Checkbox label="Enable STP" /></div>
+<RadioGroup label="Mode" value="auto" options={[{value:"auto",label:"Automatic"},{value:"manual",label:"Manual"}]} />
+<div className="row"><ToggleSwitch label="PoE" value /><ButtonSwitch value /></div>
+<ButtonGroup options={[{value:"1h",label:"1h"},{value:"24h",label:"24h"},{value:"7d",label:"7d"}]} value="24h" />
+<ChipList chips={["VLAN 10","VLAN 20","VLAN 30"]} />
+<div className="row"><TimeRange /><SrcDest src="10.0.0.12:443" dest="172.16.4.2:51522" /></div>
+</div>); }
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script></body></html>

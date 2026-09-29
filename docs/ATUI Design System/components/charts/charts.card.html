@@ -1,0 +1,20 @@
+<!-- @dsCard group="Components" viewport="700x480" name="Charts" -->
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><link rel="stylesheet" href="../../styles.css">
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="../../_ds_bundle.js"></script>
+<style>body{padding:16px;background:var(--token-surface-foreground);color:var(--token-text-foreground)}.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.col{display:flex;flex-direction:column;gap:12px}.lab{font-size:11px;color:var(--token-text-muted);width:92px;flex:none}</style>
+</head><body><button id="theme-toggle" onclick="var d=document.documentElement;d.dataset.theme=d.dataset.theme==='dark'?'light':'dark';" style="position:fixed;top:8px;right:8px;z-index:10000;font:500 11px var(--token-font-family-base);padding:4px 8px;border-radius:var(--token-border-radius-md);border:1px solid var(--token-border-muted);background:var(--token-surface-2);color:var(--token-text-foreground);cursor:pointer">Light / Dark</button><div id="root"></div>
+<script type="text/babel">
+const NS = window.ATUIDesignSystem_dbdde4;
+const { ChartBarLine, ChartDonut, ChartGauge, ChartTrend, ChartBreakdown } = NS;
+function App(){ return (<div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:24}}>
+<ChartBarLine labels={["Mon","Tue","Wed","Thu","Fri","Sat","Sun"]} series={[{name:"Rx",data:[42,55,48,61,70,32,28]},{name:"Tx",data:[30,38,35,44,52,20,18]},{name:"Avg",type:"line",data:[36,46,41,52,61,26,23]}]} height={180} />
+<ChartDonut palette="device-status" center_label="Devices" data={[{label:"Up",value:38},{label:"Degraded",value:3},{label:"Down",value:1},{label:"Unknown",value:2}]} />
+<div className="row" style={{gap:24}}><ChartGauge value={72} label="CPU" /><ChartGauge value={93} label="Memory" /></div>
+<div className="col"><ChartTrend label="Wireless clients" value="1,284" delta={4.2} data={[8,9,7,10,12,11,14]} /><ChartBreakdown palette="alert" data={[{label:"OK",value:120},{label:"Warning",value:14},{label:"Error",value:4},{label:"No data",value:6}]} /></div>
+</div>); }
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script></body></html>

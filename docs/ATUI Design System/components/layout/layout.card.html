@@ -1,0 +1,22 @@
+<!-- @dsCard group="Components" viewport="700x520" name="Layout" -->
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><link rel="stylesheet" href="../../styles.css">
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="../../_ds_bundle.js"></script>
+<style>body{padding:16px;background:var(--token-surface-foreground);color:var(--token-text-foreground)}.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.col{display:flex;flex-direction:column;gap:12px}.lab{font-size:11px;color:var(--token-text-muted);width:92px;flex:none}</style>
+</head><body><button id="theme-toggle" onclick="var d=document.documentElement;d.dataset.theme=d.dataset.theme==='dark'?'light':'dark';" style="position:fixed;top:8px;right:8px;z-index:10000;font:500 11px var(--token-font-family-base);padding:4px 8px;border-radius:var(--token-border-radius-md);border:1px solid var(--token-border-muted);background:var(--token-surface-2);color:var(--token-text-foreground);cursor:pointer">Light / Dark</button><div id="root"></div>
+<script type="text/babel">
+const NS = window.ATUIDesignSystem_dbdde4;
+const { Header, Button, Card, ListItem, Accordion } = NS;
+function App(){ return (<div className="col">
+<Header header_title="Devices" subtitle="42 devices across 3 sites" size="h2" border actions={<Button label="Add device" icon="add" />} />
+<div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16}}>
+<Card card_title="Device details" subtitle="AT-x550-hq-01" header_actions={<Button type="secondaryText" icon="overflow_menu" />}>
+<ListItem item_title="Model" content="x550-18XSQ" /><ListItem item_title="Firmware" content="5.5.3-1.2" /><ListItem item_title="Uptime" content="41 days" />
+</Card>
+<Card card_title="Advanced" padding={false}><Accordion items={[{label:"SNMP",content:"Community strings and trap receivers."},{label:"Syslog",open:true,content:"Forward logs to 10.0.0.5:514."}]} /></Card>
+</div></div>); }
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script></body></html>

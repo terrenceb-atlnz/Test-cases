@@ -1,0 +1,19 @@
+<!-- @dsCard group="Components" viewport="700x380" name="Overlays" -->
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><link rel="stylesheet" href="../../styles.css">
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="../../_ds_bundle.js"></script>
+<style>body{padding:16px;background:var(--token-surface-foreground);color:var(--token-text-foreground)}.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.col{display:flex;flex-direction:column;gap:12px}.lab{font-size:11px;color:var(--token-text-muted);width:92px;flex:none}</style>
+</head><body><button id="theme-toggle" onclick="var d=document.documentElement;d.dataset.theme=d.dataset.theme==='dark'?'light':'dark';" style="position:fixed;top:8px;right:8px;z-index:10000;font:500 11px var(--token-font-family-base);padding:4px 8px;border-radius:var(--token-border-radius-md);border:1px solid var(--token-border-muted);background:var(--token-surface-2);color:var(--token-text-foreground);cursor:pointer">Light / Dark</button><div id="root"></div>
+<script type="text/babel">
+const NS = window.ATUIDesignSystem_dbdde4;
+const { Menu, Button, Card } = NS;
+function App(){ return (<div className="row" style={{alignItems:"flex-start",gap:24}}>
+<Menu open trigger={<Button type="secondaryOutline" label="Actions" icon_after="chevron_down" />} items={[{label:"Rename",icon:"edit"},{label:"Reboot",icon:"retry"},{label:"Upgrade firmware",icon:"upgrade",is_active:true},{divider:true},{label:"Delete",icon:"delete",disabled:true}]} />
+<div style={{marginLeft:"auto",width:360,boxShadow:"var(--token-shadow-3)",borderRadius:"var(--token-card-radius)"}}>
+<Card card_title="Delete AT-x550-hq-01?" footer={<div className="row" style={{justifyContent:"flex-end"}}><Button type="secondaryText" label="Cancel" /><Button type="destructive" label="Delete device" /></div>}>The device will stop being monitored. Its configuration backups are kept for 30 days.</Card>
+</div></div>); }
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script></body></html>

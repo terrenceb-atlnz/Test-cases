@@ -1,0 +1,100 @@
+/*
+ * ATUI rich text (standalone kit)
+ *
+ * Apply class="richtext" to any container of rendered long-form content
+ * (markdown output, CMS bodies, docs, release notes). Matches the styles
+ * shipped by @alliedtelesis-labs-nz/atui-typography.
+ * Import AFTER atui-tokens.css.
+ */
+
+.richtext img {
+    display: block;
+    max-width: 100%;
+    height: auto;
+}
+
+.richtext p,
+.richtext span,
+.richtext li {
+    line-height: var(--token-line-height-richtext);
+    font-size: var(--token-font-size-root);
+}
+
+.richtext ul {
+    list-style: disc;
+    padding: 0 0 16px 16px;
+}
+
+.richtext ol {
+    list-style: decimal;
+    padding: 0 0 16px 16px;
+}
+
+.richtext ol li {
+    padding-bottom: 4px;
+}
+
+.richtext p {
+    margin: 0 0 16px;
+}
+
+.richtext h1,
+.richtext h2,
+.richtext h3,
+.richtext .h1,
+.richtext .h2,
+.richtext .h3 {
+    margin-bottom: 24px;
+}
+
+.richtext h4,
+.richtext .h4,
+.richtext h5,
+.richtext .h5,
+.richtext h6,
+.richtext .h6 {
+    margin-bottom: 16px;
+}
+
+.richtext code,
+.richtext pre {
+    font-family: var(--token-font-family-mono);
+    font-size: var(--token-font-size-sm);
+}
+
+.richtext pre {
+    background: var(--token-surface-1);
+    border: 1px solid var(--token-border-muted);
+    border-radius: var(--token-border-radius-md);
+    padding: 12px;
+    margin: 0 0 16px;
+    overflow-x: auto;
+}
+
+.richtext blockquote {
+    border-left: 3px solid var(--token-border-muted);
+    color: var(--token-text-secondary);
+    margin: 0 0 16px;
+    padding: 0 0 0 16px;
+}
+
+.richtext a {
+    color: var(--token-text-active);
+}
+
+.richtext table {
+    border-collapse: collapse;
+    margin: 0 0 16px;
+}
+
+.richtext th,
+.richtext td {
+    border: 1px solid var(--token-border-muted);
+    padding: 8px 12px;
+    text-align: left;
+}
+
+.richtext th {
+    background: var(--token-surface-1);
+    font-weight: var(--token-font-weight-med);
+}
