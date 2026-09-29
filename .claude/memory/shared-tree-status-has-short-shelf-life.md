@@ -6,7 +6,7 @@ metadata:
   type: feedback
   modified: 2026-07-27T03:36:26.274Z
   originSessionId: 7daaa873-01d4-42ab-836d-65d158c2ca74
-  verified: 2026-09-23
+  verified: 2026-09-30
 ---
 
 The Test-cases working tree is shared with an **active parallel stream** (2026-07-27g: CLI-docs
@@ -41,10 +41,21 @@ quoting (190 mine + 18 theirs).
   earlier session — left staged. 2026-08-04: `ask-ck/db/ck.db` was staged before the session
   began; eight commits passed an explicit pathspec and were clean, one used `git add -- <paths>`
   followed by a bare `git commit`, and that one swept a new ~460 MB LFS object onto `origin`.
-  Not harmful (it is a valid LFS pointer holding real session traffic, and `ck.db` belongs in
-  the repo) but it was neither intended nor asked for, and I had asserted the opposite without
-  checking `git show --name-only`.
+  Not harmful *then* (a valid LFS pointer holding real session traffic) but it was neither
+  intended nor asked for, and I had asserted the opposite without checking `git show --name-only`.
+  **It was not free either:** LFS bills every version ever pushed, and by 2026-09-30 fifteen such
+  commits had spent ~7 GB of a 10 GB quota. Since 2026-09-30 `ck.db` carries
+  `git update-index --skip-worktree`, so this particular accident is now mechanically impossible
+  — see [[db-is-permanent-source]] and CLAUDE.md invariant 1 before "fixing" its absence from
+  `git status`.
 - Test counts drift for the same reason; prefer "my layers: N" over an unqualified repo-wide total,
   or re-measure.
+- **A `ListAgents` row is not proof a session is alive (2026-09-30).** It listed five peers; `ps`
+  and `/run/user/<uid>/cc-socks/` showed only two live processes and two sockets. I had already
+  warned Terrence that one of the phantom rows was "busy and might be committing concurrently".
+  Check the socket and the process before acting on a peer's existence — and the same day I told
+  him two commits were unpushed from a `git log` taken minutes earlier, which the peer session
+  had to correct: by then `origin/main` held them. Both are this memory's failure, in a new
+  surface. `git fetch` first if the ahead/behind count matters.
 
 See [[testing-suite-3-layer]] for what the gate actually runs.

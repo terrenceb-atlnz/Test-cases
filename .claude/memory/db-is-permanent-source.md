@@ -2,7 +2,7 @@
 name: db-is-permanent-source
 description: "ck.db is the PERMANENT single source of truth, built ONCE — commit it via LFS, delete couriers, no rebuild"
 metadata: 
-  verified: 2026-09-14
+  verified: 2026-09-30
   node_type: memory
   type: project
   originSessionId: af1ba771-27d5-4322-ab94-c73bbe631619
@@ -19,5 +19,15 @@ Consequences (all agreed explicitly):
 5. **Searches query the DB directly and live** (against the DB, not any external system). Caching common searches is a LATER efficiency option, not now.
 
 **Why:** the DB is the deliverable. Anything that lets the DB be regenerated or that keeps a parallel copy of its data is obfuscation/risk. See [[db-only-single-source]] (runtime already DB-only, guard in place) and [[pending-approved-plans]].
+
+**COMMIT IT DELIBERATELY, NOT ROUTINELY (2026-09-30).** Consequence 4 above is still right —
+it is committed, not gitignored — but "commit it" was read as "commit it whenever it changes",
+and live traffic dirties it constantly. **Git LFS bills every version ever pushed, not the
+current one**, so 15 commits of a 465 MB file had spent ~7 GB of a 10 GB quota, and neither
+deleting a file nor rewriting history reclaims any of it. It now carries
+`git update-index --skip-worktree`, so it cannot be swept into a wrap; CLAUDE.md invariant 1
+holds the snapshot procedure. `.gitignore` is NOT the alternative: the file is tracked, so
+ignoring it does nothing until `git rm --cached`, which records a deletion and leaves a fresh
+clone with no database — the exact failure consequence 4 exists to prevent.
 
 **How to apply:** never re-gitignore `ck.db`; never restore a rebuild button or `--fresh` re-ingest; never add a live corpus API; if asked to "refresh corpora" push back — that's out of scope by decision. The `models/` dir under `var/` (embedding model, 88 MB) is bundled too — keep it available (LFS or documented) so semantic search loads offline.

@@ -5,11 +5,58 @@ verified: 2026-09-28
 
 **Purpose**: This file exists so future sessions can quickly understand exactly where we are, what has been built, what the priorities are, and how to continue seamlessly.
 
-**Last Updated**: 2026-09-30 (by Claude; wrap of 2026-09-29 — T33234/T33235 on tb470, four fixes, the first real TestCase results)
+**Last Updated**: 2026-09-30 (by Claude; Git LFS quota — ck.db is committed deliberately now)
 
 > **Reading note (2026-09-23 doc sweep).** Entries are frozen as written. Where an entry's
 > claim has since stopped being true, a ⚠ line under its heading says what changed.
 > Newest first. Paths in older entries predate these moves (the same as in CHANGELOG): `tool/` → `ask-ck/tools/`, `ask-ck/var/` → `ask-ck/db/`, `objective-drafting/` → `ask-ck/functions/generator/`, `pytest-create/` → `ask-ck/functions/pytest-creator/`, `js-tests/` → `tests/js/`, `ask-ck/ck-facelift/` → `ask-ck/plans/`, root reports → `docs/`, and completed plans `ask-ck/plans/` → `archive/plans/` (2026-09-11, 2026-09-23). Also retired 2026-09-23: the demo notes → `archive/plans/demo-2026-09-11/`, and `HANDOFF-generate-token-efficiency.md` + `Fragments_prompt.md` → `archive/records/`.
+
+## Latest session (2026-09-30) — Git LFS quota: ck.db is committed deliberately now
+
+Terrence: *"the git LFS has complained to me recently about using 9 gb of my 10 total free gb
+usage. is that including historical commits or is it just the most-recent LFS file on record?"*
+
+**It counts every version ever pushed.** LFS storage is the sum of all unique objects; a new
+version adds an object, it never replaces one. Deleting the file does not help, and neither does
+rewriting history — `3684a4f` ("history wipe, fresh start") reclaimed nothing.
+
+- **Measured, not estimated:** 53 distinct LFS objects across all refs, **16.24 GB** if every one
+  is still on the remote. `ck.db` alone is **15 versions × ~465 MB ≈ 6.96 GB**. The rest is the
+  embedding model (1 version) and 25 objects belonging to the raw Zephyr/TestLink extracts
+  deleted on 2026-09-11 — `.gitattributes` already warned that *"their LFS objects remain in
+  history"*.
+- **Root cause:** live traffic dirties `ck.db` constantly, so wraps kept sweeping it in. The
+  invariant already said "built once, not rebuildable"; nothing said "therefore do not re-commit
+  it". [[shared-tree-status-has-short-shelf-life]] had recorded an accidental 460 MB commit back
+  on 2026-08-04 and judged it "not harmful" — true per-incident, wrong in aggregate.
+- **`.gitignore` was Terrence's suggestion and is the wrong tool** — the file is TRACKED, so
+  ignoring it does nothing until `git rm --cached`, which records a deletion and leaves a fresh
+  clone with no database. Used `git update-index --skip-worktree` instead: still tracked, so
+  clones work, but it cannot be staged by accident. CLAUDE.md invariant 1 + README carry the why
+  and the snapshot procedure, because a bare flag invites the next session to clear it.
+- **Done:** backup of the current `ck.db` to `/home/terrenceb/ck-db-backup/` (local disk, off the
+  NFS share) with sha256 **verified byte-identical** to the LFS oid; skip-worktree set and proved;
+  `git lfs prune` took `.git/lfs` from **58 GB to 531 MB** with the current object retained.
+- **The prune dry run lied.** `--dry-run --verbose` listed ONE object (~25 MB); the real run
+  deleted **264**. Reporting the dry run as the outcome would have told Terrence this achieved
+  nothing. Run it and measure.
+- **Also this session:** woke the idle `test-cases-6f` peer (18 h) and had it run its own
+  `/wrap-ck` (`25a4c03`) rather than wrapping its work from here — its `skipIfExcl` correction and
+  the Modbus v1-vs-v5 flag existed only in its transcript. Closed it afterwards on Terrence's word.
+  Also fixed `check_memory_refs.py` to resolve citations against the sibling **device-testing**
+  repo: the 12 shared memories legitimately cite bench artifacts over there, and flagging them
+  said "gone" when they were simply in the other repo.
+- **Two stale-snapshot errors of mine, both corrected in the memory:** I told Terrence two commits
+  were unpushed (the peer had to correct me — `origin/main` already held them), and I warned him a
+  peer session was "busy and might be committing concurrently" when `ps` showed no such process.
+  A `ListAgents` row is not proof a session is alive.
+
+**Blocked on Terrence:** file the GitHub Support request to purge the repo's LFS objects (draft
+given), then re-push `ck.db` and verify it fetches from a scratch clone. Jacob's and Trent's
+clones will fail to fetch LFS for historical commits after the purge — worth warning them.
+
+Gate: EXIT=0 — both guards OK, pytest **1889 / 1 skipped**, vitest **356 in 32 files**,
+`ck.db` untouched.
 
 ## Latest session (2026-09-29, wrapped 2026-09-30) — T33234 and T33235 on tb470: four fixes, the first real TestCase results, UNSUPPORTED without a bench power cycle
 

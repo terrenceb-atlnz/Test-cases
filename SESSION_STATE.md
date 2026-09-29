@@ -4823,3 +4823,49 @@ Open:
 
 Gate green at the wrap (pytest 1889/1 skipped, vitest 356). Full detail: PROGRESS 2026-09-29.
 The 2026-09-28 lines saying "T33235 has still run no TestCase" are superseded by this entry.
+
+
+## Session Close / Handoff (2026-09-30) — Git LFS quota; ck.db is committed deliberately now
+
+Terrence asked whether the LFS bill counts historical commits or only the current file. It counts
+**every version ever pushed** — a new version adds an object and never replaces one, and neither
+deleting the file nor rewriting history reclaims anything (`3684a4f`, "history wipe", freed none).
+
+- **Measured:** 53 distinct LFS objects across all refs, **16.24 GB** if all are still on the
+  remote. `ck.db` is **15 × ~465 MB ≈ 6.96 GB** of that; 25 more objects belong to the raw
+  extracts deleted on 2026-09-11, which `.gitattributes` already warned still count.
+- **Cause:** live traffic dirties `ck.db`, so wraps swept it in. The invariant said "built once,
+  not rebuildable" but never "therefore do not re-commit it".
+- **`.gitignore` does not work here** — the file is TRACKED, so it needs `git rm --cached`, which
+  records a deletion and leaves a fresh clone with no database. Used `skip-worktree` instead:
+  tracked (clones fine), invisible to `git status`, unstageable by accident. CLAUDE.md invariant 1
+  and README now carry the reason and the snapshot procedure, so the flag is not mistaken for a bug.
+- **Shipped:** `3782d90` (CLAUDE.md), plus this wrap. Backup of the current `ck.db` at
+  `/home/terrenceb/ck-db-backup/`, sha256 verified against the LFS oid. `git lfs prune` took
+  `.git/lfs` **58 GB → 531 MB**, current object retained.
+- **The prune dry run was wrong** — listed 1 object, the real run deleted 264. Measure, don't
+  trust `--dry-run --verbose` here.
+- **Peer-session work:** `test-cases-6f` had sat idle 18 h holding two findings only in its
+  transcript. Rather than wrap its work from here, it was asked to run its own `/wrap-ck`
+  (`25a4c03`) and then closed on Terrence's word.
+- **`check_memory_refs.py` now resolves against the sibling device-testing repo** — the 12 shared
+  memories cite bench artifacts that live there, and the checker was calling them dead. Verified
+  it still detects genuinely dead paths.
+- **Two stale-snapshot errors of mine**, both folded into
+  `shared-tree-status-has-short-shelf-life`: I reported two commits unpushed when `origin/main`
+  already held them (the peer corrected me), and warned that a peer session was busy and might be
+  committing when `ps` showed no such process. A `ListAgents` row is not proof a session is alive.
+
+**Blocked on Terrence:** file the GitHub Support purge request (draft supplied in-session), then
+re-push `ck.db` and verify it fetches from a scratch clone. **Warn Jacob and Trent** — after the
+purge their clones cannot fetch LFS objects for historical commits, which will look like a broken
+repo rather than a deliberate cleanup.
+
+**Carried over, untouched:** R6's 4th bar (Terrence's ~$20 scratch-server Opus run); T33235's
+re-run on `3454bc0`, blocked on the `bench_probe.py apply` of the new fibre link; the no-fibre skip
+in `3454bc0` has still never executed on hardware; the Modbus mapping-version-1-vs-5 mismatch in
+T22650/T22652; `setup-b/` is still three empty files; the single-TestCase operand
+(`<family>.<case>.<n>`) remains unverified against the live framework.
+
+Gate: EXIT=0 — both guards OK, pytest 1889 / 1 skipped, vitest 356 in 32 files, ck.db untouched.
+

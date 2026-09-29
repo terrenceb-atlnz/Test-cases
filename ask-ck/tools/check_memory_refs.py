@@ -126,17 +126,31 @@ TOKEN_RE = re.compile(r"`([^`\n]+)`")
 LINE_CITE_RE = re.compile(r"^([A-Za-z0-9_./-]+\.(?:py|js|md|sh|jinja)):\d+(?:-\d+)?$")
 
 
+# The sibling repo whose store holds the 12 memories BOTH streams need; they are reached
+# from here by relative symlink (see the lab-home CLAUDE.md). Those memories legitimately
+# cite bench artifacts that live over there — `bench-setup/bench_probe.py`,
+# `IE520/.../after-action-*.md` — and flagging them here told a reader the file was gone when
+# it was simply in the other repo. A citation is real if it resolves in EITHER repo.
+SIBLING = REPO.parent / "device-testing"
+
+
 def _repo_has(name: str) -> str | None:
-    """Resolve a bare-ish path against the known prefixes, then by basename."""
-    for pre in PREFIXES:
-        if (REPO / (pre + name)).exists():
-            return pre + name
-    base = os.path.basename(name)
-    for dirpath, dirnames, filenames in os.walk(REPO):
-        dirnames[:] = [d for d in dirnames
-                       if d not in (".venv", ".git", "node_modules", "__pycache__")]
-        if base in filenames:
-            return os.path.relpath(os.path.join(dirpath, base), REPO)
+    """Resolve a bare-ish path against the known prefixes, then by basename.
+
+    Searches this repo first, then the sibling device-testing repo (see SIBLING).
+    """
+    for root, tag in ((REPO, ""), (SIBLING, "../device-testing/")):
+        if not root.exists():
+            continue
+        for pre in PREFIXES:
+            if (root / (pre + name)).exists():
+                return tag + pre + name
+        base = os.path.basename(name)
+        for dirpath, dirnames, filenames in os.walk(root):
+            dirnames[:] = [d for d in dirnames
+                           if d not in (".venv", ".git", "node_modules", "__pycache__")]
+            if base in filenames:
+                return tag + os.path.relpath(os.path.join(dirpath, base), root)
     return None
 
 

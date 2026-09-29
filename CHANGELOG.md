@@ -21,6 +21,30 @@ current working thread see
 > `ask-ck/ck-facelift/`, `pytest-create/` and `CK-main/` plan paths moved to `ask-ck/plans/` on 2026-09-11 and, once complete, to `archive/plans/`.
 > `js-tests/` → `tests/js/`, `e2e/` → `tests/e2e/`, `static/js/` → `ask-ck/frontend/ck-main/current/<page>/` (2026-09-11).
 
+## 2026-09-30 — ck.db is committed deliberately, not routinely (Git LFS quota)
+
+**Why this is a product change and not housekeeping:** it alters how the repo's single source of
+truth is versioned, and the previous behaviour was quietly spending a finite shared resource.
+
+Git LFS bills **every version ever pushed**, not the current one. `ck.db` is ~465 MB and live
+traffic dirties it constantly, so wraps kept sweeping it into commits — 15 of them, ~7 GB of a
+10 GB quota. Deleting a file or rewriting history reclaims none of it; the 2026-09-16 "history
+wipe" commit freed nothing. A further 25 objects belong to raw extracts deleted on 2026-09-11,
+which `.gitattributes` had already flagged as still counting.
+
+`ck.db` now carries `git update-index --skip-worktree`: still tracked, so a fresh clone gets a
+working database, but it no longer appears in `git status` and cannot be staged by accident.
+CLAUDE.md invariant 1 and README carry the snapshot procedure and the warning not to clear the
+flag.
+
+**`.gitignore` was considered and rejected.** The file is tracked, so ignoring it changes nothing
+until `git rm --cached` — which records a deletion and leaves a fresh clone with no database at
+all, the exact failure the "not gitignored" clause of the invariant exists to prevent.
+
+Also: `check_memory_refs.py` now resolves citations against the sibling `device-testing` repo. The
+12 memories shared between the two streams legitimately cite bench artifacts that live there, and
+the checker was reporting them as dead paths.
+
 ## 2026-09-29 — bench-safety lints; UNSUPPORTED without a bench power cycle (from the first tb470 runs)
 
 **Why:** the first live runs of T33234/T33235 on tb470 showed three ways a generated script
