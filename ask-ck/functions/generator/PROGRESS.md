@@ -5,11 +5,52 @@ verified: 2026-09-28
 
 **Purpose**: This file exists so future sessions can quickly understand exactly where we are, what has been built, what the priorities are, and how to continue seamlessly.
 
-**Last Updated**: 2026-09-30, later (by Claude; the LFS warning was bandwidth, not storage — nothing blocked)
+**Last Updated**: 2026-09-30, afternoon (by Claude; ATUI design guidance arrived — skill linked, restyle scoped, nothing built)
 
 > **Reading note (2026-09-23 doc sweep).** Entries are frozen as written. Where an entry's
 > claim has since stopped being true, a ⚠ line under its heading says what changed.
 > Newest first. Paths in older entries predate these moves (the same as in CHANGELOG): `tool/` → `ask-ck/tools/`, `ask-ck/var/` → `ask-ck/db/`, `objective-drafting/` → `ask-ck/functions/generator/`, `pytest-create/` → `ask-ck/functions/pytest-creator/`, `js-tests/` → `tests/js/`, `ask-ck/ck-facelift/` → `ask-ck/plans/`, root reports → `docs/`, and completed plans `ask-ck/plans/` → `archive/plans/` (2026-09-11, 2026-09-23). Also retired 2026-09-23: the demo notes → `archive/plans/demo-2026-09-11/`, and `HANDOFF-generate-token-efficiency.md` + `Fragments_prompt.md` → `archive/records/`.
+
+## Latest session (2026-09-30, afternoon) — ATUI design guidance from governance: skill linked, restyle scoped, no UI changed
+
+Governance's UI guidance arrived in `bd9f287` at `docs/ATUI Design System/`: the Allied Telesis
+ATUI design system (tokens, LOCKED content rules, React recreations of every `at-*` component, a
+OneConnect UI kit, an oxlint adherence config). Its production route is the real Stencil web
+components, `@alliedtelesis-labs-nz/atui-components-stencil`.
+
+**Shipped:** `.claude/skills/atui-design` is a relative symlink to that folder (Terrence: "should
+be available to sessions, although it wont be used much"). Symlinked, not moved, so governance's
+copy stays one copy. It appeared in the session's skill list mid-session. README's doc map points
+at the folder.
+
+**Scoped, not started — Terrence asked "how much work is it?"** Measured on 2026-09-30:
+- **Two front ends exist.** `current/` (served, ~9,400 lines, no build step) and **Trent's Svelte
+  UI on `origin/userinterface`** (13 commits 2026-09-11 → 2026-09-29, 34 components / ~6,300
+  lines, unmerged, not served). Restyling `current/` is largely wasted if Svelte replaces it.
+- **`current/` in four layers:** (1) tokens + fonts + dark theme — 33 semantic variables already
+  exist, light and dark; dark is a `.dark` class, ATUI uses `[data-theme='dark']` — **small**;
+  (2) 54 raw hex outside the variables, 575 px values over 355 rules, 15 inline styles in
+  `index.html`, 32 JS style writes — **medium**; (3) components, CSS look-alike **medium** or real
+  `at-*` components (114 buttons; `data-action` dispatch through `at-button` unchecked) **large**;
+  (4) copy + icons — ~13 "Apply", 2 "OK", 2 "can't", and **139 unicode glyphs used as icons**
+  (✓ ✗ ⚠ → 🌙 🔒…), which ATUI forbids; 25 of 32 vitest files pin text/classes (26 glyph asserts) —
+  **medium**.
+- **Svelte:** Trent's Button/Table/Stepper/Sidebar/ConfirmModal map 1:1 to ATUI families and
+  Svelte takes web components natively; styling is 28 scoped `<style>` blocks + 55 variables in
+  `app.css` (Roboto, not Inter).
+- `current/` already loads Inter from Google Fonts, so seats evidently reach the internet;
+  ATUI's fonts and Carbon icons come from jsDelivr.
+
+**Open — Terrence's decisions:** which front end gets ATUI (depends on Trent's plan for the Svelte
+UI); whether governance mandates ATUI for internal tools; which layers; the product-shaped rules
+(13px root, no imagery — CK's face and logo, the 48px shell / peek-panel layout). My
+recommendation given: settle Trent's plan first; if Svelte is the future, adopt ATUI there with
+the real components, and in `current/` do at most layer 1 + copy.
+
+Nothing else changed; the carried-over list in the entry below is unchanged.
+
+Gate: EXIT=0 — both guards OK, pytest **1889 / 1 skipped**, vitest **356 in 32 files**,
+`ck.db` untouched.
 
 ## Latest session (2026-09-30, later) — the LFS warning was bandwidth, not storage; nothing is blocked on it
 

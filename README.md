@@ -250,6 +250,7 @@ Test-cases/
 | [`ask-ck/functions/pytest-creator/SETUP-FILE-REFERENCE.md`](ask-ck/functions/pytest-creator/SETUP-FILE-REFERENCE.md) | `.setup` topology schema + a worked example |
 | [`ask-ck/functions/generator/LESSONS_LEARNED.md`](ask-ck/functions/generator/LESSONS_LEARNED.md) | Prior decisions and pitfalls |
 | [`docs/resources.md`](docs/resources.md) | Links to TestLink, Zephyr, ART |
+| [`docs/ATUI Design System/`](<docs/ATUI Design System/readme.md>) | Allied Telesis UI guidance from governance (received 2026-09-30): tokens, content rules, component recreations. Also the `atui-design` skill, linked from `.claude/skills/` |
 | [`docs/`](docs/) | Repo-level documents: reviewer onboarding, the token-efficiency report, the memory-split inventory, captured prompts |
 
 **Session workflow:** run **`/orient-ck`** at the start of a working session and **`/wrap-ck`** at

@@ -4889,3 +4889,15 @@ Terrence" line is superseded by this one. No code changed. Everything else it ca
 still open, unchanged — see PROGRESS 2026-09-30 (later).
 
 Gate: EXIT=0 — both guards OK, pytest 1889 / 1 skipped, vitest 356 in 32 files, ck.db untouched.
+
+
+## Session Close / Handoff (2026-09-30, afternoon) — ATUI design guidance: skill linked, restyle scoped
+
+Governance's ATUI design system arrived at `docs/ATUI Design System/` (`bd9f287`). Linked it as the
+`atui-design` skill (`.claude/skills/atui-design`, relative symlink; it loaded mid-session) and
+added it to README's doc map. Scoped the restyle at Terrence's request — no UI changed. The key
+finding: Trent's Svelte UI on `origin/userinterface` (13 commits to 2026-09-29, unmerged) is the
+other candidate target, so which front end gets ATUI waits on his plan. Layer-by-layer sizing and
+the open decisions are in PROGRESS 2026-09-30 (afternoon).
+
+Gate: EXIT=0 — both guards OK, pytest 1889 / 1 skipped, vitest 356 in 32 files, ck.db untouched.
