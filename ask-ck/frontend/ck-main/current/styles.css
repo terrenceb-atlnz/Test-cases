@@ -1644,3 +1644,30 @@ h2 {
 tr.pt-seq-flagged td { background: var(--status-high-muted, #fde2e2); }
 .pt-seq-flag { color: var(--status-high, #b00020); font-weight: 700; cursor: help; }
 td.pt-seq-claim { font-family: var(--font-mono, monospace); white-space: normal; }
+
+/* ========================================
+   UI swap — Classic (current/) and ATUI (restyle/), side by side.
+   ask-ck/plans/PLAN-atui-restyle.md S15. Plain links, no JS.
+   ======================================== */
+.ui-toggle {
+  display: flex;
+  width: 100%;
+  height: 32px;
+  border: 1px solid var(--border-default);
+  border-radius: 6px;
+  overflow: hidden;
+  font-size: 13px;
+}
+.ui-toggle-opt {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition: background-color 0.15s, color 0.15s;
+}
+.ui-toggle-opt + .ui-toggle-opt { border-left: 1px solid var(--border-default); }
+a.ui-toggle-opt:hover { background: var(--bg-hover); color: var(--text-primary); }
+a.ui-toggle-opt:focus-visible { outline: none; box-shadow: inset 0 0 0 2px var(--focus-ring); }
+.ui-toggle-opt.is-active { background: var(--bg-active); color: var(--text-primary); font-weight: 500; }

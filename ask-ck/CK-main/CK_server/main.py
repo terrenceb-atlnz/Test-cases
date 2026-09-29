@@ -176,7 +176,7 @@ async def _bind_session_id(request: Request, call_next):
     # no-cache makes them revalidate every load (ETag => 304 when unchanged, so
     # this is cheap). See ask-ck/frontend/ck-main/current/README.md convention #4. Modules now
     # live in page directories under /static/, so match on the extension, not one directory.
-    if request.url.path.startswith("/static/") and request.url.path.endswith(".js"):
+    if request.url.path.startswith(("/static/", "/restyle/static/")) and request.url.path.endswith(".js"):
         response.headers["Cache-Control"] = "no-cache"
     return response
 
@@ -184,6 +184,13 @@ async def _bind_session_id(request: Request, call_next):
 # kept so index.html's /static/styles.css and /static/ckc.jpg references stay valid.
 static_dir = str(FRONTEND_DIR)
 app.mount("/static", StaticFiles(directory=static_dir), name="static")
+
+# The ATUI restyle (ask-ck/plans/PLAN-atui-restyle.md): a second front end beside current/, with its
+# own index.html + CSS, sharing current/'s JS (its page loads /static/shared/main.js). "/" always
+# serves current/; /restyle is opt-in via the Classic/ATUI swap in the sidebar. Kept here, not in
+# paths.py, so adding it was one file and one --reload.
+RESTYLE_DIR = FRONTEND_DIR.parent / "restyle"
+app.mount("/restyle/static", StaticFiles(directory=str(RESTYLE_DIR)), name="restyle_static")
 
 app.state.app_data = None
 
@@ -255,6 +262,12 @@ async def root():
     """Main wizard UI (migrated from v1)."""
     index_path = os.path.join(static_dir, "index.html")
     with open(index_path) as f:
+        return HTMLResponse(f.read())
+
+@app.get("/restyle", response_class=HTMLResponse)
+async def restyle_root():
+    """The ATUI restyle of the same UI (PLAN-atui-restyle.md). Opt-in; "/" stays current/."""
+    with open(RESTYLE_DIR / "index.html") as f:
         return HTMLResponse(f.read())
 
 @app.get("/process", response_class=HTMLResponse)

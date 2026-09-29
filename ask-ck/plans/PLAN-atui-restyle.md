@@ -2,7 +2,12 @@
 
 > ## Status (read first)
 >
-> **PLAN ONLY — nothing built.** Written 2026-09-30 at Terrence's request: *"lets make a plan for
+> **Phase 0 BUILT 2026-09-30** (`9c996c1`, then the served/swap commit): `/restyle` is live and the
+> Classic/ATUI swap is in both sidebars. The restart took ~30 s and did not wedge. **Awaiting:**
+> Terrence's Phase 0 checklist, his review of the §7 mapping (incl. the severity note), then
+> Phases 1–4.
+>
+> Originally: **PLAN ONLY — nothing built.** Written 2026-09-30 at Terrence's request: *"lets make a plan for
 > the restyle, but i want it to swap between current/ and restyle/ with a button that you make next
 > to the day/night toggle."* The decisions in §0 are his and settled. Every "today" number in §1
 > was measured on 2026-09-30. §6 lists the decisions still open. No phase starts without his go.

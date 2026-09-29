@@ -76,5 +76,20 @@ def test_restyle_uses_its_own_stylesheet():
 
 
 def test_swap_control_points_each_way():
+    assert "/restyle" in _parse(CURRENT).links, "Classic's swap control must link to /restyle"
     assert "/" in _parse(RESTYLE).links, "restyle's swap control must link back to / (Classic)"
-    assert "ui-toggle" in _parse(RESTYLE).ids
+
+
+def test_restyle_route_serves_the_restyle_page(client):
+    r = client.get("/restyle")
+    assert r.status_code == 200 and 'data-ui="atui"' in r.text
+
+
+def test_root_still_serves_current(client):
+    r = client.get("/")
+    assert r.status_code == 200 and 'data-ui="atui"' not in r.text
+
+
+def test_restyle_static_serves_its_own_files(client):
+    assert client.get("/restyle/static/styles.css").status_code == 200
+    assert client.get("/restyle/static/atui/fonts/inter-latin-wght-normal.woff2").status_code == 200

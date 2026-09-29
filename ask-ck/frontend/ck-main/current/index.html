@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/static/styles.css?v=33">
+<link rel="stylesheet" href="/static/styles.css?v=34">
 </head>
 <body>
 <div class="layout">
@@ -26,6 +26,12 @@
       <span>Theme</span>
       <span id="theme-icon">🌙</span>
     </button>
+
+    <!-- UI swap: Classic = current/ at /, ATUI = restyle/ at /restyle (PLAN-atui-restyle S15). Plain links, no JS. -->
+    <div id="ui-toggle" class="ui-toggle mb-2" role="group" aria-label="Interface style">
+      <span class="ui-toggle-opt is-active" aria-current="page">Classic</span>
+      <a class="ui-toggle-opt" href="/restyle" title="Open the ATUI version. Your case and panel carry over.">ATUI</a>
+    </div>
 
     <!-- Help -->
     <div class="sidebar-section-label">Help</div>
