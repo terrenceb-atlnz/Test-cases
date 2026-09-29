@@ -1,0 +1,80 @@
+"""The ATUI restyle (ask-ck/plans/PLAN-atui-restyle.md) shares current/'s JS, so it must carry
+every hook that JS binds to.
+
+restyle/index.html is its own page (S1) but loads /static/shared/main.js, which finds its
+elements by id and dispatches clicks by data-action. A hook present in current/index.html
+and missing from restyle/index.html breaks that feature in the ATUI UI only, and silently —
+the page still loads. These tests make that drift loud (§2.5).
+"""
+from html.parser import HTMLParser
+import pathlib
+import re
+
+REPO = pathlib.Path(__file__).resolve().parents[1]
+CK_MAIN = REPO / "ask-ck" / "frontend" / "ck-main"
+CURRENT = CK_MAIN / "current" / "index.html"
+RESTYLE = CK_MAIN / "restyle" / "index.html"
+
+
+class _Hooks(HTMLParser):
+    def __init__(self):
+        super().__init__()
+        self.ids, self.actions, self.classes = set(), set(), set()
+        self.html_attrs = {}
+        self.links = {}
+
+    def handle_starttag(self, tag, attrs):
+        a = dict(attrs)
+        if tag == "html":
+            self.html_attrs = a
+        if "id" in a:
+            self.ids.add(a["id"])
+        if "data-action" in a:
+            self.actions.add(a["data-action"])
+        self.classes.update((a.get("class") or "").split())
+        if tag == "a" and "ui-toggle-opt" in (a.get("class") or ""):
+            self.links[a.get("href")] = a
+
+
+def _parse(path):
+    p = _Hooks()
+    p.feed(path.read_text(encoding="utf-8"))
+    return p
+
+
+def test_every_id_in_current_exists_in_restyle():
+    missing = _parse(CURRENT).ids - _parse(RESTYLE).ids
+    assert not missing, f"restyle/index.html lacks ids the shared JS may bind to: {sorted(missing)}"
+
+
+def test_every_data_action_in_current_exists_in_restyle():
+    missing = _parse(CURRENT).actions - _parse(RESTYLE).actions
+    assert not missing, f"restyle/index.html lacks data-actions: {sorted(missing)}"
+
+
+def test_sidebar_logo_hook_survives():
+    # shared/main.js binds the hidden admin panel's double-click to .sidebar-logo (S13).
+    assert "sidebar-logo" in _parse(RESTYLE).classes
+
+
+def test_both_pages_load_the_same_shared_entry_point():
+    pat = re.compile(r'<script type="module" src="(/static/shared/main\.js\?v=\d+)"')
+    cur = pat.findall(CURRENT.read_text(encoding="utf-8"))
+    rs = pat.findall(RESTYLE.read_text(encoding="utf-8"))
+    assert cur and cur == rs, f"main.js tags differ: current {cur} vs restyle {rs}"
+
+
+def test_only_restyle_carries_the_atui_flag():
+    assert _parse(RESTYLE).html_attrs.get("data-ui") == "atui"
+    assert "data-ui" not in _parse(CURRENT).html_attrs
+
+
+def test_restyle_uses_its_own_stylesheet():
+    html = RESTYLE.read_text(encoding="utf-8")
+    assert 'href="/restyle/static/styles.css' in html
+    assert 'href="/static/styles.css' not in html
+
+
+def test_swap_control_points_each_way():
+    assert "/" in _parse(RESTYLE).links, "restyle's swap control must link back to / (Classic)"
+    assert "ui-toggle" in _parse(RESTYLE).ids

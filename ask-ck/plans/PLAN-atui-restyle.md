@@ -259,3 +259,52 @@ There is no cut-over: the restyle lives alongside `current/` permanently (S9).
 What a reload costs users: a few seconds' outage; in-flight LLM calls (Generate / Fix / Review)
 are killed; case locks (in memory) are dropped — whether open tabs re-take them is a Phase 0
 checklist item; `ck.db` sessions survive.
+
+## 7. Phase 1 — the variable mapping (DRAFT, for Terrence before any CSS changes)
+
+`restyle/styles.css` keeps today's 35 variable *names* — so its 270 `var()` uses need no edit —
+and re-points each at an ATUI token. Both themes come from ATUI (`restyle/atui/atui-tokens.css`:
+light on `:root`, dark on `.dark`). Where ATUI has no direct token the value is built the way
+its readme says (hover = an overlay, never a new colour; focus = a 3px active-accent ring at 50%).
+
+| Today (`current/`) | Used for | → ATUI |
+|---|---|---|
+| `--bg-primary` | page background | `--token-surface-background` |
+| `--bg-secondary` | cards, panels | `--token-surface-foreground` (white in light) |
+| `--bg-tertiary` | inputs, recessed areas | `--token-surface-1` |
+| `--bg-sidebar` | sidebar | `--token-sidebar-background` |
+| `--bg-elevated` | modals, menus | `--token-surface-foreground` (+ `--token-shadow-2`) |
+| `--bg-hover` | hover fill | `color-mix(in srgb, var(--token-surface-overlay) 10%, transparent)` |
+| `--bg-active` | selected item | `--token-state-active-background` |
+| `--text-primary` | body text | `--token-text-foreground` |
+| `--text-secondary` | supporting text | `--token-text-secondary` |
+| `--text-tertiary` | hints, captions | `--token-text-tertiary` |
+| `--text-inverse` | text on blue fills | `--token-color-brand-primary-foreground` |
+| `--border-default` | hairlines | `--token-border-muted` (ATUI: hairlines everywhere are `border-muted`) |
+| `--border-subtle` | faint dividers | `--token-border-muted` |
+| `--border-strong` | emphasised edges | `--token-border-default` |
+| `--accent-primary` | primary buttons, links | `--token-color-brand-primary` (#2979ff) |
+| `--accent-hover` | primary hover | `color-mix(in srgb, var(--token-color-brand-primary) 70%, black)` (ATUI: 30% darkening) |
+| `--accent-muted` | tinted accent fills | `--token-state-active-background` |
+| `--accent-text` | accent-coloured text | `--token-text-active` |
+| `--status-critical` / `-muted` | severity: critical | `--token-state-error-accent` / `--token-state-error-background` |
+| `--status-high` / `-muted` | severity: high | `--token-state-warning-accent` / `--token-state-warning-background` |
+| `--status-medium` / `-muted` | severity: medium | **no ATUI equivalent — see note** |
+| `--status-low` / `-muted` | severity: low | `--token-text-muted` / `--token-surface-1` |
+| `--status-success` / `-muted` | pass, done | `--token-state-success-accent` / `--token-state-success-background` |
+| `--focus-ring` | focus outline | `color-mix(in srgb, var(--token-state-active-accent) 50%, transparent)`, 3px |
+| `--overlay` | modal backdrop | `rgb(0 0 0 / 20%)` (ATUI: black at 20%) |
+| `--shadow-sm` / `-md` / `-lg` | elevation | `--token-shadow-1` / `-2` / `-3` |
+| `--font-sans` | UI text | `--token-font-family-base` (Inter Variable) |
+| `--font-mono` | code, IPs, CLI | `--token-font-family-mono` (Roboto Mono Variable) |
+
+Plus: `restyle/atui/fonts.css`, `atui-tokens.css` and `base.css` imported at the top; body text
+13px (S12), replacing today's 14px; the Google Fonts `<link>` dropped from `restyle/index.html`.
+
+**Note — severity has one level more than ATUI.** Today has critical / high / medium / low (35
+uses); ATUI's states are error / warning / success / info, and its alert chart palette is
+green / amber / red / grey. Options: (a) medium shares high's amber (loses the distinction);
+(b) medium = ATUI's chart amber `--chart-alert-2`, high = the warning accent (keeps four
+levels, two of them close in hue); (c) medium = `--token-state-info-accent` (blue — keeps it
+distinct but blue reads as "info", not severity). **Terrence's call.**
+
