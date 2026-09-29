@@ -76,16 +76,18 @@
 <style>
   .data-table {
     width: 100%;
+    max-height: 600px;
     border: 1px solid var(--color-border-surface);
     border-radius: 10px;
     background: var(--color-table-header-bg);
-    overflow: hidden;
+    overflow: scroll;
   }
 
   .data-table-row {
     display: flex;
     align-items: center;
     padding: 10px 40px;
+    height: 100%;
     /* border-bottom: 1px solid var(--color-border-surface); */
   }
 
@@ -105,7 +107,9 @@
   .data-table-header {
     background: var(--color-table-header-bg);
     border-bottom: 2px solid var(--color-border-surface);
-
+    position: sticky;
+    top: 0;
+    z-index: 1;
   }
 
   .data-table-header-cell {
@@ -121,9 +125,10 @@
     min-width: 0;
     font-size: 0.8rem;
     color: var(--color-text-muted);
-    white-space: nowrap;
+    /* white-space: nowrap; */
     overflow: hidden;
     text-overflow: ellipsis;
+    margin-right: 24px;
   }
 
   .data-table-checkbox-cell {

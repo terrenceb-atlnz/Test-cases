@@ -8,14 +8,30 @@
   /** @type {Array<{ id: string, label: string }>} */
   export let completeCases = [];
 
+  /** @type {Array<{ label: string, cases: Array<{ id: string, label: string }> }>} Optional —
+      when non-empty, renders as <optgroup>s (folder-based categories) instead of the flat
+      openPartialCases/completeCases lists. PyTestPage.svelte doesn't pass these, so it keeps
+      the flat rendering unchanged. */
+  export let openPartialGroups = [];
+
+  /** @type {Array<{ label: string, cases: Array<{ id: string, label: string }> }>} */
+  export let completeGroups = [];
+
   /** @type {((caseId: string) => void) | null} */
   export let onLoad = null;
 
   /** @type {(() => void) | null} */
   export let onExport = null;
 
-  let selectedOpenCase = '';
-  let selectedCompleteCase = '';
+  /** @type {string | null} The currently loaded case's id, if any — GeneratorPage.svelte
+      destroys and recreates this component on every step switch (it's one branch of an
+      {#if}/{:else if} chain), so without this a case selected earlier reverts to blank the
+      moment you step back to Cases. Only used to seed the initial selection below; the two
+      selects are otherwise plain local state once mounted. */
+  export let selectedCaseId = null;
+
+  let selectedOpenCase = openPartialCases.some((c) => c.id === selectedCaseId) ? selectedCaseId : '';
+  let selectedCompleteCase = completeCases.some((c) => c.id === selectedCaseId) ? selectedCaseId : '';
 
   $: canLoad = !!(selectedOpenCase || selectedCompleteCase);
 
@@ -35,13 +51,25 @@
   function handleExport() {
     onExport && onExport();
   }
+
+  // MODIFIED FROM current/generator/generator.js's get_cases progress-hint logic TO WORK
+  // WITH SVELTE (same three hints, just returned as a string suffix instead of built into
+  // a server-rendered <option> label).
+  function progressHint(c) {
+    const p = c.progress;
+    if (!p) return '';
+    if (p.has_step4 && p.confirms) return ' [synth done]';
+    if (p.has_step4) return ' [has draft]';
+    if (p.confirms) return ` [${p.confirms}/3 steps]`;
+    return '';
+  }
 </script>
 
 <div class="cases-step">
   <p class="cases-intro">Select a test case to work on, then Load it. Export or clear its session from here too.</p>
 
   <div class="case-picker">
-    <label class="case-picker-label" for="open-partial-select">Open / Partial (0)</label>
+    <label class="case-picker-label" for="open-partial-select">Open / Partial ({openPartialCases.length})</label>
     <div class="case-select-wrapper">
       <select
         id="open-partial-select"
@@ -50,16 +78,26 @@
         on:change={handleOpenChange}
       >
         <option value="">Select a case…</option>
-        {#each openPartialCases as c}
-          <option value={c.id}>{c.label}</option>
-        {/each}
+        {#if openPartialGroups.length}
+          {#each openPartialGroups as g}
+            <optgroup label={g.label}>
+              {#each g.cases as c}
+                <option value={c.id}>{c.label}{progressHint(c)}</option>
+              {/each}
+            </optgroup>
+          {/each}
+        {:else}
+          {#each openPartialCases as c}
+            <option value={c.id}>{c.label}{progressHint(c)}</option>
+          {/each}
+        {/if}
       </select>
       <img class="case-select-chevron" src={chevronDownIcon} alt="" aria-hidden="true" />
     </div>
   </div>
 
   <div class="case-picker">
-    <label class="case-picker-label" for="complete-select">Complete (0)</label>
+    <label class="case-picker-label" for="complete-select">Complete ({completeCases.length})</label>
     <div class="case-select-wrapper">
       <select
         id="complete-select"
@@ -68,9 +106,19 @@
         on:change={handleCompleteChange}
       >
         <option value="">Select a case…</option>
-        {#each completeCases as c}
-          <option value={c.id}>{c.label}</option>
-        {/each}
+        {#if completeGroups.length}
+          {#each completeGroups as g}
+            <optgroup label={g.label}>
+              {#each g.cases as c}
+                <option value={c.id}>{c.label}</option>
+              {/each}
+            </optgroup>
+          {/each}
+        {:else}
+          {#each completeCases as c}
+            <option value={c.id}>{c.label}</option>
+          {/each}
+        {/if}
       </select>
       <img class="case-select-chevron" src={chevronDownIcon} alt="" aria-hidden="true" />
     </div>

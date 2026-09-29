@@ -116,7 +116,7 @@
     </button>
     <h1>{isAdmin ? 'Welcome Admin' : 'Welcome to Ask CK'}</h1>
     {#if !isAdmin}
-      <p>Ask CK is a server-backed test-engineering workbench for the AWPTCM test-case program. It brings the tools for enriching manual test cases, mapping them to automation, and turning them into runnable scripts into one place. Pick a tool from below, or read the step-by-step guides inside the Help section. Most tools use an LLM via a local subscription CLI — set that up first under <span style="font-weight: bold;">LLM → Configure</span>.</p>
+      <p>Ask CK is a server-backed test-engineering workbench for the AWPTCM test-case program. It brings the tools for enriching manual test cases, mapping them to automation, and turning them into runnable scripts into one place. Pick a tool from below, or read the step-by-step guides inside the Help section. Most tools use an LLM via a local subscription CLI — set that up first under <span style="font-weight: bold;">Settings → LLM → LLM Provider Login</span>.</p>
     {/if}
   </div>
 

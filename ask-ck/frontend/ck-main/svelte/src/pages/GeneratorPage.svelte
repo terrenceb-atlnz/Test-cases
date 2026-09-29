@@ -52,12 +52,23 @@
     currentStep = index;
   }
 
-  const openPartialCases = casesService.listOpenPartialCases();
-  const completeCases = casesService.listCompleteCases();
+  // Real /cases is an async fetch (casesService.js), where the mock was a plain synchronous
+  // array — populated on mount instead of at module scope.
+  let openPartialCases = [];
+  let completeCases = [];
+  let openPartialGroups = [];
+  let completeGroups = [];
 
   let title = 'No case loaded. Please select a test case to work on.';
 
-  function loadAndConfirm(caseId) {
+  // The server-authoritative session (models.WizardSession) — every mutating wizard call
+  // returns the FULL new session, which replaces this wholesale. Downstream steps (Phase 2+)
+  // read from this rather than tracking their own copy of what the server knows.
+  let session = null;
+  let readOnly = false;
+  let lockMessage = '';
+
+  async function loadAndConfirm(caseId) {
     // maxStepReached > 0 means a case was already loaded and progressed past Cases in this
     // instance — switching to a different one now would leave every downstream field (TestLink/
     // Zephyr/ATPyLib picks, objectives, test steps) still holding the old case's data. Rather than
@@ -67,10 +78,23 @@
       return;
     }
 
-    const loadedCase = casesService.findCase(caseId);
+    const loadedCase = await casesService.findCase(caseId);
     if (loadedCase) {
       title = loadedCase.label;
     }
+
+    // The real load: acquires this case's per-tab edit lock server-side (or, if another tab
+    // already holds it, returns a read-only snapshot instead — see loadCase's own comment).
+    const result = await casesService.loadCase(caseId);
+    if (!result.session) {
+      title = `Failed to load ${caseId}.`;
+      return;
+    }
+    session = result.session;
+    readOnly = !!result.read_only;
+    lockMessage = result.message || '';
+    if (result.case_title) title = result.case_title;
+
     currentStep = 1;
   }
 
@@ -79,7 +103,13 @@
   // calling this during the component's own initialization (before every other `let`/`$:` below
   // it in this file has finished setting up) trips Svelte's reactivity scheduler into running a
   // reactive block against a not-yet-initialized variable, throwing a temporal-dead-zone error.
-  onMount(() => {
+  onMount(async () => {
+    [openPartialCases, completeCases, openPartialGroups, completeGroups] = await Promise.all([
+      casesService.listOpenPartialCases(),
+      casesService.listCompleteCases(),
+      casesService.listOpenPartialGroups(),
+      casesService.listCompleteGroups(),
+    ]);
     if (initialCaseId) {
       loadAndConfirm(initialCaseId);
     }
@@ -98,10 +128,10 @@
   }
 
   const testLinkColumns = [
-    { key: 'caseId', label: 'ID', width: 1 },
-    { key: 'title', label: 'Title', width: 2 },
+    { key: 'id', label: 'ID', width: 1 },
+    { key: 'title', label: 'Title', width: 5 },
     { key: 'score', label: 'Score', width: 1 },
-    { key: 'description', label: 'Description', width: 3 }
+    { key: 'description', label: 'Description', width: 4 }
   ];
 
   const summaryColumns = [...testLinkColumns, { key: 'source', label: 'Source', width: 1 }];
@@ -124,9 +154,13 @@
 
 <Stepper {steps} {currentStep} {maxStepReached} {stepperCompleted} onStepClick={goToStep} />
 
+{#if readOnly}
+  <p class="read-only-banner">{lockMessage}</p>
+{/if}
+
 <div class="tool-page">
   {#if currentStep === 0}
-    <CasePicker {openPartialCases} {completeCases} onLoad={loadAndConfirm} onExport={exportSession} />
+    <CasePicker {openPartialCases} {completeCases} {openPartialGroups} {completeGroups} selectedCaseId={session?.key} onLoad={loadAndConfirm} onExport={exportSession} />
   {:else if currentStep === 1}
     <CandidatePickerStep
       columns={testLinkColumns}
@@ -136,7 +170,7 @@
       candidateLabel="TestLink Candidates"
       chosenLabel="Chosen TestLink Cases"
       onSearch={testlinkService.searchTestLink}
-      onSuggest={testlinkService.suggestTestLink}
+      onSuggest={() => testlinkService.suggestTestLink(session.key)}
       bind:chosen={testLinkChosen}
       onConfirm={() => { currentStep = 2; scrollToTop(); }}
     />
@@ -186,4 +220,16 @@
     <p>Hello world</p>
   {/if}
 </div>
+
+<style>
+  .read-only-banner {
+    margin: 16px 0 0;
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    background: color-mix(in srgb, var(--color-warning) 12%, transparent);
+    color: var(--color-warning);
+  }
+</style>
 

@@ -50,6 +50,15 @@
   /** @type {string} */
   let activePage = 'home';
 
+  // The Objective Generator keeps its whole component instance mounted (hidden via CSS,
+  // never destroyed) once first visited, so switching to another sidebar item and back
+  // preserves everything — loaded session, chosen candidates, current step — with no
+  // persistence code. Every other page still destroys/recreates normally on nav away,
+  // matching how they behaved before (e.g. Settings' cold-load-on-mount refiring is
+  // desirable there, not a bug). Only a real browser refresh loses the Generator's state.
+  let generatorEverVisited = false;
+  $: if (activePage === 'generator') generatorEverVisited = true;
+
   // Bumped to force PyTestPage to remount from scratch — used both for "Create Another
   // PyTest" (caseId omitted) and for switching to a different case mid-session (caseId given),
   // so a stale case's downstream state (sequence/scripts/fragments/generate/...) can never leak
@@ -166,9 +175,9 @@
       {:else if activePage === 'settings'}
         <SettingsPage />
       {:else if activePage === 'generator'}
-        {#key generatorInstanceKey}
-          <CaseGeneratorPage onCreateAnother={resetGenerator} initialCaseId={pendingGeneratorCaseId} />
-        {/key}
+        <!-- Rendered unconditionally below instead, hidden via CSS once first visited — see
+             generatorEverVisited above. Kept as its own branch here only so the {:else}
+             ToolPage fallback doesn't wrongly catch 'generator'. -->
       {:else if activePage === 'pytest'}
         {#key pytestInstanceKey}
           <PyTestPage onNavigate={selectPage} onCreateAnother={resetPytest} initialCaseId={pendingPytestCaseId} />
@@ -179,6 +188,14 @@
         <ZephyrPage />
       {:else}
         <ToolPage page={toolPages[activePage] || toolPages.generator} />
+      {/if}
+
+      {#if generatorEverVisited}
+        <div class="keep-alive-page" style:display={activePage === 'generator' ? 'contents' : 'none'}>
+          {#key generatorInstanceKey}
+            <CaseGeneratorPage onCreateAnother={resetGenerator} initialCaseId={pendingGeneratorCaseId} />
+          {/key}
+        </div>
       {/if}
     </div>
   </main>
