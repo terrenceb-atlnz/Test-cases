@@ -7,6 +7,12 @@
 > Terrence's Phase 0 checklist, his review of the §7 mapping (incl. the severity note), then
 > Phases 1–4.
 >
+> **Phase 1 BUILT 2026-09-30** after Terrence approved §7 (*"lets see how they look"*): ATUI colours,
+> Inter Variable + Roboto Mono served locally, 13px body, restyle/ only. **Awaiting:** his look at it.
+> Carried to Phase 2: 7 variables `current/` never defines (`--status-err`, `--status-ok`,
+> `--status-info[-muted]`, `--color-danger`, `--text-muted`, `--border-color`) resolve to their
+> hard-coded fallbacks, so those spots keep Classic colours until then.
+>
 > Originally: **PLAN ONLY — nothing built.** Written 2026-09-30 at Terrence's request: *"lets make a plan for
 > the restyle, but i want it to swap between current/ and restyle/ with a button that you make next
 > to the day/night toggle."* The decisions in §0 are his and settled. Every "today" number in §1

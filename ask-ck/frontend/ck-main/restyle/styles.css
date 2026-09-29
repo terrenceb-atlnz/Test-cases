@@ -1,94 +1,58 @@
 /* ========================================
-   Design Tokens — from design-guidelines-showcase
+   ATUI restyle — Phase 1 (ask-ck/plans/PLAN-atui-restyle.md §7, approved 2026-09-30).
+   The 35 variable NAMES from current/ are kept, so every var() below needs no edit; each is
+   re-pointed at an ATUI token. Both themes come from ATUI: light on :root, dark on .dark
+   (restyle/atui/atui-tokens.css, re-keyed from [data-theme='dark']).
    ======================================== */
-/* Default: Dark Theme (matches original UI) */
+@import url("atui/fonts.css");
+@import url("atui/atui-tokens.css");
+@import url("atui/base.css");
+
 :root {
-  --bg-primary: #0F0F0F;
-  --bg-secondary: #171717;
-  --bg-tertiary: #1E1E1E;
-  --bg-sidebar: #141414;
-  --bg-elevated: #1E1E1E;
-  --bg-hover: #1E1E1E;
-  --bg-active: #262626;
+  --bg-primary: var(--token-surface-background);
+  --bg-secondary: var(--token-surface-foreground);
+  --bg-tertiary: var(--token-surface-1);
+  --bg-sidebar: var(--token-sidebar-background);
+  --bg-elevated: var(--token-surface-foreground);
+  --bg-hover: color-mix(in srgb, var(--token-surface-overlay) 10%, transparent);  /* ATUI: hover is an overlay */
+  --bg-active: var(--token-state-active-background);
 
-  --text-primary: #F9FAFB;
-  --text-secondary: #9CA3AF;
-  --text-tertiary: #6B7280;
-  --text-inverse: #111827;
+  --text-primary: var(--token-text-foreground);
+  --text-secondary: var(--token-text-secondary);
+  --text-tertiary: var(--token-text-tertiary);
+  --text-inverse: var(--token-color-brand-primary-foreground);
 
-  --border-default: #262626;
-  --border-subtle: #1E1E1E;
-  --border-strong: #3F3F46;
+  --border-default: var(--token-border-muted);  /* ATUI: hairlines everywhere are border-muted */
+  --border-subtle: var(--token-border-muted);
+  --border-strong: var(--token-border-default);
 
-  --accent-primary: #3B82F6;
-  --accent-hover: #60A5FA;
-  --accent-muted: #1E3A5F;
-  --accent-text: #60A5FA;
+  --accent-primary: var(--token-color-brand-primary);
+  --accent-hover: color-mix(in srgb, var(--token-color-brand-primary) 70%, black);  /* ATUI: 30% darkening */
+  --accent-muted: var(--token-state-active-background);
+  --accent-text: var(--token-text-active);
 
-  --status-critical: #F87171;
-  --status-critical-muted: #3B1111;
-  --status-high: #FB923C;
-  --status-high-muted: #3B1F06;
-  --status-medium: #FACC15;
-  --status-medium-muted: #3B3506;
-  --status-low: #9CA3AF;
-  --status-low-muted: #1E1E1E;
-  --status-success: #4ADE80;
-  --status-success-muted: #0B3B1B;
+  --status-critical: var(--token-state-error-accent);
+  --status-critical-muted: var(--token-state-error-background);
+  --status-high: var(--token-state-warning-accent);
+  --status-high-muted: var(--token-state-warning-background);
+  /* ATUI has no fourth severity; medium = its chart amber (Terrence, option b). The -muted tint is
+     ours: ATUI defines no background for chart colours. */
+  --status-medium: var(--chart-alert-2);
+  --status-medium-muted: color-mix(in srgb, var(--chart-alert-2) 15%, var(--token-surface-foreground));
+  --status-low: var(--token-text-muted);
+  --status-low-muted: var(--token-surface-1);
+  --status-success: var(--token-state-success-accent);
+  --status-success-muted: var(--token-state-success-background);
 
-  --focus-ring: #3B82F680;
-  --overlay: #FFFFFF15;
+  --focus-ring: color-mix(in srgb, var(--token-state-active-accent) 50%, transparent);
+  --overlay: rgb(0 0 0 / 20%);  /* ATUI: dialog backdrop is black at 20% */
 
-  --shadow-sm: none;
-  --shadow-md: none;
-  --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.4);
+  --shadow-sm: var(--token-shadow-1);
+  --shadow-md: var(--token-shadow-2);
+  --shadow-lg: var(--token-shadow-3);
 
-  /* Fonts */
-  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  --font-mono: "JetBrains Mono", "Fira Code", "Cascadia Code", monospace;
-}
-
-/* Light Theme */
-.light {
-  --bg-primary: #FFFFFF;
-  --bg-secondary: #F8F9FA;
-  --bg-tertiary: #F1F3F5;
-  --bg-sidebar: #F8F9FA;
-  --bg-elevated: #FFFFFF;
-  --bg-hover: #F1F3F5;
-  --bg-active: #E9ECEF;
-
-  --text-primary: #111827;
-  --text-secondary: #6B7280;
-  --text-tertiary: #9CA3AF;
-  --text-inverse: #FFFFFF;
-
-  --border-default: #E5E7EB;
-  --border-subtle: #F3F4F6;
-  --border-strong: #D1D5DB;
-
-  --accent-primary: #3B82F6;
-  --accent-hover: #2563EB;
-  --accent-muted: #DBEAFE;
-  --accent-text: #1D4ED8;
-
-  --status-critical: #EF4444;
-  --status-critical-muted: #FEE2E2;
-  --status-high: #F97316;
-  --status-high-muted: #FFEDD5;
-  --status-medium: #EAB308;
-  --status-medium-muted: #FEF9C3;
-  --status-low: #6B7280;
-  --status-low-muted: #F3F4F6;
-  --status-success: #22C55E;
-  --status-success-muted: #DCFCE7;
-
-  --focus-ring: #3B82F680;
-  --overlay: #00000050;
-
-  --shadow-sm: 0 1px 2px 0 rgba(0,0,0,0.05);
-  --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -2px rgba(0,0,0,0.1);
-  --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -4px rgba(0,0,0,0.1);
+  --font-sans: var(--token-font-family-base);
+  --font-mono: var(--token-font-family-mono);
 }
 
 /* Base */
@@ -99,8 +63,9 @@ body {
   background: var(--bg-primary);
   color: var(--text-primary);
   font-family: var(--font-sans);
-  font-size: 14px;
-  line-height: 1.5;
+  font-size: var(--token-font-size-body);  /* 13px root (S12); was 14px */
+  line-height: var(--token-line-height-base);
+  font-weight: var(--token-font-weight-light);
   transition: background-color 0.2s, color 0.2s;
 }
 
