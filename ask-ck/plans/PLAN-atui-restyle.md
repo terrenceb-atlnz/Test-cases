@@ -37,6 +37,19 @@
 > data-URI grey (missed by 2a — the # is %23) is now Carbon's chevron in ATUI slate-500.
 > **Awaiting:** Terrence's look — the tables are the largest density change; then Phase 4.
 >
+> **Phase 4 lists APPROVED 2026-09-30** — Terrence: *"i approve all W 1-18 suggestions and all icons. i
+> approve the proposed order."* (§9, §10 as drafted, incl. W16 keep native dialogs and I11 HealthDot shapes.)
+>
+> **Phase 4a BUILT 2026-09-30** — every `[html]` row of §9/§10 in `restyle/index.html`, plus W17: all 8
+> `text-transform: uppercase` declarations dropped from `restyle/styles.css` (the six W17 names, plus
+> `.sidebar-section-label` and `.table th`, which later blocks already reset). Button icons: `arrow--down`
+> (Choose Selected), `renew` (Refresh List / Preview, Re-render Prompts), `tools` (Fix Units) — Carbon
+> 11.89.0, copied. Prose that names a renamed button follows it (e.g. *"Check My Local Agent"*, *"Save
+> Changes"*); `claude → /login` became *"claude, then /login"* under I4's prose rule. `setButtonBusy`
+> stashes/restores `innerHTML`, so an icon survives a busy cycle. Not touched (outside W13's list):
+> *it's / you're / something's*; the `·` separators in *"1 · Assemble"* and *"If something's wrong ·"*.
+> **Next: 4b** — the `[JS]` rows behind S11, scratch server first.
+>
 > Originally: **PLAN ONLY — nothing built.** Written 2026-09-30 at Terrence's request: *"lets make a plan for
 > the restyle, but i want it to swap between current/ and restyle/ with a button that you make next
 > to the day/night toggle."* The decisions in §0 are his and settled. Every "today" number in §1
@@ -360,7 +373,7 @@ Ties snap **down**, toward ATUI's density. `restyle/` only; the specimen CSS and
 
 Biggest visible shifts: 6px gaps/paddings → 4 (39), 10 → 8 (23), 13px text → 12 (16), 14px → 13 (10).
 
-## 9. Phase 4 — the wording list (DRAFT, for Terrence row by row; restyle only, S8)
+## 9. Phase 4 — the wording list (APPROVED 2026-09-30, all rows; restyle only, S8)
 
 Audited 2026-09-30 against ATUI's LOCKED content rules (`docs/ATUI Design System/readme.md`, Content
 fundamentals). **[html]** = `restyle/index.html`, free to change. **[JS]** = emitted by the shared JS, so
@@ -388,7 +401,7 @@ marks were found. Most `confirm()` texts already name the object and the consequ
 | W17 | CSS `text-transform: uppercase` on .splash-tag, .page-eyebrow, .pt-step-sub, .pt-unit-frame-label, .provenance-label, .chosen-heading ("CANDIDATES — TICK ROWS…") | remove; text shows as written | restyle CSS | never force case with CSS |
 | W18 | glyphs inside prose: "Each step shows a ✓ covered / ✗ gap status" · "Drag ⠿ to reorder." · "(⏸)" · "units ⇄ script" · "LLM → Configure" (×3) · "Confirm Objectives → Step 6" · "Save & Confirm → Step 6" | "Each step shows whether it is covered or has a gap." · "Drag a row to reorder." · "(held)" · "units and script" · "LLM, Configure" · "Confirm Objectives" · "Save and Confirm" | html + JS | no unicode-as-icon |
 
-## 10. Phase 4 — the icon map (DRAFT, for Terrence)
+## 10. Phase 4 — the icon map (APPROVED 2026-09-30, all rows and the 4a/4b order)
 
 Every glyph used as an icon, today → the Carbon icon (copied locally, S10). Counts exclude the specimen.
 In `restyle/index.html` the swap is direct; for JS-emitted glyphs an `icon(name)` helper returns today's

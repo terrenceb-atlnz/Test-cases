@@ -12,7 +12,7 @@
 <title>Ask CK — Test Tooling Workbench</title>
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="shortcut icon" href="/favicon.ico">
-<link rel="stylesheet" href="/restyle/static/styles.css?v=13">
+<link rel="stylesheet" href="/restyle/static/styles.css?v=14">
 </head>
 <body>
 <!-- ATUI shell (PLAN-atui-restyle S13-S15): a 48px header — brand mark + name on the left (the element
@@ -161,7 +161,7 @@
           program. It brings the tools for enriching manual test cases, mapping them to
           automation, and turning them into runnable scripts into one place. Pick a tool from
           the sidebar, or read the step-by-step guides below. Most tools use an LLM via a local
-          subscription CLI — set that up first under <b>LLM → Configure</b>.</p>
+          subscription CLI — set that up first under <b>LLM, Configure</b>.</p>
         </div>
 
         <div class="splash-tag rs-splash-tag-gap">Set up your seat for Claude (one time)</div>
@@ -184,11 +184,11 @@
                 <button type="button" class="btn btn-secondary btn-compact-small" data-action="copySeatSetup" data-target="seatSetupUbuntu">Copy</button>
                 <span class="justification-note">(or <a id="seatSetupUbuntuLink" href="/setup/setup.sh" download>download setup.sh</a>)</span></li>
               <li>It asks once whether the agent should start when you log in, then opens Ask CK,
-                which runs the final check itself — the result appears under <b>LLM → Configure</b>.
+                which runs the final check itself — the result appears under <b>LLM, Configure</b>.
                 Pick <b>Claude Code CLI (my local machine)</b> there and you are ready.</li>
             </ol>
             <span class="justification-note">Manual route and details: <code>ask-ck/agent/README.md</code>.
-            Later, <b>Check my local agent</b> under LLM → Configure also updates the Claude CLI on your PC.</span>
+            Later, <b>Check My Local Agent</b> under LLM, Configure also updates the Claude CLI on your PC.</span>
           </div>
         </details>
 
@@ -218,10 +218,10 @@
             Allied Telesis <code>framework</code> (ATTestSet/ATTestCase) test script, then runs it on
             real hardware and iterates until it passes. Each step has a Confirm gate.
             <ol>
-              <li><b>1. Cases</b> — pick a Complete case and Load it (use <b>↻ Refresh list</b> after exporting new cases in the Generator).</li>
+              <li><b>1. Cases</b> — pick a Complete case and Load it (use <b>Refresh List</b> after exporting new cases in the Generator).</li>
               <li><b>2. Sequence</b> — the LLM extracts a prescriptive sequence of automatable steps from the refined case; edit the rows, Save, then Confirm.</li>
               <li><b>3. Script Search</b> — search the script databases (testsuites_art / svt_scripts / test_scripts) for scripts that do all, some, or none of the sequence; tick what to reuse, then Confirm.</li>
-              <li><b>4. Fragments</b> — gather reusable code from the selected scripts (resolved to real source), untick what you don't want, then Confirm.</li>
+              <li><b>4. Fragments</b> — gather reusable code from the selected scripts (resolved to real source), untick what you do not want, then Confirm.</li>
               <li><b>5. Generate</b> — the LLM fills the standardized skeleton template from the fragments + gap-fill; edit the Group/name, Lint, Save to <code>generated/&lt;Group&gt;/</code>, then Confirm.</li>
               <li><b>6. Run</b> — pick a stored testbox (or add one under <b>Testboxes</b>), choose the .setup, and run it over SSH; results are parsed into per-TestCase PASS/FAIL.</li>
               <li><b>7. Validate</b> — Final Validation passes when every TestCase is PASS with zero failures. On failures, <b>Fix with LLM</b> loops back to Generate; promotion into <code>testsuites_art/</code> is manual.</li>
@@ -283,7 +283,7 @@
     <div id="panel-llm-config" class="card tool-panel hidden">
       <div class="section">
         <div class="section-heading">LLM Provider Login</div>
-        <div class="section-description">Use a locally logged-in subscription CLI or the org's vLLM — no developer API keys. <strong>Apply / Login sets the LLM for <em>this seat</em></strong> (this browser) — every request from here carries it, and seats that chose their own LLM are unaffected. It also becomes the <em>site default</em> that a seat which has never chosen starts from. <strong>Claude Code CLI (my local machine)</strong> brokers each call through the agent on your own PC, so every seat spends its own Claude subscription and nothing is shared — run the one-line seat setup on the home page first.</div>
+        <div class="section-description">Use a locally logged-in subscription CLI or the org's vLLM — no developer API keys. <strong>Save Changes sets the LLM for <em>this seat</em></strong> (this browser) — every request from here carries it, and seats that chose their own LLM are unaffected. It also becomes the <em>site default</em> that a seat which has never chosen starts from. <strong>Claude Code CLI (my local machine)</strong> brokers each call through the agent on your own PC, so every seat spends its own Claude subscription and nothing is shared — run the one-line seat setup on the home page first.</div>
 
         <div class="radio-group">
           <label class="radio-label">
@@ -292,10 +292,10 @@
           <label class="radio-label">
             <input type="radio" name="llmAuthMethod" value="claude_agent"> Claude Code CLI (my local machine)
           </label>
-          <button id="agentStatusBtn" data-action="checkLocalAgent" class="btn btn-secondary btn-compact-small">Check my local agent</button>
+          <button id="agentStatusBtn" data-action="checkLocalAgent" class="btn btn-secondary btn-compact-small">Check My Local Agent</button>
 
           <input id="llmModel" placeholder="Model (optional)" class="form-input form-input-small">
-          <button data-action="setLLMConfig" class="btn btn-primary" title="Sets the LLM for THIS seat (this browser), and the site default that a seat which has never chosen starts from">Apply / Login</button>
+          <button data-action="setLLMConfig" class="btn btn-primary" title="Sets the LLM for THIS seat (this browser), and the site default that a seat which has never chosen starts from">Save Changes</button>
           <span id="llmStatus" class="llm-status-inline"></span>
           <span id="llmSeatNotice" class="justification-note hidden"></span>
         </div>
@@ -313,7 +313,7 @@
                  class="form-input form-input-small">
           <span id="localLlmKeyState" class="justification-note"></span>
           <button type="button" id="llmHealthBtn" data-action="checkLlmHealth"
-                  class="btn btn-secondary btn-compact-small">Health check</button>
+                  class="btn btn-secondary btn-compact-small">Health Check</button>
           <span id="llmHealthState" class="justification-note"></span>
         </div>
 
@@ -358,10 +358,10 @@
         <div id="claudeAgentInstructions" class="instructions-panel hidden">
           <strong>Claude Code CLI — via your local agent (per-user, unshared)</strong><br><br>
           On a shared Ask CK page, the server never runs <code>claude</code>. Instead, a tiny agent on <strong>your own machine</strong> runs it against <strong>your own</strong> Claude login, brokered through this browser tab. Your seat is never shared with other users, and the server never sees your credentials.<br><br>
-          1. On your machine, install Claude Code (anthropic.com/claude-code) and run <code>claude</code> → <code>/login</code>.<br>
+          1. On your machine, install Claude Code (anthropic.com/claude-code) and run <code>claude</code>, then <code>/login</code>.<br>
           2. Start the agent: <code>cd ask-ck/agent &amp;&amp; ./run-agent.sh</code> (leave it running). See <code>ask-ck/agent/README.md</code>.<br>
-          3. Click <strong>"Check my local agent"</strong> to confirm it's reachable and logged in.<br>
-          4. Click <strong>"Apply / Login"</strong>. Leave Model blank to use the CLI's default.<br><br>
+          3. Click <strong>"Check My Local Agent"</strong> to confirm it's reachable and logged in.<br>
+          4. Click <strong>"Save Changes"</strong>. Leave Model blank to use the CLI's default.<br><br>
           <em>Usage counts against your own Claude seat's limits. If a call fails, make sure the agent is still running and you're logged in.</em>
           <div id="agentStatusResult" class="status-result"></div>
         </div>
@@ -380,14 +380,14 @@
 
         <div class="section-heading rs-subheading">Session state</div>
         <div class="compact-flex mb-2">
-          <button data-action="adminResetCase" class="btn btn-secondary btn-compact">Reset current case session</button>
-          <button data-action="adminResetWorkspace" class="btn btn-secondary btn-compact">Reset workspace LLM config</button>
-          <button data-action="adminResetAll" class="btn btn-secondary btn-compact">Reset ALL sessions</button>
+          <button data-action="adminResetCase" class="btn btn-secondary btn-compact">Reset Current Case Session</button>
+          <button data-action="adminResetWorkspace" class="btn btn-secondary btn-compact">Reset Workspace LLM Config</button>
+          <button data-action="adminResetAll" class="btn btn-secondary btn-compact">Reset ALL Sessions</button>
         </div>
 
         <div class="section-heading rs-subheading">Server</div>
         <div class="compact-flex mb-2">
-          <button data-action="adminRestart" class="btn btn-secondary btn-compact">Restart server (reload)</button>
+          <button data-action="adminRestart" class="btn btn-secondary btn-compact">Restart Server (Reload)</button>
         </div>
       </div>
     </div>
@@ -411,13 +411,13 @@
         <div id="tl-table" class="table-container"><em>Load a case, then open this step to fetch TestLink candidates.</em></div>
         <div id="tl-prov"></div>
         <div class="chosen-toolbar">
-          <button type="button" data-action="chooseTestLink" class="btn btn-secondary btn-compact-small">↓ Choose selected</button>
+          <button type="button" data-action="chooseTestLink" class="btn btn-secondary btn-compact-small"><span class="rs-icon rs-icon-arrow-down" aria-hidden="true"></span>Choose Selected</button>
         </div>
         <div class="chosen-heading">Chosen TestLink cases</div>
         <div id="tl-chosen-table" class="table-container"><em class="chosen-empty">No cases chosen yet — tick rows above and click Choose.</em></div>
         <div class="confirm-toolbar">
           <button data-action="confirmStep" data-args='[1]' class="btn btn-primary">Mark Reviewed + Confirmed</button>
-          <button type="button" data-action="clearChosenTestLink" class="btn btn-secondary">Clear selected contents</button>
+          <button type="button" data-action="clearChosenTestLink" class="btn btn-secondary">Clear Selected</button>
         </div>
       </div>
     </div>
@@ -437,13 +437,13 @@
         <div id="zephyr-table" class="table-container"><em>Load a case, then open this step to fetch Zephyr cross-refs.</em></div>
         <div id="zephyr-prov"></div>
         <div class="chosen-toolbar">
-          <button type="button" data-action="chooseZephyr" class="btn btn-secondary btn-compact-small">↓ Choose selected</button>
+          <button type="button" data-action="chooseZephyr" class="btn btn-secondary btn-compact-small"><span class="rs-icon rs-icon-arrow-down" aria-hidden="true"></span>Choose Selected</button>
         </div>
         <div class="chosen-heading">Chosen Zephyr cases</div>
         <div id="zephyr-chosen-table" class="table-container"><em class="chosen-empty">No cases chosen yet — tick rows above and click Choose.</em></div>
         <div class="confirm-toolbar">
           <button data-action="confirmStep" data-args='[2]' class="btn btn-primary">Mark Reviewed + Confirmed</button>
-          <button type="button" data-action="clearChosenZephyr" class="btn btn-secondary">Clear selected contents</button>
+          <button type="button" data-action="clearChosenZephyr" class="btn btn-secondary">Clear Selected</button>
         </div>
       </div>
     </div>
@@ -463,13 +463,13 @@
         <div id="atp-table" class="table-container"><em>Load a case, then open this step to fetch ATPyLib candidates.</em></div>
         <div id="atp-prov"></div>
         <div class="chosen-toolbar">
-          <button type="button" data-action="chooseATP" class="btn btn-secondary btn-compact-small">↓ Choose selected</button>
+          <button type="button" data-action="chooseATP" class="btn btn-secondary btn-compact-small"><span class="rs-icon rs-icon-arrow-down" aria-hidden="true"></span>Choose Selected</button>
         </div>
         <div class="chosen-heading">Chosen ATPyLib tests</div>
         <div id="atp-chosen-table" class="table-container"><em class="chosen-empty">No tests chosen yet — tick rows above and click Choose.</em></div>
         <div class="confirm-toolbar">
           <button data-action="confirmStep" data-args='[3]' class="btn btn-primary">Mark Reviewed + Confirmed</button>
-          <button type="button" data-action="clearChosenATP" class="btn btn-secondary">Clear selected contents</button>
+          <button type="button" data-action="clearChosenATP" class="btn btn-secondary">Clear Selected</button>
         </div>
       </div>
     </div>
@@ -493,7 +493,7 @@
 
         <div class="synth-actions mb-2">
           <button type="button" id="obj-synth-btn" data-action="synthesizeObjectives" class="btn btn-primary">Synthesize Objectives (LLM)</button>
-          <button type="button" data-action="confirmObjectives" class="btn btn-secondary">Confirm Objectives → Step 6</button>
+          <button type="button" data-action="confirmObjectives" class="btn btn-secondary">Confirm Objectives</button>
         </div>
         <div id="objective-status" class="status-banner hidden"></div>
         <div id="objective-result"></div>
@@ -716,7 +716,7 @@ Interface port1.0.1
         <div class="mt-2">
           <div class="compact-flex mb-1">
             <label class="case-select-label" for="ptCaseSelOpen" id="ptCaseSelOpenLabel">Open/Partial</label>
-            <button data-action="ptRefreshCases" class="btn btn-compact" id="pt-refresh-btn" title="Re-scan refined-cases + PyTest sessions for updated case state">↻ Refresh list</button>
+            <button data-action="ptRefreshCases" class="btn btn-compact" id="pt-refresh-btn" title="Re-scan refined-cases + PyTest sessions for updated case state"><span class="rs-icon rs-icon-renew" aria-hidden="true"></span>Refresh List</button>
           </div>
           <select id="ptCaseSelOpen" class="form-select mb-1 case-select" data-bucket="pt-open">
             <option value="">Select open or partial case…</option>
@@ -760,7 +760,7 @@ Interface port1.0.1
     <div id="panel-pt-search" class="card tool-panel hidden">
       <div class="section">
         <div class="section-heading step-heading-row">PyTest Creator — 3. Script Search <span id="pt-badge-3" class="badge hidden">Confirmed</span></div>
-        <div class="section-description">Find reusable scripts <b>per sequence step</b> so it's clear every step is covered. Page through the steps; for each, use its own <b>Suggest (LLM)</b> or <b>keyword search</b> to find scripts and choose the ones to reuse. Each step shows a ✓ covered / ✗ gap status. Save, then confirm.</div>
+        <div class="section-description">Find reusable scripts <b>per sequence step</b> so it's clear every step is covered. Page through the steps; for each, use its own <b>Suggest (LLM)</b> or <b>keyword search</b> to find scripts and choose the ones to reuse. Each step shows whether it is covered or has a gap. Save, then confirm.</div>
 
         <div id="pt-coverage-summary" class="mb-2"></div>
         <div id="pt-steps-list"></div>
@@ -790,7 +790,7 @@ Interface port1.0.1
         <details id="pt-frag-preview-block" class="pt-frag-preview mt-3">
           <summary class="pt-frag-preview-summary">Assembled artefact preview <span class="justification-note">— the Generate skeleton with your selected fragments slotted per step (click to expand)</span></summary>
           <div class="compact-flex mt-1 mb-1">
-            <button data-action="ptPreviewFragments" class="btn btn-compact" id="pt-frag-preview-btn">↻ Refresh preview</button>
+            <button data-action="ptPreviewFragments" class="btn btn-compact" id="pt-frag-preview-btn"><span class="rs-icon rs-icon-renew" aria-hidden="true"></span>Refresh Preview</button>
             <span id="pt-frag-preview-status" class="justification-note"></span>
           </div>
           <pre id="pt-frag-preview-code" class="session-pre pt-frag-preview-pre">Expand and click Refresh preview to assemble.</pre>
@@ -819,8 +819,8 @@ Interface port1.0.1
              real concurrency comes from the broker's worker count (localStorage
              ckBrokerWorkers, default 4) — see agent.js. -->
         <div class="compact-flex mb-2">
-          <button data-action="ptGenerateAllUnits" class="btn btn-primary btn-compact" id="pt-units-all-btn">Generate all units (LLM)</button>
-          <button data-action="ptLoadUnits" class="btn btn-compact" id="pt-units-reload-btn">↻ Re-render prompts</button>
+          <button data-action="ptGenerateAllUnits" class="btn btn-primary btn-compact" id="pt-units-all-btn">Generate All Units (LLM)</button>
+          <button data-action="ptLoadUnits" class="btn btn-compact" id="pt-units-reload-btn"><span class="rs-icon rs-icon-renew" aria-hidden="true"></span>Re-render Prompts</button>
           <span id="pt-units-status" class="justification-note"></span>
         </div>
         <div id="pt-unit-pills" class="pt-pill-row mb-2"></div>
@@ -833,15 +833,15 @@ Interface port1.0.1
           <span class="justification-note">Blue buttons call the LLM; the rest run locally.</span>
           <ol class="mt-1 mb-1 rs-ol-tight">
             <li><b>Assemble + lint</b> — splice the units into the frame, re-stamp provenance, manifest-check + <code>py_compile</code>/PEP-8. Clear a red lint before moving on.</li>
-            <li><b>Review (LLM)</b> — read the assembled script for logic defects the linter can't see (a verdict not matching its step, cross-unit inconsistencies). Findings only — no rewrite.</li>
+            <li><b>Review (LLM)</b> — read the assembled script for logic defects the linter cannot see (a verdict not matching its step, cross-unit inconsistencies). Findings only — no rewrite.</li>
             <li><b>Save to generated/</b> — write the file to disk.</li>
-            <li><b>Confirm step 5</b> — needs a clean lint (syntax errors can't be overridden); unlocks step 7 (Validate).</li>
+            <li><b>Confirm Step 5</b> — needs a clean lint (syntax errors cannot be overridden); unlocks step 7 (Validate).</li>
           </ol>
           <div class="justification-note">
             <b>If something's wrong &nbsp;·&nbsp;</b>
             <b>Re-lint</b> re-checks the current script after a hand-edit (local, no re-assemble).
-            <b>⤺ Fix units (LLM)</b> re-generates only the units the lint errors, review findings or failed run name, under the cached shared half. A review- or run-driven fix is <b>HELD</b> with a diff on the unit's page (⏸) for you to Apply or Discard; a lint-only fix applies itself. It re-assembles and re-lints for you, so re-Assembling after it is redundant, not harmful.
-            <b>Fix whole script (LLM)</b> rewrites the whole file — for findings that name no unit. <b>Don't re-Assemble after THAT one</b> (it re-splices the units and discards the rewrite): Re-lint / Review, then Save &amp; Confirm.
+            <b>Fix Units (LLM)</b> re-generates only the units the lint errors, review findings or failed run name, under the cached shared half. A review- or run-driven fix is <b>HELD</b> with a diff on the unit's page (held) for you to Save or Discard; a lint-only fix applies itself. It re-assembles and re-lints for you, so re-Assembling after it is redundant, not harmful.
+            <b>Fix Whole Script (LLM)</b> rewrites the whole file — for findings that name no unit. <b>Do not re-Assemble after THAT one</b> (it re-splices the units and discards the rewrite): Re-lint / Review, then Save and Confirm.
             Grey buttons run locally; blue ones call the LLM.
           </div>
         </div>
@@ -851,11 +851,11 @@ Interface port1.0.1
         <!-- The happy-path flow, numbered 1-4 and contiguous so the sequence reads cleanly.
              LOCAL steps are grey; the one LLM step (Review) is blue. -->
         <div class="compact-flex mb-1">
-          <button data-action="ptAssembleAndSettle" class="btn btn-compact" id="pt-assemble-btn">1 · Assemble + settle</button>
-          <button data-action="ptAssembleScript" class="btn btn-compact" id="pt-assemble-only-btn" title="Assemble + lint only — do not auto-fix lint errors">Assemble only</button>
+          <button data-action="ptAssembleAndSettle" class="btn btn-compact" id="pt-assemble-btn">1 · Assemble + Settle</button>
+          <button data-action="ptAssembleScript" class="btn btn-compact" id="pt-assemble-only-btn" title="Assemble + lint only — do not auto-fix lint errors">Assemble Only</button>
           <button data-action="ptReviewScript" class="btn btn-primary btn-compact" id="pt-review-btn">2 · Review (LLM)</button>
           <button data-action="ptSaveScript" class="btn btn-compact">3 · Save to generated/</button>
-          <button data-action="ptConfirm" data-args='[6]' class="btn btn-compact">4 · Confirm step 5</button>
+          <button data-action="ptConfirm" data-args='[6]' class="btn btn-compact">4 · Confirm Step 5</button>
         </div>
         <!-- Recovery utilities, kept OUT of the numbered flow so they don't break the sequence.
              Re-lint is local. "Fix units" (2026-09-07) re-generates ONLY the units the current
@@ -866,11 +866,11 @@ Interface port1.0.1
           <span class="justification-note">If something's wrong:</span>
           <button data-action="ptLintScript" class="btn btn-compact">Re-lint</button>
           <button data-action="ptFixUnits" class="btn btn-primary btn-compact" id="pt-fix-units-btn"
-                  title="Re-generate only the units the current findings name, then re-assemble">⤺ Fix units (LLM)</button>
+                  title="Re-generate only the units the current findings name, then re-assemble"><span class="rs-icon rs-icon-tools" aria-hidden="true"></span>Fix Units (LLM)</button>
           <button data-action="ptFixFromSummary" class="btn btn-primary btn-compact" id="pt-fix-summary-btn"
-                  title="Whole-file rewrite — for findings that name no unit">Fix whole script (LLM)</button>
+                  title="Whole-file rewrite — for findings that name no unit">Fix Whole Script (LLM)</button>
           <button data-action="ptApplyAllHeld" class="btn btn-compact" id="pt-apply-held-btn"
-                  title="Splice in every held fix, re-assemble and re-lint (local)">Apply all held fixes</button>
+                  title="Splice in every held fix, re-assemble and re-lint (local)">Save All Held Fixes</button>
         </div>
         <!-- Slice A (2026-09-21). The units and the assembled script are two copies; Fix whole
              script / Save / Generate Script write only the script, so the units go stale and any
@@ -878,11 +878,11 @@ Interface port1.0.1
              the local ways out: Re-chunk re-reads units + frame from the script, Reset drops the
              Generate step's artefacts (units, review, assembly) and keeps steps 1-4 + the script. -->
         <div class="compact-flex mb-2">
-          <span class="justification-note">Units ⇄ script:</span>
+          <span class="justification-note">Units and script:</span>
           <button data-action="ptRechunk" class="btn btn-compact" id="pt-rechunk-btn"
-                  title="Re-read the units AND the surrounding frame from the current script (local). Clears the 'units stale' state; Assemble then reproduces this script exactly.">Re-chunk from script</button>
+                  title="Re-read the units AND the surrounding frame from the current script (local). Clears the 'units stale' state; Assemble then reproduces this script exactly.">Re-chunk from Script</button>
           <button data-action="ptResetGenerate" class="btn btn-compact" id="pt-reset-gen-btn"
-                  title="Drop every generated unit, the review and the assembly history. Keeps steps 1-4 and the saved script.">Reset Generate (drop units)</button>
+                  title="Drop every generated unit, the review and the assembly history. Keeps steps 1-4 and the saved script.">Reset Generate (Drop Units)</button>
         </div>
         <div id="pt-gen-status" class="justification-note mb-2"></div>
         <!-- R5 §6.4 alarm banner. Above the lint result so the trend reads beside the errors
@@ -899,7 +899,7 @@ Interface port1.0.1
                nothing else in the flow triggers it. -->
           <div class="compact-flex mt-1">
             <button data-action="ptPruneLibrary" class="btn btn-compact" id="pt-lib-prune-btn"
-                    title="List the auto-added (# AI: dependency) members no script in this group still references. Removes nothing until you confirm.">Prune library…</button>
+                    title="List the auto-added (# AI: dependency) members no script in this group still references. Removes nothing until you confirm.">Prune Library…</button>
             <span id="pt-lib-prune-status" class="justification-note"></span>
           </div>
           <div id="pt-lib-prune-result" class="mb-2"></div>
@@ -909,7 +909,7 @@ Interface port1.0.1
         <details class="mt-2">
           <summary class="justification-note">Legacy: generate the whole script in one LLM call</summary>
           <div class="compact-flex mt-1">
-            <button data-action="ptGenerateScript" class="btn btn-primary btn-compact" id="pt-gen-btn">Generate Script (LLM, single call)</button>
+            <button data-action="ptGenerateScript" class="btn btn-primary btn-compact" id="pt-gen-btn">Generate Script (LLM, Single Call)</button>
             <span class="justification-note">The pre-2026-09-02 path. Kept while per-unit generation is unproven on hardware; it writes the same step6.files.</span>
           </div>
         </details>
@@ -950,9 +950,9 @@ Interface port1.0.1
         <div class="compact-flex mb-2">
           <button data-action="ptValidate" class="btn btn-primary btn-compact">Run Final Validation</button>
           <button data-action="ptFixUnitsFromValidate" class="btn btn-compact" id="pt-fix-units-validate-btn"
-                  title="Re-generate only the failing units, then re-assemble">Fix units (LLM, from failures)</button>
-          <button data-action="ptFixScript" class="btn btn-compact" id="pt-fix-btn">Fix whole script (LLM)</button>
-          <button data-action="ptConfirm" data-args='[8]' class="btn btn-compact">Confirm Step 7 (close out)</button>
+                  title="Re-generate only the failing units, then re-assemble">Fix Units (LLM, from Failures)</button>
+          <button data-action="ptFixScript" class="btn btn-compact" id="pt-fix-btn">Fix Whole Script (LLM)</button>
+          <button data-action="ptConfirm" data-args='[8]' class="btn btn-compact">Confirm Step 7 (Close Out)</button>
         </div>
         <div id="pt-validate-status" class="justification-note mb-2"></div>
         <div id="pt-validate-result"></div>
@@ -1010,7 +1010,7 @@ Interface port1.0.1
           </div>
           <p class="tb-advanced-note">Each person adds their own, named however they like. The Run panel lists every one and picks none for you; a run can also override with a path typed into the Run panel. Names you save here are never rewritten.</p>
           <div id="pt-tb-setups"></div>
-          <button data-action="ptAddSetupRow" class="btn btn-compact">+ Add setup</button>
+          <button data-action="ptAddSetupRow" class="btn btn-compact">New Setup</button>
         </div>
 
         <details class="tb-advanced">
@@ -1049,7 +1049,7 @@ Interface port1.0.1
 
         <div class="compact-flex mb-2">
           <button data-action="ptSaveProfile" class="btn btn-primary btn-compact">Save Testbox</button>
-          <button data-action="ptResetProfileForm" class="btn btn-compact">Clear form</button>
+          <button data-action="ptResetProfileForm" class="btn btn-compact">Clear Form</button>
           <span id="pt-tb-status" class="justification-note"></span>
         </div>
       </div>
