@@ -50,6 +50,21 @@
 > *it's / you're / something's*; the `·` separators in *"1 · Assemble"* and *"If something's wrong ·"*.
 > **Next: 4b** — the `[JS]` rows behind S11, scratch server first.
 >
+> **Phase 4b BUILT and MERGED 2026-09-30** (`8b7819b`..`0646eff`; Terrence: *"happy, merge it"* after
+> trialling it on a scratch server run from a separate worktree, so Classic users never saw it untested).
+> `shared/ui.js` is S11's one switch: `copy`, `icon`, `glyphHtml` / `setGlyphText` (escape first, then
+> icons; ⏳ = the app spinner, the seat-limit pill = `time`), `sevMark` (HealthDot diamond / triangle /
+> circle, coloured as the finding edge — not HealthDot's green, which would read "healthy"). Classic
+> byte-identical: forcing `isAtui()` true turns 9 Classic specs red. Status-banner titles drop their glyph
+> on ATUI (the banner draws its own icon; the lock banner's is `locked`, I17); plain-text channels
+> (alerts, the debug dump, push output) drop or reword it. Terrence's trial found ATUI's longer row
+> buttons outgrowing fixed columns (sequence Remove, Script Search View; testbox actions pre-empted).
+> **Open, Terrence's:** (1) does W13 also cover the contractions the audit missed (*isn't, won't, you've*)
+> and the never-listed *it's / you're / something's*? (2) confirm the rows applied by nearest rule: the
+> setup-row ✕ → Remove (W8), the "→ generated/…" hint's arrow → icon, pep8 △ → the triangle, prose that
+> names a renamed button follows it. Left as-is: the Claim column's `cable · DUT → expect` notation and
+> the `·` separators.
+>
 > Originally: **PLAN ONLY — nothing built.** Written 2026-09-30 at Terrence's request: *"lets make a plan for
 > the restyle, but i want it to swap between current/ and restyle/ with a button that you make next
 > to the day/night toggle."* The decisions in §0 are his and settled. Every "today" number in §1
