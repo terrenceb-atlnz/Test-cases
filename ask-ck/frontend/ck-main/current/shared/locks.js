@@ -12,6 +12,7 @@
 // ============================================================================
 import { CK_SESSION_ID } from './session.js';
 import { escapeHtml } from './dom-helpers.js';
+import { copy } from './ui.js';
 
 // Heartbeat well inside the server's 15-min idle TTL so a lock never lapses while the
 // tab is open. Background tabs are throttled by the browser but not past ~1/min, so 5
@@ -161,13 +162,13 @@ export function _renderBanner(kind, key, lock) {
   const who = lock.holder_label || 'another session';
   const since = _fmtSince(lock.acquired_at);
   const tool = kind === 'pt' ? 'PyTest Creator' : 'Generator';
-  let html = '<span class="status-title">🔒 ' +
+  let html = '<span class="status-title">' + copy('🔒 ', '') +
     escapeHtml(key) + ' is being edited in the ' + tool + ' by ' + escapeHtml(who) +
     (since ? ' (since ' + escapeHtml(since) + ')' : '') +
     '. You are viewing it read-only.</span>';
   if (lock.stealable) {
     html += ' <button type="button" class="btn btn-secondary btn-compact" ' +
-            'data-ck-lock-takeover="1" data-ck-lock-keep="1">Take over</button>';
+            'data-ck-lock-takeover="1" data-ck-lock-keep="1">' + copy('Take over', 'Take Over') + '</button>';
   }
   el.innerHTML = html;
   const btn = el.querySelector('[data-ck-lock-takeover]');

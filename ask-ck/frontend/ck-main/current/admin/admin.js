@@ -9,6 +9,7 @@ import { registerActions } from '../shared/actions.js';
 import { S } from '../shared/state.js';
 import { goToPanel } from '../shared/nav.js';
 import { escapeHtml } from '../shared/dom-helpers.js';
+import { copy } from '../shared/ui.js';
 
 export function openAdminPanel() {
   goToPanel('panel-admin');
@@ -72,7 +73,7 @@ export function renderLintTrendsCard(d) {
   }
   return {
     className: 'status-banner is-error',
-    html: '<div class="status-title">⚠ Lint trend alarm</div>'
+    html: `<div class="status-title">${copy('⚠ ', '')}Lint trend alarm</div>`
       + `<ul>${alarms.map(a => `<li>${escapeHtml(a.detail || a.class || '')}</li>`).join('')}</ul>`
       + `<div class="justification-note">${body}</div>`,
   };
@@ -106,7 +107,8 @@ async function post(path, body) {
 // --- session resets ----------------------------------------------------------
 async function adminResetCase() {
   const key = S.currentKey;
-  if (!key) { alert('No case is loaded. Load a case first, or use "Reset ALL sessions".'); return; }
+  if (!key) { alert(copy('No case is loaded. Load a case first, or use "Reset ALL sessions".',
+      'No case is loaded. Load a case first, or use "Reset ALL Sessions".')); return; }
   if (!confirm(`Reset the session for ${key}?\nSelections / confirms / synthesis for this case will be cleared. Corpora and your LLM login are kept.`)) return;
   try {
     const d = await post('/reset-session', { scope: 'case', key });

@@ -2,6 +2,7 @@
 import { registerActions } from '../shared/actions.js';
 import { S } from '../shared/state.js';
 import { escapeHtml, showStatus, setButtonBusy, flashButtonDone } from '../shared/dom-helpers.js';
+import { copy, icon, setGlyphText } from '../shared/ui.js';
 import { llmButtonStart, isCancelMessage } from '../shared/llm-progress.js';
 import { renderChosenTable, renderStepTables } from './tables.js';
 import { restoreChosenFromSelections, chosenSelections } from './chosen.js';
@@ -163,7 +164,7 @@ function updateUI() {
     if (badge) {
       badge.classList.toggle('hidden', !conf);
       badge.className = conf ? 'badge badge-success' : 'badge hidden';
-      badge.textContent = conf ? '✓ Confirmed' : '';
+      setGlyphText(badge, conf ? '✓ Confirmed' : '', { '✓': 'checkmark-filled' });
     }
   });
   // Step 4 objectives / Step 5 steps badges.
@@ -178,11 +179,11 @@ function updateUI() {
   if (badge4) {
     if (objStale) {
       badge4.className = 'badge badge-warning';
-      badge4.textContent = '⚠ Stale — selections changed';
+      setGlyphText(badge4, '⚠ Stale — selections changed');
       badge4.classList.remove('hidden');
     } else if (objConf) {
       badge4.className = 'badge badge-success';
-      badge4.textContent = '✓ Confirmed';
+      setGlyphText(badge4, '✓ Confirmed', { '✓': 'checkmark-filled' });
       badge4.classList.remove('hidden');
     } else if (hasObj) {
       badge4.className = 'badge';
@@ -199,11 +200,11 @@ function updateUI() {
   if (badge5) {
     if (stepsStale) {
       badge5.className = 'badge badge-warning';
-      badge5.textContent = '⚠ Stale — selections changed';
+      setGlyphText(badge5, '⚠ Stale — selections changed');
       badge5.classList.remove('hidden');
     } else if (hasSteps) {
       badge5.className = 'badge badge-success';
-      badge5.textContent = '✓ Ready';
+      setGlyphText(badge5, '✓ Ready', { '✓': 'checkmark-filled' });
       badge5.classList.remove('hidden');
     } else {
       badge5.classList.add('hidden');
@@ -223,7 +224,7 @@ function updateUI() {
     if (conf && !b) {
       b = document.createElement('span');
       b.className = 'nav-badge badge badge-success';
-      b.textContent = '✓';
+      setGlyphText(b, '✓', { '✓': 'checkmark-filled' });
       item.appendChild(b);
     } else if (!conf && b) {
       b.remove();
@@ -264,7 +265,7 @@ export function renderObjectiveResult() {
   container.innerHTML = `
     <div class="section">
       <div class="section-heading">Objective (Human-Readable)
-        ${conf ? '<span class="badge badge-success">✓ Confirmed</span>' : '<span class="badge">Draft — confirm when ready</span>'}
+        ${conf ? `<span class="badge badge-success">${icon('✓', 'checkmark-filled')} Confirmed</span>` : '<span class="badge">Draft — confirm when ready</span>'}
       </div>
       <div class="synth-objective" id="synth-objective-view">${obj}</div>
     </div>
@@ -312,7 +313,7 @@ export function renderStepsResult() {
     <div class="synth-actions" id="steps-edit-actions"></div>
     <div class="synth-actions" id="steps-export-actions">
       <button type="button" data-action="exportBundle" class="btn btn-export">Export Repeatable Bundle</button>
-      <button type="button" data-action="pushToZephyr" data-args='[false]' class="btn btn-secondary">Preview Push (dry-run)</button>
+      <button type="button" data-action="pushToZephyr" data-args='[false]' class="btn btn-secondary">${copy('Preview Push (dry-run)', 'Preview Push (Dry-run)')}</button>
       <button type="button" data-action="pushToZephyr" data-args='[true]' class="btn btn-primary">Push to Zephyr</button>
     </div>
     <div class="justification-note mt-2">Push uses the <strong>last exported bundle on disk</strong> (click <em>Export Repeatable Bundle</em> first if you've made edits). On the live Zephyr case it strips a leading <code>(N)</code> title group, ensures version 2.0, and uploads the objective + steps + traceability onto it. Run <em>Preview</em> first.</div>
@@ -341,7 +342,7 @@ function startEditObjective() {
   if (actions) {
     actions.innerHTML = `
       <button type="button" data-action="applyObjectiveEdits" data-args='[false]' class="btn btn-primary">Save Draft</button>
-      <button type="button" data-action="applyObjectiveEdits" data-args='[true]' class="btn btn-primary">Save &amp; Confirm → Step 6</button>
+      <button type="button" data-action="applyObjectiveEdits" data-args='[true]' class="btn btn-primary">${copy('Save &amp; Confirm → Step 6', 'Save and Confirm')}</button>
       <button type="button" data-action="cancelObjectiveEdits" class="btn btn-secondary">Cancel</button>
     `;
   }
@@ -420,9 +421,9 @@ function startEditSteps() {
   const actions = document.getElementById('steps-edit-actions');
   if (actions) {
     actions.innerHTML = `
-      <button type="button" data-action="applyStepEdits" class="btn btn-primary">Apply Step Edits</button>
+      <button type="button" data-action="applyStepEdits" class="btn btn-primary">${copy('Apply Step Edits', 'Save Changes')}</button>
       <button type="button" data-action="cancelStepEdits" class="btn btn-secondary">Cancel</button>
-      <button type="button" data-action="addSynthesizedStep" class="btn btn-ghost btn-compact-small">+ Add step</button>
+      <button type="button" data-action="addSynthesizedStep" class="btn btn-ghost btn-compact-small">${copy('+ Add step', 'New Step')}</button>
     `;
   }
 }
@@ -510,7 +511,7 @@ export function renderReviewSummary() {
   function renderStepGroup(label, sels, confirmed, idKey) {
     const list = sels || [];
     const confBadge = confirmed
-      ? ' <span class="badge badge-success">✓ Confirmed</span>'
+      ? ` <span class="badge badge-success">${icon('✓', 'checkmark-filled')} Confirmed</span>`
       : ' <span class="badge">Pending</span>';
     const count = `<span class="review-count">(${list.length} selected)</span>`;
     if (!list.length) {
@@ -544,7 +545,7 @@ export function renderReviewSummary() {
   if (obj) {
     const conf = !!(S.currentSession.step4 && S.currentSession.step4.confirmed);
     const confBadge = conf
-      ? ' <span class="badge badge-success">✓ Confirmed</span>'
+      ? ` <span class="badge badge-success">${icon('✓', 'checkmark-filled')} Confirmed</span>`
       : ' <span class="badge">Draft</span>';
     const shortObj = obj.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
     const preview = shortObj.length > 160 ? shortObj.slice(0, 157) + '…' : shortObj;
@@ -750,10 +751,10 @@ async function pushToZephyr(execute) {
       `Push ${key} to the LIVE Zephyr server?\n\n`
       + 'This will:\n'
       + '  1. Strip a leading "(N)" group from the test-case title\n'
-      + '  2. Create a NEW version (e.g. 1.0 → 2.0)\n'
+      + copy('  2. Create a NEW version (e.g. 1.0 → 2.0)\n', '  2. Create a NEW version (e.g. 1.0 to 2.0)\n')
       + '  3. Upload the objective + test steps onto the new version\n'
       + '  4. Attach traceability.md + web links\n\n'
-      + 'Tip: run "Preview Push (dry-run)" first. Continue?'
+      + copy('Tip: run "Preview Push (dry-run)" first. Continue?', 'Tip: run "Preview Push (Dry-run)" first. Continue?')
     );
     if (!ok) return;
   }
@@ -787,10 +788,10 @@ async function pushToZephyr(execute) {
       : (data && data.detail) ? data.detail
       : `HTTP ${res.status}`;
     const header = (data && data.ok === false)
-      ? `⚠ Push ${execute ? 'FAILED' : 'preview reported problems'} (exit ${data.returncode}) — check JIRA_KEY in secrets.md and output below:\n\n`
+      ? `${copy('⚠ ', '')}Push ${execute ? 'FAILED' : 'preview reported problems'} (exit ${data.returncode}) — check JIRA_KEY in secrets.md and output below:\n\n`
       : !res.ok
-        ? `⚠ Push refused (HTTP ${res.status}):\n\n`
-        : (execute ? '✓ Push complete:\n\n' : 'Dry-run preview (no changes made):\n\n');
+        ? `${copy('⚠ ', '')}Push refused (HTTP ${res.status}):\n\n`
+        : (execute ? copy('✓ ', '') + 'Push complete:\n\n' : 'Dry-run preview (no changes made):\n\n');
     if (out) out.textContent = header + body;
   } catch (e) {
     if (out) out.textContent = 'Push failed: ' + e;

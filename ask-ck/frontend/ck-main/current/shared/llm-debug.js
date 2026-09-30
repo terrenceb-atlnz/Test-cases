@@ -9,6 +9,7 @@
 // Token counts are shown honestly: transports that don't report usage
 // (the agent bridge) render as "— tok", never estimated.
 import { S } from './state.js';
+import { copy } from './ui.js';
 
 const llmDebugByPanel = {};   // panel id -> newest record seen for that panel
 
@@ -89,7 +90,7 @@ export function renderLlmDebugFooter() {
     + ` · ${rec.duration_ms != null ? rec.duration_ms + 'ms' : '?'} · ${usageTxt}`;
   let text = head + '\n';
   if (rec.error) {
-    text += '\n⚠ ERROR\n' + (rec.error_detail || '(no provider error body — see response below)') + '\n';
+    text += copy('\n⚠ ERROR\n', '\nERROR\n') + (rec.error_detail || '(no provider error body — see response below)') + '\n';
   }
   text += `\n--- PROMPT ---\n${rec.prompt || ''}\n\n--- RESPONSE ---\n${rec.response || ''}`;
   view.textContent = text;   // textContent: no HTML injection from prompt/response

@@ -6,6 +6,7 @@ import { ckBrokerLoop, probeLocalAgent } from './agent.js';
 import { fmtTokens } from '../shared/llm-debug.js';
 import { llmButtonStart } from '../shared/llm-progress.js';
 import { flashButtonDone } from '../shared/dom-helpers.js';
+import { copy, setGlyphText } from '../shared/ui.js';
 import { storedSeatLlm, SEAT_LLM_RETIRED_KEY } from '../shared/session.js';
 
 // The LLM choice is PER SEAT (PLAN-seat-setup-and-per-seat-llm.md §5): what this browser
@@ -101,23 +102,27 @@ async function setLLMConfig() {
       ckBrokerLoop();  // ensure the broker is running (idempotent) so jobs get served
       const a = await probeLocalAgent();
       if (a.ok && a.claude_cli && a.logged_in === false) {
-        alert("Agent reachable and Claude is installed, but it is NOT logged in on your machine.\n\nRun 'claude auth login' there, then click 'Check my local agent'.");
+        alert(copy("Agent reachable and Claude is installed, but it is NOT logged in on your machine.\n\nRun 'claude auth login' there, then click 'Check my local agent'.",
+          "Agent reachable and Claude is installed, but it is NOT logged in on your machine.\n\nRun 'claude auth login' there, then click 'Check My Local Agent'."));
       } else if (a.ok && a.claude_cli) {
         const cm = body.model ? ` — ${body.model} model` : '';
         alert(`Claude (my local machine) enabled${cm}. Calls run through the ck-agent on YOUR machine against YOUR own Claude seat. Keep the agent running and this tab open.`);
       } else if (a.ok && !a.claude_cli) {
-        alert("Agent reachable, but the Claude CLI wasn't found on your machine. Install Claude Code and run 'claude auth login', then retry.");
+        alert(copy("Agent reachable, but the Claude CLI wasn't found on your machine. Install Claude Code and run 'claude auth login', then retry.",
+          "Agent reachable, but the Claude CLI was not found on your machine. Install Claude Code and run 'claude auth login', then retry."));
       } else {
-        alert("Claude (my local machine) selected, but your local agent isn't reachable.\n\nRun the one-line seat setup from the Ask CK home page (or: cd ask-ck/agent && ./run-agent.sh), then click 'Check my local agent'.");
+        alert(copy("Claude (my local machine) selected, but your local agent isn't reachable.\n\nRun the one-line seat setup from the Ask CK home page (or: cd ask-ck/agent && ./run-agent.sh), then click 'Check my local agent'.",
+          "Claude (my local machine) selected, but your local agent isn't reachable.\n\nRun the one-line seat setup from the Ask CK home page (or: cd ask-ck/agent && ./run-agent.sh), then click 'Check My Local Agent'."));
       }
     } else if (auth_method === 'local_llm') {
       const keyEl = document.getElementById('localLlmKey');
       if (keyEl) keyEl.value = '';   // write-only field: never leave the key in the DOM
       const keySet = data.llm_config.local_llm_key_set !== false;
       const stateEl = document.getElementById('localLlmKeyState');
-      if (stateEl) stateEl.textContent = keySet ? 'key stored ✓' : '⚠ no key stored';
+      if (stateEl) setGlyphText(stateEl, keySet ? 'key stored ✓' : '⚠ no key stored');
       if (!keySet) {
-        alert('Local LLM selected, but NO API key is stored on the server yet.\n\nEnter your key in the "Local LLM API key" field and Apply again (it is stored server-side; you won\'t need to re-enter it until it expires).');
+        alert(copy('Local LLM selected, but NO API key is stored on the server yet.\n\nEnter your key in the "Local LLM API key" field and Apply again (it is stored server-side; you won\'t need to re-enter it until it expires).',
+          'Local LLM selected, but NO API key is stored on the server yet.\n\nEnter your key in the "Local LLM API key" field and click Save Changes again (it is stored server-side; you won\'t need to re-enter it until it expires).'));
       } else {
         const modeLabel = (body.model === 'vllm-thinking') ? 'Thinking' : 'Fast';
         alert(`Local LLM (org vLLM) enabled — ${modeLabel} mode. The key is stored server-side and persists across restarts.`);
@@ -156,7 +161,7 @@ export async function applyLocalLlmMode() {
       storeSeatLlm(data.llm_config);
       updateLLMStatus(data.llm_config);
       const stateEl = document.getElementById('localLlmKeyState');
-      if (stateEl) stateEl.textContent = data.llm_config.local_llm_key_set !== false ? 'key stored ✓' : '⚠ no key stored';
+      if (stateEl) setGlyphText(stateEl, data.llm_config.local_llm_key_set !== false ? 'key stored ✓' : '⚠ no key stored');
     }
   } catch (_) { /* leave prior state on a transient failure */ }
 }
@@ -252,7 +257,7 @@ export function updateLLMStatus(config) {
 
   [statusEl, sidebarEl].forEach(el => {
     if (!el) return;
-    el.textContent = text;
+    setGlyphText(el, text);
     el.classList.remove('llm-status-ok', 'llm-status-warn');
     el.classList.add(ok ? 'llm-status-ok' : 'llm-status-warn');
   });
@@ -377,7 +382,7 @@ export function restoreLLMUI() {
     // when absent (older session), leave the note blank rather than guess.
     const stateEl = document.getElementById('localLlmKeyState');
     if (stateEl && c.local_llm_key_set !== undefined) {
-      stateEl.textContent = c.local_llm_key_set ? 'key stored ✓' : '⚠ no key stored';
+      setGlyphText(stateEl, c.local_llm_key_set ? 'key stored ✓' : '⚠ no key stored');
     }
   }
 
@@ -403,7 +408,7 @@ export async function checkLlmHealth() {
   const out = document.getElementById('llmHealthState');
   const llmCtl = llmButtonStart(btn, 'Pinging…');   // live progress + click-to-stop
   if (!llmCtl) return;                               // guard double-click
-  if (out) { out.textContent = '⏳ pinging…'; out.style.color = ''; }
+  if (out) { setGlyphText(out, '⏳ pinging…'); out.style.color = ''; }
   let ok = false;
   try {
     const res = await fetch('/api/wizard/llm_health', { method: 'POST', headers: llmCtl.headers });
@@ -412,18 +417,18 @@ export async function checkLlmHealth() {
     if (out) {
       if (d.ok) {
         const tok = d.usage ? ` · ${fmtTokens(d.usage)}` : '';
-        out.textContent = `✓ up — ${d.model} (${d.latency_ms} ms)${tok}`;
+        setGlyphText(out, `✓ up — ${d.model} (${d.latency_ms} ms)${tok}`);
         out.style.color = 'var(--status-ok, #16a34a)';
       } else if (d.reason === 'not_configured') {
-        out.textContent = `⚠ ${d.detail || 'no LLM configured'}`;
+        setGlyphText(out, `⚠ ${d.detail || 'no LLM configured'}`);
         out.style.color = 'var(--status-warn, #d97706)';
       } else {
-        out.textContent = `✗ down — ${d.detail || 'LLM call failed'}`;
+        setGlyphText(out, `✗ down — ${d.detail || 'LLM call failed'}`);
         out.style.color = 'var(--status-low, #ef4444)';
       }
     }
   } catch (e) {
-    if (out) { out.textContent = `✗ request failed — ${e.message || e}`; out.style.color = 'var(--status-low, #ef4444)'; }
+    if (out) { setGlyphText(out, `✗ request failed — ${e.message || e}`); out.style.color = 'var(--status-low, #ef4444)'; }
   } finally {
     llmCtl.end();
     flashButtonDone(btn, ok);

@@ -1,4 +1,5 @@
 // Small pure DOM/string helpers shared across tools.
+import { glyphHtml } from './ui.js';
 
 export function truncateText(str, maxLen) {
   if (str == null) return '';
@@ -122,7 +123,7 @@ export function flashButtonDone(btn, ok, opts) {
   btn.dataset.flashGen = gen;
   if (label) {
     if (btn.dataset.flashLabel == null) btn.dataset.flashLabel = btn.innerHTML;
-    btn.innerHTML = escapeHtml(label);
+    btn.innerHTML = glyphHtml(label);   // escapeHtml on Classic
   }
   window.setTimeout(function () {
     if (btn.dataset.flashGen !== gen) return;      // a later flash owns the button now

@@ -10,6 +10,7 @@
 // It never reloads on its own. The wizard holds unsaved selections and live
 // case locks, and throwing away someone's in-progress work to apply a UI change
 // is a bad trade — the reload happens only when they click.
+import { copy } from './ui.js';
 const POLL_MS = 60000;
 
 let baseline = '';
@@ -42,7 +43,7 @@ function showUpdatePanel() {
         This page is running an older version of Ask CK. Refresh to load the
         current one. Anything you have not saved will be lost.
       </div>
-      <button type="button" class="btn btn-primary" id="ck-update-ok">OK, refresh</button>
+      <button type="button" class="btn btn-primary" id="ck-update-ok">${copy('OK, refresh', 'Refresh Page')}</button>
     </div>`;
   document.body.appendChild(overlay);
 

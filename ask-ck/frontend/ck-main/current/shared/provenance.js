@@ -9,6 +9,7 @@
 // flag flipped, the previewed/copied prompt is 1-for-1 with a real send.
 import { registerActions } from './actions.js';
 import { escapeHtml, setButtonBusy, flashButtonDone } from './dom-helpers.js';
+import { copy, icon, setGlyphText } from './ui.js';
 
 // panelId -> { endpoint, body, prompt, response, provider, model, auth_method }
 const provByPanel = {};
@@ -32,13 +33,13 @@ export function renderProvenanceBlock(panelId) {
       <div class="provenance-actions">
         <button type="button" class="btn btn-secondary btn-compact-small"
                 data-action="provRefresh" data-prov-panel="${escapeHtml(panelId)}"
-                title="Re-render the exact prompt from current state without sending (no tokens)">↻ Refresh (no send)</button>
+                title="Re-render the exact prompt from current state without sending (no tokens)">${icon('↻')}${copy(' Refresh (no send)', 'Refresh (No Send)')}</button>
         <button type="button" class="btn btn-secondary btn-compact-small"
                 data-action="provCopyPrompt" data-prov-panel="${escapeHtml(panelId)}"
-                ${hasPrompt ? '' : 'disabled'}>Copy prompt</button>
+                ${hasPrompt ? '' : 'disabled'}>${copy('Copy prompt', 'Copy Prompt')}</button>
         <button type="button" class="btn btn-secondary btn-compact-small"
                 data-action="provCopyResponse" data-prov-panel="${escapeHtml(panelId)}"
-                ${p.response ? '' : 'disabled'}>Copy response</button>
+                ${p.response ? '' : 'disabled'}>${copy('Copy response', 'Copy Response')}</button>
         <span class="provenance-status" data-prov-status="${escapeHtml(panelId)}"></span>
       </div>
       <div class="provenance-label">Prompt (what would be sent)</div>
@@ -62,7 +63,7 @@ export function seedProvenanceFromStep(panelId, stepProv) {
 
 function setStatus(panelId, msg, isErr) {
   const el = document.querySelector(`[data-prov-status="${CSS.escape(panelId)}"]`);
-  if (el) { el.textContent = msg || ''; el.style.color = isErr ? 'var(--status-low,#ef4444)' : ''; }
+  if (el) { setGlyphText(el, msg || ''); el.style.color = isErr ? 'var(--status-low,#ef4444)' : ''; }
 }
 
 async function provRefresh() {

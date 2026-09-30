@@ -1674,6 +1674,31 @@ a.ui-toggle-opt:focus-visible { outline: none; box-shadow: inset 0 0 0 2px var(-
 .rs-icon-arrow-down { -webkit-mask-image: url(atui/icons/arrow--down.svg); mask-image: url(atui/icons/arrow--down.svg); }
 .rs-icon-renew { -webkit-mask-image: url(atui/icons/renew.svg); mask-image: url(atui/icons/renew.svg); }
 .rs-icon-tools { -webkit-mask-image: url(atui/icons/tools.svg); mask-image: url(atui/icons/tools.svg); }
+.rs-icon-checkmark { -webkit-mask-image: url(atui/icons/checkmark.svg); mask-image: url(atui/icons/checkmark.svg); }
+.rs-icon-checkmark-filled { -webkit-mask-image: url(atui/icons/checkmark--filled.svg); mask-image: url(atui/icons/checkmark--filled.svg); }
+.rs-icon-close { -webkit-mask-image: url(atui/icons/close.svg); mask-image: url(atui/icons/close.svg); }
+.rs-icon-warning-alt-filled { -webkit-mask-image: url(atui/icons/warning--alt--filled.svg); mask-image: url(atui/icons/warning--alt--filled.svg); }
+.rs-icon-pause-filled { -webkit-mask-image: url(atui/icons/pause--filled.svg); mask-image: url(atui/icons/pause--filled.svg); }
+.rs-icon-stop-filled-alt { -webkit-mask-image: url(atui/icons/stop--filled--alt.svg); mask-image: url(atui/icons/stop--filled--alt.svg); }
+.rs-icon-arrow-up { -webkit-mask-image: url(atui/icons/arrow--up.svg); mask-image: url(atui/icons/arrow--up.svg); }
+.rs-icon-arrow-right { -webkit-mask-image: url(atui/icons/arrow--right.svg); mask-image: url(atui/icons/arrow--right.svg); }
+.rs-icon-chevron-left { -webkit-mask-image: url(atui/icons/chevron--left.svg); mask-image: url(atui/icons/chevron--left.svg); }
+.rs-icon-chevron-right { -webkit-mask-image: url(atui/icons/chevron--right.svg); mask-image: url(atui/icons/chevron--right.svg); }
+.rs-icon-time { -webkit-mask-image: url(atui/icons/time.svg); mask-image: url(atui/icons/time.svg); }
+.rs-icon-draggable { -webkit-mask-image: url(atui/icons/draggable.svg); mask-image: url(atui/icons/draggable.svg); }
+.rs-icon-trash-can { -webkit-mask-image: url(atui/icons/trash-can.svg); mask-image: url(atui/icons/trash-can.svg); }
+.rs-icon-locked { -webkit-mask-image: url(atui/icons/locked.svg); mask-image: url(atui/icons/locked.svg); }
+/* Phase 4b: icons the shared JS emits on ATUI (shared/ui.js). In running text they sit on the text's
+   middle, not its baseline; in a flex row (buttons, pills) vertical-align does nothing. */
+.rs-icon { vertical-align: -0.2em; }
+/* Review severity (§10 I11): ATUI HealthDot shapes, coloured as the finding's edge. */
+.rs-sev { display: inline-block; width: 10px; height: 10px; background-color: currentColor; vertical-align: 0;
+  -webkit-mask: center / contain no-repeat; mask: center / contain no-repeat; }
+.rs-sev-high { color: var(--status-err); -webkit-mask-image: url(atui/icons/health--diamond.svg); mask-image: url(atui/icons/health--diamond.svg); }
+.rs-sev-medium { color: var(--status-medium); -webkit-mask-image: url(atui/icons/health--triangle.svg); mask-image: url(atui/icons/health--triangle.svg); }
+.rs-sev-low { color: var(--status-low); -webkit-mask: none; mask: none; border-radius: 50%; }
+/* §10 I17: the case-lock banner's icon is the lock (the JS drops its 🔒 on ATUI). */
+#ck-lock-banner.status-banner::before { -webkit-mask-image: url(atui/icons/locked.svg); mask-image: url(atui/icons/locked.svg); }
 .rs-icon-collapse { -webkit-mask-image: url(atui/icons/side-panel--close.svg); mask-image: url(atui/icons/side-panel--close.svg); }
 html.rs-rail-collapsed .rs-icon-collapse { -webkit-mask-image: url(atui/icons/side-panel--open.svg); mask-image: url(atui/icons/side-panel--open.svg); }
 
