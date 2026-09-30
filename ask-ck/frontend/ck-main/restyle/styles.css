@@ -1753,7 +1753,10 @@ html.rs-rail-collapsed .sidebar-section-label.rs-has-active { background: var(--
    ======================================== */
 
 /* -- Buttons (at-button) ------------------------------------------------------------------------- */
-:where(.btn) { background-color: var(--token-surface-2); color: var(--token-text-foreground); }   /* variant-less = ATUI secondary */
+/* Variant-less .btn = ATUI secondaryOutline (Terrence, 2026-09-30: the filled secondary was "almost
+   indistinguishable from the background" on white cards). The five colour variants are excluded by name. */
+.btn:not(.btn-primary, .btn-secondary, .btn-ghost, .btn-danger, .btn-export) {
+  background-color: transparent; border-color: var(--token-text-muted); color: var(--token-text-foreground); }
 .btn {
   --rs-hover: color-mix(in srgb, var(--token-surface-overlay) 10%, transparent);
   --rs-press: color-mix(in srgb, var(--token-surface-overlay) 16%, transparent);
