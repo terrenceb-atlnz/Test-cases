@@ -59,11 +59,13 @@
 > on ATUI (the banner draws its own icon; the lock banner's is `locked`, I17); plain-text channels
 > (alerts, the debug dump, push output) drop or reword it. Terrence's trial found ATUI's longer row
 > buttons outgrowing fixed columns (sequence Remove, Script Search View; testbox actions pre-empted).
-> **Open, Terrence's:** (1) does W13 also cover the contractions the audit missed (*isn't, won't, you've*)
-> and the never-listed *it's / you're / something's*? (2) confirm the rows applied by nearest rule: the
-> setup-row ✕ → Remove (W8), the "→ generated/…" hint's arrow → icon, pep8 △ → the triangle, prose that
-> names a renamed button follows it. Left as-is: the Claim column's `cable · DUT → expect` notation and
-> the `·` separators.
+> **Settled 2026-09-30** (Terrence: *"1. yes 2. yes"*): (1) W13 covers every contraction in the ATUI UI,
+> not only the seven it listed — the audit's 200-char string window had missed *isn't, won't, you've*, and
+> *it's / you're / something's* were never listed; all expanded (restyle html direct, JS via `copy`).
+> (2) The rows applied by nearest rule stand: the setup-row ✕ → Remove (W8), the "→ generated/…" hint's
+> arrow → icon, pep8 △ → the triangle, prose that names a renamed button follows it. Left as-is: the
+> Claim column's `cable · DUT → expect` notation and the `·` separators. **Phase 4 is complete**; the
+> restyle has no Phase 5 (S9).
 >
 > Originally: **PLAN ONLY — nothing built.** Written 2026-09-30 at Terrence's request: *"lets make a plan for
 > the restyle, but i want it to swap between current/ and restyle/ with a button that you make next

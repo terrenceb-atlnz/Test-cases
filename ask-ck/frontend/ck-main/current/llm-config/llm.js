@@ -112,7 +112,7 @@ async function setLLMConfig() {
           "Agent reachable, but the Claude CLI was not found on your machine. Install Claude Code and run 'claude auth login', then retry."));
       } else {
         alert(copy("Claude (my local machine) selected, but your local agent isn't reachable.\n\nRun the one-line seat setup from the Ask CK home page (or: cd ask-ck/agent && ./run-agent.sh), then click 'Check my local agent'.",
-          "Claude (my local machine) selected, but your local agent isn't reachable.\n\nRun the one-line seat setup from the Ask CK home page (or: cd ask-ck/agent && ./run-agent.sh), then click 'Check My Local Agent'."));
+          "Claude (my local machine) selected, but your local agent is not reachable.\n\nRun the one-line seat setup from the Ask CK home page (or: cd ask-ck/agent && ./run-agent.sh), then click 'Check My Local Agent'."));
       }
     } else if (auth_method === 'local_llm') {
       const keyEl = document.getElementById('localLlmKey');
@@ -122,7 +122,7 @@ async function setLLMConfig() {
       if (stateEl) setGlyphText(stateEl, keySet ? 'key stored ✓' : '⚠ no key stored');
       if (!keySet) {
         alert(copy('Local LLM selected, but NO API key is stored on the server yet.\n\nEnter your key in the "Local LLM API key" field and Apply again (it is stored server-side; you won\'t need to re-enter it until it expires).',
-          'Local LLM selected, but NO API key is stored on the server yet.\n\nEnter your key in the "Local LLM API key" field and click Save Changes again (it is stored server-side; you won\'t need to re-enter it until it expires).'));
+          'Local LLM selected, but NO API key is stored on the server yet.\n\nEnter your key in the "Local LLM API key" field and click Save Changes again (it is stored server-side; you will not need to re-enter it until it expires).'));
       } else {
         const modeLabel = (body.model === 'vllm-thinking') ? 'Thinking' : 'Fast';
         alert(`Local LLM (org vLLM) enabled — ${modeLabel} mode. The key is stored server-side and persists across restarts.`);

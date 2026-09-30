@@ -316,7 +316,7 @@ export function renderStepsResult() {
       <button type="button" data-action="pushToZephyr" data-args='[false]' class="btn btn-secondary">${copy('Preview Push (dry-run)', 'Preview Push (Dry-run)')}</button>
       <button type="button" data-action="pushToZephyr" data-args='[true]' class="btn btn-primary">Push to Zephyr</button>
     </div>
-    <div class="justification-note mt-2">Push uses the <strong>last exported bundle on disk</strong> (click <em>Export Repeatable Bundle</em> first if you've made edits). On the live Zephyr case it strips a leading <code>(N)</code> title group, ensures version 2.0, and uploads the objective + steps + traceability onto it. Run <em>Preview</em> first.</div>
+    <div class="justification-note mt-2">Push uses the <strong>last exported bundle on disk</strong> (click <em>Export Repeatable Bundle</em> first ${copy("if you've made edits", 'if you have made edits')}). On the live Zephyr case it strips a leading <code>(N)</code> title group, ensures version 2.0, and uploads the objective + steps + traceability onto it. Run <em>Preview</em> first.</div>
     <pre id="push-zephyr-output" class="push-output" style="display:none;"></pre>
     ${provenanceHtml}
   `;

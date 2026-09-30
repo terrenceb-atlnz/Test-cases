@@ -360,9 +360,9 @@
           On a shared Ask CK page, the server never runs <code>claude</code>. Instead, a tiny agent on <strong>your own machine</strong> runs it against <strong>your own</strong> Claude login, brokered through this browser tab. Your seat is never shared with other users, and the server never sees your credentials.<br><br>
           1. On your machine, install Claude Code (anthropic.com/claude-code) and run <code>claude</code>, then <code>/login</code>.<br>
           2. Start the agent: <code>cd ask-ck/agent &amp;&amp; ./run-agent.sh</code> (leave it running). See <code>ask-ck/agent/README.md</code>.<br>
-          3. Click <strong>"Check My Local Agent"</strong> to confirm it's reachable and logged in.<br>
+          3. Click <strong>"Check My Local Agent"</strong> to confirm it is reachable and logged in.<br>
           4. Click <strong>"Save Changes"</strong>. Leave Model blank to use the CLI's default.<br><br>
-          <em>Usage counts against your own Claude seat's limits. If a call fails, make sure the agent is still running and you're logged in.</em>
+          <em>Usage counts against your own Claude seat's limits. If a call fails, make sure the agent is still running and you are logged in.</em>
           <div id="agentStatusResult" class="status-result"></div>
         </div>
       </div>
@@ -760,7 +760,7 @@ Interface port1.0.1
     <div id="panel-pt-search" class="card tool-panel hidden">
       <div class="section">
         <div class="section-heading step-heading-row">PyTest Creator — 3. Script Search <span id="pt-badge-3" class="badge hidden">Confirmed</span></div>
-        <div class="section-description">Find reusable scripts <b>per sequence step</b> so it's clear every step is covered. Page through the steps; for each, use its own <b>Suggest (LLM)</b> or <b>keyword search</b> to find scripts and choose the ones to reuse. Each step shows whether it is covered or has a gap. Save, then confirm.</div>
+        <div class="section-description">Find reusable scripts <b>per sequence step</b> so it is clear every step is covered. Page through the steps; for each, use its own <b>Suggest (LLM)</b> or <b>keyword search</b> to find scripts and choose the ones to reuse. Each step shows whether it is covered or has a gap. Save, then confirm.</div>
 
         <div id="pt-coverage-summary" class="mb-2"></div>
         <div id="pt-steps-list"></div>
@@ -838,7 +838,7 @@ Interface port1.0.1
             <li><b>Confirm Step 5</b> — needs a clean lint (syntax errors cannot be overridden); unlocks step 7 (Validate).</li>
           </ol>
           <div class="justification-note">
-            <b>If something's wrong &nbsp;·&nbsp;</b>
+            <b>If something is wrong &nbsp;·&nbsp;</b>
             <b>Re-lint</b> re-checks the current script after a hand-edit (local, no re-assemble).
             <b>Fix Units (LLM)</b> re-generates only the units the lint errors, review findings or failed run name, under the cached shared half. A review- or run-driven fix is <b>HELD</b> with a diff on the unit's page (held) for you to Save or Discard; a lint-only fix applies itself. It re-assembles and re-lints for you, so re-Assembling after it is redundant, not harmful.
             <b>Fix Whole Script (LLM)</b> rewrites the whole file — for findings that name no unit. <b>Do not re-Assemble after THAT one</b> (it re-splices the units and discards the rewrite): Re-lint / Review, then Save and Confirm.
@@ -863,7 +863,7 @@ Interface port1.0.1
              re-assembles; the whole-script rewrite stays for findings that name no unit
              (the frame, a library file). Review refuses while lint has blocking errors. -->
         <div class="compact-flex mb-2">
-          <span class="justification-note">If something's wrong:</span>
+          <span class="justification-note">If something is wrong:</span>
           <button data-action="ptLintScript" class="btn btn-compact">Re-lint</button>
           <button data-action="ptFixUnits" class="btn btn-primary btn-compact" id="pt-fix-units-btn"
                   title="Re-generate only the units the current findings name, then re-assemble"><span class="rs-icon rs-icon-tools" aria-hidden="true"></span>Fix Units (LLM)</button>
