@@ -16,7 +16,8 @@ describe('seat-limit pill', () => {
   it('keys on the server\'s "seat limit:" prefix and uses its own class and glyph', () => {
     expect(PILLS).toMatch(/\/\^seat limit:\/\.test\(u\.error/);
     expect(PILLS).toContain("limit ? 'pt-pill-limit' : cls[st]");
-    expect(PILLS).toContain("limit ? '⏳'");
+    // Classic draws ⏳; ATUI the Carbon `time` icon, not the busy spinner (PLAN-atui-restyle §10 I10).
+    expect(PILLS).toContain("limit ? icon('⏳', 'time')");
   });
   it('is styled', () => {
     expect(CSS).toMatch(/\.pt-pill-row button\.pt-pill-limit \{/);

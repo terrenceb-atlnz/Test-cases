@@ -9,6 +9,7 @@ import { registerProvenance, renderProvenanceBlock, seedProvenanceFromStep } fro
 import { onCaseLoaded, registerReloader } from '../shared/locks.js';
 import { llmButtonStart, isCancelMessage, newCallId, cancelLlmCall } from '../shared/llm-progress.js';
 import { rememberCase } from '../shared/session-restore.js';
+import { isAtui, copy, icon, glyphHtml, setGlyphText, sevMark } from '../shared/ui.js';
 
 // Let "Take over" (locks.js) re-run the editable load without a circular import.
 registerReloader('pt', ptLoadCase);
@@ -81,7 +82,7 @@ async function ptApi(path, opts = {}, statusEl = null) {
       // The user's own Stop is not a failure — say what happened, calmly.
       const shown = isCancelMessage(msg) ? '⏹ stopped — nothing was kept.' : '⚠ ' + msg;
       if (errRef) errRef.msg = msg;
-      else if (statusEl) statusEl.textContent = shown;
+      else if (statusEl) setGlyphText(statusEl, shown);
       else alert('PyTest Creator: ' + msg);
       return null;
     }
@@ -90,7 +91,7 @@ async function ptApi(path, opts = {}, statusEl = null) {
     return d;
   } catch (e) {
     if (errRef) errRef.msg = String(e);
-    else if (statusEl) statusEl.textContent = '⚠ ' + e;
+    else if (statusEl) setGlyphText(statusEl, '⚠ ' + e);
     else alert('PyTest Creator: ' + e);
     return null;
   } finally {
@@ -104,7 +105,7 @@ function ptStatusEl(id) { return document.getElementById(id); }
 
 function ptRequireCase() {
   if (!S.ptCase.key || !ptSession) {
-    alert('Load a case first (PyTest Creator → 1. Cases).');
+    alert(copy('Load a case first (PyTest Creator → 1. Cases).', 'Load a case first (PyTest Creator, 1. Cases).'));
     goToPanel('panel-pt-cases');
     return false;
   }
@@ -190,7 +191,7 @@ function updatePtBadges() {
     if (conf && !b) {
       b = document.createElement('span');
       b.className = 'nav-badge badge badge-success';
-      b.textContent = '✓';
+      setGlyphText(b, '✓', { '✓': 'checkmark-filled' });
       item.appendChild(b);
     } else if (!conf && b) b.remove();
   });
@@ -280,7 +281,7 @@ function ptRenderSeqSanity() {
   if (!el) return;
   const flags = _ptSeqSanity || [];
   if (!flags.length) { el.innerHTML = ''; return; }
-  el.innerHTML = `<div class="pt-seq-sanity-box"><b>⚠ ${flags.length} sanity flag(s) from the extraction</b> `
+  el.innerHTML = `<div class="pt-seq-sanity-box"><b>${icon('⚠')} ${flags.length} sanity flag(s) from the extraction</b> `
     + '<span class="justification-note">— the extractor found claims it could not reconcile. Read them before you confirm; '
     + 'edit the steps or accept them knowingly. Confirm is not blocked.</span><ul class="mt-1">'
     + flags.map(f => `<li><span class="badge badge-high">steps ${escapeHtml((f.steps || []).join(', ') || '?')}</span> ${escapeHtml(f.issue || '')}</li>`).join('')
@@ -302,7 +303,7 @@ function ptRenderSequence(seq) {
         ? '<span class="badge badge-low">re-sequenced vs. manual order</span>'
         : '<span class="badge badge-success">same order as manual steps</span>')
     + ' — the <b>from</b> column shows which refined step above each row came from:</div>';
-  html += ' <span class="justification-note">Drag ⠿ to reorder.</span>';
+  html += ` <span class="justification-note">${copy('Drag ⠿ to reorder.', 'Drag a row to reorder.')}</span>`;
   const anyClaim = seq.some(s => s.claim && typeof s.claim === 'object');
   html += '<table class="table"><thead><tr><th style="width:20px"></th><th style="width:24px">#</th><th style="width:44px">from</th><th>Action</th><th>Verify</th>'
     + (anyClaim ? '<th style="width:150px" title="The physical situation the step asserts: cable · DUT setting · partner setting → expected link">Claim</th>' : '')
@@ -314,17 +315,17 @@ function ptRenderSequence(seq) {
     const flagged = flags.length > 0;
     const flagTitle = flags.map(f => f.issue).join(' | ');
     html += `<tr class="pt-seq-row${flagged ? ' pt-seq-flagged' : ''}" draggable="true" data-i="${i}"${flagged ? ` title="${escapeHtml(flagTitle)}"` : ''}>
-      <td class="pt-seq-handle" title="Drag to reorder" style="cursor:grab;text-align:center;color:var(--text-muted)">⠿</td>
-      <td>${i + 1}${flagged ? ' <span class="pt-seq-flag" title="' + escapeHtml(flagTitle) + '">⚠</span>' : ''}</td>
+      <td class="pt-seq-handle" title="Drag to reorder" style="cursor:grab;text-align:center;color:var(--text-muted)">${icon('⠿')}</td>
+      <td>${i + 1}${flagged ? ' <span class="pt-seq-flag" title="' + escapeHtml(flagTitle) + '">' + icon('⚠') + '</span>' : ''}</td>
       <td style="text-align:center;font-size:11px" title="source refined step #">${from}</td>
       <td><textarea class="form-input pt-seq-action" data-i="${i}" style="width:100%;height:44px;font-size:11px">${escapeHtml(s.action || '')}</textarea></td>
       <td><textarea class="form-input pt-seq-verify" data-i="${i}" style="width:100%;height:44px;font-size:11px">${escapeHtml(s.verify || '')}</textarea>${_ptPublishesText(s.publishes, i)}</td>
       ${anyClaim ? `<td class="pt-seq-claim" style="font-size:11px">${escapeHtml(_ptClaimText(s.claim)) || '<span class="justification-note">—</span>'}</td>` : ''}
       <td style="text-align:center"><input type="checkbox" class="pt-seq-negative" data-i="${i}"${s.negative ? ' checked' : ''} title="Negative test — may unset suite-owned commands"></td>
-      <td><button class="btn btn-compact" data-action="ptRemoveSeqRow" data-args='[${i}]'>✕</button></td>
+      <td><button class="btn btn-compact" data-action="ptRemoveSeqRow" data-args='[${i}]'>${copy('✕', icon('✕') + 'Remove')}</button></td>
     </tr>`;
   });
-  html += '</tbody></table><button class="btn btn-compact mt-2" data-action="ptAddSeqRow">+ Add step</button>';
+  html += '</tbody></table><button class="btn btn-compact mt-2" data-action="ptAddSeqRow">' + copy('+ Add step', 'New Step') + '</button>';
   el.innerHTML = html;
   ptWireSeqDrag();
 }
@@ -615,7 +616,7 @@ function _ptMatchTable(rows, stepN, kind) {
         <td class="cell-id">${escapeHtml(m.id)}<div class="justification-note">${escapeHtml(m.title || '')}</div></td>
         <td><span class="badge ${covClass}">${escapeHtml(cov)}</span></td>
         <td class="justification-note">${escapeHtml(m.reason || '')}</td>
-        <td><button class="btn btn-compact" data-action="ptViewSource" data-args="${dataArgs(m.id)}">view</button></td>
+        <td><button class="btn btn-compact" data-action="ptViewSource" data-args="${dataArgs(m.id)}">${copy('view', 'View')}</button></td>
       </tr>`;
     });
     html += '</tbody></table></div></div>';
@@ -647,21 +648,21 @@ function ptRenderSteps() {
     const saLabel = sa
       ? (sa.stopReq ? 'Stopping after this step…'
                     : `Suggesting step ${Math.min(sa.done + 1, sa.total)}/${sa.total}… (click to stop)`)
-      : 'Suggest all steps (LLM)';
+      : copy('Suggest all steps (LLM)', 'Suggest All Steps (LLM)');
     const pills = seq.map((s, i) => {
       const ok = (_ptStepChosen[s.n] || []).length > 0;
       const cur = i === _ptCurStep ? ' pt-pill-current' : '';
       return `<button class="pt-pill ${ok ? 'pt-pill-ok' : 'pt-pill-gap'}${cur}" `
         + `data-action="ptGoStep" data-args='[${i}]' title="Sequence step ${s.n}${ok ? ' — covered' : ' — no script yet'}">`
-        + `${ok ? '✓' : '✗'} ${s.n}</button>`;
+        + `${ok ? icon('✓') : icon('✗')} ${s.n}</button>`;
     }).join('');
     sumEl.innerHTML = `<div class="pt-stepnav">
       <button class="btn btn-primary btn-compact" data-action="ptSuggestAllSteps" id="pt-suggest-all-btn"${sa && sa.stopReq ? ' disabled' : ''}>${saLabel}</button>
-      <span class="badge ${gaps ? 'badge-low' : 'badge-success'}">${covered}/${seq.length} sequence steps covered${gaps ? ` — ${gaps} gap${gaps > 1 ? 's' : ''}` : ' ✓'}</span>
+      <span class="badge ${gaps ? 'badge-low' : 'badge-success'}">${covered}/${seq.length} sequence steps covered${gaps ? ` — ${gaps} gap${gaps > 1 ? 's' : ''}` : ' ' + icon('✓')}</span>
       <div class="pt-stepnav-btns">
-        <button class="btn btn-compact" data-action="ptPrevStep" ${_ptCurStep === 0 ? 'disabled' : ''}>‹ Prev</button>
+        <button class="btn btn-compact" data-action="ptPrevStep" ${_ptCurStep === 0 ? 'disabled' : ''}>${icon('‹')} Prev</button>
         <span class="pt-stepnav-pos">Sequence step ${_ptCurStep + 1} of ${seq.length}</span>
-        <button class="btn btn-compact" data-action="ptNextStep" ${_ptCurStep === seq.length - 1 ? 'disabled' : ''}>Next ›</button>
+        <button class="btn btn-compact" data-action="ptNextStep" ${_ptCurStep === seq.length - 1 ? 'disabled' : ''}>Next ${icon('›')}</button>
       </div>
       <div class="pt-pill-row">${pills}</div>
     </div>`;
@@ -676,7 +677,7 @@ function ptRenderSteps() {
   const ok = chosenIds.size > 0;
   el.innerHTML = `<div class="pt-step-block">
       <div class="pt-step-head">
-        <span class="badge ${ok ? 'badge-success' : 'badge-low'}">${ok ? '✓' : '✗'}</span>
+        <span class="badge ${ok ? 'badge-success' : 'badge-low'}">${ok ? icon('✓', 'checkmark-filled', 'covered') : icon('✗', '', 'no script yet')}</span>
         <b>Sequence step ${n}</b> — ${escapeHtml(s.action || '')}
         <span class="justification-note">${ok ? `${chosenIds.size} chosen` : 'no script yet'}</span>
       </div>
@@ -691,13 +692,13 @@ function ptRenderSteps() {
       <div class="pt-step-sub">Candidates <span class="justification-note">— tick rows and Choose to shortlist them for this step</span></div>
       ${_ptMatchTable(cands, n, 'cand')}
       <div class="compact-flex mt-1 mb-2">
-        <button class="btn btn-compact" data-action="ptChooseMatches" data-args='[${n}]'>↓ Choose ticked for sequence step ${n}</button>
+        <button class="btn btn-compact" data-action="ptChooseMatches" data-args='[${n}]'>${icon('↓')} ${copy('Choose ticked for sequence step', 'Choose Ticked for Sequence Step')} ${n}</button>
       </div>
 
       <div class="pt-step-sub">Chosen for this sequence step <span class="justification-note">— reused for sequence step ${n}; tick and Remove to move back up</span></div>
       ${_ptMatchTable(chosenRecs, n, 'chosen')}
       <div class="compact-flex mt-1">
-        <button class="btn btn-compact" data-action="ptClearChosen" data-args='[${n}]'>↑ Remove ticked from sequence step</button>
+        <button class="btn btn-compact" data-action="ptClearChosen" data-args='[${n}]'>${icon('↑')} ${copy('Remove ticked from sequence step', 'Remove Ticked from Sequence Step')}</button>
       </div>
       <div id="pt-source-view" class="mt-2"></div>
     </div>`;
@@ -779,8 +780,8 @@ async function ptSuggestAllSteps() {
   ptRenderSteps();
   if (st) {
     const failed = run.failures.length ? ` — FAILED on step(s) ${run.failures.join(', ')}` : '';
-    st.textContent = (run.stopReq && run.done < run.total ? `⏹ Stopped after ${run.done}/${run.total} steps` : `Suggested all ${run.total} steps`)
-      + ` — ${run.added} match(es) added${failed}. Results are saved with the case.`;
+    setGlyphText(st, (run.stopReq && run.done < run.total ? `⏹ Stopped after ${run.done}/${run.total} steps` : `Suggested all ${run.total} steps`)
+      + ` — ${run.added} match(es) added${failed}. Results are saved with the case.`);
   }
 }
 
@@ -974,7 +975,7 @@ function ptRenderFragSteps() {
   if (!el) return;
   const seq = _ptSeq();
   const staleBanner = _ptFragsStale()
-    ? `<div class="pt-frag-stale">⚠ Script selections changed in <b>3. Script Search</b> since these fragments were gathered — they may be out of date. Re-run <b>Gather Fragments (LLM)</b> to refresh from your current selection.</div>`
+    ? `<div class="pt-frag-stale">${icon('⚠')} Script selections changed in <b>3. Script Search</b> since these fragments were gathered — they may be out of date. Re-run <b>Gather Fragments (LLM)</b> to refresh from your current selection.</div>`
     : '';
   if (!_ptFragPool.length) {
     el.innerHTML = '<em class="review-empty">No fragments yet — run Gather Fragments (LLM). (A "new script from scratch" plan may legitimately keep this empty — Save then Confirm.)</em>';
@@ -994,14 +995,14 @@ function ptRenderFragSteps() {
     const pills = seq.map((s, i) => {
       const ok = stepHasSel(s.n);
       const cur = i === _ptFragStep ? ' pt-pill-current' : '';
-      return `<button class="pt-pill ${ok ? 'pt-pill-ok' : 'pt-pill-gap'}${cur}" data-action="ptFragGoStep" data-args='[${i}]' title="Sequence step ${s.n}${ok ? ' — has a selected fragment' : ' — none selected'}">${ok ? '✓' : '✗'} ${s.n}</button>`;
+      return `<button class="pt-pill ${ok ? 'pt-pill-ok' : 'pt-pill-gap'}${cur}" data-action="ptFragGoStep" data-args='[${i}]' title="Sequence step ${s.n}${ok ? ' — has a selected fragment' : ' — none selected'}">${ok ? icon('✓') : icon('✗')} ${s.n}</button>`;
     }).join('');
     sumEl.innerHTML = staleBanner + `<div class="pt-stepnav">
-      <span class="badge ${gaps ? 'badge-low' : 'badge-success'}">${covered}/${seq.length} steps with a selected fragment${gaps ? ` — ${gaps} gap${gaps > 1 ? 's' : ''}` : ' ✓'}</span>
+      <span class="badge ${gaps ? 'badge-low' : 'badge-success'}">${covered}/${seq.length} steps with a selected fragment${gaps ? ` — ${gaps} gap${gaps > 1 ? 's' : ''}` : ' ' + icon('✓')}</span>
       <div class="pt-stepnav-btns">
-        <button class="btn btn-compact" data-action="ptFragPrevStep" ${_ptFragStep === 0 ? 'disabled' : ''}>‹ Prev</button>
+        <button class="btn btn-compact" data-action="ptFragPrevStep" ${_ptFragStep === 0 ? 'disabled' : ''}>${icon('‹')} Prev</button>
         <span class="pt-stepnav-pos">Sequence step ${_ptFragStep + 1} of ${seq.length}</span>
-        <button class="btn btn-compact" data-action="ptFragNextStep" ${_ptFragStep === seq.length - 1 ? 'disabled' : ''}>Next ›</button>
+        <button class="btn btn-compact" data-action="ptFragNextStep" ${_ptFragStep === seq.length - 1 ? 'disabled' : ''}>Next ${icon('›')}</button>
       </div>
       <div class="pt-pill-row">${pills}</div>
     </div>`;
@@ -1044,7 +1045,7 @@ function ptRenderFragSteps() {
 
   el.innerHTML = `<div class="pt-step-block">
       <div class="pt-step-head">
-        <span class="badge ${ok ? 'badge-success' : 'badge-low'}">${ok ? '✓' : '✗'}</span>
+        <span class="badge ${ok ? 'badge-success' : 'badge-low'}">${ok ? icon('✓', 'checkmark-filled', 'fragment selected') : icon('✗', '', 'no fragment selected')}</span>
         <b>Sequence step ${n}</b> — ${escapeHtml(s.action || '')}
         <span class="justification-note">${ok ? `${selCount} selected` : 'no fragment selected'}</span>
       </div>
@@ -1177,11 +1178,12 @@ function ptRenderUnitPills() {
     // P3 (2026-09-24): the SEAT refused on its usage limit — not the model, not the prompt.
     // Its own look, so a row of them reads as "wait for the reset", not "twelve bad units".
     const limit = u.status === 'error' && /^seat limit:/.test(u.error || '');
-    const glyph = limit ? '⏳' : (st === 'ok' ? '✓' : (st === 'run' ? '…' : (st === 'held' ? '⏸' : '✗')));
+    const glyph = limit ? icon('⏳', 'time') : (st === 'ok' ? icon('✓') : (st === 'run' ? '…' : (st === 'held' ? icon('⏸') : icon('✗'))));
     const cur = (i === _ptUnitIdx) ? ' pt-pill-current' : '';
     const label = u.kind === 'setup' ? 'setup' : String(u.tc_n);
     const why = u.status === 'error' && u.error ? ` — FAILED ${_fmtAt(u.at)}: ${u.error}`
-      : (st === 'held' ? ' — HELD: a fix is waiting for your Apply / Discard (open the unit)' : '');
+      : (st === 'held' ? copy(' — HELD: a fix is waiting for your Apply / Discard (open the unit)',
+                              ' — HELD: a fix is waiting for your Save / Discard (open the unit)') : '');
     return `<button class="pt-pill ${limit ? 'pt-pill-limit' : cls[st]}${cur}" data-action="ptGoUnit" data-args='[${i}]' `
       + `title="${escapeHtml(u.label)}${escapeHtml(why)}">${glyph} ${escapeHtml(label)}</button>`;
   }).join('');
@@ -1191,7 +1193,7 @@ function ptRenderUnitPills() {
   const assembled = !!((ptSession && (ptSession.step6 || {}).assembled_at));
   const lintOk = !!(((ptSession || {}).step6 || {}).lint || {}).ok;
   const sumCls = (done && assembled && lintOk) ? 'pt-pill-ok' : (done ? 'pt-pill-run' : 'pt-pill-gap');
-  const sumGlyph = (done && assembled && lintOk) ? '✓' : (done ? '…' : '✗');
+  const sumGlyph = (done && assembled && lintOk) ? icon('✓') : (done ? '…' : icon('✗'));
   const sumCur = (_ptUnitIdx === _PT_SUMMARY) ? ' pt-pill-current' : '';
   el.innerHTML = pills
     + `<button class="pt-pill ${sumCls}${sumCur}" data-action="ptGoSummary" `
@@ -1201,8 +1203,8 @@ function ptRenderUnitPills() {
   if (st && !st.dataset.busy) {
     const n = _ptUnits.filter(u => ['ok', 'held'].includes(_ptUnitState(u))).length;
     const held = _ptUnits.filter(u => _ptUnitState(u) === 'held').length;
-    st.textContent = `${n}/${_ptUnits.length} unit(s) generated.`
-      + (held ? ` ⏸ ${held} held fix(es) waiting for Apply / Discard.` : '');
+    setGlyphText(st, `${n}/${_ptUnits.length} unit(s) generated.`
+      + (held ? ` ⏸ ${held} held fix(es) waiting for ${copy('Apply', 'Save')} / Discard.` : ''));
   }
 }
 
@@ -1215,11 +1217,11 @@ function ptRenderUnitErrors() {
   const el = document.getElementById('pt-unit-errors');
   if (!el) return;
   if (!_ptUnitFails.length) { el.innerHTML = ''; return; }
-  el.innerHTML = '<div class="pt-unit-errbox"><b>✗ ' + _ptUnitFails.length
-    + ' unit(s) failed</b> <button class="btn btn-compact-small" data-action="ptClearUnitErrors">dismiss</button>'
+  el.innerHTML = '<div class="pt-unit-errbox"><b>' + icon('✗') + ' ' + _ptUnitFails.length
+    + ' unit(s) failed</b> <button class="btn btn-compact-small" data-action="ptClearUnitErrors">' + copy('dismiss', 'Close') + '</button>'
     + _ptUnitFails.map(f => `<div class="pt-unit-errrow">
         <b>${escapeHtml(f.label)}</b> — ${escapeHtml(f.why)} <span class="justification-note">${escapeHtml(_fmtAt(f.at))}</span>
-        <button class="btn btn-compact-small" data-action="ptGenerateUnit" data-args='["${escapeHtml(f.id)}"]'>re-run</button>
+        <button class="btn btn-compact-small" data-action="ptGenerateUnit" data-args='["${escapeHtml(f.id)}"]'>${copy('re-run', 'Re-run')}</button>
       </div>`).join('') + '</div>';
 }
 
@@ -1246,21 +1248,21 @@ function ptRenderUnitPage() {
     <div class="justification-note"><b>verify:</b> ${escapeHtml(u.verify || '')}</div>`;
   el.innerHTML = `
     <div class="compact-flex">
-      <button class="btn btn-compact" data-action="ptUnitPrev" ${_ptUnitIdx === 0 ? 'disabled' : ''}>‹ Prev</button>
+      <button class="btn btn-compact" data-action="ptUnitPrev" ${_ptUnitIdx === 0 ? 'disabled' : ''}>${icon('‹')} Prev</button>
       <span class="justification-note">unit ${_ptUnitIdx + 1} / ${_ptUnits.length}</span>
-      <button class="btn btn-compact" data-action="ptUnitNext" ${_ptUnitIdx >= _ptUnits.length - 1 ? 'disabled' : ''}>Next ›</button>
+      <button class="btn btn-compact" data-action="ptUnitNext" ${_ptUnitIdx >= _ptUnits.length - 1 ? 'disabled' : ''}>Next ${icon('›')}</button>
     </div>
     <div class="mt-2">${head}${contract}</div>
     <div class="compact-flex mt-2">
       <button class="btn btn-primary btn-compact" data-action="ptGenerateUnit" data-args='["${escapeHtml(u.id)}"]' id="pt-unit-btn">Generate ${escapeHtml(u.kind === 'setup' ? 'setup' : u.label)} (LLM)</button>
       <span class="justification-note" id="pt-unit-status">${
-        st === 'ok' ? '✓ returned ' + escapeHtml(u.at || '')
-        : (st === 'held' ? '⏸ a fix is held for your approval' + (u.heldInfo && u.heldInfo.at ? ' (returned ' + escapeHtml(_fmtAt(u.heldInfo.at)) + ')' : '')
-        : (u.status === 'error' ? '✗ ' + escapeHtml(u.error || 'failed') + (u.at ? ' · ' + escapeHtml(_fmtAt(u.at)) : '')
+        st === 'ok' ? icon('✓') + ' returned ' + escapeHtml(u.at || '')
+        : (st === 'held' ? icon('⏸') + ' a fix is held for your approval' + (u.heldInfo && u.heldInfo.at ? ' (returned ' + escapeHtml(_fmtAt(u.heldInfo.at)) + ')' : '')
+        : (u.status === 'error' ? icon('✗') + ' ' + escapeHtml(u.error || 'failed') + (u.at ? ' · ' + escapeHtml(_fmtAt(u.at)) : '')
         : (st === 'run' ? 'in flight…' : 'not generated yet')))}</span>
       ${u.edited ? '<span class="badge">prompt edited</span>' : ''}
       ${st === 'ok' && (((ptSession || {}).step6 || {}).files || {}).test
-        ? `<button class="btn btn-compact" data-action="ptFixThisUnit" data-args='["${escapeHtml(u.id)}"]' id="pt-unit-fix-btn" title="Re-generate this unit against its current lint errors, review findings and run result only">Fix this unit (LLM)</button>`
+        ? `<button class="btn btn-compact" data-action="ptFixThisUnit" data-args='["${escapeHtml(u.id)}"]' id="pt-unit-fix-btn" title="Re-generate this unit against its current lint errors, review findings and run result only">${copy('Fix this unit (LLM)', 'Fix This Unit (LLM)')}</button>`
         : ''}
     </div>
     ${st === 'held' ? _ptHeldFrame(u) : ''}
@@ -1321,12 +1323,12 @@ function _ptHeldFrame(u) {
     <div class="pt-unit-frame pt-unit-frame-held mt-2">
       <div class="pt-unit-frame-label">Held fix — diff against the current unit (the current code below is what the script still contains)</div>
       <div class="justification-note">${escapeHtml(reach)}</div>
-      ${warn.map(w => `<div class="pt-held-warn">${escapeHtml(w)}</div>`).join('')}
+      ${warn.map(w => `<div class="pt-held-warn">${glyphHtml(w)}</div>`).join('')}
       <pre class="session-pre pt-unit-out pt-held-diff">${escapeHtml(h.diff || '(no textual change)')}</pre>
       <div class="compact-flex mt-1">
-        <button class="btn btn-compact" data-action="ptApplyHeld" data-args='["${escapeHtml(u.id)}"]'>Apply this fix</button>
+        <button class="btn btn-compact" data-action="ptApplyHeld" data-args='["${escapeHtml(u.id)}"]'>${copy('Apply this fix', 'Save Fix')}</button>
         <button class="btn btn-compact" data-action="ptDiscardHeld" data-args='["${escapeHtml(u.id)}"]'>Discard</button>
-        <span class="justification-note">Apply splices it in and re-assembles + re-lints (local). Discard keeps the current unit.</span>
+        <span class="justification-note">${copy('Apply', 'Save')} splices it in and re-assembles + re-lints (local). Discard keeps the current unit.</span>
       </div>
     </div>`;
 }
@@ -1349,9 +1351,9 @@ async function _ptHeldAction(path, ids, label) {
   }
   return d;
 }
-async function ptApplyHeld(unitId) { return _ptHeldAction('apply_held', [unitId], 'Apply'); }
+async function ptApplyHeld(unitId) { return _ptHeldAction('apply_held', [unitId], copy('Apply', 'Save')); }
 async function ptDiscardHeld(unitId) { return _ptHeldAction('discard_held', [unitId], 'Discard'); }
-async function ptApplyAllHeld() { return _ptHeldAction('apply_held', null, 'Apply all'); }
+async function ptApplyAllHeld() { return _ptHeldAction('apply_held', null, copy('Apply all', 'Save all')); }
 
 // Units whose code we are already fetching, so re-rendering cannot start a second
 // request for the same unit (ptRenderUnitPage runs on every poll tick).
@@ -1400,11 +1402,11 @@ function _ptStatePill() {
   if (!g || !g.script_hash) return '';        // no assembled script yet: nothing to be out of step
   if (g.diverged) {
     return ` <span class="pt-pill pt-state pt-state-stale" id="pt-gen-state-pill" `
-      + `title="${escapeHtml(g.reason || '')}">⚠ units stale — Re-chunk</span>`;
+      + `title="${escapeHtml(g.reason || '')}">${icon('⚠')} units stale — Re-chunk</span>`;
   }
   return ` <span class="pt-pill pt-state pt-state-ok" id="pt-gen-state-pill" `
     + `title="The generated units and the assembled script agree (hash ${escapeHtml(g.script_hash)})`
-    + `${g.frame_snapshot ? '; the frame is a snapshot of the script' : ''}.">units ⇄ script</span>`;
+    + `${g.frame_snapshot ? '; the frame is a snapshot of the script' : ''}.">${copy('units ⇄ script', 'units and script')}</span>`;
 }
 
 function _ptApplyGenGate() {
@@ -1566,9 +1568,9 @@ async function _ptPollUnitsOnce() {
       delete st.dataset.busy;
       const ok = _ptUnits.filter(u => ['ok', 'held'].includes(_ptUnitState(u))).length;
       const held = _ptUnits.filter(u => _ptUnitState(u) === 'held').length;
-      st.textContent = `${ok}/${_ptUnits.length} unit(s) generated`
+      setGlyphText(st, `${ok}/${_ptUnits.length} unit(s) generated`
         + (_ptUnitFails.length ? ` — ${_ptUnitFails.length} failed; re-run them individually.` : '.')
-        + (held ? ` ⏸ ${held} held fix(es) waiting for Apply / Discard.` : '');
+        + (held ? ` ⏸ ${held} held fix(es) waiting for ${copy('Apply', 'Save')} / Discard.` : ''));
     }
     // A Fix-units run re-assembles server-side after its last unit lands; whoever started
     // it wants the Summary refreshed once that has happened.
@@ -1735,8 +1737,10 @@ function ptUpdateGenPath() {
   const el = document.getElementById('pt-gen-path');
   // Before the first generation there is no family yet. Say so, rather than showing a number
   // this side invented — a guessed suite in the filename is what sent every run to test-0.0.log.
-  el.textContent = n ? `→ generated/${ptArtDir(g, n)}/${n}.py`
-                     : `→ generated/<family>_${g}/ — the ART family is assigned on generate`;
+  const path = n ? `generated/${ptArtDir(g, n)}/${n}.py`
+                 : `generated/<family>_${g}/ — the ART family is assigned on generate`;
+  if (isAtui()) el.innerHTML = icon('→', 'arrow-right') + ' ' + escapeHtml(path);
+  else el.textContent = '→ ' + path;
 }
 
 // The step-6 naming as the server resolved it — the one reader for the dry-run body. The
@@ -1789,15 +1793,15 @@ function ptRenderLint(lint) {
   if (!lint) { el.innerHTML = ''; return; }
   const errs = lint.errors || [];
   const warns = lint.warnings || [];
-  const err = errs.map(e => `<div>✗ ${escapeHtml(e)}</div>`).join('');
+  const err = errs.map(e => `<div>${icon('✗')} ${escapeHtml(e)}</div>`).join('');
   // Style warnings (pycodestyle/pep8) are non-blocking AND are never handed to Fix (its
   // prompt gets only blocking errors + review findings), so they cannot be cleared from the
   // panel and only add noise. Collapse them behind a one-line count — visible errors stay
   // up top, the warnings are one click away rather than a wall of △ lines (2026-09-04).
   const n = warns.length;
   const warnBlock = n
-    ? `<details class="mt-1"><summary class="justification-note">△ ${n} style warning${n === 1 ? '' : 's'} (pep8, non-blocking — not fixed by Fix)</summary>`
-      + `<div class="justification-note">${warns.map(w => `<div>△ ${escapeHtml(w)}</div>`).join('')}</div></details>`
+    ? `<details class="mt-1"><summary class="justification-note">${sevMark('medium')} ${n} style warning${n === 1 ? '' : 's'} (pep8, non-blocking — not fixed by Fix)</summary>`
+      + `<div class="justification-note">${warns.map(w => `<div>${sevMark('medium')} ${escapeHtml(w)}</div>`).join('')}</div></details>`
     : '';
   el.innerHTML = `<span class="badge ${lint.ok ? 'badge-success' : ''}">${lint.ok ? 'lint OK' : 'lint failed'}</span>`
     + (err ? `<div class="justification-note">${err}</div>` : '')
@@ -1824,7 +1828,7 @@ export function ptLintTrendBanner(d) {
   if (d.prompt_version) bits.push(`prompt version ${d.prompt_version}`);
   return {
     className: 'status-banner is-warning',
-    html: '<div class="status-title">⚠ Lint trend — the generate prompt is the fix, not the repair</div>'
+    html: `<div class="status-title">${copy('⚠ ', '')}Lint trend — the generate prompt is the fix, not the repair</div>`
       + `<ul>${alarms.map(a => `<li>${escapeHtml(a.detail || a.class || '')}</li>`).join('')}</ul>`
       + `<div class="justification-note">${escapeHtml(bits.join(' · '))}`
       + ` · full numbers in the admin panel's Lint trends card.</div>`,
@@ -1856,7 +1860,7 @@ export function ptPruneSummary(d) {
   if (!d) return { className: 'status-banner is-error', html: '<div class="status-title">Prune failed</div>' };
   if (d.blocked) {
     return { className: 'status-banner is-warning',
-             html: '<div class="status-title">⚠ Prune did not run</div>'
+             html: `<div class="status-title">${copy('⚠ ', '')}Prune did not run</div>`
                  + `<div>${escapeHtml(d.blocked)}</div>` };
   }
   const scripts = (d.scripts || []).join(', ');
@@ -1882,7 +1886,7 @@ export function ptPruneSummary(d) {
                + `<div class="justification-note">Referenced by none of: ${escapeHtml(scripts || '(no other script in this group)')}.`
                + ' Only <code># AI: dependency</code> members are candidates — anything a reviewer selected stays.</div>'
                + '<div class="compact-flex mt-1"><button data-action="ptPruneLibraryApply"'
-               + ' class="btn btn-compact">Remove them</button></div>' };
+               + ` class="btn btn-compact">${copy('Remove them', 'Remove Them')}</button></div>` };
 }
 
 function ptClearPrune() {
@@ -1914,7 +1918,6 @@ function ptPruneLibraryApply(btn) { return ptPruneRequest(true, btn); }
 // wall clock chunking exists to avoid) and can silently undo a correct reused fragment,
 // breaking the provenance chain. A finding becomes a change through the step-7 Fix loop,
 // where it is recorded and reviewable.
-const _PT_SEV = { high: '✗', medium: '△', low: '·' };
 
 // Slice B (2026-09-21): a review describes ONE version of the script. When the code has moved on
 // (a Save / hand edit — a Fix already drops the review server-side), the findings are shown
@@ -1960,7 +1963,7 @@ function ptRenderReview(review, code = '') {
   };
   const list = '<div class="mt-1">' + findings.map(f => `
       <div class="pt-review-finding pt-review-${escapeHtml(f.severity)}${stale && _ptEvidencePresent(code, f.evidence) === false ? ' pt-review-gone' : ''}">
-        <div><b>${_PT_SEV[f.severity] || '·'} ${escapeHtml(f.where || '(script)')}</b>`
+        <div><b>${sevMark(f.severity)} ${escapeHtml(f.where || '(script)')}</b>`
         + (f.step ? ` <span class="justification-note">step ${escapeHtml(f.step)}</span>` : '')
         + ` <span class="justification-note">${escapeHtml(f.kind)}</span>${evTag(f)}</div>
         <div>${escapeHtml(f.what)}</div>`
@@ -1998,7 +2001,8 @@ async function ptFixFromSummary() {
   ptStatusEl('pt-gen-status').textContent =
     `Revised whole script (iteration ${d.iterations}); previous archived. Lint is refreshed and `
     + `the old review was cleared (it described the pre-fix code) — re-run Review to see what remains. `
-    + `Don't re-Assemble (it re-splices the units and discards this). Then Save & Confirm.`;
+    + copy(`Don't re-Assemble (it re-splices the units and discards this). Then Save & Confirm.`,
+           `Do not re-Assemble (it re-splices the units and discards this). Then Save and Confirm.`);
 }
 
 // Per-unit Fix (token-efficiency decision 7, 2026-09-07). Re-generates ONLY the units the
@@ -2044,12 +2048,14 @@ async function _ptFixUnitsCommon(btn, statusEl, ids = null) {
         + `not re-assembled — re-run them individually, then Assemble.`;
     } else if ((fu.held || []).length && !fu.assembled) {
       el.textContent = `Fix units: ${fu.held.length} fix(es) HELD for your approval (${fu.held.join(', ')}) — `
-        + `open each ⏸ unit to see its diff and Apply or Discard, or use "Apply all held fixes". `
-        + `Nothing was spliced; the script is unchanged until you apply.`
+        + copy(`open each ⏸ unit to see its diff and Apply or Discard, or use "Apply all held fixes". `
+        + `Nothing was spliced; the script is unchanged until you apply.`,
+               `open each held unit to see its diff and Save or Discard, or use "Save All Held Fixes". `
+        + `Nothing was spliced; the script is unchanged until you save.`)
         + ((fu.structural || []).length ? ` ${fu.structural.length} structural finding(s) still need a design decision: ${fu.structural.join(' · ')}` : '');
     } else if (fu.assembled) {
       el.textContent = `Fix units: ${(fu.applied || fu.units || []).length} unit(s) re-generated and re-assembled `
-        + ((fu.held || []).length ? `(+ ${fu.held.length} HELD for approval: ${fu.held.join(', ')} — open the ⏸ units) ` : '')
+        + ((fu.held || []).length ? `(+ ${fu.held.length} HELD for approval: ${fu.held.join(', ')} — open the ${copy('⏸', 'held')} units) ` : '')
         + `(iteration ${((ptSession || {}).step6 || {}).iterations || '?'}); lint `
         + `${fu.lint_ok ? 'ok' : `FAILED (${fu.lint_errors} error(s))`}. `
         + `The old review was cleared — run Review to see what remains.`
@@ -2094,7 +2100,7 @@ async function ptReviewScript() {
   // many and how big the last one was; another round is sent only if the reviewer says so.
   if (!d && /^review round cap:/.test(errRef.msg || '')) {
     if (!confirm(errRef.msg.replace(/^review round cap: /, '') + '\n\nSend another tool review round anyway?')) {
-      if (st) st.textContent = '⚠ ' + errRef.msg;
+      if (st) setGlyphText(st, '⚠ ' + errRef.msg);
       return;
     }
     d = await ptApi(`/review_script/${S.ptCase.key}`, {
@@ -2102,7 +2108,7 @@ async function ptReviewScript() {
       btn, busyLabel: 'Reviewing…', llm: true,
     }, st);
   } else if (!d && errRef.msg && st) {
-    st.textContent = isCancelMessage(errRef.msg) ? '⏹ stopped — nothing was kept.' : '⚠ ' + errRef.msg;
+    setGlyphText(st, isCancelMessage(errRef.msg) ? '⏹ stopped — nothing was kept.' : '⚠ ' + errRef.msg);
   }
   recordLLMDebug(btn);
   if (!d) return;
@@ -2199,7 +2205,7 @@ export async function renderPtRunPanel() {
   sel.innerHTML = '<option value="">Select testbox…</option>'
     + Object.entries(ptProfiles).map(([n, p]) =>
       `<option value="${escapeHtml(n)}" ${n === cur ? 'selected' : ''}>${escapeHtml(ptProfileLabel(n, p))}</option>`).join('')
-    + '<option value="__add__">➕ Add new testbox…</option>';
+    + `<option value="__add__">${copy('➕ Add new testbox…', 'New Testbox…')}</option>`;
   ptProfileSelected(sel);
   // Same shape as ptUpdateGenPath(): step6 stores naming {group,name}, no path.
   const naming = ((ptSession || {}).step6 || {}).naming || {};
@@ -2252,7 +2258,7 @@ async function ptCheckProfile() {
   const st = ptStatusEl('pt-run-status');
   st.textContent = 'Checking…';
   const d = await ptApi(`/profiles/${encodeURIComponent(name)}/check`, { method: 'POST' }, st);
-  if (d) st.textContent = (d.ok ? '✓ ready — ' : '✗ not ready — ') + (d.detail || JSON.stringify(d));
+  if (d) setGlyphText(st, (d.ok ? '✓ ready — ' : '✗ not ready — ') + (d.detail || JSON.stringify(d)));
 }
 
 function ptRenderRuns() {
@@ -2262,7 +2268,7 @@ function ptRenderRuns() {
   const last = runs[runs.length - 1];
   let html = `<div class="mb-1"><b>Run ${escapeHtml(last.run_id)}</b> on ${escapeHtml(last.profile || '')} — `
     + `<span class="badge ${last.status === 'done' ? 'badge-success' : ''}">${escapeHtml(last.status)}</span>`
-    + (last.error ? ` <span class="justification-note">⚠ ${escapeHtml(last.error)}</span>` : '') + '</div>';
+    + (last.error ? ` <span class="justification-note">${icon('⚠')} ${escapeHtml(last.error)}</span>` : '') + '</div>';
   // Plan 10.4: the bench was checked before anything ran, and it cannot host this script as
   // declared. Show why, and offer the recorded override — preflight has no "cannot determine"
   // verdict yet, so it can be wrong.
@@ -2270,7 +2276,7 @@ function ptRenderRuns() {
   if (last.status === 'preflight_failed' && pf && typeof pf === 'object') {
     html += '<div class="status-banner warning mb-1"><b>Preflight: this bench cannot run this script as declared.</b> Nothing was executed.<ul>'
       + (pf.problems || []).map(p => `<li>${escapeHtml(p.message || '')}${p.detail ? ` <span class="justification-note">${escapeHtml(p.detail)}</span>` : ''}</li>`).join('')
-      + '</ul><button class="btn btn-compact" data-action="ptRunAnyway" title="Dispatch without the topology check; the skip is recorded on the run">Run anyway</button></div>';
+      + '</ul><button class="btn btn-compact" data-action="ptRunAnyway" title="Dispatch without the topology check; the skip is recorded on the run">' + copy('Run anyway', 'Run Anyway') + '</button></div>';
   } else if (pf && typeof pf === 'object' && pf.skipped) {
     html += '<div class="justification-note mb-1">Preflight skipped for this run ("run anyway").</div>';
   }
@@ -2344,7 +2350,7 @@ export function renderPtValidatePanel() {
 function ptRenderValidation(d) {
   const el = document.getElementById('pt-validate-result');
   const rows = Object.entries(d.checks || {}).map(([k, v]) =>
-    `<tr><td>${escapeHtml(k)}</td><td>${v ? '✓' : '✗'}</td></tr>`).join('');
+    `<tr><td>${escapeHtml(k)}</td><td>${v ? icon('✓', '', 'pass') : icon('✗', '', 'fail')}</td></tr>`).join('');
   el.innerHTML = `<div class="mb-2"><span class="badge ${d.validated ? 'badge-success' : ''}">`
     + `${d.validated ? 'VALIDATED — all checks pass' : 'Not validated yet'}</span></div>`
     + `<table class="table" style="max-width:420px"><tbody>${rows}</tbody></table>`
@@ -2395,9 +2401,9 @@ export async function renderPtTestboxPanel() {
       <td>${escapeHtml(p.auth || '')}${p.has_password ? ' (pw set)' : ''}</td>
       <td>${setupNames.length ? escapeHtml(setupNames.join(', ')) : '<span class="status-muted">—</span>'}</td>
       <td>
-        <button class="btn btn-compact" data-action="ptEditProfile" data-args="${dataArgs(n)}">edit</button>
-        <button class="btn btn-compact" data-action="ptCheckProfileNamed" data-args="${dataArgs(n)}">check</button>
-        <button class="btn btn-compact" data-action="ptDeleteProfile" data-args="${dataArgs(n)}">✕</button>
+        <button class="btn btn-compact" data-action="ptEditProfile" data-args="${dataArgs(n)}">${copy('edit', 'Edit')}</button>
+        <button class="btn btn-compact" data-action="ptCheckProfileNamed" data-args="${dataArgs(n)}">${copy('check', 'Check')}</button>
+        <button class="btn btn-compact" data-action="ptDeleteProfile" data-args="${dataArgs(n)}">${copy('✕', icon('✕', 'trash-can') + 'Delete')}</button>
       </td></tr>`;
   });
   el.innerHTML = html + '</tbody></table>';
@@ -2464,7 +2470,7 @@ export function ptRenderSetupRows(rows) {
     <div class="tb-setup-row">
       <input class="form-input tb-setup-name" placeholder="name (e.g. terrenceb-ie520)" value="${escapeHtml(r.name)}">
       <input class="form-input tb-setup-path" placeholder="/home/st-art/st-art/configs/tb470.setup" value="${escapeHtml(r.path)}">
-      <button class="btn btn-compact" data-action="ptRemoveSetupRow" data-args="[${i}]" title="Remove this setup">&#10005;</button>
+      <button class="btn btn-compact" data-action="ptRemoveSetupRow" data-args="[${i}]" title="Remove this setup">${copy('&#10005;', icon('✕') + 'Remove')}</button>
     </div>`).join('');
 }
 
@@ -2561,7 +2567,8 @@ async function ptSaveProfile() {
 }
 
 async function ptDeleteProfile(name) {
-  if (!confirm(`Delete testbox "${name}"?`)) return;
+  if (!confirm(copy(`Delete testbox "${name}"?`,
+    `Delete testbox ${name}? This permanently deletes its connection details and setups. This cannot be undone.`))) return;
   const d = await ptApi(`/profiles/${encodeURIComponent(name)}`, { method: 'DELETE' }, ptStatusEl('pt-tb-status'));
   if (d) renderPtTestboxPanel();
 }
@@ -2570,7 +2577,7 @@ async function ptCheckProfileNamed(name) {
   const st = ptStatusEl('pt-tb-status');
   st.textContent = `Checking ${name}…`;
   const d = await ptApi(`/profiles/${encodeURIComponent(name)}/check`, { method: 'POST' }, st);
-  if (d) st.textContent = `${name}: ` + (d.ok ? '✓ ready — ' : '✗ not ready — ') + (d.detail || '');
+  if (d) setGlyphText(st, `${name}: ` + (d.ok ? '✓ ready — ' : '✗ not ready — ') + (d.detail || ''));
 }
 
 
