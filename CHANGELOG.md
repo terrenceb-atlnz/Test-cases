@@ -21,6 +21,33 @@ current working thread see
 > `ask-ck/ck-facelift/`, `pytest-create/` and `CK-main/` plan paths moved to `ask-ck/plans/` on 2026-09-11 and, once complete, to `archive/plans/`.
 > `js-tests/` → `tests/js/`, `e2e/` → `tests/e2e/`, `static/js/` → `ask-ck/frontend/ck-main/current/<page>/` (2026-09-11).
 
+## 2026-09-30 — the ATUI restyle at `/restyle`, swappable with Classic
+
+Governance's ATUI design system arrived the same day. It is **not required** for Ask CK (Terrence:
+*"Not for us, no. which is why we are scoping the restyle and making it toggleable just in case"*), so
+the restyle was built **beside** Classic, never over it (S9): `ask-ck/frontend/ck-main/restyle/`, its
+own HTML + CSS running `current/`'s JS, served at `/restyle`, reached by a Classic | ATUI switch under
+the theme toggle. `/` always opens Classic. Plan and every decision: `archive/plans/PLAN-atui-restyle.md`.
+
+**Why this shape.** Sharing the JS means one behaviour to maintain and no second copy to drift, at
+the price of a rule the JS must keep: **Classic's output byte-identical.** Everything that differs goes
+through `shared/ui.js` (`copy`, `icon`, `setGlyphText`, `sevMark`), which returns the old literal
+unless `<html data-ui="atui">`; `tests/test_restyle_parity.py` keeps the two pages' ids and
+`data-action`s in step. A CSS look-alike was chosen over the real `at-*` web components (S7) — no
+build step, no dependency, and the dispatch through `data-action` untouched. Fonts and icons are copied
+locally (S10), so the restyle works on a standalone server.
+
+**What ATUI's rules changed** (restyle only): 139 unicode glyphs used as icons became Carbon icons
+(review severity became HealthDot shapes, so it is not colour-only); CTAs Title Case; *Apply* → *Save*,
+*OK* → a named action, *Add* → *New*, no contractions; no CSS-forced uppercase; 13px body; ATUI
+spacing, radii and control heights; a 48px header with a collapsible icon rail.
+
+**Classic changed too, at Terrence's request:** the saved theme is applied before first paint (the
+page shipped `class="dark"` and theme.js ran late, so light mode flashed dark on every load and swap);
+Script Search + Fragments pills sit on their own left-aligned line like Generate's (`margin-left:auto`
+had pushed them right once the step nav wrapped); a Classic-vs-ATUI colour + type specimen on the Test
+Composer TBD page for 1-to-1 comparison.
+
 ## 2026-09-30 — ck.db is committed deliberately, not routinely (Git LFS quota)
 
 > ⚠ **Corrected later on 2026-09-30 (Terrence):** the warning was *"You have used 90% of the Git

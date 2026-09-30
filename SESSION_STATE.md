@@ -4893,6 +4893,8 @@ Gate: EXIT=0 — both guards OK, pytest 1889 / 1 skipped, vitest 356 in 32 files
 
 ## Session Close / Handoff (2026-09-30, afternoon) — ATUI design guidance: skill linked, restyle scoped
 
+> ⚠ Superseded by *Session Close / Handoff (2026-09-30, evening)* below: the restyle was built, beside Classic.
+
 Governance's ATUI design system arrived at `docs/ATUI Design System/` (`bd9f287`). Linked it as the
 `atui-design` skill (`.claude/skills/atui-design`, relative symlink; it loaded mid-session) and
 added it to README's doc map. Scoped the restyle at Terrence's request — no UI changed. The key
@@ -4901,3 +4903,18 @@ other candidate target, so which front end gets ATUI waits on his plan. Layer-by
 the open decisions are in PROGRESS 2026-09-30 (afternoon).
 
 Gate: EXIT=0 — both guards OK, pytest 1889 / 1 skipped, vitest 356 in 32 files, ck.db untouched.
+
+
+## Session Close / Handoff (2026-09-30, evening) — the ATUI restyle, built and swappable
+
+Terrence asked for a plan to restyle `current/` to ATUI, swappable with a button beside the theme
+toggle, then to execute it. All 16 decisions (S1–S16) were settled with him, and Phases 0–4 shipped in
+25 commits (`6da6825` … `29154ca`): `/restyle` (own HTML + CSS, `current/`'s JS), the Classic | ATUI
+switch, ATUI tokens / fonts / spacing, the header + icon rail, component look-alikes, and the approved
+wording and icon lists — in the shared JS through `shared/ui.js`, whose Classic output is the old
+literal. Classic changed only where he asked (pre-paint theme, pills, the specimen, the swap link).
+The shared-JS phase was trialled from a scratchpad worktree on the scratch server before merging.
+The plan is complete and moved to `archive/plans/`; nothing on it is open. Detail and the trial
+method: PROGRESS 2026-09-30 (evening).
+
+Gate: EXIT=0 — both guards OK, pytest 1901 / 1 skipped, vitest 377 in 34 files, ck.db untouched.

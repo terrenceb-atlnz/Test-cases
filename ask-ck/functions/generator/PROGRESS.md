@@ -5,13 +5,67 @@ verified: 2026-09-28
 
 **Purpose**: This file exists so future sessions can quickly understand exactly where we are, what has been built, what the priorities are, and how to continue seamlessly.
 
-**Last Updated**: 2026-09-30, afternoon (by Claude; ATUI design guidance arrived — skill linked, restyle scoped, nothing built)
+**Last Updated**: 2026-09-30, evening (by Claude; the ATUI restyle built at `/restyle`, swappable with Classic — complete)
 
 > **Reading note (2026-09-23 doc sweep).** Entries are frozen as written. Where an entry's
 > claim has since stopped being true, a ⚠ line under its heading says what changed.
 > Newest first. Paths in older entries predate these moves (the same as in CHANGELOG): `tool/` → `ask-ck/tools/`, `ask-ck/var/` → `ask-ck/db/`, `objective-drafting/` → `ask-ck/functions/generator/`, `pytest-create/` → `ask-ck/functions/pytest-creator/`, `js-tests/` → `tests/js/`, `ask-ck/ck-facelift/` → `ask-ck/plans/`, root reports → `docs/`, and completed plans `ask-ck/plans/` → `archive/plans/` (2026-09-11, 2026-09-23). Also retired 2026-09-23: the demo notes → `archive/plans/demo-2026-09-11/`, and `HANDOFF-generate-token-efficiency.md` + `Fragments_prompt.md` → `archive/records/`.
 
+## Latest session (2026-09-30, evening) — the ATUI restyle, built alongside Classic and swappable
+
+Terrence: *"make a plan for the restyle, but i want it to swap between current/ and restyle/ with a
+button that you make next to the day/night toggle"*, then *"execute the plan as far as you are able to.
+commit as you go."* ATUI is not required for Ask CK (*"Not for us, no. which is why we are scoping the
+restyle and making it toggleable just in case"*), and the restyle must never replace Classic (S9).
+Plan, decisions S1–S16 and the approved wording / icon lists: `archive/plans/PLAN-atui-restyle.md`
+(complete, retired this wrap).
+
+**Shipped (`6da6825` … `29154ca`, 25 commits):**
+- **`/restyle`** — `ask-ck/frontend/ck-main/restyle/`: its own `index.html` + `styles.css` + `atui/`
+  (tokens, Inter + Roboto Mono and Carbon 11.89.0 icons copied locally, the AT brand mark), running
+  `current/`'s JS. `main.py` serves `/restyle` and `/restyle/static` (one production restart, ~30 s,
+  no wedge). A **Classic | ATUI** switch sits under the theme toggle in both pages; `/` always opens Classic.
+- **Phases 0–4:** tokens + dark theme + 13px body; every raw colour tokenised and 427 px values on
+  ATUI's scales; a 48px header + a collapsible icon rail (`restyle/rail.js`, Rail A); CSS look-alikes of
+  ATUI's buttons, cards, tables, badges, banners, inputs, pills; then the copy and icons (W1–W18,
+  I1–I17) — in the HTML directly (4a), and in the shared JS through **`shared/ui.js`** (4b), whose
+  Classic output is the old literal (forcing ATUI on turns 9 Classic specs red).
+- **Classic changed only where Terrence asked:** the swap link; a pre-paint theme script (no dark flash
+  on load or swap — both pages); Script Search + Fragments pills on their own left-aligned line, like
+  Generate's; a Classic-vs-ATUI colour + type specimen on the Test Composer TBD page.
+- **Guards:** `tests/test_restyle_parity.py` (every id / `data-action`, same `main.js?v`, swap links,
+  identical specimen, routes); `tests/js/restyle-rail.spec.js` (the real nav.js accordion + rail.js);
+  `tests/js/ui-flag.spec.js`.
+
+**How 4b was trialled (worth repeating):** the working tree is production and serves `current/` JS
+with no cache, so the shared-JS branches were built in a git worktree in the session scratchpad
+(`GIT_LFS_SKIP_SMUDGE=1`, so no LFS bandwidth; `ask-ck/db`, `.venv`, `node_modules` symlinked and the
+db paths `skip-worktree` in that index) and run on the scratch server from there. Terrence checked it on
+:8123 before the fast-forward merge. The worktree's pytest has one false failure
+(`test_the_audit_log_is_not_committed` resolves through the db symlink) — it passes in the main tree.
+**Stop the scratch server by its own PID group, never `run.sh --stop`:** when the pid file is missing,
+its fallback is `pkill -f 'uvicorn CK_server.main'`, which matches production too.
+
+**Found on the trial and fixed:** ATUI's longer row buttons outgrew fixed columns (sequence
+"✕ Remove", Script Search "View"; the testbox actions pre-empted); Script Search's match table sizes its
+narrow columns in CSS, so the inline-width inset rule had missed them.
+
+**Pending:** nothing on the restyle. **Left for a restart-safe moment:** `CK_server/main.py` cites
+`ask-ck/plans/PLAN-atui-restyle.md` twice (lines near the `/restyle` mount and route) — now
+`archive/plans/`; a save restarts production, so it is left. Frontend and test comments cite the old
+path too; per the reading note, a missing `ask-ck/plans/PLAN-x.md` is in `archive/plans/`.
+
+Carried over, unchanged: the list in the 2026-09-30 (later) entry below.
+
+Gate: EXIT=0 — both guards OK, pytest **1901 / 1 skipped**, vitest **377 in 34 files**, `ck.db`
+untouched.
+
 ## Latest session (2026-09-30, afternoon) — ATUI design guidance from governance: skill linked, restyle scoped, no UI changed
+
+> ⚠ **Superseded the same day (evening entry above):** Terrence chose to restyle `current/` as a
+> swappable sibling (`restyle/`, served at `/restyle`), not to wait on the Svelte question — ATUI is not
+> required for Ask CK, so the restyle exists *"just in case"*. The open decisions below were all settled
+> (S1–S16, `archive/plans/PLAN-atui-restyle.md`).
 
 Governance's UI guidance arrived in `bd9f287` at `docs/ATUI Design System/`: the Allied Telesis
 ATUI design system (tokens, LOCKED content rules, React recreations of every `at-*` component, a

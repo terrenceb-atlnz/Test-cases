@@ -48,7 +48,10 @@ This version replaces the original single-file static `index.html` approach.
 - REST API consumed by the frontend: `/api/wizard` (Generator), `/api/pytest-create` (PyTest Creator), plus stub routers `/api/zephyr-tool` and `/api/test-composer`.
 - Serves the process documentation as interactive web pages.
 
-**Frontend**: Static web UI (vanilla JS + HTML, served by the backend) — `frontend/ck-main/current/index.html`
+**Frontend**: Static web UI (vanilla JS + HTML, served by the backend) — `frontend/ck-main/current/index.html`.
+An ATUI-styled alternative, `frontend/ck-main/restyle/index.html`, runs the same JS at `/restyle` (its
+own CSS at `/restyle/static`); a Classic/ATUI switch beside the theme toggle moves between them, and `/`
+always opens Classic (`archive/plans/PLAN-atui-restyle.md`).
 - **Ask CK multi-tool sidebar** (always-expanded sections, top→bottom):
   - **LLM** — live status + **Configure** entry (opens the LLM Provider Login as a main-area panel)
   - **Zephyr Templating Tool** — 1. Info / 2. Test Plan / Cycle / Cases / 3. Link Test Scripts / 4. TBD (placeholder panels)
@@ -112,7 +115,7 @@ ask-ck/                              (layout of 2026-09-11 — PLAN-restructure-
 │   ├── run.sh                       ← Start script (PYTHONPATH=CK-main, CK_server.main:app)
 │   ├── requirements.txt / requirements-dev.txt
 │   └── CK_server/                   ← The actual server application
-│       ├── main.py                  ← FastAPI entry point ("Ask CK"); includes all routers; mounts the front-end at /static
+│       ├── main.py                  ← FastAPI entry point ("Ask CK"); includes all routers; mounts the front-end at /static (the restyle at /restyle + /restyle/static)
 │       ├── paths.py                 ← Filesystem anchors (REFINED_DIR / PROCESS_MD / PT_GENERATED_DIR / DB_PATH / FRONTEND_DIR)
 │       ├── data.py                  ← Data loading (three DBs + indices)
 │       ├── llm.py                   ← Prompt templating + LLM call + parser
@@ -144,6 +147,7 @@ ask-ck/                              (layout of 2026-09-11 — PLAN-restructure-
 │   ├── current/                     ← the served front-end: index.html, styles.css, assets, modules by page
 │   │   ├── generator/  pytest-creator/  llm-config/  admin/  shared/
 │   │   └── README.md                ← module map + conventions
+│   ├── restyle/                     ← the ATUI restyle: own index.html + styles.css + atui/ (fonts, icons); shares current/'s JS
 │   └── svelte/                      ← the Svelte rewrite (Vite + Svelte 5, JavaScript)
 ├── functions/                       ← one directory per page: data, results, docs
 │   ├── generator/                   ← PROGRESS.md, LESSONS_LEARNED.md, OBJECTIVE_DRAFTING_PROCESS.md, refined-cases/<Group>/AWPTCM-Txxxx/

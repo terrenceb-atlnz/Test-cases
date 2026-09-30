@@ -4,7 +4,7 @@ description: Ask-CK has a 3-layer test suite + one gate — pytest (backend) + V
 metadata: 
   node_type: memory
   type: project
-  verified: 2026-09-22
+  verified: 2026-09-30
   originSessionId: 5da34e66-6995-49af-8d5e-491007959772
   modified: 2026-07-27T00:32:32.933Z
 ---
@@ -35,6 +35,9 @@ calibrated on a corpus that `e35bbb2` deliberately rewound) hid the whole Vitest
 2026-09-16 to 2026-09-22. **How to apply:** while any known red stands, run `npm test`
 SEPARATELY before believing the frontend is green, and treat a long-lived "known red" as
 actively dangerous rather than cosmetic — it is masking every layer behind it.
+
+Seen again 2026-09-30: one false pytest red inside a scratch worktree left Vitest unrun until it was
+run by hand — same shape, same fix.
 
 **Why:** the user wanted regression protection after big changes; chose Vitest over Jasmine for
 readable failure output, and E2E-first as a known-good reference the unit layer derives from.

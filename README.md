@@ -224,6 +224,7 @@ Test-cases/
     ├── frontend/ck-main/
     │   ├── current/                # The served front-end: index.html, styles.css, modules by page
     │   │                           #   (generator/, pytest-creator/, llm-config/, admin/, shared/)
+    │   ├── restyle/                # The ATUI restyle, served at /restyle — own HTML + CSS, current/'s JS
     │   └── svelte/                 # The Svelte rewrite (Vite + Svelte 5) — the design branch's home
     ├── functions/                  # One directory per page: its data, results and docs
     │   ├── generator/              # PROGRESS.md, OBJECTIVE_DRAFTING_PROCESS.md, refined-cases/
@@ -250,6 +251,7 @@ Test-cases/
 | [`ask-ck/functions/pytest-creator/SETUP-FILE-REFERENCE.md`](ask-ck/functions/pytest-creator/SETUP-FILE-REFERENCE.md) | `.setup` topology schema + a worked example |
 | [`ask-ck/functions/generator/LESSONS_LEARNED.md`](ask-ck/functions/generator/LESSONS_LEARNED.md) | Prior decisions and pitfalls |
 | [`docs/resources.md`](docs/resources.md) | Links to TestLink, Zephyr, ART |
+| [`archive/plans/PLAN-atui-restyle.md`](archive/plans/PLAN-atui-restyle.md) | The ATUI restyle at `/restyle`, swappable with Classic: settled decisions S1–S16, wording + icon lists |
 | [`docs/ATUI Design System/`](<docs/ATUI Design System/readme.md>) | Allied Telesis UI guidance from governance (received 2026-09-30): tokens, content rules, component recreations. Also the `atui-design` skill, linked from `.claude/skills/` |
 | [`docs/`](docs/) | Repo-level documents: reviewer onboarding, the token-efficiency report, the memory-split inventory, captured prompts |
 

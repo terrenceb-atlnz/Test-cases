@@ -6,7 +6,9 @@ verified: 2026-09-23
 **Layout (2026-09-11):** `index.html`, `styles.css` and the assets sit here; the ES modules are
 sorted into **page directories** — `generator/`, `pytest-creator/`, `llm-config/`, `admin/` — plus
 `shared/` for modules more than one page imports. The server mounts this directory at `/static`.
-The Svelte rewrite lives beside it at `../svelte/`.
+The Svelte rewrite lives beside it at `../svelte/`. The **ATUI restyle** lives beside it at
+`../restyle/` (since 2026-09-30, `archive/plans/PLAN-atui-restyle.md`): its own `index.html` +
+`styles.css`, served at `/restyle` and `/restyle/static`, running **these** modules — see convention 5.
 
 The Ask CK frontend used to be one 2663-line classic script (`static/app.js`).
 It is now browser-native ES modules — **no bundler, no build step, no
@@ -47,6 +49,7 @@ graph evaluates.
 | `shared/` | `locks.js` | Per-case lock UX (auth plan Phase 1): heartbeat + release-on-close when this tab holds the lock; read-only banner + "Take over" when another does |
 | `shared/` | `provenance.js` | The "LLM Provenance" block: renders the exact prompt a panel would send via the endpoint's `dry_run`, for copying into another LLM — no tokens spent |
 | `shared/` | `version.js` | Stale-tab guard: records the build id at load and asks the user to refresh when it moves — never reloads on its own |
+| `shared/` | `ui.js` | The ATUI restyle's one switch (convention 5): `copy`, `icon`, `glyphHtml` / `setGlyphText`, `sevMark` — the old literal on Classic, ATUI wording / Carbon icons when `<html data-ui="atui">` |
 
 ## Conventions
 
@@ -93,6 +96,15 @@ FastAPI `StaticFiles` sends `ETag` but no `Cache-Control`, so browsers may serve
 a stale module. On a shipped change, bump the `?v=` query on the `<script>` tag
 in `index.html` and tell users to hard-refresh once. `main.py` also sends
 `Cache-Control: no-cache` for every `/static/**/*.js`, so child modules revalidate on each load.
+
+**5. Both UIs run this JS; Classic's output must stay byte-identical.**
+`restyle/index.html` loads the same `/static/shared/main.js` with `data-ui="atui"` on `<html>`;
+Classic never sets it. A string or glyph that differs between the two goes through
+`shared/ui.js` — `copy('classic text', 'ATUI text')`, `icon('✓')`, `setGlyphText(el, text)` in
+place of `el.textContent = text` — whose Classic return is exactly the old literal. Every `id` and
+`data-action` in `index.html` must exist in `restyle/index.html` too (`tests/test_restyle_parity.py`).
+A shared-JS change for the restyle is live for Classic the moment it is saved (the working tree is
+production), so trial it from a separate worktree on the scratch server first.
 
 ## Known debt
 

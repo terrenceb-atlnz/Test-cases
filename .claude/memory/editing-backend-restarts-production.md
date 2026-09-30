@@ -3,7 +3,7 @@ name: editing-backend-restarts-production
 description: ask-ck.service runs uvicorn --reload against the working tree, so ANY save to CK_server/*.py bounces the live server — and a reload can wedge on the agent long-polls
 metadata:
   type: project
-  verified: 2026-09-28
+  verified: 2026-09-30
 ---
 
 The hosted server (`systemd --user` unit `ask-ck.service`, LAN on :8000) runs:
@@ -70,5 +70,17 @@ and hand Terrence one `git merge --ff-only <branch>` for the live tree: one relo
 and no one needed mid-run. Edit memories and docs in the WORKTREE too — an uncommitted edit to the
 same file in the live tree blocks the fast-forward. Written into SERVER-README ("Changing the
 backend of the hosted server").
+
+**2026-09-30 — the same branch method for SHARED FRONT-END JS, and three details.** `current/` JS is
+served from this tree with no cache, so a shared-JS change is live for every seat on save — when it
+matters (the ATUI restyle's 4b, ~9 files), build it on a worktree branch too and run the scratch
+server FROM the worktree (it serves whichever tree it is launched from). Details: create the
+worktree with `GIT_LFS_SKIP_SMUDGE=1` (otherwise it downloads ck.db + the model against the LFS
+bandwidth allowance); symlink `ask-ck/db` in and mark its paths `skip-worktree` in the worktree's
+index; expect ONE false pytest red there (`test_the_audit_log_is_not_committed` resolves through
+the db symlink) — it passes in the main tree. Tear down by `rm`-ing the three symlinks by LITERAL
+path (the harness refuses `rm "$VAR/…"`), then `git worktree remove --force`. Claude ran the
+`git merge --ff-only` itself that day at Terrence's "merge it" — a front-end-only merge, not
+refused. Also re-verified: the Phase 0b `main.py` save bounced production (~30 s, no wedge).
 
 **Prompt templates are the other case (verified 2026-09-28):** `templates/prompts/*.jinja` are read by a Jinja `Environment` with the default `auto_reload`, so a `.jinja` edit in the live tree is live on the NEXT render with no reload and no restart — which also means such an edit is production the moment it is saved. Same branch-and-merge discipline as `.py`.

@@ -2,6 +2,12 @@
 
 > ## Status (read first)
 >
+> **COMPLETE 2026-09-30 — retired to `archive/plans/` in that day's wrap.** Phases 0–4 built; there is
+> no Phase 5 (S9: the restyle lives alongside Classic permanently). Nothing is open. Standing rules it
+> leaves behind live in `ask-ck/frontend/ck-main/current/README.md` convention 5 (shared JS, `data-ui`,
+> Classic byte-identical, `tests/test_restyle_parity.py`). Not taken, by design: the real `at-*` web
+> components (S7 chose a CSS look-alike), and ATUI for Trent's Svelte UI (a separate question).
+>
 > **Phase 0 BUILT 2026-09-30** (`9c996c1`, then the served/swap commit): `/restyle` is live and the
 > Classic/ATUI swap is in both sidebars. The restart took ~30 s and did not wedge. **Awaiting:**
 > Terrence's Phase 0 checklist, his review of the §7 mapping (incl. the severity note), then
