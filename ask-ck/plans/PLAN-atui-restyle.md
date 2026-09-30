@@ -26,8 +26,16 @@
 > 50px rail of the six section icons (ATUI: only parents carry icons — the 21 step icons are gone in
 > the restyle); a rail click expands with that section open (`restyle/rail.js`, 6 vitest specs
 > against the real nav.js accordion, mutation-checked). theme.js's 🌙/☀️ and nav.js's ▸ are Carbon
-> icons via CSS in the restyle — no shared-JS change. **Awaiting:** Terrence's look; then the rest of
-> Phase 3 (buttons, cards, tables, stepper, badges, banners, modals, inputs).
+> icons via CSS in the restyle — no shared-JS change. Terrence checked the shell 2026-09-30: all six
+> checklist items pass (after the Collapse fix, `f600832`).
+>
+> **Phase 3 components BUILT 2026-09-30** — a CSS look-alike of ATUI's recreations: buttons (overlay
+> hover/press, 3px glow, 30%+grayscale disabled, no press-scale; variant-less = ATUI secondary),
+> cards, section headings, tables (ATUI's 40/48px rows, 24px inset, muted sentence-case headers),
+> badges, status banners (ATUI Message: tinted + Carbon icon, no coloured edge), inputs/selects
+> (active-accent focus glow), step pills. No modals exist in the app to restyle. The select chevron's
+> data-URI grey (missed by 2a — the # is %23) is now Carbon's chevron in ATUI slate-500.
+> **Awaiting:** Terrence's look — the tables are the largest density change; then Phase 4.
 >
 > Originally: **PLAN ONLY — nothing built.** Written 2026-09-30 at Terrence's request: *"lets make a plan for
 > the restyle, but i want it to swap between current/ and restyle/ with a button that you make next

@@ -1004,7 +1004,7 @@ button.secondary:not(.btn):hover {
   font-family: var(--font-sans);
   cursor: pointer;
   appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236B7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32' width='16' height='16'%3E%3Cpath fill='%2364748b' d='M16 22 6 12 7.4 10.6 16 19.2 24.6 10.6 26 12z'/%3E%3C/svg%3E");  /* Carbon chevron--down, ATUI slate-500 */
   background-repeat: no-repeat;
   background-position: right 10px center;
   transition: border-color 150ms, box-shadow 150ms;
@@ -1741,6 +1741,126 @@ html.rs-rail-collapsed .sidebar-section-body { display: none !important; }
 html.rs-rail-collapsed .rs-sec-text, html.rs-rail-collapsed .section-caret { display: none; }
 html.rs-rail-collapsed .sidebar-section-label, html.rs-rail-collapsed .rs-rail-toggle { justify-content: center; padding: var(--token-space-8) 0; }
 html.rs-rail-collapsed .sidebar-section-label.rs-has-active { background: var(--token-sidebar-active-background); }
+
+/* ========================================
+   Phase 3 components — a CSS look-alike of ATUI's recreations in docs/ATUI Design System/components/
+   (S7). ATUI's rules: hover and press are OVERLAYS, never a new colour; focus is a 3px glow at 50%;
+   disabled is 30% + grayscale; no press-scale; hairlines over shadows. restyle/ only.
+   ======================================== */
+
+/* -- Buttons (at-button) ------------------------------------------------------------------------- */
+:where(.btn) { background-color: var(--token-surface-2); color: var(--token-text-foreground); }   /* variant-less = ATUI secondary */
+.btn {
+  --rs-hover: color-mix(in srgb, var(--token-surface-overlay) 10%, transparent);
+  --rs-press: color-mix(in srgb, var(--token-surface-overlay) 16%, transparent);
+  --rs-glow: var(--token-state-active-accent);
+  border-radius: var(--token-button-radius); font-size: var(--token-font-size-button);
+  font-weight: var(--token-font-weight-med); gap: var(--token-space-4);
+  transition: color 150ms ease-in-out, background-color 150ms ease-in-out, border-color 150ms ease-in-out, box-shadow 150ms ease-in-out;
+}
+.btn.btn-compact { height: var(--token-button-height-md); padding: 0 var(--token-button-px-md); }
+.btn.btn-small, .btn.btn-compact-small { height: var(--token-button-height-sm); padding: 0 var(--token-button-px-sm); border-radius: var(--token-button-radius); }
+.btn:hover:not(:disabled) { background-image: linear-gradient(var(--rs-hover), var(--rs-hover)); }
+.btn:active:not(:disabled), .btn.ck-pressed { background-image: linear-gradient(var(--rs-press), var(--rs-press)); }
+button:active:not(:disabled), .btn:active:not(:disabled), button.ck-pressed, .btn.ck-pressed { transform: none; animation: none; }
+.btn:focus-visible { outline: none; box-shadow: 0 0 0 3px color-mix(in srgb, var(--rs-glow) 50%, transparent); }
+.btn:disabled { opacity: 0.3; filter: grayscale(1); }
+
+.btn.btn-primary, .btn.btn-primary:hover { background-color: var(--token-state-active-accent); color: var(--token-button-foreground-inv); border-color: transparent; }
+.btn.btn-primary { --rs-hover: color-mix(in srgb, var(--token-surface-overlay) 30%, transparent);
+  --rs-press: color-mix(in srgb, var(--token-state-active-accent) 70%, transparent); }
+.btn.btn-secondary, .btn.btn-secondary:hover { background-color: transparent; border-color: var(--token-text-muted); color: var(--token-text-foreground); }   /* secondaryOutline */
+.btn.btn-ghost, .btn.btn-ghost:hover { background-color: transparent; color: var(--token-text-foreground); }   /* secondaryText */
+.btn.btn-danger, .btn.btn-danger:hover, .btn.btn-danger:active { background-color: var(--token-state-error-accent); border-color: transparent;
+  color: var(--token-button-foreground-inv); font-weight: var(--token-font-weight-med); }
+.btn.btn-danger { --rs-hover: color-mix(in srgb, var(--token-surface-overlay) 30%, transparent);
+  --rs-press: color-mix(in srgb, var(--token-state-error-accent) 70%, transparent); --rs-glow: var(--token-state-error-accent); }
+.btn.btn-export, .btn.btn-export:hover, .btn.btn-export:active { background-color: var(--token-color-base-teal-600); border-color: transparent;
+  color: var(--token-button-foreground-inv); box-shadow: none; }
+.btn.btn-export { --rs-hover: color-mix(in srgb, var(--token-surface-overlay) 30%, transparent);
+  --rs-press: color-mix(in srgb, var(--token-color-base-teal-600) 70%, transparent); --rs-glow: var(--token-color-base-teal-600); }
+.btn.btn-export:focus-visible { box-shadow: 0 0 0 3px color-mix(in srgb, var(--rs-glow) 50%, transparent); }
+
+/* Busy LLM buttons stay readable: no dimming, a light overlay instead of a brightness filter. */
+.btn.is-busy, .btn.is-busy:disabled { opacity: 1; filter: none; background-image: linear-gradient(var(--rs-hover), var(--rs-hover)); }
+
+/* Legacy <button>s without .btn: ATUI radius; the pill rows override further below. */
+button:not(.btn) { border-radius: var(--token-button-radius); font-size: var(--token-font-size-button); }
+
+/* -- Cards and sections (at-card) ------------------------------------------------------------------ */
+.card { background: var(--token-card-background); border: 1px solid var(--token-card-border);
+  border-radius: var(--token-card-radius); box-shadow: none; padding: var(--token-space-16); }
+.section-heading { font-size: var(--token-font-size-h4); font-weight: var(--token-font-weight-med); color: var(--token-text-foreground); }
+.section-description { font-size: var(--token-font-size-sm); color: var(--token-text-muted); }
+
+/* -- Tables (at-table): 40px header, 48px rows, 24px inset, muted sentence-case headers ------------ */
+.table th { text-transform: none; letter-spacing: 0; font-size: var(--token-font-size-sm); font-weight: var(--token-font-weight-med);
+  color: var(--token-text-muted); background: var(--token-surface-foreground); border-bottom: 1px solid var(--token-border-muted);
+  padding: var(--token-space-12) var(--token-space-24); }
+.table td { padding: var(--token-space-12) var(--token-space-24); border-bottom: 1px solid var(--token-border-muted);
+  color: var(--token-text-foreground); line-height: var(--token-line-height-base); }
+.table tbody tr:hover { background: var(--token-surface-background); }
+
+/* -- Badges (at-badge, low impact) ------------------------------------------------------------------ */
+.badge { gap: 2px; padding: 2px 4px; border-radius: var(--token-badge-radius); font-size: var(--token-font-size-xs);
+  font-weight: var(--token-font-weight-light); line-height: 0.9286rem;
+  color: var(--token-feedback-foreground); background: var(--token-feedback-background); border: 1px solid var(--token-border-default); }
+.badge-low { color: var(--token-feedback-foreground); background: var(--token-feedback-background); border-color: var(--token-border-default); }
+.badge-success { color: var(--token-feedback-success-foreground); background: var(--token-feedback-success-background);
+  border-color: color-mix(in srgb, var(--token-feedback-success-foreground) 30%, transparent); }
+.badge-warning { color: var(--token-feedback-warning-foreground); background: var(--token-feedback-warning-background);
+  border-color: color-mix(in srgb, var(--token-feedback-warning-foreground) 30%, transparent); }
+
+/* -- Status banners (at-message, high impact): tinted, an icon, no coloured edge -------------------- */
+.status-banner { position: relative; border: 0; border-radius: var(--token-border-radius-md); padding: 14px 14px 14px 38px;
+  font-size: var(--token-font-size-sm); line-height: var(--token-line-height-base);
+  color: var(--token-text-foreground); background: var(--token-feedback-background); }
+.status-banner .status-title { font-weight: var(--token-font-weight-med); color: var(--token-text-foreground); }
+.status-banner::before { content: ''; position: absolute; left: 14px; top: 15px; width: 16px; height: 16px;
+  background-color: var(--token-feedback-foreground); -webkit-mask: center / contain no-repeat; mask: center / contain no-repeat; }
+.status-banner.is-busy::before { display: none; }
+.status-banner.is-success { background: var(--token-feedback-success-background); }
+.status-banner.is-success::before { background-color: var(--token-feedback-success-accent);
+  -webkit-mask-image: url(atui/icons/checkmark--filled.svg); mask-image: url(atui/icons/checkmark--filled.svg); }
+.status-banner.is-warning { background: var(--token-feedback-warning-background); }
+.status-banner.is-warning::before { background-color: var(--token-feedback-warning-accent);
+  -webkit-mask-image: url(atui/icons/warning--alt--filled.svg); mask-image: url(atui/icons/warning--alt--filled.svg); }
+.status-banner.is-error { background: var(--token-feedback-error-background); }
+.status-banner.is-error::before { background-color: var(--token-feedback-error-accent);
+  -webkit-mask-image: url(atui/icons/warning--filled.svg); mask-image: url(atui/icons/warning--filled.svg); }
+.status-banner.is-info { background: var(--token-feedback-info-background); }
+.status-banner.is-info::before { background-color: var(--token-feedback-info-accent);
+  -webkit-mask-image: url(atui/icons/information--filled.svg); mask-image: url(atui/icons/information--filled.svg); }
+
+/* -- Inputs and selects (at-input / at-select): border-muted, active-accent border + 3px glow on focus - */
+.form-input, .form-select { border: 1px solid var(--token-border-muted); border-radius: var(--token-input-radius);
+  background-color: var(--token-input-background); color: var(--token-text-foreground); }
+.form-input:focus, .form-select:focus { outline: none; border-color: var(--token-state-active-accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--token-state-active-accent) 50%, transparent); }
+.form-input:disabled, .form-select:disabled, .form-input[readonly] { background-color: var(--token-surface-1); border-color: transparent;
+  color: var(--token-text-disabled); }
+.form-input::placeholder { color: var(--token-text-muted); }
+.tb-field .form-input.tb-invalid { border-color: var(--token-border-error); }
+.tb-field .form-input.tb-invalid:focus { box-shadow: 0 0 0 3px color-mix(in srgb, var(--token-state-error-accent) 50%, transparent); }
+.form-label, .tb-label { font-size: var(--token-font-size-xs); font-weight: var(--token-font-weight-med); }
+
+/* -- Step pills and states (at-badge, rounded): base font, feedback colours, 30% edge ---------------- */
+.pt-pill-row button.pt-pill, .pt-pill-row .pt-state { font-family: var(--font-sans); font-weight: var(--token-font-weight-med);
+  font-size: var(--token-font-size-xs); line-height: 0.9286rem; padding: 4px 8px; }
+.pt-pill-row button.pt-pill-ok, .pt-pill-row .pt-state-ok { color: var(--token-feedback-success-foreground);
+  background: var(--token-feedback-success-background); border-color: color-mix(in srgb, var(--token-feedback-success-foreground) 30%, transparent); }
+.pt-pill-row button.pt-pill-gap { color: var(--token-feedback-warning-foreground); background: var(--token-feedback-warning-background);
+  border-color: color-mix(in srgb, var(--token-feedback-warning-foreground) 30%, transparent); }
+.pt-pill-row button.pt-pill-limit { color: var(--token-feedback-foreground); background: var(--token-feedback-background);
+  border-color: var(--token-border-default); }
+.pt-pill-row .pt-state-stale { color: var(--token-feedback-error-foreground); background: var(--token-feedback-error-background);
+  border-color: color-mix(in srgb, var(--token-feedback-error-foreground) 30%, transparent); }
+.pt-pill-row button.pt-pill:hover { filter: none; background-image: linear-gradient(color-mix(in srgb, var(--token-surface-overlay) 10%, transparent),
+  color-mix(in srgb, var(--token-surface-overlay) 10%, transparent)); }
+.pt-pill-row button.pt-pill-current { outline: none; box-shadow: 0 0 0 2px var(--token-state-active-accent); }
+
+/* -- The step-nav bar ------------------------------------------------------------------------------ */
+.pt-stepnav { border-color: var(--token-border-muted); border-radius: var(--token-border-radius-md); background: var(--token-surface-1); }
 
 /* ========================================
    Colour + type specimen on the Test Composer TBD page — Classic vs ATUI 1-to-1
