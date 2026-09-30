@@ -53,6 +53,15 @@
 
   --font-sans: var(--token-font-family-base);
   --font-mono: var(--token-font-family-mono);
+
+  /* Phase 2: seven names current/ uses but never defines (its rules carry hard-coded fallbacks). */
+  --status-err: var(--token-state-error-accent);
+  --status-ok: var(--token-state-success-accent);
+  --status-info: var(--token-state-info-accent);
+  --status-info-muted: var(--token-state-info-background);
+  --color-danger: var(--token-state-error-accent);
+  --text-muted: var(--token-text-muted);
+  --border-color: var(--token-border-muted);
 }
 
 /* Base */
@@ -276,12 +285,12 @@ body {
 .pt-frag-redundant-wrap {
   margin: -4px 0 8px 20px;
   padding-left: 10px;
-  border-left: 2px dashed #ef4444;
+  border-left: 2px dashed var(--token-state-error-accent);
 }
-.pt-frag-redundant-label { font-size: 11px; color: #ef4444; margin: 2px 0 4px; font-style: italic; }
+.pt-frag-redundant-label { font-size: 11px; color: var(--token-text-error); margin: 2px 0 4px; font-style: italic; }
 .pt-frag-redundant {
-  background: rgba(239, 68, 68, 0.08);
-  border-color: rgba(239, 68, 68, 0.45);
+  background: color-mix(in srgb, var(--token-state-error-accent) 8%, transparent);
+  border-color: color-mix(in srgb, var(--token-state-error-accent) 45%, transparent);
 }
 /* Any selected card gets a subtle emphasis */
 .pt-frag-card.is-selected { box-shadow: inset 0 0 0 1px var(--status-success); }
@@ -397,7 +406,7 @@ body {
   margin-left: 6px;
 }
 .pt-pill-row .pt-state-ok { background: var(--status-success-muted); color: var(--status-success); border-color: var(--status-success); }
-.pt-pill-row .pt-state-stale { background: var(--status-high-muted, #fde2e2); color: var(--status-high, #b00020); border-color: var(--status-high, #b00020); }
+.pt-pill-row .pt-state-stale { background: var(--status-high-muted); color: var(--status-high); border-color: var(--status-high); }
 button.pt-gated { opacity: 0.45; cursor: not-allowed; }
 /* Slice B: a stale review's findings whose quoted evidence is no longer in the script. */
 .pt-review-finding.pt-review-gone { opacity: 0.55; }
@@ -595,39 +604,39 @@ button.pt-gated { opacity: 0.45; cursor: not-allowed; }
 }
 
 .btn-danger {
-  background: #dc3545;
-  border-color: #dc3545;
-  color: white;
+  background: var(--token-state-error-accent);
+  border-color: var(--token-state-error-accent);
+  color: var(--token-button-foreground-inv);
   border-radius: 20px; /* pill shape for distinction */
   font-weight: 500;
 }
 .btn-danger:hover {
-  background: #c82333;
-  border-color: #bd2130;
+  background: color-mix(in srgb, var(--token-state-error-accent) 70%, var(--token-surface-overlay));
+  border-color: color-mix(in srgb, var(--token-state-error-accent) 70%, var(--token-surface-overlay));
 }
 .btn-danger:active {
-  background: #a71d2a;
+  background: color-mix(in srgb, var(--token-state-error-accent) 70%, black);
 }
 
 /* High-visibility export CTA (distinct from primary blue synthesize actions) */
 .btn-export {
-  background: #0d9488;
-  border-color: #0d9488;
-  color: #fff;
+  background: var(--token-color-base-teal-600);
+  border-color: var(--token-color-base-teal-600);
+  color: var(--token-button-foreground-inv);
   font-weight: 600;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
+  box-shadow: var(--token-shadow-1);
 }
 .btn-export:hover {
-  background: #0f766e;
-  border-color: #0f766e;
-  color: #fff;
+  background: var(--token-color-base-teal-700);
+  border-color: var(--token-color-base-teal-700);
+  color: var(--token-button-foreground-inv);
 }
 .btn-export:active {
-  background: #115e59;
-  border-color: #115e59;
+  background: var(--token-color-base-teal-800);
+  border-color: var(--token-color-base-teal-800);
 }
 .btn-export:focus-visible {
-  box-shadow: 0 0 0 2px var(--bg-primary), 0 0 0 4px rgba(13, 148, 136, 0.55);
+  box-shadow: 0 0 0 2px var(--bg-primary), 0 0 0 4px color-mix(in srgb, var(--token-color-base-teal-600) 55%, transparent);
 }
 
 /* Placeholder panels for tools under construction */
@@ -676,20 +685,20 @@ button.pt-gated { opacity: 0.45; cursor: not-allowed; }
    noise, and the question a reviewer asks of the row is "which are done", not "which is
    moving". */
 .pt-pill-row button.pt-pill-run {
-  background: #78350f;
-  border-color: #d97706;
-  color: #fde68a;
+  background: var(--token-state-warning-background);
+  border-color: var(--token-state-warning-accent);
+  color: var(--token-state-warning-foreground);
 }
 /* ⏸ HELD (G7, 2026-09-14): the unit's current code stands and a fix waits for Apply /
    Discard on its page. Blue, dashed — neither "done" nor "in flight" nor "missing". */
 .pt-pill-row button.pt-pill-held {
-  background: var(--status-info-muted, #1e3a5f);
-  border-color: var(--status-info, #3b82f6);
+  background: var(--status-info-muted);
+  border-color: var(--status-info);
   border-style: dashed;
-  color: var(--status-info, #93c5fd);
+  color: var(--status-info);
 }
-.pt-unit-frame-held { border-color: var(--status-info, #3b82f6); border-style: dashed; }
-.pt-held-warn { color: var(--status-medium, #d97706); font-size: 12px; margin-top: 2px; }
+.pt-unit-frame-held { border-color: var(--status-info); border-style: dashed; }
+.pt-held-warn { color: var(--status-medium); font-size: 12px; margin-top: 2px; }
 .pt-held-diff { max-height: 360px; }
 
 .pt-unit-frame {
@@ -709,11 +718,11 @@ button.pt-gated { opacity: 0.45; cursor: not-allowed; }
 /* The refused reply. Bordered in the error colour so a reviewer paging through units can
    tell at a glance that this frame holds a REJECTED block, not a usable one. */
 .pt-unit-frame-raw {
-  border-color: var(--color-danger, #c0392b);
+  border-color: var(--color-danger);
 }
 .pt-unit-frame-raw .pt-unit-frame-label {
-  color: var(--color-danger, #c0392b);
-  border-bottom-color: var(--color-danger, #c0392b);
+  color: var(--color-danger);
+  border-bottom-color: var(--color-danger);
 }
 /* Same specificity note as the prompt below — .session-pre is declared later. */
 pre.pt-unit-out {
@@ -750,7 +759,7 @@ textarea.pt-unit-prompt {
 /* Failures, non-blocking. `alert` would freeze the event loop and queue every other
    unit's result behind the dialog — see ptRenderUnitErrors. */
 .pt-unit-errbox {
-  border: 1px solid var(--status-err, #dc2626);
+  border: 1px solid var(--status-err);
   border-left-width: 3px;
   border-radius: 4px;
   padding: 8px 10px;
@@ -775,8 +784,8 @@ textarea.pt-unit-prompt {
   border-radius: 0 4px 4px 0;
   font-size: 12px;
 }
-.pt-review-high { border-left-color: var(--status-err, #dc2626); }
-.pt-review-medium { border-left-color: #d97706; }
+.pt-review-high { border-left-color: var(--status-err); }
+.pt-review-medium { border-left-color: var(--status-medium); }
 .pt-review-low { border-left-color: var(--border-strong); }
 .pt-review-ev {
   margin: 4px 0;
@@ -874,14 +883,14 @@ button.ck-pressed,
 
 /* Success / failure flash after completion (auto-cleared after ~1.2s). */
 .btn.is-done {
-  background: var(--status-ok, #16a34a) !important;
-  border-color: var(--status-ok, #16a34a) !important;
-  color: #fff !important;
+  background: var(--status-ok) !important;
+  border-color: var(--status-ok) !important;
+  color: var(--token-button-foreground-inv) !important;
 }
 .btn.is-error {
-  background: var(--status-err, #dc2626) !important;
-  border-color: var(--status-err, #dc2626) !important;
-  color: #fff !important;
+  background: var(--status-err) !important;
+  border-color: var(--status-err) !important;
+  color: var(--token-button-foreground-inv) !important;
 }
 
 /* Legacy button support for existing onclicks */
@@ -1224,11 +1233,11 @@ button.secondary:not(.btn):hover {
 
 /* LLM observability: token badge next to the pressed LLM button + footer error tag */
 .llm-token-badge { margin-left: 6px; vertical-align: middle; }
-.llm-debug-error { color: var(--status-low, #ef4444); }
+.llm-debug-error { color: var(--status-low); }
 
 /* PyTest Creator Step 2 — drag-to-reorder sequence rows */
 .pt-seq-handle:active { cursor: grabbing; }
-.pt-seq-row.pt-seq-drop-over { box-shadow: inset 0 2px 0 0 var(--status-success, #22c55e); }
+.pt-seq-row.pt-seq-drop-over { box-shadow: inset 0 2px 0 0 var(--status-success); }
 
 #theme-toggle {
   background: transparent;
@@ -1309,9 +1318,9 @@ h2 {
 .provenance-status { font-size:11px; color:var(--text-tertiary); }
 .instructions-panel { margin-top:12px; padding:12px; background:var(--bg-tertiary); border:1px solid var(--border-default); border-radius:6px; font-size:13px; line-height:1.5; }
 .status-result { margin-top:8px; font-size:12px; }
-.status-ok { color:#5ddc7a; }
-.status-err { color:#ff6b6b; }
-.status-warn { color:#f59e0b; }
+.status-ok { color: var(--token-text-success); }
+.status-err { color: var(--token-text-error); }
+.status-warn { color: var(--token-text-warning); }
 .status-muted { color:var(--text-secondary); }
 .btn-compact-small { font-size:12px; padding:2px 8px; height:26px; white-space:nowrap; }
 .form-input-small { width:160px; }
@@ -1323,8 +1332,8 @@ h2 {
 .session-debug-summary { cursor: pointer; font-size: 11px; color: var(--text-tertiary); user-select: none; }
 .session-debug[open] .session-debug-summary { margin-bottom: 6px; color: var(--text-secondary); }
 .llm-status-inline { color:var(--text-secondary); font-size:12px; }
-.llm-status-ok { color:#5ddc7a !important; }
-.llm-status-warn { color:#f59e0b !important; }
+.llm-status-ok { color: var(--token-text-success) !important; }
+.llm-status-warn { color: var(--token-text-warning) !important; }
 .nav-badge {
   margin-left: 4px;
   font-size: 9px !important;
@@ -1377,9 +1386,9 @@ h2 {
 .status-banner .status-title { font-weight: 600; color: var(--text-primary); }
 .status-banner ul { margin: 6px 0 0 1.1rem; }
 .status-banner li { margin: 2px 0; }
-.status-banner.is-success { border-left-color: #16a34a; }
-.status-banner.is-warning { border-left-color: #d97706; }
-.status-banner.is-error   { border-left-color: #dc2626; }
+.status-banner.is-success { border-left-color: var(--token-state-success-accent); }
+.status-banner.is-warning { border-left-color: var(--token-state-warning-accent); }
+.status-banner.is-error   { border-left-color: var(--token-state-error-accent); }
 .status-banner.is-busy    { border-left-color: var(--border-default); }
 /* Read-only step panel while another tab/user holds the case lock (PLAN-auth Phase 1,
    D6a). Inputs are actually disabled in JS (locks._setReadOnly); this is the visual cue. */
@@ -1402,18 +1411,18 @@ h2 {
   font-weight: 600;
   font-size: 0.9rem;
   margin: 12px 0 6px;
-  color: var(--text-secondary, #9aa4b2);
+  color: var(--text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.03em;
 }
 .chosen-empty {
-  color: var(--text-secondary, #9aa4b2);
+  color: var(--text-secondary);
   font-style: italic;
 }
 /* Chosen table is the confirmed shortlist — subtle accent so it reads as distinct
    from the candidates table above it. */
 .chosen-table {
-  border-left: 3px solid var(--accent-primary, #4f8cff);
+  border-left: 3px solid var(--accent-primary);
 }
 .confirm-toolbar {
   display: flex;
@@ -1463,8 +1472,8 @@ h2 {
   word-break: break-word;
   max-height: 320px;
   overflow: auto;
-  background: var(--bg-secondary, #f6f8fa);
-  border: 1px solid var(--border-color, #d0d7de);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
   border-radius: 6px;
 }
 .synth-objective {
@@ -1604,10 +1613,10 @@ h2 {
   padding: 4px 8px; margin: 4px 6px 4px 0; user-select: all; word-break: break-all; }
 
 /* Slice C: sequence sanity flags (advisory) and the claim column. */
-.pt-seq-sanity-box { border: 1px solid var(--status-high, #b00020); border-radius: 6px; padding: 6px 10px; background: var(--status-high-muted, #fde2e2); font-size: 12px; }
+.pt-seq-sanity-box { border: 1px solid var(--status-high); border-radius: 6px; padding: 6px 10px; background: var(--status-high-muted); font-size: 12px; }
 .pt-seq-sanity-box ul { margin: 0; padding-left: 18px; }
-tr.pt-seq-flagged td { background: var(--status-high-muted, #fde2e2); }
-.pt-seq-flag { color: var(--status-high, #b00020); font-weight: 700; cursor: help; }
+tr.pt-seq-flagged td { background: var(--status-high-muted); }
+.pt-seq-flag { color: var(--status-high); font-weight: 700; cursor: help; }
 td.pt-seq-claim { font-family: var(--font-mono, monospace); white-space: normal; }
 
 /* ========================================
