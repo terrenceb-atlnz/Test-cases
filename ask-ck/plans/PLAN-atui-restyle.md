@@ -360,3 +360,62 @@ Ties snap **down**, toward ATUI's density. `restyle/` only; the specimen CSS and
 
 Biggest visible shifts: 6px gaps/paddings → 4 (39), 10 → 8 (23), 13px text → 12 (16), 14px → 13 (10).
 
+## 9. Phase 4 — the wording list (DRAFT, for Terrence row by row; restyle only, S8)
+
+Audited 2026-09-30 against ATUI's LOCKED content rules (`docs/ATUI Design System/readme.md`, Content
+fundamentals). **[html]** = `restyle/index.html`, free to change. **[JS]** = emitted by the shared JS, so
+it needs a `data-ui="atui"` branch (S11) and Classic's output stays byte-identical. No exclamation
+marks were found. Most `confirm()` texts already name the object and the consequence.
+
+| # | Today | Proposed | Where | Rule |
+|---|---|---|---|---|
+| W1 | Apply / Login | Save Changes | html (LLM Configure) | *Save changes* commits, never Apply |
+| W2 | Apply Step Edits | Save Changes | JS generator.js | same |
+| W3 | Apply this fix | Save Fix | JS pytest.js (held fix) | same |
+| W4 | Apply all held fixes | Save All Held Fixes | html (Generate) | same |
+| W5 | "Apply: …" / "Apply all: …" status lines | "Save: …" / "Save all: …" | JS pytest.js | same |
+| W6 | OK, refresh | Refresh Page | JS version.js (stale-tab banner) | never OK |
+| W7 | dismiss | Close | JS pytest.js (unit errors) | *Close* dismisses a view |
+| W8 | ✕ (sequence row) | Remove | JS pytest.js | *Remove* takes out of a set |
+| W9 | ✕ (testbox row) | Delete | JS pytest.js | *Delete* destroys |
+| W10 | + Add step (×2) · + Add setup · ➕ Add new testbox… | New Step · New Setup · New Testbox… | JS + html | CTA to make new = *New {Noun}* |
+| W11 | Clear selected contents (×3) | Clear Selected | html (Generator 2–4) | *Clear* empties; Title Case |
+| W12 | prose: "for you to Apply or Discard" · "until you Apply a new one" · "Apply / Login sets the LLM" | "…to Save or Discard" · "until you save a new one" · "Save Changes sets the LLM" | html + JS | follows W1/W3 |
+| W13 | can't (×2) · don't (×3) · wasn't · doesn't | cannot · do not · was not · does not | html + JS (7 sites) | "Cannot" for blocks; "Do not" for advice |
+| W14 | ~35 button labels in sentence/lower case (Check my local agent, Health check, Choose selected, Refresh list, Generate all units (LLM), Re-render prompts, Assemble only, Confirm step 5, Fix units (LLM), Fix whole script (LLM), Re-chunk from script, Prune library…, Clear form, view, edit, check, re-run, Take over, Copy prompt, Copy response, Run anyway, Fix this unit (LLM), Refresh (no send), Choose ticked for sequence step N, Remove ticked from sequence step, …) | Title Case each (Check My Local Agent, Health Check, …, View, Edit, Check, Re-run, …) | html + JS | buttons are Title Case |
+| W15 | confirm: Delete testbox "{name}"? | Delete testbox {name}? This permanently deletes its connection details and setups. This cannot be undone. | JS pytest.js | a confirmation names object **and** consequence |
+| W16 | native `confirm()` / `alert()` dialogs (28 alerts, 7 confirms) | keep native; reword only per W12–W15 | JS | ATUI wants `at-dialog`; building an in-page dialog is a shared-JS feature for both UIs — **recommend keep native** |
+| W17 | CSS `text-transform: uppercase` on .splash-tag, .page-eyebrow, .pt-step-sub, .pt-unit-frame-label, .provenance-label, .chosen-heading ("CANDIDATES — TICK ROWS…") | remove; text shows as written | restyle CSS | never force case with CSS |
+| W18 | glyphs inside prose: "Each step shows a ✓ covered / ✗ gap status" · "Drag ⠿ to reorder." · "(⏸)" · "units ⇄ script" · "LLM → Configure" (×3) · "Confirm Objectives → Step 6" · "Save & Confirm → Step 6" | "Each step shows whether it is covered or has a gap." · "Drag a row to reorder." · "(held)" · "units and script" · "LLM, Configure" · "Confirm Objectives" · "Save and Confirm" | html + JS | no unicode-as-icon |
+
+## 10. Phase 4 — the icon map (DRAFT, for Terrence)
+
+Every glyph used as an icon, today → the Carbon icon (copied locally, S10). Counts exclude the specimen.
+In `restyle/index.html` the swap is direct; for JS-emitted glyphs an `icon(name)` helper returns today's
+glyph when `data-ui` is absent (Classic byte-identical) and the Carbon icon when it is `atui` (S11).
+9 JS sites set a glyph through `textContent` and move to markup in the ATUI branch.
+
+| # | Glyph (count) | Means | → Carbon |
+|---|---|---|---|
+| I1 | ✓ (32) | confirmed, covered, done | `checkmark` (badges: `checkmark--filled`) |
+| I2 | ✗ (18) | gap, failed, high severity | `close` (failed/gap); high severity → I11 |
+| I3 | ⚠ (24) | stale, warning, refused | `warning--alt--filled` |
+| I4 | → (15) | "next step" in buttons; a path in prose | buttons: `arrow--right`; prose: W18 |
+| I5 | ⏸ (7) | fix held for approval | `pause--filled` |
+| I6 | ↻ (5) | refresh, re-render | `renew` |
+| I7 | ↓ (4) · ↑ (1) | choose into / remove from the chosen list | `arrow--down` · `arrow--up` |
+| I8 | ⏹ (3) | stopped | `stop--filled--alt` (ATUI `stop`) |
+| I9 | ‹ › (3 + 3) | Prev / Next | `chevron--left` · `chevron--right` |
+| I10 | ⏳ (3) | pinging / rendering / seat-limit pill | busy text → the existing `.ck-spinner`; limit pill → `time` |
+| I11 | ✗ △ · (review severity) | high / medium / low | ATUI HealthDot shapes: diamond / triangle / circle (not colour-only) |
+| I12 | ⤺ (2) | Fix units | `tools` |
+| I13 | ⇄ (2) | units ⇄ script | text (W18) |
+| I14 | ⠿ (2) | drag handle | `draggable` |
+| I15 | ✕ (2) | remove row / delete testbox | `close` / `trash-can` (with W8/W9 labels) |
+| I16 | ➕ (1) | inside a `<select>` option | text only (W10) — an option cannot hold an icon |
+| I17 | 🔒 (1) | case lock banner | `locked` |
+| — | 🌙 ☀ ▸ | theme, accordion caret | done in Phase 3 (CSS) |
+
+**Proposed order:** 4a = everything `[html]` + W17 (restyle files only, no JS); 4b = the `[JS]` rows
+behind S11 branches, trialled on the scratch server first because the shared JS is live for Classic.
+
