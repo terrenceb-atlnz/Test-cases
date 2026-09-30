@@ -6,151 +6,136 @@
      so without this a light-mode page flashes dark on every load (and every Classic/ATUI swap).
      Same rule as theme.js: saved choice, else the OS preference, else dark. -->
 <script>try{var t=localStorage.getItem('theme')||(matchMedia('(prefers-color-scheme: light)').matches?'light':'dark');var c=document.documentElement.classList;c.remove('dark','light');c.add(t==='light'?'light':'dark');}catch(e){}</script>
+<script>try{if(localStorage.getItem('rs-rail')==='collapsed')document.documentElement.classList.add('rs-rail-collapsed');}catch(e){}</script>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="description" content="Ask CK — server-backed test-engineering workbench for enriching AWPTCM manual test cases and turning them into runnable automation scripts.">
 <title>Ask CK — Test Tooling Workbench</title>
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="shortcut icon" href="/favicon.ico">
-<link rel="stylesheet" href="/restyle/static/styles.css?v=7">
+<link rel="stylesheet" href="/restyle/static/styles.css?v=8">
 </head>
 <body>
-<div class="layout">
-  <!-- Sidebar from design guidelines: extends full to top, no separate header above it -->
-  <nav class="sidebar" aria-label="Tool navigation">
-    <div class="sidebar-logo" data-action="goToPanel" data-args='["panel-main"]' role="button" tabindex="0" title="Ask CK — home">
-      <img src="/static/ckc.jpg" alt="CK" class="sidebar-logo-img" />
-      <span class="sidebar-logo-text">Ask CK</span>
-    </div>
-
-    <!-- Theme toggle inside sidebar (no top header bar) -->
-    <button id="theme-toggle" title="Toggle light/dark mode" class="btn btn-ghost compact-flex full-width mb-2">
-      <span>Theme</span>
+<!-- ATUI shell (PLAN-atui-restyle S13-S15): a 48px header — brand mark + name on the left (the element
+     keeps .sidebar-logo, so click = Home and double-click = admin panel still work), theme + swap on the
+     right. The ids are the ones shared/theme.js binds; its 🌙/☀️ text is replaced by a Carbon icon in CSS. -->
+<header class="rs-header">
+  <div class="sidebar-logo" data-action="goToPanel" data-args='["panel-main"]' role="button" tabindex="0" title="Ask CK — home">
+    <img src="/restyle/static/atui/assets/at-logo.svg" alt="Allied Telesis" class="sidebar-logo-img" />
+    <span class="sidebar-logo-text">Ask CK</span>
+  </div>
+  <div class="rs-header-actions">
+    <button id="theme-toggle" title="Toggle light/dark mode" aria-label="Toggle light/dark mode" class="btn btn-ghost rs-theme-btn">
       <span id="theme-icon">🌙</span>
     </button>
-
     <!-- UI swap: Classic = current/ at /, ATUI = restyle/ at /restyle (PLAN-atui-restyle S15). Plain links, no JS. -->
     <div id="ui-toggle" class="ui-toggle mb-2" role="group" aria-label="Interface style">
       <a class="ui-toggle-opt" href="/" title="Open the Classic version. Your case and panel carry over.">Classic</a>
       <span class="ui-toggle-opt is-active" aria-current="page">ATUI</span>
     </div>
+  </div>
+</header>
+<div class="layout">
+  <!-- Sidebar under the 48px header (ATUI shell); collapses to a 50px icon rail (restyle/rail.js). -->
+  <nav class="sidebar" aria-label="Tool navigation">
 
     <!-- Help -->
-    <div class="sidebar-section-label">Help</div>
+    <div class="sidebar-section-label" title="Help"><span class="rs-icon rs-icon-help" aria-hidden="true"></span><span class="rs-sec-text">Help</span></div>
     <div class="sidebar-steps">
       <div data-action="goToPanel" data-args='["panel-main"]' role="button" tabindex="0" class="sidebar-nav-item" data-panel="panel-main">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
         Main
       </div>
     </div>
 
     <!-- LLM Status (always visible) -->
-    <div class="sidebar-section-label">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-inline"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="22"></line></svg>
-      LLM
-    </div>
+    <div class="sidebar-section-label" title="LLM"><span class="rs-icon rs-icon-machine-learning-model" aria-hidden="true"></span><span class="rs-sec-text">LLM</span></div>
     <div id="llm-status-sidebar" class="llm-status">Not configured</div>
     <div class="sidebar-steps">
       <div data-action="goToPanel" data-args='["panel-llm-config"]' role="button" tabindex="0" class="sidebar-nav-item" data-panel="panel-llm-config">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
         Configure
       </div>
     </div>
 
     <!-- Zephyr Templating Tool -->
-    <div class="sidebar-section-label">Zephyr Templating Tool</div>
+    <div class="sidebar-section-label" title="Zephyr Templating Tool"><span class="rs-icon rs-icon-catalog" aria-hidden="true"></span><span class="rs-sec-text">Zephyr Templating Tool</span></div>
     <div class="sidebar-steps">
       <div data-action="goToPanel" data-args='["panel-zt-info"]' role="button" tabindex="0" class="sidebar-nav-item" data-panel="panel-zt-info">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
         1. Info
       </div>
       <div data-action="goToPanel" data-args='["panel-zt-plan"]' role="button" tabindex="0" class="sidebar-nav-item" data-panel="panel-zt-plan">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>
         2. Test Plan / Cycle / Cases
       </div>
       <div data-action="goToPanel" data-args='["panel-zt-link"]' role="button" tabindex="0" class="sidebar-nav-item" data-panel="panel-zt-link">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
         3. Link Test Scripts
       </div>
       <div data-action="goToPanel" data-args='["panel-zt-tbd"]' role="button" tabindex="0" class="sidebar-nav-item" data-panel="panel-zt-tbd">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
         4. TBD
       </div>
     </div>
 
     <!-- Test Composer -->
-    <div class="sidebar-section-label">Test Composer</div>
+    <div class="sidebar-section-label" title="Test Composer"><span class="rs-icon rs-icon-edit" aria-hidden="true"></span><span class="rs-sec-text">Test Composer</span></div>
     <div class="sidebar-steps">
       <div data-action="goToPanel" data-args='["panel-tc-tbd"]' role="button" tabindex="0" class="sidebar-nav-item" data-panel="panel-tc-tbd">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
         1. TBD
       </div>
     </div>
 
     <!-- PyTest Creator (data-pt-step drives its ✓ badges via updatePtBadges — separate from the Generator's data-step scheme) -->
-    <div class="sidebar-section-label">PyTest Creator</div>
+    <div class="sidebar-section-label" title="PyTest Creator"><span class="rs-icon rs-icon-code" aria-hidden="true"></span><span class="rs-sec-text">PyTest Creator</span></div>
     <div class="sidebar-steps" id="nav-pt">
       <div data-action="goToPanel" data-args='["panel-pt-cases"]' role="button" tabindex="0" class="sidebar-nav-item" data-panel="panel-pt-cases">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
         1. Cases
       </div>
       <div data-action="goToPanel" data-args='["panel-pt-seq"]' role="button" tabindex="0" class="sidebar-nav-item" data-panel="panel-pt-seq" data-pt-step="2">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
         2. Sequence
       </div>
       <div data-action="goToPanel" data-args='["panel-pt-search"]' role="button" tabindex="0" class="sidebar-nav-item" data-panel="panel-pt-search" data-pt-step="3">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
         3. Script Search
       </div>
       <div data-action="goToPanel" data-args='["panel-pt-frag"]' role="button" tabindex="0" class="sidebar-nav-item" data-panel="panel-pt-frag" data-pt-step="5">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
         4. Fragments
       </div>
       <div data-action="goToPanel" data-args='["panel-pt-gen"]' role="button" tabindex="0" class="sidebar-nav-item" data-panel="panel-pt-gen" data-pt-step="6">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>
         5. Generate
       </div>
       <div data-action="goToPanel" data-args='["panel-pt-run"]' role="button" tabindex="0" class="sidebar-nav-item" data-panel="panel-pt-run" data-pt-step="7">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
         6. Run
       </div>
       <div data-action="goToPanel" data-args='["panel-pt-validate"]' role="button" tabindex="0" class="sidebar-nav-item" data-panel="panel-pt-validate" data-pt-step="8">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
         7. Validate
       </div>
       <div data-action="goToPanel" data-args='["panel-pt-testbox"]' role="button" tabindex="0" class="sidebar-nav-item" data-panel="panel-pt-testbox">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect><rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect><line x1="6" y1="6" x2="6.01" y2="6"></line><line x1="6" y1="18" x2="6.01" y2="18"></line></svg>
         Testboxes
       </div>
     </div>
 
     <!-- Objective/Test Case Generator (existing wizard; data-step drives badges + confirm linkage — labels are display-only) -->
-    <div class="sidebar-section-label">Objective/Test Case Generator</div>
+    <div class="sidebar-section-label" title="Objective/Test Case Generator"><span class="rs-icon rs-icon-idea" aria-hidden="true"></span><span class="rs-sec-text">Objective/Test Case Generator</span></div>
     <div class="sidebar-steps" id="nav-generator">
       <div data-action="goToStep" data-args='[0]' role="button" tabindex="0" class="sidebar-nav-item active" data-step="0">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3h18v18H3z"/><path d="M9 9h6v6H9z"/></svg>
         1. Cases
       </div>
       <div data-action="goToStep" data-args='[1]' role="button" tabindex="0" class="sidebar-nav-item" data-step="1">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
         2. TestLink
       </div>
       <div data-action="goToStep" data-args='[2]' role="button" tabindex="0" class="sidebar-nav-item" data-step="2">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
         3. Zephyr
       </div>
       <div data-action="goToStep" data-args='[3]' role="button" tabindex="0" class="sidebar-nav-item" data-step="3">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
         4. ATPyLib (scored)
       </div>
       <div data-action="goToStep" data-args='[4]' role="button" tabindex="0" class="sidebar-nav-item" data-step="4">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M2 12h20"></path><path d="M12 2a10 10 0 0 1 10 10"></path></svg>
         5. Objectives (LLM)
       </div>
       <div data-action="goToStep" data-args='[5]' role="button" tabindex="0" class="sidebar-nav-item" data-step="5">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
         6. Test Steps (LLM)
       </div>
     </div>
+
+    <!-- Rail A (PLAN-atui-restyle S14): collapse to a 50px icon rail. restyle/rail.js owns it. -->
+    <button type="button" id="rs-rail-toggle" class="rs-rail-toggle" title="Collapse sidebar" aria-label="Collapse sidebar" aria-expanded="true">
+      <span class="rs-icon rs-icon-collapse" aria-hidden="true"></span><span class="rs-sec-text">Collapse</span>
+    </button>
   </nav>
 
   <!-- Main content -->
@@ -1079,5 +1064,6 @@ Interface port1.0.1
 </div>
 
 <script type="module" src="/static/shared/main.js?v=39"></script>
+<script type="module" src="/restyle/static/rail.js?v=1"></script>
 </body>
 </html>

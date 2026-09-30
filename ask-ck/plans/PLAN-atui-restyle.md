@@ -19,7 +19,15 @@
 > shared-JS edit was needed:** the JS's style writes are display/opacity/progress behaviour, table
 > layout widths, and 11px / 2px values already on ATUI's scale; its only colours are `var()`
 > fallbacks, all now defined in `restyle/` (incl. `--status-warn`, which neither stylesheet had).
-> Snapping rules: §8. **Awaiting:** Terrence's look, then Phase 3 (the rail mock-up comes first).
+> Snapping rules: §8.
+>
+> **Phase 3 shell BUILT 2026-09-30 — Rail A** (Terrence: *"Rail A for now"*): 48px header (AT brand mark +
+> "Ask CK", still `.sidebar-logo`; theme + Classic/ATUI swap on the right); 300px sidebar collapsing to a
+> 50px rail of the six section icons (ATUI: only parents carry icons — the 21 step icons are gone in
+> the restyle); a rail click expands with that section open (`restyle/rail.js`, 6 vitest specs
+> against the real nav.js accordion, mutation-checked). theme.js's 🌙/☀️ and nav.js's ▸ are Carbon
+> icons via CSS in the restyle — no shared-JS change. **Awaiting:** Terrence's look; then the rest of
+> Phase 3 (buttons, cards, tables, stepper, badges, banners, modals, inputs).
 >
 > Originally: **PLAN ONLY — nothing built.** Written 2026-09-30 at Terrence's request: *"lets make a plan for
 > the restyle, but i want it to swap between current/ and restyle/ with a button that you make next

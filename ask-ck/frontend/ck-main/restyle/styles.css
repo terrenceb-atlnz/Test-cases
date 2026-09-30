@@ -1665,6 +1665,82 @@ a.ui-toggle-opt:focus-visible { outline: none; box-shadow: inset 0 0 0 2px var(-
 .rs-m-0 { margin: 0; }
 
 /* ========================================
+   ATUI shell — Phase 3 (PLAN-atui-restyle S13, S14; Rail A). restyle/ only.
+   Icons: IBM Carbon (@carbon/icons 11.89.0, Apache-2.0), copied to atui/icons/ (S10), drawn as
+   CSS masks so they take the text colour.
+   ======================================== */
+.rs-icon { display: inline-block; flex: 0 0 auto; width: 16px; height: 16px; background-color: currentColor;
+  -webkit-mask: center / contain no-repeat; mask: center / contain no-repeat; }
+.rs-icon-help { -webkit-mask-image: url(atui/icons/help.svg); mask-image: url(atui/icons/help.svg); }
+.rs-icon-machine-learning-model { -webkit-mask-image: url(atui/icons/machine-learning-model.svg); mask-image: url(atui/icons/machine-learning-model.svg); }
+.rs-icon-catalog { -webkit-mask-image: url(atui/icons/catalog.svg); mask-image: url(atui/icons/catalog.svg); }
+.rs-icon-edit { -webkit-mask-image: url(atui/icons/edit.svg); mask-image: url(atui/icons/edit.svg); }
+.rs-icon-code { -webkit-mask-image: url(atui/icons/code.svg); mask-image: url(atui/icons/code.svg); }
+.rs-icon-idea { -webkit-mask-image: url(atui/icons/idea.svg); mask-image: url(atui/icons/idea.svg); }
+.rs-icon-collapse { -webkit-mask-image: url(atui/icons/side-panel--close.svg); mask-image: url(atui/icons/side-panel--close.svg); }
+html.rs-rail-collapsed .rs-icon-collapse { -webkit-mask-image: url(atui/icons/side-panel--open.svg); mask-image: url(atui/icons/side-panel--open.svg); }
+
+/* Header: 48px, brand mark + name left, actions right. */
+.rs-header { position: fixed; top: 0; left: 0; right: 0; z-index: 60; height: var(--token-height-navbar);
+  display: flex; align-items: center; justify-content: space-between; padding: 0 var(--token-space-16);
+  background: var(--token-surface-foreground); border-bottom: 1px solid var(--token-border-muted); }
+.rs-header .sidebar-logo { margin: 0; padding: 0; gap: var(--token-space-8); }
+.rs-header .sidebar-logo-img { width: 24px; height: 24px; border-radius: 0; object-fit: contain; }
+.rs-header .sidebar-logo-text { font-size: var(--token-font-size-h5); font-weight: var(--token-font-weight-med); }
+.rs-header-actions { display: flex; align-items: center; gap: var(--token-space-8); }
+.rs-header .ui-toggle { width: auto; height: 28px; margin: 0; }
+.rs-header .ui-toggle-opt { padding: 0 var(--token-space-12); }
+.rs-header .rs-theme-btn { width: 28px; height: 28px; padding: 0; }
+/* shared/theme.js writes 🌙 / ☀️ into #theme-icon; here it is a Carbon moon / sun (state shown: dark / light). */
+#theme-icon { display: inline-block; width: 16px; height: 16px; font-size: 0; background-color: currentColor;
+  -webkit-mask: url(atui/icons/moon.svg) center / contain no-repeat; mask: url(atui/icons/moon.svg) center / contain no-repeat; }
+html.light #theme-icon { -webkit-mask-image: url(atui/icons/sun.svg); mask-image: url(atui/icons/sun.svg); }
+
+/* Sidebar under the header; ATUI width 300px, collapsing to 50px. */
+.sidebar { top: var(--token-height-navbar); width: var(--token-width-sidebar); min-width: 0;
+  display: flex; flex-direction: column; gap: 2px; padding: var(--token-space-8);
+  background: var(--token-sidebar-background); border-right: 1px solid var(--token-sidebar-border);
+  transition: width var(--token-transition-time), padding var(--token-transition-time); overflow-x: hidden; }
+.main { margin-left: var(--token-width-sidebar); margin-top: var(--token-height-navbar);
+  max-height: calc(100vh - var(--token-height-navbar)); transition: margin-left var(--token-transition-time); }
+
+/* Section parents: ATUI SidebarMenuItem — icon + medium-weight label, no uppercase. */
+.sidebar-section-label, .sidebar-section-label.collapsible, .sidebar-section-label:first-of-type {
+  margin: 0; text-transform: none; letter-spacing: 0; gap: var(--token-space-8);
+  padding: var(--token-sidebar-item-padding) var(--token-space-8); border-radius: var(--token-border-radius-md);
+  font-size: var(--token-font-size-body); font-weight: var(--token-font-weight-med); color: var(--token-sidebar-foreground); }
+.sidebar-section-label .rs-icon { width: 20px; height: 20px; }
+.sidebar-section-label .rs-sec-text { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sidebar-section-label.collapsible:hover { background: var(--bg-hover); }
+.sidebar-section-label.rs-has-active { color: var(--token-sidebar-active-foreground); }
+/* nav.js writes ▸ into .section-caret; here it is a Carbon chevron that flips when open. */
+.sidebar-section-label .section-caret { width: 16px; height: 16px; font-size: 0; color: var(--token-text-muted); background-color: currentColor;
+  -webkit-mask: url(atui/icons/chevron--down.svg) center / contain no-repeat; mask: url(atui/icons/chevron--down.svg) center / contain no-repeat; }
+.sidebar-section-label.section-open .section-caret { transform: rotate(180deg); }
+
+/* Children: no icon, indented under the parent's label. */
+.sidebar-nav-item { padding: var(--token-sidebar-item-padding) var(--token-space-8) var(--token-sidebar-item-padding) 36px;
+  border-radius: var(--token-border-radius-md); font-size: var(--token-font-size-body); color: var(--token-sidebar-foreground); }
+.sidebar-nav-item.active { background: var(--token-sidebar-active-background); color: var(--token-sidebar-active-foreground); }
+.sidebar-steps { gap: 2px; }
+#llm-status-sidebar { padding-left: 36px; margin: var(--token-space-4) 0; }
+
+/* The collapse control sits at the foot of the sidebar. */
+.rs-rail-toggle { margin-top: auto; display: flex; align-items: center; gap: var(--token-space-8); width: 100%;
+  padding: var(--token-sidebar-item-padding) var(--token-space-8); border: 0; border-radius: var(--token-border-radius-md);
+  background: transparent; color: var(--token-text-secondary); font: inherit; cursor: pointer; }
+.rs-rail-toggle .rs-icon { width: 20px; height: 20px; }
+.rs-rail-toggle:hover { background: var(--bg-hover); color: var(--token-text-foreground); }
+
+/* Rail A: collapsed to 50px — section icons only; a click expands (restyle/rail.js). */
+html.rs-rail-collapsed .sidebar { width: var(--token-width-sidebar-collapsed); padding: var(--token-space-8) var(--token-space-4); }
+html.rs-rail-collapsed .main { margin-left: var(--token-width-sidebar-collapsed); }
+html.rs-rail-collapsed .sidebar-section-body { display: none !important; }
+html.rs-rail-collapsed .rs-sec-text, html.rs-rail-collapsed .section-caret { display: none; }
+html.rs-rail-collapsed .sidebar-section-label, html.rs-rail-collapsed .rs-rail-toggle { justify-content: center; padding: var(--token-space-8) 0; }
+html.rs-rail-collapsed .sidebar-section-label.rs-has-active { background: var(--token-sidebar-active-background); }
+
+/* ========================================
    Colour + type specimen on the Test Composer TBD page — Classic vs ATUI 1-to-1
    (Terrence, 2026-09-30; ask-ck/plans/PLAN-atui-restyle.md). Same rules in both stylesheets.
    ======================================== */
