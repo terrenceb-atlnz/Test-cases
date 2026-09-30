@@ -1617,6 +1617,11 @@ h2 {
 tr.pt-seq-flagged td { background: var(--status-high-muted); }
 .pt-seq-flag { color: var(--status-high); font-weight: 700; cursor: help; }
 td.pt-seq-claim { font-family: var(--font-mono, monospace); white-space: normal; }
+/* Phase 4b: the sequence row's remove button is "✕ Remove" on ATUI (W8), not Classic's bare ✕, so its
+   column outgrows the JS's inline 30px. Only !important beats an inline width; scoped to that one column. */
+#pt-seq-list .table th:last-child { width: 92px !important; }
+/* Same for the testbox row's actions: Edit, Check and "✕ Delete" (W9, W14) outgrow the inline 150px. */
+#pt-tb-list .table th:last-child { width: 196px !important; }
 
 /* ========================================
    UI swap — Classic (current/) and ATUI (restyle/), side by side.
@@ -1845,6 +1850,11 @@ button:not(.btn) { border-radius: var(--token-button-radius); font-size: var(--t
 .table:has(> thead th:nth-child(6)[style*="width"]) :is(th, td):nth-child(6),
 .table:has(> thead th:nth-child(7)[style*="width"]) :is(th, td):nth-child(7),
 .table:has(> thead th:nth-child(8)[style*="width"]) :is(th, td):nth-child(8) {
+  padding-left: var(--token-space-4); padding-right: var(--token-space-4);
+}
+/* Script Search's match table sizes its narrow columns (tick, Cov, View) in CSS, not inline, so the rule above
+   misses them: the 52px View column kept a 24px inset each side and its button spilled out (Terrence, 2026-09-30). */
+.pt-match-table :is(th, td):is(:nth-child(1), :nth-child(3), :nth-child(5)) {
   padding-left: var(--token-space-4); padding-right: var(--token-space-4);
 }
 
