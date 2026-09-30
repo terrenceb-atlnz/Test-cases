@@ -80,6 +80,15 @@ def test_swap_control_points_each_way():
     assert "/" in _parse(RESTYLE).links, "restyle's swap control must link back to / (Classic)"
 
 
+def test_colour_specimen_is_identical_in_both_pages():
+    # The Test Composer TBD page carries a Classic-vs-ATUI specimen (Terrence 2026-09-30). It is
+    # only a 1-to-1 comparison if the markup is the same in both pages.
+    pat = re.compile(r"<!-- ck-specimen:start.*?<!-- ck-specimen:end -->", re.S)
+    cur = pat.findall(CURRENT.read_text(encoding="utf-8"))
+    rs = pat.findall(RESTYLE.read_text(encoding="utf-8"))
+    assert len(cur) == 1 and cur == rs, "the specimen differs between current/ and restyle/"
+
+
 def test_restyle_route_serves_the_restyle_page(client):
     r = client.get("/restyle")
     assert r.status_code == 200 and 'data-ui="atui"' in r.text

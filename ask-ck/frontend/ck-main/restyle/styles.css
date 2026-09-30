@@ -1636,3 +1636,28 @@ td.pt-seq-claim { font-family: var(--font-mono, monospace); white-space: normal;
 a.ui-toggle-opt:hover { background: var(--bg-hover); color: var(--text-primary); }
 a.ui-toggle-opt:focus-visible { outline: none; box-shadow: inset 0 0 0 2px var(--focus-ring); }
 .ui-toggle-opt.is-active { background: var(--bg-active); color: var(--text-primary); font-weight: 500; }
+
+/* ========================================
+   Colour + type specimen on the Test Composer TBD page — Classic vs ATUI 1-to-1
+   (Terrence, 2026-09-30; ask-ck/plans/PLAN-atui-restyle.md). Same rules in both stylesheets.
+   ======================================== */
+.ck-specimen { margin-top: 16px; display: flex; flex-direction: column; gap: 10px; }
+.ck-spec-title { font-weight: 600; font-size: 15px; color: var(--text-primary); }
+.ck-spec-note { font-size: 12px; color: var(--text-secondary); }
+.ck-spec-group { margin-top: 10px; font-size: 12px; font-weight: 600; color: var(--text-tertiary); }
+.ck-spec-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 8px; }
+.ck-spec-row { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 8px; }
+.ck-spec-pills { margin-left: 0; }
+.ck-sw { display: flex; align-items: center; gap: 8px; min-width: 0; padding: 6px 8px; border: 1px solid var(--border-default); border-radius: 6px; background: var(--bg-secondary); }
+.ck-sw-chip { flex: 0 0 32px; height: 32px; border-radius: 4px; background: var(--sw); border: 1px solid var(--border-strong); }
+.ck-sw-text { display: flex; flex-direction: column; min-width: 0; font-size: 11px; color: var(--text-secondary); }
+.ck-sw-text code { font-family: var(--font-mono); font-size: 11px; color: var(--text-primary); overflow: hidden; text-overflow: ellipsis; }
+.ck-sev { display: inline-flex; padding: 2px 10px; border-radius: 9999px; border: 1px solid var(--c); color: var(--c); background: var(--m); font-size: 12px; font-weight: 500; }
+.ck-shadow { display: flex; align-items: center; justify-content: center; width: 140px; height: 56px; border-radius: 6px; background: var(--bg-elevated); box-shadow: var(--sw); font-family: var(--font-mono); font-size: 11px; color: var(--text-secondary); }
+.ck-spec-table { border-collapse: collapse; font-size: 13px; }
+.ck-spec-table td { padding: 4px 10px; border-bottom: 1px solid var(--border-default); }
+.ck-spec-p { margin: 0; color: var(--text-primary); }
+.ck-spec-p.ck-t2 { color: var(--text-secondary); }
+.ck-spec-p.ck-t3 { color: var(--text-tertiary); }
+.ck-spec-p code, .ck-spec-table code { font-family: var(--font-mono); font-size: 12px; }
+.ck-spec-pre { margin: 0; padding: 10px 12px; border: 1px solid var(--border-default); border-radius: 6px; background: var(--bg-tertiary); font-family: var(--font-mono); font-size: 12px; color: var(--text-primary); overflow-x: auto; }

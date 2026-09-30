@@ -11,7 +11,7 @@
 <title>Ask CK — Test Tooling Workbench</title>
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="shortcut icon" href="/favicon.ico">
-<link rel="stylesheet" href="/restyle/static/styles.css?v=2">
+<link rel="stylesheet" href="/restyle/static/styles.css?v=3">
 </head>
 <body>
 <div class="layout">
@@ -601,6 +601,122 @@
           <div class="placeholder-text">The Test Composer's first step is not yet designed.</div>
           <div class="placeholder-status" id="tc-status"></div>
         </div>
+      <!-- ck-specimen:start — Classic vs ATUI colour + type specimen (Terrence, 2026-09-30; PLAN-atui-restyle).
+           Identical in current/ and restyle/ (a test pins that); each page's own stylesheet colours it. -->
+      <div class="ck-specimen">
+        <div class="ck-spec-title">Colour and type specimen</div>
+        <div class="ck-spec-note">Identical markup in Classic and ATUI — swap to compare. Every swatch is the live variable; the components below use the app's real classes.</div>
+        <div class="ck-spec-group">Backgrounds</div>
+        <div class="ck-spec-grid">
+          <div class="ck-sw" style="--sw: var(--bg-primary)"><span class="ck-sw-chip"></span><span class="ck-sw-text"><code>--bg-primary</code><span>page</span></span></div>
+          <div class="ck-sw" style="--sw: var(--bg-secondary)"><span class="ck-sw-chip"></span><span class="ck-sw-text"><code>--bg-secondary</code><span>cards, panels</span></span></div>
+          <div class="ck-sw" style="--sw: var(--bg-tertiary)"><span class="ck-sw-chip"></span><span class="ck-sw-text"><code>--bg-tertiary</code><span>inputs, recessed</span></span></div>
+          <div class="ck-sw" style="--sw: var(--bg-sidebar)"><span class="ck-sw-chip"></span><span class="ck-sw-text"><code>--bg-sidebar</code><span>sidebar</span></span></div>
+          <div class="ck-sw" style="--sw: var(--bg-elevated)"><span class="ck-sw-chip"></span><span class="ck-sw-text"><code>--bg-elevated</code><span>menus, modals</span></span></div>
+          <div class="ck-sw" style="--sw: var(--bg-hover)"><span class="ck-sw-chip"></span><span class="ck-sw-text"><code>--bg-hover</code><span>hover fill</span></span></div>
+          <div class="ck-sw" style="--sw: var(--bg-active)"><span class="ck-sw-chip"></span><span class="ck-sw-text"><code>--bg-active</code><span>selected item</span></span></div>
+        </div>
+        <div class="ck-spec-group">Text</div>
+        <div class="ck-spec-grid">
+          <div class="ck-sw" style="--sw: var(--text-primary)"><span class="ck-sw-chip"></span><span class="ck-sw-text"><code>--text-primary</code><span>body text</span></span></div>
+          <div class="ck-sw" style="--sw: var(--text-secondary)"><span class="ck-sw-chip"></span><span class="ck-sw-text"><code>--text-secondary</code><span>supporting text</span></span></div>
+          <div class="ck-sw" style="--sw: var(--text-tertiary)"><span class="ck-sw-chip"></span><span class="ck-sw-text"><code>--text-tertiary</code><span>hints, captions</span></span></div>
+          <div class="ck-sw" style="--sw: var(--text-inverse)"><span class="ck-sw-chip"></span><span class="ck-sw-text"><code>--text-inverse</code><span>text on blue fills</span></span></div>
+        </div>
+        <div class="ck-spec-group">Borders</div>
+        <div class="ck-spec-grid">
+          <div class="ck-sw" style="--sw: var(--border-default)"><span class="ck-sw-chip"></span><span class="ck-sw-text"><code>--border-default</code><span>hairlines</span></span></div>
+          <div class="ck-sw" style="--sw: var(--border-subtle)"><span class="ck-sw-chip"></span><span class="ck-sw-text"><code>--border-subtle</code><span>faint dividers</span></span></div>
+          <div class="ck-sw" style="--sw: var(--border-strong)"><span class="ck-sw-chip"></span><span class="ck-sw-text"><code>--border-strong</code><span>emphasised edges</span></span></div>
+        </div>
+        <div class="ck-spec-group">Accent</div>
+        <div class="ck-spec-grid">
+          <div class="ck-sw" style="--sw: var(--accent-primary)"><span class="ck-sw-chip"></span><span class="ck-sw-text"><code>--accent-primary</code><span>primary buttons, links</span></span></div>
+          <div class="ck-sw" style="--sw: var(--accent-hover)"><span class="ck-sw-chip"></span><span class="ck-sw-text"><code>--accent-hover</code><span>primary hover</span></span></div>
+          <div class="ck-sw" style="--sw: var(--accent-muted)"><span class="ck-sw-chip"></span><span class="ck-sw-text"><code>--accent-muted</code><span>tinted accent fill</span></span></div>
+          <div class="ck-sw" style="--sw: var(--accent-text)"><span class="ck-sw-chip"></span><span class="ck-sw-text"><code>--accent-text</code><span>accent text</span></span></div>
+        </div>
+        <div class="ck-spec-group">Status</div>
+        <div class="ck-spec-grid">
+          <div class="ck-sw" style="--sw: var(--status-critical)"><span class="ck-sw-chip"></span><span class="ck-sw-text"><code>--status-critical</code><span>critical</span></span></div>
+          <div class="ck-sw" style="--sw: var(--status-critical-muted)"><span class="ck-sw-chip"></span><span class="ck-sw-text"><code>--status-critical-muted</code><span>critical fill</span></span></div>
+          <div class="ck-sw" style="--sw: var(--status-high)"><span class="ck-sw-chip"></span><span class="ck-sw-text"><code>--status-high</code><span>high</span></span></div>
+          <div class="ck-sw" style="--sw: var(--status-high-muted)"><span class="ck-sw-chip"></span><span class="ck-sw-text"><code>--status-high-muted</code><span>high fill</span></span></div>
+          <div class="ck-sw" style="--sw: var(--status-medium)"><span class="ck-sw-chip"></span><span class="ck-sw-text"><code>--status-medium</code><span>medium</span></span></div>
+          <div class="ck-sw" style="--sw: var(--status-medium-muted)"><span class="ck-sw-chip"></span><span class="ck-sw-text"><code>--status-medium-muted</code><span>medium fill</span></span></div>
+          <div class="ck-sw" style="--sw: var(--status-low)"><span class="ck-sw-chip"></span><span class="ck-sw-text"><code>--status-low</code><span>low</span></span></div>
+          <div class="ck-sw" style="--sw: var(--status-low-muted)"><span class="ck-sw-chip"></span><span class="ck-sw-text"><code>--status-low-muted</code><span>low fill</span></span></div>
+          <div class="ck-sw" style="--sw: var(--status-success)"><span class="ck-sw-chip"></span><span class="ck-sw-text"><code>--status-success</code><span>success</span></span></div>
+          <div class="ck-sw" style="--sw: var(--status-success-muted)"><span class="ck-sw-chip"></span><span class="ck-sw-text"><code>--status-success-muted</code><span>success fill</span></span></div>
+        </div>
+        <div class="ck-spec-row"><span class="ck-sev" style="--c: var(--status-critical); --m: var(--status-critical-muted)">Critical</span> <span class="ck-sev" style="--c: var(--status-high); --m: var(--status-high-muted)">High</span> <span class="ck-sev" style="--c: var(--status-medium); --m: var(--status-medium-muted)">Medium</span> <span class="ck-sev" style="--c: var(--status-low); --m: var(--status-low-muted)">Low</span> <span class="ck-sev" style="--c: var(--status-success); --m: var(--status-success-muted)">Success</span></div>
+        <div class="ck-spec-group">Focus, overlay</div>
+        <div class="ck-spec-grid">
+          <div class="ck-sw" style="--sw: var(--focus-ring)"><span class="ck-sw-chip"></span><span class="ck-sw-text"><code>--focus-ring</code><span>focus outline</span></span></div>
+          <div class="ck-sw" style="--sw: var(--overlay)"><span class="ck-sw-chip"></span><span class="ck-sw-text"><code>--overlay</code><span>modal backdrop</span></span></div>
+        </div>
+        <div class="ck-spec-group">Undefined in both stylesheets — hard-coded fallbacks (Phase 2)</div>
+        <div class="ck-spec-grid">
+          <div class="ck-sw" style="--sw: var(--status-err, #dc2626)"><span class="ck-sw-chip"></span><span class="ck-sw-text"><code>--status-err</code><span>errors · falls back to #dc2626</span></span></div>
+          <div class="ck-sw" style="--sw: var(--status-ok, #16a34a)"><span class="ck-sw-chip"></span><span class="ck-sw-text"><code>--status-ok</code><span>ok · falls back to #16a34a</span></span></div>
+          <div class="ck-sw" style="--sw: var(--status-info, #3b82f6)"><span class="ck-sw-chip"></span><span class="ck-sw-text"><code>--status-info</code><span>info · falls back to #3b82f6</span></span></div>
+          <div class="ck-sw" style="--sw: var(--status-info-muted, #1e3a5f)"><span class="ck-sw-chip"></span><span class="ck-sw-text"><code>--status-info-muted</code><span>info fill · falls back to #1e3a5f</span></span></div>
+          <div class="ck-sw" style="--sw: var(--color-danger, #c0392b)"><span class="ck-sw-chip"></span><span class="ck-sw-text"><code>--color-danger</code><span>danger · falls back to #c0392b</span></span></div>
+          <div class="ck-sw" style="--sw: var(--text-muted, var(--text-secondary))"><span class="ck-sw-chip"></span><span class="ck-sw-text"><code>--text-muted</code><span>muted text · falls back to var(--text-secondary)</span></span></div>
+          <div class="ck-sw" style="--sw: var(--border-color, var(--border-default))"><span class="ck-sw-chip"></span><span class="ck-sw-text"><code>--border-color</code><span>borders · falls back to var(--border-default)</span></span></div>
+        </div>
+        <div class="ck-spec-group">Shadows</div>
+        <div class="ck-spec-row"><div class="ck-shadow" style="--sw: var(--shadow-sm)">--shadow-sm</div><div class="ck-shadow" style="--sw: var(--shadow-md)">--shadow-md</div><div class="ck-shadow" style="--sw: var(--shadow-lg)">--shadow-lg</div></div>
+        <div class="ck-spec-group">Buttons</div>
+        <div class="ck-spec-row">
+          <button type="button" class="btn btn-primary">Primary</button>
+          <button type="button" class="btn btn-secondary">Secondary</button>
+          <button type="button" class="btn btn-ghost">Ghost</button>
+          <button type="button" class="btn btn-danger">Danger</button>
+          <button type="button" class="btn btn-export">Export</button>
+          <button type="button" class="btn btn-primary" disabled>Disabled</button>
+        </div>
+        <div class="ck-spec-group">Badges</div>
+        <div class="ck-spec-row"><span class="badge badge-success">success</span> <span class="badge badge-warning">warning</span> <span class="badge badge-low">low</span></div>
+        <div class="ck-spec-group">Status banners</div>
+        <div class="status-banner is-success"><span class="status-title">Success</span> — the step completed.</div>
+        <div class="status-banner is-warning"><span class="status-title">Warning</span> — review before continuing.</div>
+        <div class="status-banner is-error"><span class="status-title">Error</span> — the request failed.</div>
+        <div class="status-banner is-busy"><span class="status-title">Busy</span> — waiting for the LLM.</div>
+        <div class="ck-spec-group">PyTest Creator pills and states</div>
+        <div class="ck-spec-row"><div class="pt-pill-row ck-spec-pills">
+          <button type="button" class="pt-pill pt-pill-ok">1 ok</button>
+          <button type="button" class="pt-pill pt-pill-gap">2 gap</button>
+          <button type="button" class="pt-pill pt-pill-limit">3 limit</button>
+          <button type="button" class="pt-pill pt-pill-ok pt-pill-current">4 current</button>
+          <span class="pt-state pt-state-ok">ok</span><span class="pt-state pt-state-stale">stale</span>
+        </div></div>
+        <div class="pt-frag-stale">Step 3 changed since the fragments were gathered — re-gather before generating.</div>
+        <div class="pt-seq-sanity-box">Sequence sanity: <span class="pt-seq-flag">⚑</span> step 4 verifies a value no step sets.</div>
+        <table class="ck-spec-table"><tbody>
+          <tr><td>3</td><td>configure the port speed</td></tr>
+          <tr class="pt-seq-flagged"><td>4</td><td>verify <code>current</code> speed <span class="pt-seq-flag">⚑</span></td></tr>
+        </tbody></table>
+        <div class="pt-held-warn">Held: the review hash no longer matches the units.</div>
+        <div class="llm-debug-error">LLM error text (styled with --status-low)</div>
+        <div class="ck-spec-group">Form fields</div>
+        <div class="ck-spec-row">
+          <div class="tb-field"><label class="tb-label">Name<span class="tb-req">*</span></label><input class="form-input" placeholder="tb470"></div>
+          <div class="tb-field"><label class="tb-label">Invalid<span class="tb-req">*</span></label><input class="form-input tb-invalid" value="not a number"></div>
+        </div>
+        <div class="ck-spec-group">Type</div>
+        <div class="section-heading">Section heading</div>
+        <div class="section-description">Section description — supporting text under a heading.</div>
+        <p class="ck-spec-p">Body text: the PyTest Creator turns a refined case into a runnable framework script. <strong>Bold</strong>, <em>italic</em>, <a href="/process" target="_blank" rel="noopener">a link</a>, <small>small text</small>.</p>
+        <p class="ck-spec-p ck-t2">Secondary text colour.</p>
+        <p class="ck-spec-p ck-t3">Tertiary text colour.</p>
+        <p class="ck-spec-p">Inline mono: <code>show interface port1.0.1</code> · <code>AT-x550-hq-01</code> · <code>192.168.1.1</code> · <code>aa:bb:cc:dd:ee:ff</code></p>
+        <pre class="ck-spec-pre">awplus# show interface port1.0.1
+Interface port1.0.1
+  Link is UP, administrative state is UP
+  current duplex full, current speed 1000</pre>
+      </div>
+      <!-- ck-specimen:end -->
       </div>
     </div>
 
