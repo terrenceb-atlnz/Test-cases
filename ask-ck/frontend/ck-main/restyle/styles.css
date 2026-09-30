@@ -1733,6 +1733,10 @@ html.light #theme-icon { -webkit-mask-image: url(atui/icons/sun.svg); mask-image
   background: transparent; color: var(--token-text-secondary); font: inherit; cursor: pointer; }
 .rs-rail-toggle .rs-icon { width: 20px; height: 20px; }
 .rs-rail-toggle:hover { background: var(--bg-hover); color: var(--token-text-foreground); }
+/* It is a <button> without .btn, so the legacy button:not(.btn) rule (0,1,1) painted it accent-blue; out-rank it. */
+.sidebar button.rs-rail-toggle { background: transparent; color: var(--token-text-secondary); border-radius: var(--token-border-radius-md);
+  font-size: var(--token-font-size-body); font-weight: var(--token-font-weight-light); }
+.sidebar button.rs-rail-toggle:hover { background: var(--bg-hover); color: var(--token-text-foreground); }
 
 /* Rail A: collapsed to 50px — section icons only; a click expands (restyle/rail.js). */
 html.rs-rail-collapsed .sidebar { width: var(--token-width-sidebar-collapsed); padding: var(--token-space-8) var(--token-space-4); }
@@ -1800,6 +1804,11 @@ button:not(.btn) { border-radius: var(--token-button-radius); font-size: var(--t
 .table td { padding: var(--token-space-12) var(--token-space-24); border-bottom: 1px solid var(--token-border-muted);
   color: var(--token-text-foreground); line-height: var(--token-line-height-base); }
 .table tbody tr:hover { background: var(--token-surface-background); }
+/* The JS fixes narrow columns with an inline px width on the header (#, from, flags: 20-44px) and the table
+   is table-layout: fixed. Under the global border-box, ATUI's 24px inset would eat that width whole and wrap
+   "10" one digit per line (Terrence, 2026-09-30) — so those widths are CONTENT widths here, and the inset
+   goes around them. Columns sized by % are unaffected. */
+.table th[style*="width"] { box-sizing: content-box; }
 
 /* -- Badges (at-badge, low impact) ------------------------------------------------------------------ */
 .badge { gap: 2px; padding: 2px 4px; border-radius: var(--token-badge-radius); font-size: var(--token-font-size-xs);
