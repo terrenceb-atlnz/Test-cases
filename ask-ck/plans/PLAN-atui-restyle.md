@@ -13,6 +13,14 @@
 > `--status-info[-muted]`, `--color-danger`, `--text-muted`, `--border-color`) resolve to their
 > hard-coded fallbacks, so those spots keep Classic colours until then.
 >
+> **Phase 2 BUILT 2026-09-30** ("carry on"): no raw colour left in `restyle/styles.css` outside its
+> `:root` block; 427 px values on ATUI scales (spacing tokens, type scale, md/lg/full radius, control
+> heights 24/28/36, input widths); `restyle/index.html`'s 15 inline styles moved to classes. **No
+> shared-JS edit was needed:** the JS's style writes are display/opacity/progress behaviour, table
+> layout widths, and 11px / 2px values already on ATUI's scale; its only colours are `var()`
+> fallbacks, all now defined in `restyle/` (incl. `--status-warn`, which neither stylesheet had).
+> Snapping rules: §8. **Awaiting:** Terrence's look, then Phase 3 (the rail mock-up comes first).
+>
 > Originally: **PLAN ONLY — nothing built.** Written 2026-09-30 at Terrence's request: *"lets make a plan for
 > the restyle, but i want it to swap between current/ and restyle/ with a button that you make next
 > to the day/night toggle."* The decisions in §0 are his and settled. Every "today" number in §1
@@ -320,4 +328,19 @@ levels, two of them close in hue); (c) medium = `--token-state-info-accent` (blu
 distinct but blue reads as "info", not severity). **Terrence, 2026-09-30: (b).** The `-muted`
 tint is my construction (ATUI defines no background for chart colours) — shown in the Phase 1
 checklist so it can be judged by eye.
+
+## 8. Phase 2 — the snapping rules actually applied (2026-09-30)
+
+Ties snap **down**, toward ATUI's density. `restyle/` only; the specimen CSS and `:root` untouched.
+
+| What | Rule | Count |
+|---|---|---|
+| padding / margin / gap | nearest of 2/4/8/12/16/20/24/32/40/48 → `var(--token-space-N)`; &lt;2 or &gt;48 left (hairlines, layout) | 255 |
+| font-size | 9–11 → xs · 12–13 → sm · 14 → body · 15 → h5 · 16 → h3 · 20 → h2 · 24 → h1 | 106 |
+| border-radius | 3–4 → md · 6–8 → lg · ≥20 → 9999px | 48 |
+| height / min-height, 24–40 | nearest of 24 / 28 / 36 | 10 |
+| input-width helpers | `.form-input-small` → input-sm, `.form-input-search` → input-lg | 2 |
+| left alone | border widths, shadows, layout widths/heights, positions — the sidebar width is Phase 3's | — |
+
+Biggest visible shifts: 6px gaps/paddings → 4 (39), 10 → 8 (23), 13px text → 12 (16), 14px → 13 (10).
 

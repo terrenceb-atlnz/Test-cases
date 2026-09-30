@@ -11,13 +11,13 @@
 <title>Ask CK — Test Tooling Workbench</title>
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="shortcut icon" href="/favicon.ico">
-<link rel="stylesheet" href="/restyle/static/styles.css?v=4">
+<link rel="stylesheet" href="/restyle/static/styles.css?v=6">
 </head>
 <body>
 <div class="layout">
   <!-- Sidebar from design guidelines: extends full to top, no separate header above it -->
   <nav class="sidebar" aria-label="Tool navigation">
-    <div class="sidebar-logo" data-action="goToPanel" data-args='["panel-main"]' role="button" tabindex="0" title="Ask CK — home" style="cursor:pointer;">
+    <div class="sidebar-logo" data-action="goToPanel" data-args='["panel-main"]' role="button" tabindex="0" title="Ask CK — home">
       <img src="/static/ckc.jpg" alt="CK" class="sidebar-logo-img" />
       <span class="sidebar-logo-text">Ask CK</span>
     </div>
@@ -176,7 +176,7 @@
           subscription CLI — set that up first under <b>LLM → Configure</b>.</p>
         </div>
 
-        <div class="splash-tag" style="margin:14px 0 8px;">Set up your seat for Claude (one time)</div>
+        <div class="splash-tag rs-splash-tag-gap">Set up your seat for Claude (one time)</div>
 
         <details class="splash-section" open id="seatSetupSection">
           <summary>Set up your seat for Claude</summary>
@@ -204,7 +204,7 @@
           </div>
         </details>
 
-        <div class="splash-tag" style="margin:14px 0 8px;">Tool guides (inverse order of the sidebar list)</div>
+        <div class="splash-tag rs-splash-tag-gap">Tool guides (inverse order of the sidebar list)</div>
 
         <details class="splash-section" open>
           <summary>Objective / Test Case Generator</summary>
@@ -238,7 +238,7 @@
               <li><b>6. Run</b> — pick a stored testbox (or add one under <b>Testboxes</b>), choose the .setup, and run it over SSH; results are parsed into per-TestCase PASS/FAIL.</li>
               <li><b>7. Validate</b> — Final Validation passes when every TestCase is PASS with zero failures. On failures, <b>Fix with LLM</b> loops back to Generate; promotion into <code>testsuites_art/</code> is manual.</li>
             </ol>
-            <div style="margin-top:6px;">First-time setup: build the script index with <code>ask-ck/tools/build_script_index.py</code>, and add a testbox under the <b>Testboxes</b> sidebar item.</div>
+            <div class="rs-mt-4">First-time setup: build the script index with <code>ask-ck/tools/build_script_index.py</code>, and add a testbox under the <b>Testboxes</b> sidebar item.</div>
           </div>
         </details>
 
@@ -387,17 +387,17 @@
         <div class="section-description">Local maintenance — reset session state or restart the server without a terminal. <strong>Single-user / localhost only.</strong> The server restart briefly drops the connection (the page reconnects). The database is the permanent source of truth and cannot be rebuilt from here.</div>
         <div id="admin-status" class="justification-note mb-2">Loading status…</div>
 
-        <div class="section-heading" style="font-size:13px;margin-top:10px;">Lint trends</div>
+        <div class="section-heading rs-subheading">Lint trends</div>
         <div id="admin-lint-trends" class="mb-2">Loading lint trends…</div>
 
-        <div class="section-heading" style="font-size:13px;margin-top:10px;">Session state</div>
+        <div class="section-heading rs-subheading">Session state</div>
         <div class="compact-flex mb-2">
           <button data-action="adminResetCase" class="btn btn-secondary btn-compact">Reset current case session</button>
           <button data-action="adminResetWorkspace" class="btn btn-secondary btn-compact">Reset workspace LLM config</button>
           <button data-action="adminResetAll" class="btn btn-secondary btn-compact">Reset ALL sessions</button>
         </div>
 
-        <div class="section-heading" style="font-size:13px;margin-top:10px;">Server</div>
+        <div class="section-heading rs-subheading">Server</div>
         <div class="compact-flex mb-2">
           <button data-action="adminRestart" class="btn btn-secondary btn-compact">Restart server (reload)</button>
         </div>
@@ -843,7 +843,7 @@ Interface port1.0.1
         <div class="section-description mb-2">
           <b>Summary</b> — assemble the generated units into one script and check it.
           <span class="justification-note">Blue buttons call the LLM; the rest run locally.</span>
-          <ol class="mt-1 mb-1" style="margin-left:1.1em; padding-left:0">
+          <ol class="mt-1 mb-1 rs-ol-tight">
             <li><b>Assemble + lint</b> — splice the units into the frame, re-stamp provenance, manifest-check + <code>py_compile</code>/PEP-8. Clear a red lint before moving on.</li>
             <li><b>Review (LLM)</b> — read the assembled script for logic defects the linter can't see (a verdict not matching its step, cross-unit inconsistencies). Findings only — no rewrite.</li>
             <li><b>Save to generated/</b> — write the file to disk.</li>
@@ -903,7 +903,7 @@ Interface port1.0.1
         <div id="pt-lint-trends" class="mb-2"></div>
         <div id="pt-lint-result" class="mb-2"></div>
         <div id="pt-review-result" class="mb-2"></div>
-        <textarea id="pt-gen-code" class="form-input editor-textarea" style="height:420px" spellcheck="false" placeholder="Generated script appears here…"></textarea>
+        <textarea id="pt-gen-code" class="form-input editor-textarea rs-h-420" spellcheck="false" placeholder="Generated script appears here…"></textarea>
         <div id="pt-gen-lib-wrap" class="hidden">
           <div class="justification-note mt-2">Companion library: <span id="pt-gen-lib-name"></span></div>
           <!-- PRUNE is EXPLICIT (PLAN-art-family-numbering-and-prune.md D4): this is the only
@@ -915,7 +915,7 @@ Interface port1.0.1
             <span id="pt-lib-prune-status" class="justification-note"></span>
           </div>
           <div id="pt-lib-prune-result" class="mb-2"></div>
-          <textarea id="pt-gen-lib-code" class="form-input editor-textarea" style="height:180px" spellcheck="false"></textarea>
+          <textarea id="pt-gen-lib-code" class="form-input editor-textarea rs-h-180" spellcheck="false"></textarea>
         </div>
         <div id="pt-gen-prov"></div>
         <details class="mt-2">
@@ -937,11 +937,11 @@ Interface port1.0.1
         <div id="pt-run-case" class="mt-2 mb-2"></div>
         <div class="compact-flex mb-2">
           <label class="justification-note">Testbox:</label>
-          <select id="pt-run-profile" class="form-select" style="width:auto"></select>
+          <select id="pt-run-profile" class="form-select rs-w-auto"></select>
           <button data-action="ptCheckProfile" class="btn btn-compact">Check Connection</button>
           <label class="justification-note">Setup:</label>
-          <select id="pt-run-setup" class="form-select" style="width:auto"></select>
-          <input id="pt-run-setup-path" class="form-input" style="width:22ch" placeholder="…or remote .setup path">
+          <select id="pt-run-setup" class="form-select rs-w-auto"></select>
+          <input id="pt-run-setup-path" class="form-input rs-w-22ch" placeholder="…or remote .setup path">
         </div>
         <div class="compact-flex mb-2">
           <button data-action="ptRun" class="btn btn-primary btn-compact" id="pt-run-btn">Run on Testbox</button>
@@ -991,7 +991,7 @@ Interface port1.0.1
 
         <div id="pt-tb-list" class="mb-2"></div>
 
-        <div class="section-heading mt-2" style="font-size:12px">Add / edit testbox</div>
+        <div class="section-heading mt-2 rs-subheading-sm">Add / edit testbox</div>
         <div class="tb-grid">
           <div class="tb-field">
             <label class="tb-label" for="pt-tb-name">Name<span class="tb-req">*</span></label>
@@ -1017,7 +1017,7 @@ Interface port1.0.1
 
         <div class="tb-setups">
           <div class="tb-setups-head">
-            <span class="tb-label" style="margin:0">Setups on this testbox</span>
+            <span class="tb-label rs-m-0">Setups on this testbox</span>
             <span class="tb-optional">optional &mdash; any number</span>
           </div>
           <p class="tb-advanced-note">Each person adds their own, named however they like. The Run panel lists every one and picks none for you; a run can also override with a path typed into the Run panel. Names you save here are never rewritten.</p>
