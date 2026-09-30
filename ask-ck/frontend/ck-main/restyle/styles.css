@@ -365,6 +365,9 @@ body {
 .pt-stepnav-btns { display: inline-flex; align-items: center; gap: var(--token-space-8); }
 .pt-stepnav-pos { font-size: var(--token-font-size-sm); font-weight: 600; color: var(--text-secondary); min-width: 92px; text-align: center; }
 .pt-pill-row { display: flex; flex-wrap: wrap; gap: var(--token-space-4); margin-left: auto; }
+/* Script Search + Fragments: the pills get their own full-width line, left-aligned, like Generate's
+   standalone #pt-unit-pills (Terrence, 2026-09-30) — margin-left:auto right-hugged a wrapped row. */
+.pt-stepnav > .pt-pill-row { flex-basis: 100%; margin-left: 0; }
 /* Pills are <button>s. The base rule `button:not(.btn)` (specificity 0,1,1) would
    otherwise paint them accent-blue; scoping under .pt-pill-row (0,2,1) beats it
    regardless of source order — a bare `button.pt-pill-ok` only TIES (0,1,1) and the
