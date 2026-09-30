@@ -12,7 +12,7 @@
 <title>Ask CK — Test Tooling Workbench</title>
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="shortcut icon" href="/favicon.ico">
-<link rel="stylesheet" href="/restyle/static/styles.css?v=8">
+<link rel="stylesheet" href="/restyle/static/styles.css?v=9">
 </head>
 <body>
 <!-- ATUI shell (PLAN-atui-restyle S13-S15): a 48px header — brand mark + name on the left (the element
@@ -37,6 +37,9 @@
 <div class="layout">
   <!-- Sidebar under the 48px header (ATUI shell); collapses to a 50px icon rail (restyle/rail.js). -->
   <nav class="sidebar" aria-label="Tool navigation">
+    <!-- The six sections sit in their own box: shared/nav.js's accordion takes every sibling after a
+         label as that section's body, so anything after the last section must live outside it. -->
+    <div class="rs-sidebar-sections">
 
     <!-- Help -->
     <div class="sidebar-section-label" title="Help"><span class="rs-icon rs-icon-help" aria-hidden="true"></span><span class="rs-sec-text">Help</span></div>
@@ -131,7 +134,7 @@
         6. Test Steps (LLM)
       </div>
     </div>
-
+    </div>
     <!-- Rail A (PLAN-atui-restyle S14): collapse to a 50px icon rail. restyle/rail.js owns it. -->
     <button type="button" id="rs-rail-toggle" class="rs-rail-toggle" title="Collapse sidebar" aria-label="Collapse sidebar" aria-expanded="true">
       <span class="rs-icon rs-icon-collapse" aria-hidden="true"></span><span class="rs-sec-text">Collapse</span>
