@@ -59,6 +59,18 @@ def db_revision(real: pathlib.Path) -> str:
     return "-".join(parts)
 
 
+def _install(cached: pathlib.Path, target: pathlib.Path) -> None:
+    """Copy the snapshot to `target` with no -wal / -shm left beside it.
+
+    backup() leaves none beside the SNAPSHOT, but the target is reused: a previous scratch
+    server leaves `scratch.db-wal` and `-shm` behind, and SQLite replays that stale WAL onto
+    the fresh copy — "database disk image is malformed" on the first write (2026-10-01: a WAL
+    from the day before, beside a copy made that minute)."""
+    for suffix in ("-wal", "-shm"):
+        target.with_name(target.name + suffix).unlink(missing_ok=True)
+    shutil.copyfile(cached, target)
+
+
 def scratch_db(fresh: bool = False) -> pathlib.Path:
     if not REAL_DB.exists():
         sys.exit(f"ck.db not found at {REAL_DB} — run ./setup.sh (git lfs pull) first.")
@@ -69,7 +81,7 @@ def scratch_db(fresh: bool = False) -> pathlib.Path:
 
     if cached.exists() and not fresh:
         target = cache_dir / "scratch.db"
-        shutil.copyfile(cached, target)          # safe: backup() left no -wal beside it
+        _install(cached, target)
         return target
 
     # Build under a temp name and rename, so a concurrent run never sees a half-written
@@ -90,7 +102,7 @@ def scratch_db(fresh: bool = False) -> pathlib.Path:
             old.unlink(missing_ok=True)
 
     target = cache_dir / "scratch.db"
-    shutil.copyfile(cached, target)
+    _install(cached, target)
     return target
 
 
