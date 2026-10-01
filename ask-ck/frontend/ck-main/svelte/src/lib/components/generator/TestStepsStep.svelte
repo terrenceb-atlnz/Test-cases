@@ -2,116 +2,250 @@
 // @ts-nocheck
 
   import Button from '../Button.svelte';
+  import ConfirmModal from '../ConfirmModal.svelte';
   import StatusModal from '../StatusModal.svelte';
+  import LlmButton from '../LlmButton.svelte';
+  import { scrollToBottom } from '../../utils/scroll.js';
 
-  /** @type {Array<string>} The finalized objectives from the previous step (read-only display) */
-  export let objectives = [];
+  /** @type {string} Case key — only used for the push-to-Zephyr confirmation copy. */
+  export let caseKey = '';
 
-  /** @type {() => Promise<Array<string>>} */
-  export let onSynthesize = async () => [];
+  /** @type {string} The finalized Step 4 objective (HTML), shown read-only for context. */
+  export let objective = '';
 
-  /** @type {() => Promise<{ status: string, message: string }>} */
-  export let onExport = async () => ({ status: 'success', message: '' });
+  /** @type {Array<{ description: string, expectedResult: string }>} The current
+      step5.testScript.steps — owned by the parent (derived from session), not bound here. */
+  export let steps = [];
 
-  /** @type {(() => void) | null} Called once the export succeeds — tells the parent to mark the stepper finished */
+  /** @type {(headers: Record<string, string>) => Promise<any>} Parent-owned closure —
+      calls synthesize_steps and replaces `session` itself. */
+  export let onSynthesize = async () => null;
+
+  /** @type {(steps: Array<{description: string, expectedResult: string}>) => Promise<void>} */
+  export let onSaveSteps = async () => {};
+
+  /** @type {() => Promise<any>} Calls /export — a real write to the tracked
+      refined-cases/ bundle, not a preview. */
+  export let onExport = async () => ({});
+
+  /** @type {(opts: { dryRun: boolean }) => Promise<any>} Calls /push_to_zephyr. */
+  export let onPushToZephyr = async () => ({});
+
+  /** @type {(() => void) | null} Called once Export actually writes the bundle. */
   export let onFinished = null;
 
-  let testSteps = [];
-  let showTestSteps = false;
-  let isEditingTestSteps = false;
-  let testStepsDraft = '';
+  let isEditing = false;
+  let draftSteps = [];
 
-  let showExportStatusModal = false;
-  let exportStatus = 'success';
-  let exportStatusMessage = '';
-  let isSynthesizing = false;
+  function startEdit() {
+    draftSteps = steps.map((s) => ({ description: s.description || '', expectedResult: s.expectedResult || '' }));
+    isEditing = true;
+  }
 
-  async function synthesizeTestSteps() {
-    isSynthesizing = true;
+  function cancelEdit() {
+    isEditing = false;
+  }
+
+  function addStep() {
+    draftSteps = [...draftSteps, { description: '', expectedResult: '' }];
+  }
+
+  function removeStep(idx) {
+    draftSteps = draftSteps.filter((_, i) => i !== idx);
+  }
+
+  let isSaving = false;
+  let saveError = '';
+
+  async function saveChanges() {
+    isSaving = true;
+    saveError = '';
     try {
-      testSteps = await onSynthesize();
-      showTestSteps = true;
-      isEditingTestSteps = false;
+      await onSaveSteps(draftSteps.map((s) => ({
+        description: (s.description || '').trim(),
+        expectedResult: (s.expectedResult || '').trim(),
+      })));
+      isEditing = false;
+    } catch (e) {
+      saveError = (e && e.message) || String(e);
     } finally {
-      isSynthesizing = false;
+      isSaving = false;
     }
   }
 
-  function editTestSteps() {
-    testStepsDraft = testSteps.join('\n');
-    isEditingTestSteps = true;
-  }
+  let isExporting = false;
+  let showExportModal = false;
+  let exportStatus = 'success';
+  let exportTitle = '';
+  let exportMessage = '';
 
-  function saveTestSteps() {
-    testSteps = testStepsDraft
-      .split('\n')
-      .map((line) => line.trim())
-      .filter((line) => line.length > 0);
-    isEditingTestSteps = false;
-  }
-
-  function cancelEditTestSteps() {
-    isEditingTestSteps = false;
-  }
-
-
-  async function exportRepeatableBundle() {
-    const result = await onExport();
-    exportStatus = result.status;
-    exportStatusMessage = result.message;
-    showExportStatusModal = true;
-    if (result.status === 'success') {
-      onFinished && onFinished();
+  async function handleExport() {
+    isExporting = true;
+    try {
+      const data = await onExport();
+      const v = data.validation || {};
+      if (data.wrote_bundle === false) {
+        exportStatus = 'error';
+        exportTitle = 'Export blocked';
+        const headline = data.message ? data.message.split('\n')[0] : 'Export blocked — no bundle written.';
+        const issues = (v.issues && v.issues.length) ? ' Issues: ' + v.issues.join('; ') : '';
+        exportMessage = headline + issues;
+      } else {
+        exportStatus = 'success';
+        exportTitle = 'Export successful';
+        const files = (data.saved_files && data.saved_files.length) ? data.saved_files.join(', ') : '';
+        const warnings = (v.warnings && v.warnings.length) ? ' Advisory warnings: ' + v.warnings.join('; ') : '';
+        exportMessage = `Saved to ${data.saved_to}/ (${files}).${warnings}`;
+        onFinished && onFinished();
+      }
+    } catch (e) {
+      exportStatus = 'error';
+      exportTitle = 'Export failed';
+      exportMessage = (e && e.message) || String(e);
+    } finally {
+      isExporting = false;
+      showExportModal = true;
     }
   }
+
+  let isPushingPreview = false;
+  let isPushingExecute = false;
+  let pushOutput = '';
+  let showPushConfirmModal = false;
+
+  function formatPushOutput(data, execute) {
+    const header = data.ok === false
+      ? `⚠ Push ${execute ? 'FAILED' : 'preview reported problems'} (exit ${data.returncode}) — check JIRA_KEY in secrets.md and output below:\n\n`
+      : (execute ? '✓ Push complete:\n\n' : 'Dry-run preview (no changes made):\n\n');
+    return header + (data.output || '');
+  }
+
+  async function handlePreviewPush() {
+    isPushingPreview = true;
+    pushOutput = 'Previewing (dry-run, no writes)…';
+    try {
+      const data = await onPushToZephyr({ dryRun: true });
+      pushOutput = formatPushOutput(data, false);
+    } catch (e) {
+      pushOutput = 'Push preview failed: ' + ((e && e.message) || String(e));
+    } finally {
+      isPushingPreview = false;
+    }
+  }
+
+  function handlePushClick() {
+    showPushConfirmModal = true;
+  }
+
+  async function executePush() {
+    isPushingExecute = true;
+    pushOutput = 'Pushing to Zephyr…';
+    try {
+      const data = await onPushToZephyr({ dryRun: false });
+      pushOutput = formatPushOutput(data, true);
+    } catch (e) {
+      pushOutput = 'Push failed: ' + ((e && e.message) || String(e));
+    } finally {
+      isPushingExecute = false;
+    }
+  }
+
+  $: pushConfirmMessage = `Push ${caseKey} to the LIVE Zephyr server?\n\n`
+    + 'This will:\n'
+    + '  1. Strip a leading "(N)" group from the test-case title\n'
+    + '  2. Create a NEW version (e.g. 1.0 → 2.0)\n'
+    + '  3. Upload the objective + test steps onto the new version\n'
+    + '  4. Attach traceability.md + web links\n\n'
+    + 'Tip: run "Preview Push (dry-run)" first. Continue?';
+
+  $: hasSteps = steps.length > 0;
 </script>
 
-<p class="cases-intro">Generate verification steps from the finalized objective (Step 5) plus review context. The first step is always the server-built traceability note. Export the repeatable bundle when ready.</p>
+<p class="cases-intro">Generate verification steps from the finalized objective plus review context. The first step is always the server-built traceability note. Export the repeatable bundle when ready.</p>
 
-<p class="testlink-table-label">Objectives</p>
+<p class="testlink-table-label">Objective</p>
 <div class="objectives-window">
-  <ul class="objectives-list">
-    {#each objectives as objective, i (i)}
-      <li>{objective}</li>
-    {/each}
-  </ul>
+  <div class="objectives-html">{@html objective || '<em>No objective on session.</em>'}</div>
 </div>
 
 <div class="objectives-actions">
-  <Button variant="primary" sparkle disabled={objectives.length === 0} loading={isSynthesizing} on:click={synthesizeTestSteps}>Synthesize Test Steps (LLM)</Button>
+  {#if objective}
+    <LlmButton
+      label="Synthesize Test Steps (LLM)"
+      verb="Synthesizing…"
+      onRun={onSynthesize}
+      onResult={() => scrollToBottom()}
+    />
+  {:else}
+    <Button variant="primary" disabled>Synthesize Test Steps (LLM)</Button>
+  {/if}
 </div>
 
-{#if showTestSteps}
+{#if hasSteps}
   <p class="testlink-table-label">Generated Test Steps</p>
   <div class="objectives-window">
-    {#if isEditingTestSteps}
-      <textarea class="objectives-textarea" bind:value={testStepsDraft} rows="8"></textarea>
+    {#if isEditing}
+      <div class="editable-steps">
+        {#each draftSteps as step, i (i)}
+          <div class="editable-step">
+            <div class="editable-step-num">{i + 1}.</div>
+            <div class="editable-step-fields">
+              <input class="step-field" bind:value={step.description} placeholder="Step description" />
+              <input class="step-field" bind:value={step.expectedResult} placeholder="Expected result (optional)" />
+            </div>
+            <Button variant="outline" on:click={() => removeStep(i)}>Remove</Button>
+          </div>
+        {/each}
+      </div>
+      {#if saveError}<p class="confirm-error">Save failed: {saveError}</p>{/if}
       <div class="objectives-window-actions">
-        <Button variant="primary" on:click={saveTestSteps}>Save Changes</Button>
-        <Button variant="outline" on:click={cancelEditTestSteps}>Cancel</Button>
+        <Button variant="primary" loading={isSaving} on:click={saveChanges}>Save Changes</Button>
+        <Button variant="outline" on:click={cancelEdit}>Cancel</Button>
+        <Button variant="outline" on:click={addStep}>+ Add step</Button>
       </div>
     {:else}
-      <ol class="objectives-list">
-        {#each testSteps as step, i (i)}
-          <li>{step}</li>
+      <ol class="steps-list">
+        {#each steps as step, i (i)}
+          <li>
+            <div>{step.description}</div>
+            {#if step.expectedResult}
+              <div class="step-expected"><em>Expected:</em> {step.expectedResult}</div>
+            {/if}
+          </li>
         {/each}
       </ol>
       <div class="objectives-window-actions">
-        <Button variant="outline" on:click={editTestSteps}>Edit</Button>
+        <Button variant="outline" on:click={startEdit}>Edit</Button>
       </div>
     {/if}
   </div>
 
   <div class="export-actions">
-    <Button variant="success" on:click={exportRepeatableBundle}>Finish &amp; Export</Button>
+    <Button variant="success" loading={isExporting} on:click={handleExport}>Export Repeatable Bundle</Button>
   </div>
+
+  <div class="push-actions">
+    <Button variant="outline" loading={isPushingPreview} on:click={handlePreviewPush}>Preview Push (dry-run)</Button>
+    <Button variant="primary" loading={isPushingExecute} on:click={handlePushClick}>Push to Zephyr</Button>
+  </div>
+  <p class="push-note">Push uses the <strong>last exported bundle on disk</strong> (click <em>Export Repeatable Bundle</em> first if you've made edits). On the live Zephyr case it strips a leading <code>(N)</code> title group, ensures version 2.0, and uploads the objective + steps + traceability onto it. Run <em>Preview</em> first.</p>
+  {#if pushOutput}<pre class="push-output">{pushOutput}</pre>{/if}
 {/if}
 
+<ConfirmModal
+  bind:open={showPushConfirmModal}
+  title="Push to the LIVE Zephyr server?"
+  message={pushConfirmMessage}
+  confirmText="Push"
+  cancelText="Cancel"
+  onConfirm={executePush}
+/>
+
 <StatusModal
-  bind:open={showExportStatusModal}
+  bind:open={showExportModal}
   status={exportStatus}
-  title={exportStatus === 'success' ? 'Export successful' : 'Export failed'}
-  message={exportStatusMessage}
+  title={exportTitle}
+  message={exportMessage}
 />
 
 <style>
@@ -139,7 +273,7 @@
     display: flex;
     flex-direction: column;
     gap: 16px;
-    padding: 16px;
+    padding: 24px;
     margin-bottom: 12px;
     border: 1px solid var(--color-border-surface);
     border-radius: 8px;
@@ -147,27 +281,77 @@
     width: 100%;
   }
 
-  .objectives-list {
+  .objectives-html {
+    color: var(--color-text);
+    font-size: 0.94rem;
+    line-height: 1.5;
+  }
+
+  .objectives-html :global(ul) {
     margin: 0;
     padding-left: 20px;
     display: flex;
     flex-direction: column;
     gap: 8px;
+  }
+
+  .steps-list {
+    margin: 0;
+    padding-left: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
     color: var(--color-text);
     font-size: 0.94rem;
   }
 
-  .objectives-textarea {
+  .step-expected {
+    margin-top: 2px;
+    color: var(--color-text-muted);
+    font-size: 0.88rem;
+  }
+
+  .editable-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .editable-step {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .editable-step-num {
+    flex: 0 0 auto;
+    padding-top: 8px;
+    color: var(--color-text-muted);
+    font-size: 0.88rem;
+  }
+
+  .editable-step-fields {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .step-field {
     width: 100%;
-    min-height: 160px;
-    padding: 10px 12px;
-    border-radius: 8px;
+    padding: 8px 10px;
+    border-radius: 6px;
     border: 1px solid var(--color-border-surface);
     background: var(--color-bg-content);
     color: var(--color-text);
     font: inherit;
-    font-size: 0.94rem;
-    resize: vertical;
+    font-size: 0.9rem;
+  }
+
+  .confirm-error {
+    margin: -8px 0 0;
+    color: var(--color-error);
+    font-size: 0.88rem;
   }
 
   .objectives-window-actions {
@@ -178,5 +362,29 @@
   .export-actions {
     display: flex;
     margin-top: 16px;
+  }
+
+  .push-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 16px;
+  }
+
+  .push-note {
+    margin: 12px 0 0;
+    color: var(--color-text-muted);
+    font-size: 0.85rem;
+  }
+
+  .push-output {
+    margin-top: 12px;
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid var(--color-border-surface);
+    background: var(--color-bg-content);
+    color: var(--color-text);
+    font-size: 0.85rem;
+    white-space: pre-wrap;
+    word-break: break-word;
   }
 </style>
