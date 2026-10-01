@@ -21,6 +21,28 @@ current working thread see
 > `ask-ck/ck-facelift/`, `pytest-create/` and `CK-main/` plan paths moved to `ask-ck/plans/` on 2026-09-11 and, once complete, to `archive/plans/`.
 > `js-tests/` → `tests/js/`, `e2e/` → `tests/e2e/`, `static/js/` → `ask-ck/frontend/ck-main/current/<page>/` (2026-09-11).
 
+## 2026-10-02 — not-applicable cases are skipped before they run, by the generator
+
+A case that finds out inside `main()` that it does not apply reports UNSUPPORTED, and the framework
+then power-cycles every bench device — about 4 minutes on tb470, per case, per run. Every script
+generated so far needed hand edits to avoid that (T33234 `d9a08dd`, T33235 `3454bc0`, `056114d`), and
+nothing taught the next one. Read from the framework on tb470: the TestSet runs a case only while its
+`supported` is True **at its turn**, so a case marked before then is not run and not cycled. The
+generator now emits that (`ask-ck/plans/PLAN-unsupported-gating.md`): a class gate on a DUT property
+the frame sets from discovery (a missing link), `ckNeeds` + `publish_value` (a value an earlier case
+could not establish), `mark_cases_unsupported` (a condition on an earlier result, via Review → Fix),
+with BLOCKING lints `rolegate:` / `needs:`, and the run reader reports a skipped case as UNSUPPORTED,
+not run, instead of a missing one.
+
+**Why this shape.** Terrence chose "the frame does what it can know, the model writes the rest, a
+lint enforces it". The frame knows which roles the *case* needs, not which *step* does — its role
+detection is deliberately over-inclusive, which is safe only while an unused role costs nothing; a
+per-step gate stamped from it would skip steps that could run. So the model writes the gate and an
+exact lint checks it. A step that also declares a published value is a contributor (T33235's sweep
+fills one `speedMap` across eleven steps) and is not skipped when the first producer finds nothing.
+Kind C — a case that is itself the first to learn it does not apply — keeps the in-`main()` pair;
+moving such probes earlier would put test-shaped work into setup and was deferred.
+
 ## 2026-09-30 — the ATUI restyle at `/restyle`, swappable with Classic
 
 Governance's ATUI design system arrived the same day. It is **not required** for Ask CK (Terrence:

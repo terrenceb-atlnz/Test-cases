@@ -3,7 +3,7 @@ name: editing-backend-restarts-production
 description: ask-ck.service runs uvicorn --reload against the working tree, so ANY save to CK_server/*.py bounces the live server — and a reload can wedge on the agent long-polls
 metadata:
   type: project
-  verified: 2026-09-30
+  verified: 2026-10-02
 ---
 
 The hosted server (`systemd --user` unit `ask-ck.service`, LAN on :8000) runs:
@@ -84,3 +84,13 @@ path (the harness refuses `rm "$VAR/…"`), then `git worktree remove --force`. 
 refused. Also re-verified: the Phase 0b `main.py` save bounced production (~30 s, no wedge).
 
 **Prompt templates are the other case (verified 2026-09-28):** `templates/prompts/*.jinja` are read by a Jinja `Environment` with the default `auto_reload`, so a `.jinja` edit in the live tree is live on the NEXT render with no reload and no restart — which also means such an edit is production the moment it is saved. Same branch-and-merge discipline as `.py`.
+
+**2026-10-02 — a backend `.py` apply by Claude, not refused, and a variant of the branch method.**
+PLAN-unsupported-gating (2 `.py` + 4 `.jinja` + JS + tests) was built UNCOMMITTED in a worktree,
+exported with `git add -N <new files>` + `git diff --binary`, dry-run with `git apply --check` in the
+live tree, and applied there by Claude with one `git apply` after Terrence chose "apply now" (asked
+first, because `journalctl` showed a second seat, 10.33.12.16, holding a case lock). Not refused.
+One reload for the whole batch: `Waiting for connections to close` → shutdown 24 s later → new worker
+up ~27 s after the save, with four tabs long-polling — no wedge — and the other seat's lock
+heartbeat answered 200 afterwards (the in-memory lock survived its re-heartbeat). Then the gate in
+the live tree, commit, and worktree teardown as above.

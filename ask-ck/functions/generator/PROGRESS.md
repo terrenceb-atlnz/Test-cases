@@ -5,11 +5,79 @@ verified: 2026-09-28
 
 **Purpose**: This file exists so future sessions can quickly understand exactly where we are, what has been built, what the priorities are, and how to continue seamlessly.
 
-**Last Updated**: 2026-09-30, evening (by Claude; the ATUI restyle built at `/restyle`, swappable with Classic — complete)
+**Last Updated**: 2026-10-02 (by Claude; not-applicable cases are skipped before they run — the generator teaches it)
 
 > **Reading note (2026-09-23 doc sweep).** Entries are frozen as written. Where an entry's
 > claim has since stopped being true, a ⚠ line under its heading says what changed.
 > Newest first. Paths in older entries predate these moves (the same as in CHANGELOG): `tool/` → `ask-ck/tools/`, `ask-ck/var/` → `ask-ck/db/`, `objective-drafting/` → `ask-ck/functions/generator/`, `pytest-create/` → `ask-ck/functions/pytest-creator/`, `js-tests/` → `tests/js/`, `ask-ck/ck-facelift/` → `ask-ck/plans/`, root reports → `docs/`, and completed plans `ask-ck/plans/` → `archive/plans/` (2026-09-11, 2026-09-23). Also retired 2026-09-23: the demo notes → `archive/plans/demo-2026-09-11/`, and `HANDOFF-generate-token-efficiency.md` + `Fragments_prompt.md` → `archive/records/`.
+
+## Latest session (2026-10-02) — not-applicable cases are skipped BEFORE they run; the generator teaches it
+
+Orientation, then Terrence chose "the generator decision, that's going to be huge, going forward":
+should the generator itself mark cases that cannot apply, instead of leaving it to hand edits?
+Plan, decisions and review: `ask-ck/plans/PLAN-unsupported-gating.md` (**built and applied; W7 bench
+proof open**).
+
+**Why.** An UNSUPPORTED reached inside `main()` power-cycles every bench device (~4 min on tb470;
+T33235 run 1 paid five, run 4 one). Read on tb470 (framework, read-only) this session: the TestSet
+runs a case only `if testCase.supported or self.runUnsupported`, checked AT ITS TURN — so a case
+marked before then is not run and not cycled, whether the declarative marking pass marked it or an
+earlier case did. `skipIfExcl` matters only under `-u` (the `d9a08dd`/`3454bc0`/`056114d` comments
+say otherwise; the scripts are right). A skipped case writes no `<<` line.
+
+**Terrence's decisions:** teach it (kinds A and B); option (c) — the frame does what it can know, the
+model writes the rest, a lint enforces it; the model writes the kind-A gate (Q1); `publish_value` +
+`ckNeeds` (Q2); names accepted (Q3); kind C (a case that is the first to find out itself) **deferred**
+(Q4, after a worked example: T33235 TC20's partner `speed 10`); fix the run reader.
+
+**Shipped (`38b5eab`, applied to the live tree 09:47 on his "apply now"):**
+- Frame: `dut.has_fibre_link` / `has_cusfp_link` in `init()`; `publish_value` and
+  `mark_cases_unsupported` (module-level, when the sequence publishes).
+- Prompts: rule 3's pluggable paragraph → the `testCasePlatformWithPropertyIncl` class gate; rule 3d
+  "WHEN a case can know it does not apply decides HOW it says so"; the unit prompt tells producer,
+  consumer and **contributor** apart; the Review checks B2 and asks for `publish_value`.
+- Lints: `rolegate:` and `needs:` (BLOCKING), over-gating and `marks:` (WARNING).
+- `parse_framework_log`: a marked case with no result block → `UNSUPPORTED`, `ran: false`, reason
+  (`not_run_cases`); run panel "not run: <reason>". T33234 run 3 used to read "NO RESULTS … NOT a
+  pass"; it now reads "14 unsupported (14 not run)".
+
+**Found by reviewing the plan against the code, and by building it** (plan §9): no "direct
+assignment" ban (T33235 fills `speedMap` in place across TC 2–12); B2 can only land via Review → Fix
+(a unit never sees later steps' text); the frame knows roles per case, not per step (so the gate is
+model-written); `.jinja` edits are live on save; **contributors are not consumers** (steps 3–13 all
+declare `speedMap` — the first lint draft would have skipped ten measuring steps on a None); the
+Review's own "accepted shapes" list taught the old `self.testSet.<name> = <value>`.
+
+**How it was built:** scratchpad worktree (`GIT_LFS_SKIP_SMUDGE=1`, db/.venv/node_modules
+symlinked), gated there, 10 mutations each red, scratch-server smoke on the real sessions (T33235: the
+4 expected `needs:` errors — the file predates the helpers and is left as is; T33234: 0), then one
+`git apply` → one reload (~27 s, no wedge; the other seat's T33234 lock heartbeat 200 afterwards).
+
+**Also recorded here (2026-10-01, after the last wrap):** `056114d` T33235 marks not-applicable cases
+before they run and drops the startup-config backup (tb470 run 4 = **PASS**, 32 / 1 UNSUPPORTED,
+device-testing `5067833`, so the "re-run blocked on the fibre-link apply" carried item is closed);
+`6d6212d` `ckdb_scratch` clears a stale `-wal`/`-shm` beside the scratch copy.
+
+**Open (verified this session):**
+- **W7:** one regenerated case on tb470 through device-testing `/test-mode`, as the bench proof of
+  the generator's output; and T33235 run 5 on `056114d` (TestCase_20 skipped, no cycle).
+- Known gaps (plan §9): a producer itself skipped before running never publishes; `--include-test-
+  cases` runs still read `short`; kind C deferred.
+- T33235's session now lints to 4 `needs:` errors (accurate; file untouched by decision).
+- **Handover for device-testing** (`TESTBOX-ACCESS.md` here is a symlink into that repo, so it was
+  not edited from this session): beside §3's power-cycle ⚠, a case already `supported = False` at
+  its turn is not run at all — no methods, no cycle, no `<<` line (`ATTestSet.py` ~1755) — and
+  generated scripts since 2026-10-02 mark such cases before they run.
+- Unchanged: the Modbus T22650/T22652 owner question; the three plans awaiting Terrence
+  (`PLAN-test-composer.md` §7 incl. (g), `PLAN-family-library-first.md` §3,
+  `PLAN-pt-agent-broker.md` §7); R6's 4th bar; `test-composer/templates/setup-b/` is three 0-byte
+  files; `--include-test-cases` not yet exercised on a run; C3, C10 of
+  `PLAN-pt-followups-review-2026-09-24.md`; the device-testing handovers.
+- Left for a restart-safe moment: `CK_server/main.py` still cites `ask-ck/plans/PLAN-atui-restyle.md`
+  (now `archive/plans/`).
+
+Gate (live tree, this wrap): EXIT=0 — both guards OK, pytest **1932 / 1 skipped**, vitest **377 in 34
+files**, `ck.db` signature unchanged by the gate.
 
 ## Latest session (2026-09-30, evening) — the ATUI restyle, built alongside Classic and swappable
 

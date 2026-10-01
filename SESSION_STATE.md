@@ -4918,3 +4918,22 @@ The plan is complete and moved to `archive/plans/`; nothing on it is open. Detai
 method: PROGRESS 2026-09-30 (evening).
 
 Gate: EXIT=0 — both guards OK, pytest 1901 / 1 skipped, vitest 377 in 34 files, ck.db untouched.
+
+## Session Close / Handoff (2026-10-02) — not-applicable cases are skipped before they run; the generator teaches it
+
+Orientation (gate green, invariants held; the carried "T33235 re-run blocked" item was already
+closed by run 4's PASS on 2026-10-01). Terrence chose the open "teach the declarative UNSUPPORTED
+gate?" decision as the work. Read the framework on tb470 (read-only): the TestSet runs a case only
+while `supported` is True at its turn, so a case marked earlier — by the marking pass or by an earlier
+case — is not run and not power-cycled. He decided: teach kinds A and B, option (c), the model writes
+the gate, `publish_value` + `ckNeeds`, fix the run reader, defer kind C, a new plan.
+
+Plan written, reviewed against the code (six findings, two more while building — notably that
+contributors to a published value are not its consumers), built in a scratchpad worktree, gated,
+mutation-checked, smoke-tested on the scratch server against the real T33234/T33235 sessions, and
+applied on his "apply now" in one reload (~27 s, no wedge; a second seat had a case open and its lock
+survived). Committed `38b5eab`; docs, memory and this wrap in the docs commit that follows. Detail,
+the decisions and what remains: PROGRESS 2026-10-02 and `ask-ck/plans/PLAN-unsupported-gating.md`.
+
+Gate: EXIT=0 — both guards OK, pytest 1932 / 1 skipped, vitest 377 in 34 files, ck.db untouched.
+
