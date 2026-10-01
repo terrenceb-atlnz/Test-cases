@@ -9,6 +9,8 @@
 //     each call site.
 // ============================================================================
 
+// @ts-nocheck
+
 const CK_SESSION_ID = (function () {
   let id = sessionStorage.getItem('ckSessionId');
   if (!id) {

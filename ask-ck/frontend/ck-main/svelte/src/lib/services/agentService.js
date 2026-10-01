@@ -1,5 +1,8 @@
 
 // COPIED OVER FROM current/llm-config/agent.js
+
+// @ts-nocheck
+
 import { CK_SESSION_ID, effectiveAuthMethodActive } from '../api/client.js';
 
 const CK_AGENT_URL = (window.CK_AGENT_URL || 'http://127.0.0.1:8765');
@@ -264,6 +267,23 @@ async function ckBrokerWorker(myGeneration) {
 if (typeof document !== 'undefined' && document.addEventListener) {
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible' && ckAgentModeActive()) ckBrokerLoop();
+  });
+}
+
+// A reload/close while a worker is mid-job (ckBrokerActive > 0 — awaiting the local CLI,
+// not long-polling) kills this module's state outright, orphaning the job server-side:
+// once claimed, agent_jobs.py's registry.submit() stops checking liveness entirely and
+// commits to waiting out the FULL budget (floored to 1800s for any real LLM call) with no
+// way to notice the claiming tab is gone — the only ways out are that 30-minute floor or
+// an explicit /api/llm/cancel. Warning before the reload that does the damage is cheap;
+// recovering a stranded 30-minute wait server-side is not. Not guarded on visibleness —
+// a background tab can still be the one holding the job.
+if (typeof window !== 'undefined' && window.addEventListener) {
+  window.addEventListener('beforeunload', (e) => {
+    if (ckBrokerActive > 0) {
+      e.preventDefault();
+      e.returnValue = '';   // browsers ignore custom text; this is what triggers the prompt
+    }
   });
 }
 

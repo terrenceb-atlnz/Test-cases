@@ -484,7 +484,7 @@ import UnderConstruction from '../lib/components/UnderConstruction.svelte';
     font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   }
 
-  .llm-note ol {
+  /* .llm-note ol {
     margin: 0 0 14px;
     padding-left: 20px;
     display: flex;
@@ -493,7 +493,7 @@ import UnderConstruction from '../lib/components/UnderConstruction.svelte';
     color: var(--color-text-muted);
     font-size: 0.92rem;
     line-height: 1.5;
-  }
+  } */
 
   .llm-note-footer {
     margin-bottom: 0 !important;

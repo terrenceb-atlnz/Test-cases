@@ -86,7 +86,7 @@
   .data-table-row {
     display: flex;
     align-items: center;
-    padding: 10px 40px;
+    padding: 10px 25px;
     height: 100%;
     /* border-bottom: 1px solid var(--color-border-surface); */
   }

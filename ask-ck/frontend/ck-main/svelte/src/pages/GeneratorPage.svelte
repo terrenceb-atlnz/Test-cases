@@ -10,6 +10,7 @@
   import TestStepsStep from '../lib/components/generator/TestStepsStep.svelte';
 
   import * as casesService from '../lib/services/generator/casesService.js';
+  import { restoreChosen } from '../lib/services/generator/chosenService.js';
   import * as testlinkService from '../lib/services/generator/testlinkService.js';
   import * as zephyrService from '../lib/services/generator/zephyrService.js';
   import * as atpylibService from '../lib/services/generator/atpylibService.js';
@@ -68,6 +69,55 @@
   let readOnly = false;
   let lockMessage = '';
 
+  // Lazy per-step candidate fetch (GET step_candidates/{key}/{step}) the first time a step
+  // opens for this case — mirrors current/generator/generator.js's `_stepFetched` memo. Only
+  // one case can ever be active in a given GeneratorPage instance (switching cases remounts
+  // the whole page — see onCreateAnother), so a single "already fetched for this key" flag
+  // per step is enough; no need for the original's {key}:{step} composite.
+  // Restoring session.step1.selections happens in the SAME fetch, right after — enrichment
+  // (pulling in a restored pick's full score/description) needs the candidate pool to have
+  // landed first, matching current/generator/chosen.js's restoreChosenFromSelections.
+  let testLinkCandidates = [];
+  let fetchedTestLinkFor = null;
+  $: if (currentStep === 1 && session?.key && fetchedTestLinkFor !== session.key) {
+    fetchedTestLinkFor = session.key;
+    testlinkService.fetchStepCandidates(session.key).then((c) => {
+      testLinkCandidates = c;
+      testLinkChosen = restoreChosen(session.step1?.selections, c);
+    });
+  }
+
+  let zephyrCandidates = [];
+  let fetchedZephyrFor = null;
+  $: if (currentStep === 2 && session?.key && fetchedZephyrFor !== session.key) {
+    fetchedZephyrFor = session.key;
+    zephyrService.fetchStepCandidates(session.key).then((c) => {
+      zephyrCandidates = c;
+      zephyrChosen = restoreChosen(session.step2?.selections, c);
+    });
+  }
+
+  let atpylibCandidates = [];
+  let fetchedAtpylibFor = null;
+  $: if (currentStep === 3 && session?.key && fetchedAtpylibFor !== session.key) {
+    fetchedAtpylibFor = session.key;
+    atpylibService.fetchStepCandidates(session.key).then((c) => {
+      atpylibCandidates = c;
+      atpylibChosen = restoreChosen(session.step3?.selections, c);
+    });
+  }
+
+  // A saved session's chosen tables and stepper position must both reflect real progress —
+  // resuming always lands on the first NOT-yet-confirmed step (steps 1-3 gate on their own
+  // `confirmed`; step 5 has no confirm step of its own, so step4.confirmed is the last gate).
+  function resumeStep(sess) {
+    if (!sess?.step1?.confirmed) return 1;
+    if (!sess?.step2?.confirmed) return 2;
+    if (!sess?.step3?.confirmed) return 3;
+    if (!sess?.step4?.confirmed) return 4;
+    return 5;
+  }
+
   async function loadAndConfirm(caseId) {
     // maxStepReached > 0 means a case was already loaded and progressed past Cases in this
     // instance — switching to a different one now would leave every downstream field (TestLink/
@@ -95,7 +145,17 @@
     lockMessage = result.message || '';
     if (result.case_title) title = result.case_title;
 
-    currentStep = 1;
+    // Populate every chosen table immediately, from the saved selections alone — landing
+    // straight on, say, step 4 must not leave step1-3's chosen tables (and therefore the
+    // Objectives summary/count) empty just because the user never visited those steps in
+    // THIS page load. restoreChosen's own fallback (id/title/justification from the
+    // selection itself) is good enough here; the per-step lazy-fetch blocks below still
+    // upgrade these to fully-enriched rows the first time the user actually opens that step.
+    testLinkChosen = restoreChosen(session.step1?.selections, []);
+    zephyrChosen = restoreChosen(session.step2?.selections, []);
+    atpylibChosen = restoreChosen(session.step3?.selections, []);
+
+    currentStep = resumeStep(session);
   }
 
   // A fresh instance remounted specifically to switch cases (onCreateAnother(caseId)) loads that
@@ -129,9 +189,9 @@
 
   const testLinkColumns = [
     { key: 'id', label: 'ID', width: 1 },
-    { key: 'title', label: 'Title', width: 5 },
+    { key: 'title', label: 'Title', width: 2 },
     { key: 'score', label: 'Score', width: 1 },
-    { key: 'description', label: 'Description', width: 4 }
+    { key: 'description', label: 'Description', width: 7 }
   ];
 
   const summaryColumns = [...testLinkColumns, { key: 'source', label: 'Source', width: 1 }];
@@ -147,7 +207,10 @@
   ];
   $: chosenForObjectives = [...testLinkChosen, ...zephyrChosen, ...atpylibChosen];
 
-  let objectives = [];
+  // Unlike the candidate steps, step4/step5 ride on the session from load_case/confirm_step
+  // directly — no separate lazy-fetch endpoint, so a plain reactive derivation is enough.
+  $: objective = session?.step4?.objective || '';
+  $: testSteps = session?.step5?.testScript?.steps || session?.step4?.testScript?.steps || [];
 </script>
 
 <ToolHeader title={title} tool="OBJECTIVE GENERATOR" icon={generatorIcon} />
@@ -170,9 +233,15 @@
       candidateLabel="TestLink Candidates"
       chosenLabel="Chosen TestLink Cases"
       onSearch={testlinkService.searchTestLink}
-      onSuggest={() => testlinkService.suggestTestLink(session.key)}
+      onSuggest={(headers) => testlinkService.suggestTestLink(session.key, headers)}
+      initialCandidates={testLinkCandidates}
       bind:chosen={testLinkChosen}
-      onConfirm={() => { currentStep = 2; scrollToTop(); }}
+      onConfirm={async () => {
+        const result = await testlinkService.confirmStep(session.key, testLinkChosen);
+        session = result.session;
+        currentStep = 2;
+        scrollToTop();
+      }}
     />
   {:else if currentStep === 2}
     <CandidatePickerStep
@@ -182,10 +251,16 @@
       searchButtonLabel="Search Zephyr"
       candidateLabel="Zephyr Candidates"
       chosenLabel="Chosen Zephyr Cases"
-      onSearch={zephyrService.searchZephyr}
-      onSuggest={zephyrService.suggestZephyr}
+      onSearch={(q) => zephyrService.searchZephyr(session.key, q)}
+      onSuggest={(headers) => zephyrService.suggestZephyr(session.key, headers)}
+      initialCandidates={zephyrCandidates}
       bind:chosen={zephyrChosen}
-      onConfirm={() => { currentStep = 3; scrollToTop(); }}
+      onConfirm={async () => {
+        const result = await zephyrService.confirmStep(session.key, zephyrChosen);
+        session = result.session;
+        currentStep = 3;
+        scrollToTop();
+      }}
     />
   {:else if currentStep === 3}
     <CandidatePickerStep
@@ -196,24 +271,54 @@
       candidateLabel="ATPyLib Candidates"
       chosenLabel="Chosen ATPyLib Tests"
       onSearch={atpylibService.searchAtpylib}
-      onSuggest={atpylibService.suggestAtpylib}
+      onSuggest={(headers) => atpylibService.suggestAtpylib(session.key, headers)}
+      initialCandidates={atpylibCandidates}
       bind:chosen={atpylibChosen}
-      onConfirm={() => { currentStep = 4; scrollToTop(); }}
+      onConfirm={async () => {
+        const result = await atpylibService.confirmStep(session.key, atpylibChosen);
+        session = result.session;
+        currentStep = 4;
+        scrollToTop();
+      }}
     />
   {:else if currentStep === 4}
     <ObjectivesStep
       {summaryColumns}
       {summaryRows}
       {chosenForObjectives}
-      onSynthesize={objectivesService.synthesizeObjectives}
-      bind:objectives
-      onConfirm={() => { currentStep = 5; scrollToTop(); }}
+      {objective}
+      onSynthesize={async (headers) => {
+        const result = await objectivesService.synthesizeObjectives(session, headers);
+        session = result.session;
+        return result;
+      }}
+      onSaveObjective={async (html) => {
+        const result = await objectivesService.saveObjective(session.key, html, false);
+        session = result.session;
+      }}
+      onConfirm={async () => {
+        const result = await objectivesService.confirmObjectives(session.key);
+        session = result.session;
+        currentStep = 5;
+        scrollToTop();
+      }}
     />
   {:else if currentStep === 5}
     <TestStepsStep
-      {objectives}
-      onSynthesize={testStepsService.synthesizeTestSteps}
-      onExport={testStepsService.exportRepeatableBundle}
+      caseKey={session?.key || ''}
+      {objective}
+      steps={testSteps}
+      onSynthesize={async (headers) => {
+        const result = await testStepsService.synthesizeSteps(session, headers);
+        session = result.session;
+        return result;
+      }}
+      onSaveSteps={async (steps) => {
+        const result = await testStepsService.saveSteps(session.key, steps);
+        session = result.session;
+      }}
+      onExport={() => testStepsService.exportBundle(session)}
+      onPushToZephyr={(opts) => testStepsService.pushToZephyr(session.key, opts)}
       onFinished={() => (stepperCompleted = true)}
     />
   {:else}
@@ -223,7 +328,7 @@
 
 <style>
   .read-only-banner {
-    margin: 16px 0 0;
+    margin: 16px 80px 0;
     padding: 10px 14px;
     border-radius: 8px;
     font-size: 0.9rem;

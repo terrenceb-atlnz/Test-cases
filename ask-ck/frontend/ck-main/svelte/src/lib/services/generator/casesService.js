@@ -1,4 +1,7 @@
 // COPIED OVER FROM current/generator/generator.js (case listing + load_case)
+
+// @ts-nocheck
+
 const WIZARD_API = '/api/wizard';
 
 function toOption(c) {

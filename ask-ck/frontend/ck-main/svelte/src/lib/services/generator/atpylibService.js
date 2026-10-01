@@ -1,28 +1,56 @@
-// TODO: replace with a real ATPyLib search / LLM suggestion API call
+// COPIED OVER FROM current/generator/db-search.js (ATPyLib search/suggest) — mirrors
+// testlinkService.js/zephyrService.js exactly; search_atp needs no case_key (unlike
+// search_zephyr), matching search_testlink.
+const WIZARD_API = '/api/wizard';
 
-import { mockDelay } from '../mockDelay.js';
-
-const atpylibPool = [
-  { id: 'atp-1', caseId: 'ATP-5510', title: 'AMF library master election helper', score: '90', description: 'Reusable ATPyLib helper covering master election setup and teardown.' },
-  { id: 'atp-2', caseId: 'ATP-5544', title: 'AMF library failover assertion set', score: '84', description: 'Common assertion set for validating failover timing across AMF library calls.' },
-  { id: 'atp-3', caseId: 'ATP-5567', title: 'AMF library topology fixture', score: '77', description: 'Fixture that builds a standard AMF cluster topology for reuse across scored cases.' },
-  { id: 'atp-4', caseId: 'ATP-5602', title: 'AMF library firmware version guard', score: '66', description: 'Guards library calls against unsupported firmware version combinations.' },
-  { id: 'atp-5', caseId: 'ATP-5631', title: 'AMF library priority helper', score: '52', description: 'Helper for configuring and asserting on AMF member priority values.' },
-  { id: 'atp-6', caseId: 'ATP-5639', title: 'AMF library priority helper', score: '52', description: 'Helper for configuring and asserting on AMF member priority values.' },
-  { id: 'atp-7', caseId: 'ATP-5789', title: 'AMF library priority helper', score: '52', description: 'Helper for configuring and asserting on AMF member priority values.' },
-  { id: 'atp-8', caseId: 'ATP-5678', title: 'AMF library priority helper', score: '52', description: 'Helper for configuring and asserting on AMF member priority values.' },
-  { id: 'atp-9', caseId: 'ATP-5780', title: 'AMF library priority helper', score: '52', description: 'Helper for configuring and asserting on AMF member priority values.' },
-  { id: 'atp-10', caseId: 'ATP-5656', title: 'AMF library priority helper', score: '52', description: 'Helper for configuring and asserting on AMF member priority values.' }
-];
-
-export async function searchAtpylib(query) {
-  const q = query.trim().toLowerCase();
-  return q
-    ? atpylibPool.filter((c) => c.title.toLowerCase().includes(q) || c.caseId.toLowerCase().includes(q))
-    : [...atpylibPool];
+export async function fetchStepCandidates(key) {
+  const res = await fetch(`${WIZARD_API}/step_candidates/${encodeURIComponent(key)}/3`);
+  const data = await res.json();
+  return data.candidates || [];
 }
 
-export async function suggestAtpylib() {
-  await mockDelay();
-  return [...atpylibPool];
+// COPIED OVER FROM current/generator/chosen.js's toEntry (the justification fallback chain)
+// AND generator.js's confirmStep.
+function toSelection(row, order) {
+  return {
+    id_or_key: row.id,
+    title: row.title || row.id,
+    justification: row.description || row.justification || row.reason || row.snippet || '',
+    order,
+  };
+}
+
+export async function confirmStep(key, chosen) {
+  const selections = (chosen || []).map(toSelection);
+  const res = await fetch(`${WIZARD_API}/confirm_step/${encodeURIComponent(key)}/3`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ selections }),
+  });
+  if (!res.ok) {
+    const t = await res.text();
+    throw new Error(t.slice(0, 200) || `HTTP ${res.status}`);
+  }
+  return await res.json();
+}
+
+export async function searchAtpylib(query) {
+  const params = new URLSearchParams({ q: query || '' });
+  const res = await fetch(`${WIZARD_API}/search_atp?${params}`);
+  const data = await res.json();
+  return data.results || [];
+}
+
+export async function suggestAtpylib(key, headers) {
+  const res = await fetch(`${WIZARD_API}/suggest_atp/${encodeURIComponent(key)}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...headers },
+    body: '{}',
+  });
+  if (!res.ok) {
+    const t = await res.text();
+    throw new Error(t.slice(0, 200) || `HTTP ${res.status}`);
+  }
+  const data = await res.json();
+  return data.suggestions || [];
 }
