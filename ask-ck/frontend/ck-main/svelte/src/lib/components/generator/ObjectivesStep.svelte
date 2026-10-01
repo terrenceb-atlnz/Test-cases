@@ -4,6 +4,8 @@
   import Button from '../Button.svelte';
   import Table from '../Table.svelte';
   import ConfirmModal from '../ConfirmModal.svelte';
+  import LlmButton from '../LlmButton.svelte';
+  import { scrollToCasesIntro, scrollToBottom } from '../../utils/scroll.js';
 
   /** @type {Array<{ key: string, label: string, width?: number }>} */
   export let summaryColumns = [];
@@ -14,62 +16,118 @@
   /** @type {Array} Combined chosen rows (untagged) — used to decide whether any candidates were chosen */
   export let chosenForObjectives = [];
 
-  /** @type {() => Promise<Array<string>>} */
-  export let onSynthesize = async () => [];
+  /** @type {string} The finalized objective — a single server-produced, sanitized HTML
+      string (`<ul><li>…</li></ul>`), not an array of bullet lines. Owned by the parent
+      (derived reactively from session.step4.objective), not bound here. */
+  export let objective = '';
 
-  /** @type {Array<string>} Bindable — the finalized objectives */
-  export let objectives = [];
+  /** @type {(headers: Record<string, string>) => Promise<any>} Parent-owned closure —
+      calls synthesize_objectives and replaces `session` itself (mirrors CandidatePickerStep's
+      onConfirm convention: side-effecting calls are owned by whoever holds the session). */
+  export let onSynthesize = async () => null;
 
-  /** @type {(() => void) | null} Called when Review & Confirm is clicked */
+  /** @type {(objective: string) => Promise<void>} Save-as-draft from the edit textarea —
+      confirming always goes through the separate "Review & Confirm" action below, never
+      from inside the editor itself. */
+  export let onSaveObjective = async () => {};
+
+  /** @type {(() => Promise<void>) | null} Plain "Review & Confirm" with no pending edits. */
   export let onConfirm = null;
 
-  let showObjectives = false;
-  let isEditingObjectives = false;
-  let objectivesDraft = '';
+  let isEditing = false;
+  let draft = '';
   let showNoCandidatesModal = false;
-  let isSynthesizing = false;
+  let gateResolve = null;
 
-  function handleSynthesizeClick() {
-    if (chosenForObjectives.length === 0) {
+  // Checked by LlmButton BEFORE it starts its busy/progress state — the real current/ app
+  // has no such gate (synthesizeObjectives() there just runs), but it's kept here as a
+  // Svelte-only safety net per explicit instruction. Resolves once the modal is answered,
+  // not before, so the gate never races a confirm dialog against the progress ticker.
+  function gateBeforeRun() {
+    if (chosenForObjectives.length > 0) return Promise.resolve(true);
+    return new Promise((resolve) => {
+      gateResolve = resolve;
       showNoCandidatesModal = true;
-      return;
-    }
-    synthesize();
+    });
+  }
+  function handleModalConfirm() {
+    gateResolve && gateResolve(true);
+    gateResolve = null;
+  }
+  function handleModalCancel() {
+    gateResolve && gateResolve(false);
+    gateResolve = null;
   }
 
-  async function synthesize() {
-    isSynthesizing = true;
+  // The server stores/returns the objective as one HTML string (<ul><li>…</li></ul>), but
+  // editing raw HTML tags was a bad experience — these two functions are the plain-bullet-
+  // lines <-> HTML boundary, so the textarea only ever shows plain text. Falls back to a
+  // single block of plain text if the HTML isn't a flat <li> list (e.g. the LLM returned
+  // something else) rather than losing content.
+  function htmlToLines(html) {
+    if (!html) return [];
+    const doc = new DOMParser().parseFromString(html, 'text/html');
+    const items = [...doc.querySelectorAll('li')];
+    if (items.length) return items.map((li) => li.textContent.trim()).filter(Boolean);
+    const text = (doc.body.textContent || '').trim();
+    return text ? [text] : [];
+  }
+
+  function escapeHtml(s) {
+    return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+
+  function linesToHtml(text) {
+    const items = text.split('\n').map((l) => l.trim()).filter(Boolean);
+    if (!items.length) return '';
+    return '<ul>\n' + items.map((l) => `<li>${escapeHtml(l)}</li>`).join('\n') + '\n</ul>';
+  }
+
+  function startEdit() {
+    draft = htmlToLines(objective).join('\n');
+    isEditing = true;
+  }
+
+  function cancelEdit() {
+    isEditing = false;
+  }
+
+  let isSaving = false;
+  let saveError = '';
+
+  async function saveDraft() {
+    isSaving = true;
+    saveError = '';
     try {
-      objectives = await onSynthesize();
-      showObjectives = true;
-      isEditingObjectives = false;
+      await onSaveObjective(linesToHtml(draft));
+      isEditing = false;
+    } catch (e) {
+      saveError = (e && e.message) || String(e);
     } finally {
-      isSynthesizing = false;
+      isSaving = false;
     }
   }
 
-  function editObjectives() {
-    objectivesDraft = objectives.join('\n');
-    isEditingObjectives = true;
+  let isConfirming = false;
+  let confirmError = '';
+
+  async function handleConfirm() {
+    if (!onConfirm) return;
+    isConfirming = true;
+    confirmError = '';
+    try {
+      await onConfirm();
+    } catch (e) {
+      confirmError = (e && e.message) || String(e);
+    } finally {
+      isConfirming = false;
+    }
   }
 
-  function saveObjectives() {
-    objectives = objectivesDraft
-      .split('\n')
-      .map((line) => line.trim())
-      .filter((line) => line.length > 0);
-    isEditingObjectives = false;
-  }
+  $: canReviewObjectives = !!(objective && objective.trim());
 
-  function cancelEditObjectives() {
-    isEditingObjectives = false;
-  }
-
-  $: canReviewObjectives = objectives.length > 0;
-
-  function handleConfirm() {
-    onConfirm && onConfirm();
-  }
+  // Grows/shrinks with the content instead of a fixed size + inner scrollbar.
+  $: draftRows = Math.max(draft.split('\n').length, 4);
 </script>
 
 <p class="cases-intro">Generate declarative objective artefacts from the confirmed review summary (TestLink / Zephyr / ATPyLib). Review and edit, then confirm before synthesizing test steps in Step 6.</p>
@@ -77,7 +135,13 @@
 <Table columns={summaryColumns} rows={summaryRows} selectable={false} />
 
 <div class="objectives-actions">
-  <Button variant="primary" sparkle loading={isSynthesizing} on:click={handleSynthesizeClick}>Synthesize Objectives (LLM)</Button>
+  <LlmButton
+    label="Synthesize Objectives (LLM)"
+    verb="Synthesizing…"
+    onBeforeRun={gateBeforeRun}
+    onRun={onSynthesize}
+    onResult={() => scrollToBottom()}
+  />
 </div>
 
 <ConfirmModal
@@ -86,30 +150,32 @@
   message="You haven't selected any TestLink, Zephyr, or ATPyLib candidates. The LLM will do its best using only the Test Case context. Continue anyway?"
   confirmText="Continue"
   cancelText="Cancel"
-  onConfirm={synthesize}
+  onConfirm={handleModalConfirm}
+  onCancel={handleModalCancel}
 />
 
-{#if showObjectives}
-  <p class="testlink-table-label">Generated Objectives</p>
+{#if canReviewObjectives}
+  <p class="testlink-table-label">Generated Objective</p>
   <div class="objectives-window">
-    {#if isEditingObjectives}
-      <textarea class="objectives-textarea" bind:value={objectivesDraft} rows="8"></textarea>
+    {#if isEditing}
+      <textarea class="objectives-textarea" bind:value={draft} rows={draftRows}></textarea>
+      <p class="objectives-edit-note">One objective per line. Keep declarative language.</p>
+      {#if saveError}<p class="confirm-error">Save failed: {saveError}</p>{/if}
       <div class="objectives-window-actions">
-        <Button variant="primary" on:click={saveObjectives}>Save Changes</Button>
-        <Button variant="outline" on:click={cancelEditObjectives}>Cancel</Button>
+        <Button variant="primary" loading={isSaving} on:click={saveDraft}>Save Draft</Button>
+        <Button variant="outline" on:click={cancelEdit}>Cancel</Button>
       </div>
     {:else}
-      <ul class="objectives-list">
-        {#each objectives as objective, i (i)}
-          <li>{objective}</li>
-        {/each}
-      </ul>
+      <div class="objectives-html">{@html objective}</div>
       <div class="objectives-window-actions">
-        <Button variant="outline" on:click={editObjectives}>Edit</Button>
+        <Button variant="outline" on:click={startEdit}>Edit</Button>
       </div>
     {/if}
   </div>
-  <Button variant="primary" disabled={!canReviewObjectives} on:click={handleConfirm}>Review &amp; Confirm</Button>
+  {#if !isEditing}
+    {#if confirmError}<p class="confirm-error">Confirm failed: {confirmError}</p>{/if}
+    <Button variant="primary" disabled={!canReviewObjectives} loading={isConfirming} on:click={handleConfirm}>Review &amp; Confirm</Button>
+  {/if}
 {/if}
 
 <style>
@@ -137,7 +203,7 @@
     display: flex;
     flex-direction: column;
     gap: 16px;
-    padding: 16px;
+    padding: 24px;
     margin-bottom: 12px;
     border: 1px solid var(--color-border-surface);
     border-radius: 8px;
@@ -145,19 +211,34 @@
     width: 100%;
   }
 
-  .objectives-list {
+  .objectives-html {
+    color: var(--color-text);
+    font-size: 0.94rem;
+    line-height: 1.5;
+  }
+
+  .objectives-html :global(ul) {
     margin: 0;
     padding-left: 20px;
     display: flex;
     flex-direction: column;
     gap: 8px;
-    color: var(--color-text);
-    font-size: 0.94rem;
+  }
+
+  .objectives-edit-note {
+    margin: 0;
+    color: var(--color-text-muted);
+    font-size: 0.85rem;
+  }
+
+  .confirm-error {
+    margin: -8px 0 0;
+    color: var(--color-error);
+    font-size: 0.88rem;
   }
 
   .objectives-textarea {
     width: 100%;
-    min-height: 160px;
     padding: 10px 12px;
     border-radius: 8px;
     border: 1px solid var(--color-border-surface);

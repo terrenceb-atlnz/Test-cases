@@ -81,10 +81,9 @@
   :root:not([data-theme="light"]) {
   --color-text: #dbe4ec;
   --color-text-heading: #f2f5f7;
-  --color-text-body: #e2e2e2;
+  --color-text-body: #cdd8e3;
   --color-text-muted: #9db0c2;
   --color-strong: #dbe4ec;
-
 
   --color-bg-page: #1c1e1f;
   --color-bg-shell: #1c1e1f;
@@ -125,6 +124,8 @@
   --color-table-header-bg: #131313;
   --color-table-row-bg: #1c1e1f;
 
+  --color-stepper-outline: #454545;
+
   --color-arrow-step-active-bg: var(--color-bg-surface);
   --color-arrow-step-active-text: #fff;
   --color-arrow-step-active-border: #fff;
@@ -138,8 +139,8 @@
   --color-arrow-step-review-text: #fb8e00;
   --color-arrow-step-review-border: #fb8e00;
 
-  --arrow-filter-hover: invert(100%) brightness(0.85);
-
+  --arrow-filter-hover: brightness(1.25);
+  --color-arrow-text-hover: #fff;
   }
 }
 

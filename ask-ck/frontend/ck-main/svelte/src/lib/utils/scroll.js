@@ -23,3 +23,26 @@ export async function scrollToStepIntro() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 }
+
+// Scrolls to the very bottom of the page — used after moving rows into a Chosen table
+// further down the panel (e.g. "Choose selected"), so the result of the action is visible
+// without the user having to scroll down manually to find it.
+export async function scrollToBottom() {
+  await tick();
+  window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'smooth' });
+}
+
+// Generator-side equivalent of scrollToStepIntro — same reasoning, but for the Objective
+// Generator's own step intro convention (.cases-intro, used by CasePicker/CandidatePickerStep/
+// ObjectivesStep/TestStepsStep), which is a separate flow from PyTest Creator's arrow-stepper.
+// Used after Search/Suggest populates a candidate table, so the refreshed panel is obviously
+// visible even if the user was scrolled down reviewing the Chosen table below.
+export async function scrollToCasesIntro() {
+  await tick();
+  const intro = document.querySelector('.cases-intro');
+  if (intro) {
+    intro.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  } else {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+}

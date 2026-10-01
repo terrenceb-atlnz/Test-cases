@@ -13,6 +13,9 @@
   import Sidebar from './lib/components/Sidebar.svelte';
   import Topbar from './lib/components/Topbar.svelte';
 
+  import { loadConfig } from './lib/services/llmConfigService.js';
+  import { ckBrokerLoop } from './lib/services/agentService.js';
+
   import HomePage from './pages/HomePage.svelte';
   import HelpPage from './pages/HelpPage.svelte';
   import SettingsPage from './pages/SettingsPage.svelte';
@@ -123,6 +126,17 @@
     };
 
     window.addEventListener('popstate', handlePopState);
+
+    // Starting the broker only from SettingsPage.svelte meant any session that went
+    // straight to a tool page without visiting Settings first had no broker running at
+    // all — a claude_agent-mode LLM call would sit unclaimed for 60s and silently "fail"
+    // with an empty result (see Generator Suggest-with-LLM, 2026-10-01). Cold-load the
+    // effective config here instead, app-wide, so this can't depend on which page loads
+    // first. SettingsPage's own load/Apply calls remain — this is additive, and
+    // ckBrokerLoop() is a no-op when a live loop already exists.
+    loadConfig().then((config) => {
+      if (config?.auth_method === 'claude_agent') ckBrokerLoop();
+    });
 
     return () => {
       window.removeEventListener('popstate', handlePopState);

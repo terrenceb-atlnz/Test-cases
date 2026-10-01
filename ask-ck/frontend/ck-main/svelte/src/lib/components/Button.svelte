@@ -4,11 +4,17 @@
   export let variant = 'primary'; // 'primary' | 'outline' | 'success'
   export let type = 'button';
   export let disabled = false;
+  export let title = '';
 
   /** @type {boolean} Mid-call (e.g. an LLM response is pending) — disables the button and adds
       the `btn-loading` class as a hook for a loading animation. Design the animation via that
       class; this prop only wires the state up. */
   export let loading = false;
+
+  /** @type {boolean} Same `btn-loading` animation as `loading`, but WITHOUT disabling the
+      button — use when the button's click must still work while busy (e.g. a cancelable LLM
+      call, where clicking again means Stop instead of being swallowed). */
+  export let busy = false;
 
   /** @type {boolean} Show the sparkles icon — use for buttons that trigger an LLM call */
   export let sparkle = false;
@@ -22,8 +28,9 @@
 
 <button
   {type}
+  {title}
   class="btn btn-{variant} {className}"
-  class:btn-loading={loading}
+  class:btn-loading={loading || busy}
   disabled={disabled || loading}
   on:click
 >
