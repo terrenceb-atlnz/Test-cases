@@ -52,6 +52,32 @@ def assert_role_media_now(testCase, dut, port, role):
     return ok
 
 
+def mark_cases_unsupported(testCase, caseNames, why):
+    """Mark later cases UNSUPPORTED before they run, from the case that has just learned why.
+
+    A case that finds itself not applicable inside main() costs a full bench power cycle: the
+    framework's __run() turns powerCycleOnFail back on, and _power_cycle() reboots every device
+    on FAIL, UNSUPPORTED or ERROR alike (tb470, 2026-10-01: TestCase_20, ~4 minutes). Only a case
+    whose `supported` is already False when its run() starts is skipped without one, and only if
+    the class carries `skipIfExcl = True`. The framework writes `supported` only in __init__ and
+    in its marking pass after TestSet.configure(), so a mark made here survives until that case
+    runs. Each marked case keeps its own check in main() as the fallback for a run where it comes
+    first (run-priority sampling). Module-level for the same lint reason as assert_role_media_now.
+    """
+    wanted = set(caseNames)
+    for tc in testCase.testSet.testCaseList:
+        name = type(tc).__name__
+        if name in wanted and not getattr(tc, 'hasBeenRun', False):
+            tc.supported = False
+            testCase.log('INFO: {} marked unsupported before it runs: {}'.format(name, why))
+
+
+# The cases whose main() applies the working fixed speed S that step 14 (TestCase_13) finds.
+SPEED_S_CASES = ['TestCase_14', 'TestCase_15', 'TestCase_16', 'TestCase_17', 'TestCase_18',
+                 'TestCase_19', 'TestCase_22', 'TestCase_23', 'TestCase_24', 'TestCase_26',
+                 'TestCase_27', 'TestCase_29', 'TestCase_31', 'TestCase_32', 'TestCase_33']
+
+
 class TestSet(ATTestSet.TestSet):
 
     FEATURES = ['ALL']
@@ -235,6 +261,14 @@ class TestSet(ATTestSet.TestSet):
         if not self.fibre_supported:
             self.log('UNSUPPORTED: no fibre pluggable link discovered on %s; the fibre speed sweep '
                      'cases will be marked unsupported before they run' % dut.name)
+        # The monitored-port cases (steps 29-31) watch the OTHER linked DUT ports while the copper
+        # test port changes speed; the monitored ports are the copper-SFP and fibre links, so init
+        # already knows whether there are any. Excluded before they run in the same way (tb470,
+        # 2026-10-01: a not-applicable exit from main() power-cycles the bench).
+        dut.has_monitored_link = self.cusfp_supported or self.fibre_supported
+        if not dut.has_monitored_link:
+            self.log('UNSUPPORTED: no copper-SFP or fibre link discovered on %s; the monitored-port '
+                     'cases will be marked unsupported before they run' % dut.name)
         # The NEIGHBOUR switch on a fixed twisted-pair link, REQUIRED: a partner to negotiate
         # against, a polarity to force, a neighbour table to read. Named `peer`, never `dut`:
         # in ART `dut` is the DUT's own stack handle, and a partner called `dut` made every
@@ -274,11 +308,13 @@ class TestSet(ATTestSet.TestSet):
         cusfp_peer = self.cusfp_peer          # None when self.cusfp_supported is False
         portCuSfp = dut.portCuSfp
         # One-time SUITE setup, runs ONCE before all test cases. Config only — no pass/fail.
-        # setup: From the frame's discovered links, resolve the copper test port (a fitted copper pluggable cabled to a partner port), the fibre test port (a fitted fibre pluggable cabled to a partner port), and at least one other linked DUT port (the monitored port). Precondition: the copper and fibre pluggables are fitted and cabled before the run; if either media has no discovered link, log that media's sweep as UNSUPPORTED. On each test port and its partner port, apply `no speed`, `duplex auto` and `no shutdown`. Save a backup copy of the DUT's startup configuration so it can be restored at teardown.
-        # setup: Teardown. On the DUT copper and fibre test ports and on their partner ports apply `no speed` and `duplex auto`. Restore the DUT startup configuration from the backup taken in step 1.
+        # setup: From the frame's discovered links, resolve the copper test port (a fitted copper pluggable cabled to a partner port), the fibre test port (a fitted fibre pluggable cabled to a partner port), and at least one other linked DUT port (the monitored port). Precondition: the copper and fibre pluggables are fitted and cabled before the run; if either media has no discovered link, log that media's sweep as UNSUPPORTED. On each test port and its partner port, apply `no speed`, `duplex auto` and `no shutdown`.
+        # setup: Teardown. On the DUT copper and fibre test ports and on their partner ports apply `no speed` and `duplex auto`.
         # legacy 5703_Speed_Duplex_Polarity/test-5000.1001.py lines 9-31 (adapted: pluggable/link resolution)
-        self.startupBackup = 'flash:/ck_t33235_startup_backup.cfg'
-        self.startupBackupTaken = False
+        # No startup-config backup/restore (Terrence, 2026-10-01): after TestSet.configure() the
+        # framework saves the running config to its own file and boots from it, so a copy onto
+        # startup-config at tear_down is refused ("% Cannot overwrite ... as it is configured as
+        # the boot config file", tb470 run 4). The startup config is the framework's and the bench's.
         # The copper test port is the frame's copper link: a fixed twisted-pair port when the
         # DUT has one, else a copper SFP (Terrence, 2026-09-24). A fitted copper SFP beside a
         # fixed copper port is a monitored port.
@@ -308,22 +344,6 @@ class TestSet(ATTestSet.TestSet):
             dev.cmd('no shutdown')
             dev.mode('#')
 
-        # Back up the DUT startup configuration so tear_down() can restore it
-        dut.mode('#')
-        dut.cmd('delete force {}'.format(self.startupBackup))
-        output = dut.cmd('copy startup-config {}'.format(self.startupBackup))
-        if '(y/n)' in output:
-            output = dut.cmd('y')
-        self.log('OBSERVED: startup-config backup output: {}'.format(output))
-        errorTokens = ('Error', 'Invalid', 'No such file', 'Cannot', 'failed')
-        self.startupBackupTaken = not any(token in output for token in errorTokens)
-        if self.startupBackupTaken:
-            self.log('INFO: DUT startup-config backed up to {}'.format(self.startupBackup))
-        else:
-            self.log('INFO: DUT startup-config backup to {} did not complete; restore will be skipped'.format(
-                self.startupBackup))
-        dut.mode('#')
-
     def tear_down(self):
         tb = self.tb
         dut = self.dut
@@ -350,18 +370,6 @@ class TestSet(ATTestSet.TestSet):
             dev.cmd('no speed')
             dev.cmd('duplex auto')
             dev.mode('#')
-
-        # Restore the DUT startup configuration from the backup taken in configure()
-        dut.mode('#')
-        if getattr(self, 'startupBackupTaken', False):
-            output = dut.cmd('copy {} startup-config'.format(self.startupBackup))
-            if '(y/n)' in output:
-                output = dut.cmd('y')
-            self.log('OBSERVED: startup-config restore output: {}'.format(output))
-            dut.cmd('delete force {}'.format(self.startupBackup))
-        else:
-            self.log('INFO: no startup-config backup was taken; skipping restore on {}'.format(dut))
-        dut.mode('#')
 
 
 class TestCase_1(ATTestCase.TestCase):
@@ -832,6 +840,15 @@ class TestCase_3(ATTestCase.TestCase):
         cfg_lines = [line.strip() for line in runcfg.splitlines()]
 
         self.testSet.speedMap.setdefault(name, {})['100'] = bool(dut_speed_ok)
+        # Steps 3-4 are now recorded, which is all step 21 (TestCase_20) needs to know whether it
+        # applies: the DUT must have accepted BOTH speed 10 and speed 100 on this port. The same
+        # test as TestCase_20's own guard, made here so the case is skipped before it runs. Step 22
+        # (TestCase_21) runs "only if step 21 ran", so it goes with it (Terrence, 2026-10-01).
+        recorded = self.testSet.speedMap.get(name) or {}
+        if not (recorded.get('10') and recorded.get('100')):
+            mark_cases_unsupported(self, ['TestCase_20', 'TestCase_21'],
+                                   'the sweep recorded speed 10={}, speed 100={} on {}; step 21 needs '
+                                   'the DUT to accept both'.format(recorded.get('10'), recorded.get('100'), name))
         if dut_speed_ok:
             self.passed('DUT {} accepted speed 100 with no error indication (recorded in speedMap)'.format(name))
         else:
@@ -1645,6 +1662,15 @@ class TestCase_7(ATTestCase.TestCase):
         self.testSet.speedMap.setdefault(name, {})['10000'] = bool(accepted)
         self.passed('DUT {} {} speed 10000 (the DUT decides; recorded in speedMap)'.format(
             name, 'accepted' if accepted else 'rejected with an error indication'))
+        # The copper sweep (steps 3-8) is complete: step 20 (TestCase_19) needs a value the DUT
+        # rejected on this port. The same test as TestCase_19's own guard, made here so the case
+        # is skipped before it runs when the DUT rejected nothing.
+        recorded = self.testSet.speedMap.get(name) or {}
+        if not [value for value in ('10', '100', '1000', '2500', '5000', '10000')
+                if recorded.get(value) is False]:
+            mark_cases_unsupported(self, ['TestCase_19'],
+                                   'the sweep recorded no speed value the DUT rejected on {} ({})'.format(
+                                       name, recorded))
 
         row = status_row(status_out)
         cfg_speed = iface_field(iface_out, 'configured speed')
@@ -2858,6 +2884,10 @@ class TestCase_13(ATTestCase.TestCase):
             self.log('INFO: fixed speed {} duplex full did not link on {} within 30 s; trying the next lower speed'.format(cand, portPeer.name))
         self.testSet.speedS = None if speed_s is None else str(speed_s)
         if speed_s is None:
+            # Every later step that applies S is not applicable now; skip them before they run
+            # instead of letting each one reach main() and power-cycle the bench.
+            mark_cases_unsupported(self, SPEED_S_CASES,
+                                   'step 14 (TestCase_13) found no working fixed speed S')
             self.failed('no fixed speed in {} with duplex full brought the copper test link {} up within 30 s'.format(candidates, portPeer.name))
             return
         self.passed('working fixed speed S = {}: speed {} and duplex full applied on partner {} then DUT {}, link running within 30 s'.format(speed_s, speed_s, portDut.name, portPeer.name))
@@ -2923,6 +2953,10 @@ class TestCase_14(ATTestCase.TestCase):
     # ART identity <family>.<case>.<TestCase> — the framework composes the same triple
     # from the filename and this class name, and the run log prints it per case.
     testCaseRef = 'AWPTCM-T33235, 9001.33235.14'
+    # Marked unsupported before it runs by the case that learns it does not apply (see
+    # mark_cases_unsupported); skipIfExcl then skips configure()/main()/tear_down(), so no
+    # bench power cycle. The guard in main() stays as the fallback.
+    skipIfExcl = True
     testCaseMethod = 'Read `show interface <test port> status` and `show interface <test port>` with fixed speed S in effect.\n'
     testCaseMethod += 'Verify: Auto-negotiation shows as disabled: the speed and duplex columns on the test port row are bare (`S`, `full`) with no `a-` prefix, which contrasts with the `a-` prefixed tokens recorded in step 2. The current line still shows `current speed S`, and the row reads `connected`.\n'
 
@@ -3078,6 +3112,10 @@ class TestCase_15(ATTestCase.TestCase):
     # ART identity <family>.<case>.<TestCase> — the framework composes the same triple
     # from the filename and this class name, and the run log prints it per case.
     testCaseRef = 'AWPTCM-T33235, 9001.33235.15'
+    # Marked unsupported before it runs by the case that learns it does not apply (see
+    # mark_cases_unsupported); skipIfExcl then skips configure()/main()/tear_down(), so no
+    # bench power cycle. The guard in main() stays as the fallback.
+    skipIfExcl = True
     testCaseMethod = 'Read `show interface <test port>` and `show interface <test port> status` with fixed speed S in effect.\n'
     testCaseMethod += 'Verify: The configured speed line in `show interface` reports S. The current line reads `current speed S`. The status row speed column reads bare S. All three agree with the value applied in step 14.\n'
 
@@ -3225,6 +3263,10 @@ class TestCase_16(ATTestCase.TestCase):
     # ART identity <family>.<case>.<TestCase> — the framework composes the same triple
     # from the filename and this class name, and the run log prints it per case.
     testCaseRef = 'AWPTCM-T33235, 9001.33235.16'
+    # Marked unsupported before it runs by the case that learns it does not apply (see
+    # mark_cases_unsupported); skipIfExcl then skips configure()/main()/tear_down(), so no
+    # bench power cycle. The guard in main() stays as the fallback.
+    skipIfExcl = True
     testCaseMethod = 'Read `show running-config interface <test port>`.\n'
     testCaseMethod += 'Verify: The interface block for the test port contains `speed S` and `duplex full`. This value equals both the configured and current speed read in step 16, so the configuration view and the status view agree.\n'
 
@@ -3347,6 +3389,10 @@ class TestCase_17(ATTestCase.TestCase):
     # ART identity <family>.<case>.<TestCase> — the framework composes the same triple
     # from the filename and this class name, and the run log prints it per case.
     testCaseRef = 'AWPTCM-T33235, 9001.33235.17'
+    # Marked unsupported before it runs by the case that learns it does not apply (see
+    # mark_cases_unsupported); skipIfExcl then skips configure()/main()/tear_down(), so no
+    # bench power cycle. The guard in main() stays as the fallback.
+    skipIfExcl = True
     testCaseMethod = 'On the DUT test port in Interface Configuration, enter an invalid non-numeric speed argument: `speed fast`.\n'
     testCaseMethod += 'Verify: The CLI rejects the command and prints an error. Match only that an error indication was returned, not an exact message text. Afterwards, `show running-config interface <test port>` still contains `speed S`, and the status row still reads `connected` with bare S.\n'
 
@@ -3480,6 +3526,10 @@ class TestCase_18(ATTestCase.TestCase):
     # ART identity <family>.<case>.<TestCase> — the framework composes the same triple
     # from the filename and this class name, and the run log prints it per case.
     testCaseRef = 'AWPTCM-T33235, 9001.33235.18'
+    # Marked unsupported before it runs by the case that learns it does not apply (see
+    # mark_cases_unsupported); skipIfExcl then skips configure()/main()/tear_down(), so no
+    # bench power cycle. The guard in main() stays as the fallback.
+    skipIfExcl = True
     testCaseMethod = 'On the DUT test port, enter two numeric speeds that are outside the documented set: `speed 5`, then `speed 200000`.\n'
     testCaseMethod += 'Verify: Each command is rejected with an error indication. Afterwards, running-config still contains `speed S`, and the status row still reads `connected` with bare S and bare `full`.\n'
 
@@ -3627,6 +3677,10 @@ class TestCase_19(ATTestCase.TestCase):
     # ART identity <family>.<case>.<TestCase> — the framework composes the same triple
     # from the filename and this class name, and the run log prints it per case.
     testCaseRef = 'AWPTCM-T33235, 9001.33235.19'
+    # Marked unsupported before it runs by the case that learns it does not apply (see
+    # mark_cases_unsupported); skipIfExcl then skips configure()/main()/tear_down(), so no
+    # bench power cycle. The guard in main() stays as the fallback.
+    skipIfExcl = True
     testCaseMethod = "Pick a documented speed value the sweep (steps 3-8) recorded as rejected by the DUT on the test port; the DUT's own answers, not a port-type table, say which values are illegal here. If the sweep recorded no rejected value, log the step as not applicable. Enter it on the DUT test port.\n"
     testCaseMethod += 'Verify: The command is rejected with an error indication stating it is not supported on this port or media. Afterwards, running-config still contains `speed S` and no new speed line, the status row still reads `connected` with bare S, and the current line still reads `current speed S`.\n'
 
@@ -3788,6 +3842,10 @@ class TestCase_20(ATTestCase.TestCase):
     # ART identity <family>.<case>.<TestCase> — the framework composes the same triple
     # from the filename and this class name, and the run log prints it per case.
     testCaseRef = 'AWPTCM-T33235, 9001.33235.20'
+    # Marked unsupported before it runs by the case that learns it does not apply (see
+    # mark_cases_unsupported); skipIfExcl then skips configure()/main()/tear_down(), so no
+    # bench power cycle. The guard in main() stays as the fallback.
+    skipIfExcl = True
     testCaseMethod = "Run this only where the sweep (steps 3-4) recorded the DUT accepting both `speed 10` and `speed 100` on the test port. Where the DUT rejected either, an incompatible fixed pair cannot be built, so skip and log it as not applicable. Force BOTH ends: on the DUT test port apply `speed 100` and `duplex full`; on the partner port apply `speed 10` and `duplex full`. Every 5 s for 60 s, read `show interface <test port> status`, `show interface <test port>` and the partner's status row. Then read `show log`.\n"
     testCaseMethod += 'Verify: Throughout the whole 60 s window, the test port row never contains `connected` and neither does the partner row. `show interface <test port>` has no `current speed` value. The log contains no link-up event for the test port during the window.\n'
 
@@ -3855,6 +3913,10 @@ class TestCase_20(ATTestCase.TestCase):
 
         # Partner capability is checked and logged separately: the partner end must take speed 10.
         if not configurePort(self, peer, portDut, 'speed', '10', 0):
+            # Step 21 does not run, so step 22 ("only if step 21 ran") does not either.
+            mark_cases_unsupported(self, ['TestCase_21'],
+                                   'step 21 (TestCase_20) did not run: partner port {} rejected speed 10'.format(
+                                       partnerName))
             self.supported = False
             self.failed('partner port {} on {} rejected speed 10 although DUT test port {} accepts 10 and 100; partner cannot build the speed 100 vs 10 mismatch, case not applicable on this bench'.format(
                 partnerName, peer, testName))
@@ -3991,6 +4053,10 @@ class TestCase_21(ATTestCase.TestCase):
     # ART identity <family>.<case>.<TestCase> — the framework composes the same triple
     # from the filename and this class name, and the run log prints it per case.
     testCaseRef = 'AWPTCM-T33235, 9001.33235.21'
+    # Marked unsupported before it runs by the case that learns it does not apply (see
+    # mark_cases_unsupported); skipIfExcl then skips configure()/main()/tear_down(), so no
+    # bench power cycle. The guard in main() stays as the fallback.
+    skipIfExcl = True
     testCaseMethod = 'Run this only if step 21 ran. On the partner port apply `speed 100` and `duplex full`, leaving the DUT at 100/full. Poll status for up to 30 s.\n'
     testCaseMethod += 'Verify: The test port row reads `connected` with bare `100` and `full`. The current line reads `current duplex full, current speed 100`. The partner row also reads `connected`.\n'
 
@@ -4025,6 +4091,15 @@ class TestCase_21(ATTestCase.TestCase):
         portCuSfp = dut.portCuSfp
         self.log('STEP 22: Run this only if step 21 ran. On the partner port apply `speed 100` and `duplex full`, leaving the DUT at 100/full. Poll status for up to 30 s.')
         import time
+
+        # "Only if step 21 ran": step 21 needs the sweep to have recorded the DUT accepting both
+        # speed 10 and speed 100 on the test port (TestCase_20's own applicability test).
+        recorded = (self.testSet.speedMap or {}).get(portPeer.name) or {}
+        if not (recorded.get('10') and recorded.get('100')):
+            self.supported = False
+            self.failed('step 21 did not run: the sweep recorded speed 10={}, speed 100={} on {}; '
+                        'case not applicable'.format(recorded.get('10'), recorded.get('100'), portPeer.name))
+            return
 
         def find_row(text, name):
             for line in text.splitlines():
@@ -4136,6 +4211,10 @@ class TestCase_22(ATTestCase.TestCase):
     # ART identity <family>.<case>.<TestCase> — the framework composes the same triple
     # from the filename and this class name, and the run log prints it per case.
     testCaseRef = 'AWPTCM-T33235, 9001.33235.22'
+    # Marked unsupported before it runs by the case that learns it does not apply (see
+    # mark_cases_unsupported); skipIfExcl then skips configure()/main()/tear_down(), so no
+    # bench power cycle. The guard in main() stays as the fallback.
+    skipIfExcl = True
     testCaseMethod = 'Apply `speed S` and `duplex full` on the partner port, then on the DUT test port. Poll status for up to 30 s.\n'
     testCaseMethod += 'Verify: The test port row reads `connected` with bare S and bare `full`, and the current line reads `current speed S`.\n'
 
@@ -4275,6 +4354,10 @@ class TestCase_23(ATTestCase.TestCase):
     # ART identity <family>.<case>.<TestCase> — the framework composes the same triple
     # from the filename and this class name, and the run log prints it per case.
     testCaseRef = 'AWPTCM-T33235, 9001.33235.23'
+    # Marked unsupported before it runs by the case that learns it does not apply (see
+    # mark_cases_unsupported); skipIfExcl then skips configure()/main()/tear_down(), so no
+    # bench power cycle. The guard in main() stays as the fallback.
+    skipIfExcl = True
     testCaseMethod = 'On the DUT test port in Interface Configuration, apply `shutdown`. Read `show interface <test port> status`, `show interface <test port>` and `show running-config interface <test port>`.\n'
     testCaseMethod += 'Verify: The test port row does not contain `connected`, and there is no `current speed` value. Running-config still contains `speed S` and `duplex full` together with `shutdown`, and the configured speed in `show interface` is still S.\n'
 
@@ -4400,6 +4483,10 @@ class TestCase_24(ATTestCase.TestCase):
     # ART identity <family>.<case>.<TestCase> — the framework composes the same triple
     # from the filename and this class name, and the run log prints it per case.
     testCaseRef = 'AWPTCM-T33235, 9001.33235.24'
+    # Marked unsupported before it runs by the case that learns it does not apply (see
+    # mark_cases_unsupported); skipIfExcl then skips configure()/main()/tear_down(), so no
+    # bench power cycle. The guard in main() stays as the fallback.
+    skipIfExcl = True
     testCaseMethod = 'On the DUT test port apply `no shutdown`. Poll status for up to 30 s, then read `show interface <test port>` and `show running-config interface <test port>`.\n'
     testCaseMethod += 'Verify: The test port row reads `connected` with bare S and bare `full`, so auto-negotiation is still disabled. The current line reads `current duplex full, current speed S`. Running-config still contains `speed S` and no longer contains `shutdown`.\n'
 
@@ -4749,6 +4836,10 @@ class TestCase_26(ATTestCase.TestCase):
     # ART identity <family>.<case>.<TestCase> — the framework composes the same triple
     # from the filename and this class name, and the run log prints it per case.
     testCaseRef = 'AWPTCM-T33235, 9001.33235.26'
+    # Marked unsupported before it runs by the case that learns it does not apply (see
+    # mark_cases_unsupported); skipIfExcl then skips configure()/main()/tear_down(), so no
+    # bench power cycle. The guard in main() stays as the fallback.
+    skipIfExcl = True
     testCaseMethod = 'Re-force BOTH ends: apply `speed S` and `duplex full` on the partner port, then on the DUT test port. Poll status for up to 30 s.\n'
     testCaseMethod += 'Verify: The test port row reads `connected` with bare S and bare `full`, confirming a forced speed is in effect before the auto form is tested.\n'
 
@@ -4856,6 +4947,10 @@ class TestCase_27(ATTestCase.TestCase):
     # ART identity <family>.<case>.<TestCase> — the framework composes the same triple
     # from the filename and this class name, and the run log prints it per case.
     testCaseRef = 'AWPTCM-T33235, 9001.33235.27'
+    # Marked unsupported before it runs by the case that learns it does not apply (see
+    # mark_cases_unsupported); skipIfExcl then skips configure()/main()/tear_down(), so no
+    # bench power cycle. The guard in main() stays as the fallback.
+    skipIfExcl = True
     testCaseMethod = 'On the partner port apply `no speed` and `duplex auto`. On the DUT test port apply `speed auto` and `duplex auto`. Poll status for up to 30 s, then read `show interface <test port>` and `show running-config interface <test port>`.\n'
     testCaseMethod += 'Verify: The test port row reads `connected` with `a-` prefixed speed and duplex. The current line shows a concrete negotiated speed equal to the step-2 baseline, not the literal `auto`. Running-config contains no forced numeric `speed` value for the test port.\n'
 
@@ -5093,6 +5188,11 @@ class TestCase_28(ATTestCase.TestCase):
     # ART identity <family>.<case>.<TestCase> — the framework composes the same triple
     # from the filename and this class name, and the run log prints it per case.
     testCaseRef = 'AWPTCM-T33235, 9001.33235.28'
+    # Excluded before it runs on a bench with no monitored port (see TestSet.init): evaluated by
+    # the framework after TestSet.configure(); skipIfExcl makes it UNSUPPORTED without running
+    # configure()/main()/tear_down(), so no bench power cycle.
+    testCasePlatformWithPropertyIncl = {'dut': [(['.*'], ['has_monitored_link'])]}
+    skipIfExcl = True
     testCaseMethod = "With the test port on auto, read `show interface <monitored port> status` and `show interface <monitored port>` for every other linked DUT port from the frame's discovered links.\n"
     testCaseMethod += "Verify: Each monitored port row reads `connected`. Record each one's speed and duplex tokens (including any `a-` prefix) and its current speed and duplex as the reference.\n"
 
@@ -5257,6 +5357,11 @@ class TestCase_29(ATTestCase.TestCase):
     # ART identity <family>.<case>.<TestCase> — the framework composes the same triple
     # from the filename and this class name, and the run log prints it per case.
     testCaseRef = 'AWPTCM-T33235, 9001.33235.29'
+    # Excluded before it runs on a bench with no monitored port (see TestSet.init): evaluated by
+    # the framework after TestSet.configure(); skipIfExcl makes it UNSUPPORTED without running
+    # configure()/main()/tear_down(), so no bench power cycle.
+    testCasePlatformWithPropertyIncl = {'dut': [(['.*'], ['has_monitored_link'])]}
+    skipIfExcl = True
     testCaseMethod = 'Apply `speed S` and `duplex full` on the partner port, then on the DUT test port only. Poll status for up to 30 s. Read the status rows and `show interface` for the test port and every monitored port, then read `show log`.\n'
     testCaseMethod += 'Verify: The test port row reads `connected` with bare S. Every monitored port row still reads `connected` with speed and duplex tokens identical to step 29, and each current line is unchanged. The log shows no link-down or link-up event for any monitored port.\n'
 
@@ -5508,6 +5613,11 @@ class TestCase_30(ATTestCase.TestCase):
     # ART identity <family>.<case>.<TestCase> — the framework composes the same triple
     # from the filename and this class name, and the run log prints it per case.
     testCaseRef = 'AWPTCM-T33235, 9001.33235.30'
+    # Excluded before it runs on a bench with no monitored port (see TestSet.init): evaluated by
+    # the framework after TestSet.configure(); skipIfExcl makes it UNSUPPORTED without running
+    # configure()/main()/tear_down(), so no bench power cycle.
+    testCasePlatformWithPropertyIncl = {'dut': [(['.*'], ['has_monitored_link'])]}
+    skipIfExcl = True
     testCaseMethod = 'Run this only where the test port supports a second fixed speed S2 that linked in steps 3–8; otherwise skip and log it as not applicable. Apply `speed S2` and `duplex full` on the partner port, then on the DUT test port. Poll status for up to 30 s. Read the status rows and `show interface` for the test port and every monitored port, then read `show log`.\n'
     testCaseMethod += 'Verify: The test port row reads `connected` with bare S2, and the current line reads `current speed S2`. Every monitored port is still `connected` with speed, duplex and current values identical to step 29. The log shows no link event for any monitored port.\n'
 
@@ -5774,6 +5884,10 @@ class TestCase_31(ATTestCase.TestCase):
     # ART identity <family>.<case>.<TestCase> — the framework composes the same triple
     # from the filename and this class name, and the run log prints it per case.
     testCaseRef = 'AWPTCM-T33235, 9001.33235.31'
+    # Marked unsupported before it runs by the case that learns it does not apply (see
+    # mark_cases_unsupported); skipIfExcl then skips configure()/main()/tear_down(), so no
+    # bench power cycle. The guard in main() stays as the fallback.
+    skipIfExcl = True
     testCaseMethod = 'Apply `speed S` and `duplex full` on the partner port, then on the DUT test port. Poll status for up to 30 s.\n'
     testCaseMethod += 'Verify: The test port row reads `connected` with bare S and bare `full`, and running-config contains `speed S`.\n'
 
@@ -5910,6 +6024,10 @@ class TestCase_32(ATTestCase.TestCase):
     # ART identity <family>.<case>.<TestCase> — the framework composes the same triple
     # from the filename and this class name, and the run log prints it per case.
     testCaseRef = 'AWPTCM-T33235, 9001.33235.32'
+    # Marked unsupported before it runs by the case that learns it does not apply (see
+    # mark_cases_unsupported); skipIfExcl then skips configure()/main()/tear_down(), so no
+    # bench power cycle. The guard in main() stays as the fallback.
+    skipIfExcl = True
     testCaseMethod = 'Save the running configuration to the startup configuration (`copy running-config startup-config`), then read the startup configuration.\n'
     testCaseMethod += "Verify: The save completes without error. The startup configuration's interface block for the test port contains `speed S` and `duplex full`.\n"
 
@@ -6019,6 +6137,10 @@ class TestCase_33(ATTestCase.TestCase):
     # ART identity <family>.<case>.<TestCase> — the framework composes the same triple
     # from the filename and this class name, and the run log prints it per case.
     testCaseRef = 'AWPTCM-T33235, 9001.33235.33'
+    # Marked unsupported before it runs by the case that learns it does not apply (see
+    # mark_cases_unsupported); skipIfExcl then skips configure()/main()/tear_down(), so no
+    # bench power cycle. The guard in main() stays as the fallback.
+    skipIfExcl = True
     testCaseMethod = 'Restart the DUT (`reload`, confirming the prompt). Wait for the console login prompt, log in, and issue no configuration commands. Poll `show interface <test port> status` for up to 120 s, then read `show interface <test port>` and `show running-config interface <test port>`.\n'
     testCaseMethod += 'Verify: Running-config contains `speed S` and `duplex full`. The test port row reads `connected` with bare S and bare `full`. The current line reads `current duplex full, current speed S`, with no operator action after boot.\n'
 

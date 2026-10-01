@@ -109,8 +109,9 @@ def test_A4_T33235_records_every_sweep_answer_and_never_fails_a_rejection_by_por
     for word in ("legal-values", "legal values", "expect_supported", "legal_2500", "lists_5000",
                  "tenGigLegal", "legal_40g", "legal_100g", "is_100m", "expectLegal"):
         assert word not in _T33235, word
-    # the consumers read the record, guarded, and report UNSUPPORTED when it is empty
-    assert _T33235.count("recorded = (self.testSet.speedMap or {}).get(") == 2
+    # the consumers read the record, guarded, and report UNSUPPORTED when it is empty: TC19,
+    # TC20, and TC21 ("only if step 21 ran", Terrence 2026-10-01)
+    assert _T33235.count("recorded = (self.testSet.speedMap or {}).get(") == 3
     assert "bad_speed = rejected[-1]" in _T33235
     # no case fails the DUT for an answer that disagrees with a port-type classification
     bad = [ln.strip() for ln in _T33235.splitlines() if "self.failed(" in ln and "although" in ln
