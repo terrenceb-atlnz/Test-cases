@@ -52,10 +52,16 @@
    `fibre_peer` / `portFibre` and `cusfp_peer` / `portCuSfp`, when bound, are PLUGGABLE links
    (a fitted fibre module, a fitted copper SFP): the frame leaves them None on a bench that
    has no such link, with `self.testSet.fibre_supported` / `cusfp_supported` saying which. A
-   case that needs one checks the flag FIRST in `main()` and, when it is False, reports
-   UNSUPPORTED the rule-3d way (`self.supported = False`, then `self.failed('<why>')`, then
-   `return`) — not a product failure. Its `configure()`/`tear_down()` skip their commands when
-   the handle is None (no verdict there). Their far ports are
+   case that needs one is NOT RUN on a bench without it: give its class
+   `testCasePlatformWithPropertyIncl = {'<dut>': [(['.*'], ['has_fibre_link'])]}`
+   (`has_cusfp_link` for the copper SFP, both in the one list when either link will do) and
+   `skipIfExcl = True`, beside `testCaseRef`. `'<dut>'` is the TestSet name the shortcut block
+   reads the DUT from; `TestSet.init()` sets the property on it from what it discovered, and the
+   framework reads it before any case runs (rule 3d says why that matters). Keep the flag check
+   FIRST in `main()` as well, as the fallback: when it is False, report UNSUPPORTED the rule-3d
+   way (`self.supported = False`, then `self.failed('<why>')`, then `return`) — not a product
+   failure. Its `configure()`/`tear_down()` skip their commands when the handle is None (no
+   verdict there). Their far ports are
    `fibre_peer.portFibre` and `cusfp_peer.portCuSfp` (role-specific, because both often land
    on the same partner switch). After the operator removes and re-fits a module, re-check its
    media with the frame's `assert_role_media_now(self, <dut>, <port>, '<role>')`.
@@ -130,6 +136,21 @@
    `main()` runs even when `configure()` set the flag, so make the check (and the
    `failed()`) in `main()`; and a verdict in `configure()` is refused by the lint. Use it
    for genuine capability gaps only, never to dodge a failing check.
+   **WHEN a case can know it does not apply decides HOW it says so.** An UNSUPPORTED reached
+   inside `main()` power-cycles every device on the bench (about 4 minutes on tb470); a case
+   marked unsupported BEFORE it runs is skipped, with no cycle. So:
+   - a link the bench lacks — the class gate in rule 3 (`testCasePlatformWithPropertyIncl`);
+   - a value an EARLIER case publishes — name it in the class's `ckNeeds = ['<name>']` with
+     `skipIfExcl = True`; the producer publishes through `publish_value(self, '<name>', value)`,
+     and publishing `None` marks every case that needs it before that case runs;
+   - a later step that applies only when an earlier result shows something more than "it was
+     established" ("only where the sweep recorded both `speed 10` and `speed 100` accepted") —
+     the PRODUCING case calls `mark_cases_unsupported(self, ['TestCase_<m>'], '<why>')` when it
+     does not, and TestCase_<m> carries `skipIfExcl = True`;
+   - something only THIS case can find out (the probe above) — the in-`main()` pair.
+   `publish_value` and `mark_cases_unsupported` are frame functions (defined when the sequence
+   publishes a value). Every marked case keeps its own in-`main()` check too, for a run that
+   reaches it anyway.
 3e. **Every case must leave the configuration as it found it.** After each case's
    `tear_down()` the framework compares every switch's running-config with the one the
    TestSet started from (`confCheck`, on by default) and fails the case on any difference.

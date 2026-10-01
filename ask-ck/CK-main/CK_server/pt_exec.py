@@ -240,6 +240,17 @@ _CASE_END = re.compile(
     r"^<< test-(.+?):\s*(PASS|FAIL|ERROR|UNSUPPORTED)\s*"
     r"\(numPassed:\s*(\d+)\s*numFailed:\s*(\d+)\)")
 _PASS_LINE = re.compile(r"^PASS:\s*(.*)$")
+# A case the framework never ran because it was already UNSUPPORTED when its turn came
+# (PLAN-unsupported-gating, 2026-10-02): the TestSet runs a case only while `supported` is True,
+# and such a case writes no `>>`/`<<` block at all. Two lines say why — the framework's own
+# marking pass after TestSet.configure() (a `testCasePlatformWithPropertyIncl` gate; T33234
+# run 3 dropped all 14 cases this way), and the generated frame's `mark_cases_unsupported`,
+# logged by the case that learned it (T33235 since 056114d uses the same words).
+_MARKED_BY_FRAMEWORK = re.compile(r"^Test case (\d+) has been marked as unsupported\b\s*(.*)$")
+_MARKED_BY_CASE = re.compile(r"^INFO: TestCase_(\d+) marked unsupported before it runs:\s*(.*)$")
+# The script the TestSet runs, from the argument list it logs at start: names a not-run case
+# `<family>.<case>.<n>` like the cases that did run, even when none did.
+_SCRIPT_STEM = re.compile(r"\btest-(\d+\.\d+)\.py\b")
 _FAIL_LINE = re.compile(r"^!!FAIL:\s*(.*)$")
 
 
@@ -299,9 +310,19 @@ def parse_framework_log(text: str, expected_cases: Optional[int] = None) -> Dict
     cases: List[dict] = []
     current: Optional[dict] = None
     unparsed_fails = 0
+    marked: Dict[int, tuple] = {}     # case number -> (reason, line index), first mark wins
+    stem: Optional[str] = None
 
     for i, raw in enumerate(lines):
         line = _TS_PREFIX.sub("", raw).rstrip()
+        if stem is None:
+            m = _SCRIPT_STEM.search(line)
+            if m:
+                stem = m.group(1)
+        m = _MARKED_BY_FRAMEWORK.match(line) or _MARKED_BY_CASE.match(line)
+        if m:
+            marked.setdefault(int(m.group(1)), (m.group(2).strip(), i))
+            continue
         m = _CASE_START.match(line)
         if m:
             if current is not None:  # previous case never closed (crash/abort)
@@ -340,6 +361,27 @@ def parse_framework_log(text: str, expected_cases: Optional[int] = None) -> Dict
         current["result"] = current.get("result") or "ERROR"
         current["log_lines"][1] = len(lines) - 1
         cases.append(current)
+
+    # A marked case that has no result block was never run: it is UNSUPPORTED, `ran: False`,
+    # and it counts as reported — it is the outcome the script asked for, not a gap. (Under -u
+    # a marked case does run, and its own `<<` block then wins.) Placed in case-number order.
+    def _case_num(name):
+        tail = str(name).rsplit(".", 1)[-1]
+        return int(tail) if tail.isdigit() else None
+    ran_nums = {_case_num(c["name"]) for c in cases}
+    if stem is None:
+        stem = next((str(c["name"]).rsplit(".", 1)[0] for c in cases if _case_num(c["name"]) is not None
+                     and "." in str(c["name"])), None)
+    for num, (reason, li) in sorted(marked.items()):
+        if num in ran_nums:
+            continue
+        cases.append({"name": f"{stem}.{num}" if stem else f"TestCase_{num}", "result": "UNSUPPORTED",
+                      "ran": False, "reason": reason or "marked unsupported before it ran",
+                      "numPassed": 0, "numFailed": 0, "pass_msgs": [], "fail_msgs": [],
+                      "log_lines": [li, li]})
+    if marked:
+        cases.sort(key=lambda c: (_case_num(c["name"]) is None, _case_num(c["name"]) or 0))
+    not_run = [c["name"] for c in cases if c.get("ran") is False]
 
     num_passed = sum(c.get("numPassed", len(c["pass_msgs"])) for c in cases)
     num_failed = sum(c.get("numFailed", len(c["fail_msgs"])) for c in cases)
@@ -409,6 +451,8 @@ def parse_framework_log(text: str, expected_cases: Optional[int] = None) -> Dict
     else:
         summary = (f"cases: {counts['PASS']} passed, {counts['FAIL']} failed, "
                    f"{counts['UNSUPPORTED']} unsupported")
+        if not_run:
+            summary += f" ({len(not_run)} not run)"
         if counts["ERROR"]:
             summary += f", {counts['ERROR']} no verdict"
         summary += (f" (of {len(cases)}); assertions: {num_passed} passed, "
@@ -444,6 +488,8 @@ def parse_framework_log(text: str, expected_cases: Optional[int] = None) -> Dict
         "failed_cases": failed_cases,
         "errored_cases": errored,
         "unsupported_cases": unsupported,
+        # The UNSUPPORTED cases the framework skipped before they ran (no bench power cycle).
+        "not_run_cases": not_run,
         "status": status,
         # NOT "the test passed" — this says the RESULTS are trustworthy: the run produced
         # results, every registered case reported a verdict, and no failure line is

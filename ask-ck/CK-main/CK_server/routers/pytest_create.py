@@ -3333,6 +3333,19 @@ def _published_values(sequence: List[dict]) -> List[dict]:
     return out
 
 
+def _value_contributors(sequence: List[dict]) -> Dict[str, set]:
+    """{name: TestCase numbers of EVERY step that declares it in `publishes`}. `_published_values`
+    keeps the first producer only; the later declarers are CONTRIBUTORS that fill the same value
+    in (T33235's sweep: steps 3-13 each add their speed to `speedMap`). A contributor measures for
+    itself, so it is not a consumer that a None from the first producer should skip."""
+    _setup, tc_steps = _split_sequence(sequence or [])
+    out: Dict[str, set] = {}
+    for s in tc_steps:
+        for p in _normalize_publishes(s.get("publishes")):
+            out.setdefault(p["name"], set()).add(s["n"])
+    return out
+
+
 def _negative_case_names(sequence: List[dict]) -> frozenset:
     """TestCase class names whose sequence step is flagged `negative`. TestCase_<i> is the i-th
     non-setup step — the numbering `_split_sequence` gives the frame."""
@@ -3985,6 +3998,311 @@ def _lint_published_unguarded(tree, published: List[dict]) -> List[str]:
     return out
 
 
+# --- Before-run UNSUPPORTED (PLAN-unsupported-gating.md, 2026-10-02) ---------------------------
+#
+# A case that learns inside its own main() that it does not apply reports UNSUPPORTED, and the
+# framework then power-cycles every device on the bench (`ATTestCase.run()`: `__run()` re-arms
+# powerCycleOnFail, and any result but PASS cycles; ~4 min on tb470, T33235 runs 1 and 4). The
+# TestSet runs a case only while its `supported` is True (`ATTestSet.py` ~1755, without -u), so a
+# case marked BEFORE its turn is skipped with no cycle — by the marking pass after
+# TestSet.configure() (`testCasePlatformWithPropertyIncl` on a DUT property), or by an earlier
+# case (the frame's `publish_value` / `mark_cases_unsupported`). These lints hold the generated
+# script to that: kind A (a bench link) and kind B1 (a published value) exactly, kind B2 (a
+# condition on a published value) as far as the calls themselves.
+
+# The names that say a piece of code is about one optional link role: the TestSet flag, the far
+# device, and the DUT-side port (as a TestSet/DUT attribute or as the shortcut block's local).
+_ROLE_NAMES = {"fibre": ("fibre_supported", "fibre_peer", "portFibre"),
+               "cusfp": ("cusfp_supported", "cusfp_peer", "portCuSfp")}
+
+
+def _roles_named_in(node) -> set:
+    import ast as ast_mod
+    out = set()
+    for n in ast_mod.walk(node):
+        word = n.id if isinstance(n, ast_mod.Name) else (n.attr if isinstance(n, ast_mod.Attribute) else None)
+        for role, names in _ROLE_NAMES.items():
+            if word in names:
+                out.add(role)
+    return out
+
+
+def _roles_used_in(c) -> set:
+    """The roles a class actually USES: `_roles_named_in` minus the frame's shortcut block, which
+    binds every bound role's names (`fibre_peer = self.testSet.fibre_peer`, `portFibre =
+    dut.portFibre`) at the top of every method whether the case needs them or not."""
+    import ast as ast_mod
+    out = set()
+
+    def _visit(node):
+        if (isinstance(node, ast_mod.Assign) and len(node.targets) == 1
+                and isinstance(node.targets[0], ast_mod.Name)
+                and any(node.targets[0].id in names for names in _ROLE_NAMES.values())):
+            return
+        word = node.id if isinstance(node, ast_mod.Name) else (
+            node.attr if isinstance(node, ast_mod.Attribute) else None)
+        out.update(r for r, names in _ROLE_NAMES.items() if word in names)
+        for ch in ast_mod.iter_child_nodes(node):
+            _visit(ch)
+    _visit(c)
+    return out
+
+
+def _class_level(c, name):
+    """The value node of a class-body `name = ...`, or None."""
+    import ast as ast_mod
+    for st in c.body:
+        if (isinstance(st, ast_mod.Assign) and len(st.targets) == 1
+                and isinstance(st.targets[0], ast_mod.Name) and st.targets[0].id == name):
+            return st.value
+    return None
+
+
+def _str_list(node) -> Optional[List[str]]:
+    """A literal list/tuple of strings, else None."""
+    import ast as ast_mod
+    if isinstance(node, (ast_mod.List, ast_mod.Tuple)) and all(
+            isinstance(e, ast_mod.Constant) and isinstance(e.value, str) for e in node.elts):
+        return [e.value for e in node.elts]
+    return None
+
+
+def _init_device_properties(tree) -> Dict[str, dict]:
+    """{property: {"attr": <TestSet attribute of the device it is set on>, "roles": {...}}} for
+    every `<device>.<property> = <expr>` in TestSet.init(). `roles` are the link roles whose
+    flag the value is computed from (`dut.has_monitored_link = self.cusfp_supported or
+    self.fibre_supported` -> {cusfp, fibre}); `attr` resolves the device through init's own
+    `self.<attr> = <device>`, which is what the framework's `getattr(testSet, <key>)` reads."""
+    import ast as ast_mod
+    init = None
+    for c in tree.body:
+        if isinstance(c, ast_mod.ClassDef) and c.name == "TestSet":
+            init = next((m for m in c.body if isinstance(m, ast_mod.FunctionDef) and m.name == "init"), None)
+    if init is None:
+        return {}
+    exported: Dict[str, str] = {}
+    for n in ast_mod.walk(init):
+        if (isinstance(n, ast_mod.Assign) and len(n.targets) == 1 and isinstance(n.value, ast_mod.Name)
+                and isinstance(n.targets[0], ast_mod.Attribute)
+                and isinstance(n.targets[0].value, ast_mod.Name) and n.targets[0].value.id == "self"):
+            exported.setdefault(n.value.id, n.targets[0].attr)
+    out: Dict[str, dict] = {}
+    for n in ast_mod.walk(init):
+        if not (isinstance(n, ast_mod.Assign) and len(n.targets) == 1):
+            continue
+        t = n.targets[0]
+        if (isinstance(t, ast_mod.Attribute) and isinstance(t.value, ast_mod.Name)
+                and t.value.id != "self" and t.value.id in exported):
+            roles = {r for r in _roles_named_in(n.value)
+                     if any(isinstance(x, ast_mod.Attribute) and x.attr == f"{r}_supported"
+                            for x in ast_mod.walk(n.value))}
+            out[t.attr] = {"attr": exported[t.value.id], "roles": roles}
+    return out
+
+
+def _lint_before_run_gate(tree) -> Tuple[List[str], List[str]]:
+    """Kind A (PLAN-unsupported-gating §4): a case that needs an optional link is not RUN on a
+    bench without it. BLOCKING, exact, `rolegate:` —
+      * main() reports UNSUPPORTED in a branch whose condition names a role (`fibre_supported`,
+        `fibre_peer`, `portFibre`, the cusfp equivalents) and the class has no
+        `testCasePlatformWithPropertyIncl` gate covering that role. A property covers a role
+        when it is the frame's `has_<role>_link`, or TestSet.init() computes it from that role's
+        flag (T33235's hand-written `has_fibre_test_link`, `has_monitored_link`);
+      * a gate whose shape the framework cannot use safely: the key must be the TestSet name of
+        the device init() sets the property on (the framework does `getattr(testSet, key)` and a
+        wrong one aborts the whole run while it parses the excludes), every property must be one
+        init() sets, the platform list must be `['.*']` (a real platform list is the suite
+        owners', rule 3d), and the class must carry `skipIfExcl = True`.
+    WARNING (over-gating — a lost test, reported UNSUPPORTED): a class gated on a role it never
+    touches anywhere in its body."""
+    import ast as ast_mod
+    props = _init_device_properties(tree)
+    errors: List[str] = []
+    warnings: List[str] = []
+
+    def _is_flag_off(st):
+        return (isinstance(st, ast_mod.Assign) and len(st.targets) == 1
+                and isinstance(st.targets[0], ast_mod.Attribute) and st.targets[0].attr == "supported"
+                and isinstance(st.targets[0].value, ast_mod.Name) and st.targets[0].value.id == "self"
+                and isinstance(st.value, ast_mod.Constant) and st.value.value is False)
+
+    for c in tree.body:
+        if not (isinstance(c, ast_mod.ClassDef) and re.fullmatch(r"TestCase_\d+", c.name)):
+            continue
+        gate = _class_level(c, "testCasePlatformWithPropertyIncl")
+        covered: set = set()
+        gate_props: List[str] = []
+        if gate is not None:
+            ok_shape = isinstance(gate, ast_mod.Dict) and len(gate.keys) == 1 and isinstance(
+                gate.keys[0], ast_mod.Constant) and isinstance(gate.keys[0].value, str)
+            tuples = []
+            if ok_shape:
+                v = gate.values[0]
+                ok_shape = isinstance(v, (ast_mod.List, ast_mod.Tuple)) and bool(v.elts)
+                for t in (v.elts if ok_shape else []):
+                    if not (isinstance(t, ast_mod.Tuple) and len(t.elts) == 2):
+                        ok_shape = False
+                        break
+                    plats, pl = _str_list(t.elts[0]), _str_list(t.elts[1])
+                    if plats is None or pl is None:
+                        ok_shape = False
+                        break
+                    tuples.append((plats, pl))
+            if not ok_shape:
+                errors.append(
+                    f"rolegate: {c.name}.testCasePlatformWithPropertyIncl line {gate.lineno} is not the "
+                    f"shape the frame supports — write `{{'<dut>': [(['.*'], ['has_fibre_link'])]}}` "
+                    f"(one device key, literal lists of strings)")
+            else:
+                key = gate.keys[0].value
+                for plats, pl in tuples:
+                    if plats != [".*"]:
+                        errors.append(
+                            f"rolegate: {c.name}.testCasePlatformWithPropertyIncl line {gate.lineno} lists "
+                            f"platforms {plats} — the gate is for a fact TestSet.init() discovered, so its "
+                            f"platform list is `['.*']`; a real platform list is the suite owners' (rule 3d)")
+                    gate_props.extend(pl)
+                for p in gate_props:
+                    if p not in props:
+                        errors.append(
+                            f"rolegate: {c.name}.testCasePlatformWithPropertyIncl line {gate.lineno} names "
+                            f"`{p}`, which TestSet.init() never sets on a device — the framework would read "
+                            f"it as absent and skip the case on every bench")
+                    elif props[p]["attr"] != key:
+                        errors.append(
+                            f"rolegate: {c.name}.testCasePlatformWithPropertyIncl line {gate.lineno} keys "
+                            f"`{p}` on {key!r}, but TestSet.init() sets it on `self.{props[p]['attr']}` — "
+                            f"the framework resolves the key with getattr(testSet, key), so write "
+                            f"{props[p]['attr']!r}")
+                    else:
+                        covered |= props[p]["roles"]
+            skip = _class_level(c, "skipIfExcl")
+            if not (isinstance(skip, ast_mod.Constant) and skip.value is True):
+                errors.append(
+                    f"rolegate: {c.name} has a testCasePlatformWithPropertyIncl gate without "
+                    f"`skipIfExcl = True` — under -u the case would run and its UNSUPPORTED would "
+                    f"power-cycle the bench")
+            for role in sorted({r for p in gate_props if p in props for r in props[p]["roles"]}):
+                if role not in _roles_used_in(c):
+                    warnings.append(
+                        f"rolegate: {c.name} is gated on the {role} link but never uses it (no "
+                        f"{', '.join(_ROLE_NAMES[role])}) — a bench without that link skips a case that "
+                        f"could have run; gate only the cases that need the link")
+        main = next((m for m in c.body if isinstance(m, ast_mod.FunctionDef) and m.name == "main"), None)
+        if main is None:
+            continue
+        reported = set()
+        for n in ast_mod.walk(main):
+            if not (isinstance(n, ast_mod.If) and any(_is_flag_off(st) for st in n.body)):
+                continue
+            for role in sorted(_roles_named_in(n.test) - covered - reported):
+                reported.add(role)
+                errors.append(
+                    f"rolegate: {c.name}.main() line {n.lineno} reports UNSUPPORTED when the bench has no "
+                    f"{role} link, but the class is not gated on it, so on such a bench the case runs "
+                    f"and its UNSUPPORTED power-cycles every device. Add "
+                    f"`testCasePlatformWithPropertyIncl = {{'<dut>': [(['.*'], ['has_{role}_link'])]}}` "
+                    f"and `skipIfExcl = True` to the class (keep this check as the fallback)")
+    return errors, warnings
+
+
+def _lint_before_run_marks(tree, published: List[dict],
+                           contributors: Optional[Dict[str, set]] = None) -> Tuple[List[str], List[str]]:
+    """Kind B (PLAN-unsupported-gating §5). BLOCKING, exact, `needs:` —
+      * the producing case never calls `publish_value(self, '<name>', ...)` for a value its step
+        publishes (B1: publishing None is what marks the consumers);
+      * a later case reads `self.testSet.<name>` without naming it in its class's `ckNeeds`;
+      * `ckNeeds` names a value no EARLIER case publishes, or is not a literal list of strings;
+      * a class with `ckNeeds`, or one an earlier case marks, lacks `skipIfExcl = True`.
+    Building a published value up in place (`self.testSet.speedMap.setdefault(...)`, T33235 TC
+    2-12) is a read, not a second publish, and is fine; a case whose own step also declares the
+    value (`contributors`, `_value_contributors`) is not required to need it.
+    WARNING, `marks:` (B2) — a `mark_cases_unsupported` call naming a case that is not a LATER
+    TestCase, or a list it cannot read (a literal, or a module-level constant of one)."""
+    import ast as ast_mod
+    names = {p["name"]: p.get("tc_n") for p in (published or []) if p.get("name")}
+    errors: List[str] = []
+    warnings: List[str] = []
+    classes = {c.name: c for c in tree.body
+               if isinstance(c, ast_mod.ClassDef) and re.fullmatch(r"TestCase_\d+", c.name)}
+    consts = {st.targets[0].id: _str_list(st.value) for st in tree.body
+              if isinstance(st, ast_mod.Assign) and len(st.targets) == 1
+              and isinstance(st.targets[0], ast_mod.Name)}
+
+    def _skip_on(c):
+        v = _class_level(c, "skipIfExcl")
+        return isinstance(v, ast_mod.Constant) and v.value is True
+
+    def _calls(c, fname):
+        return [n for n in ast_mod.walk(c) if isinstance(n, ast_mod.Call)
+                and isinstance(n.func, ast_mod.Name) and n.func.id == fname]
+
+    for name, tc_n in names.items():
+        prod = classes.get(f"TestCase_{tc_n}")
+        if prod is None:
+            continue
+        if not any(len(n.args) >= 3 and isinstance(n.args[1], ast_mod.Constant) and n.args[1].value == name
+                   for n in _calls(prod, "publish_value")):
+            errors.append(
+                f"needs: TestCase_{tc_n} publishes `{name}` (its sequence step's `publishes`) but never "
+                f"calls `publish_value(self, '{name}', <value>)` — call it once the value is "
+                f"established, and with None on every path where it is not, so the cases that need "
+                f"it are skipped before they run instead of power-cycling the bench")
+    marked: Dict[str, str] = {}
+    for cname, c in classes.items():
+        n_here = int(cname.split("_")[1])
+        needs_node = _class_level(c, "ckNeeds")
+        needs = _str_list(needs_node) if needs_node is not None else []
+        if needs is None:
+            errors.append(f"needs: {cname}.ckNeeds line {needs_node.lineno} must be a literal list of "
+                          f"published value names, e.g. `ckNeeds = ['speedS']`")
+            needs = []
+        for nm in needs:
+            if nm not in names:
+                errors.append(f"needs: {cname}.ckNeeds names `{nm}`, which no step publishes — a "
+                              f"producer's publish_value(None) would never reach this case")
+            elif names[nm] >= n_here:
+                errors.append(f"needs: {cname}.ckNeeds names `{nm}`, published by TestCase_{names[nm]}, "
+                              f"which does not run before this case")
+        if needs_node is not None and not _skip_on(c):
+            errors.append(f"needs: {cname} has `ckNeeds` without `skipIfExcl = True` — under -u a marked "
+                          f"case would still run and power-cycle the bench")
+        read = {}
+        for n in ast_mod.walk(c):
+            if (isinstance(n, ast_mod.Attribute) and n.attr in names and isinstance(n.ctx, ast_mod.Load)
+                    and isinstance(n.value, ast_mod.Attribute) and n.value.attr == "testSet"
+                    and isinstance(n.value.value, ast_mod.Name) and n.value.value.id == "self"):
+                read.setdefault(n.attr, n.lineno)
+        for nm, ln in sorted(read.items(), key=lambda kv: kv[1]):
+            if names[nm] < n_here and nm not in needs and n_here not in (contributors or {}).get(nm, ()):
+                errors.append(
+                    f"needs: {cname} line {ln} reads `self.testSet.{nm}` (published by TestCase_{names[nm]}) "
+                    f"but its class does not list it in `ckNeeds` — when TestCase_{names[nm]} publishes "
+                    f"None this case is not skipped, and its UNSUPPORTED power-cycles every device. Add "
+                    f"`ckNeeds = ['{nm}']` and `skipIfExcl = True` to the class")
+        for call in _calls(c, "mark_cases_unsupported"):
+            arg = call.args[1] if len(call.args) >= 2 else None
+            targets = _str_list(arg) if arg is not None else None
+            if targets is None and isinstance(arg, ast_mod.Name):
+                targets = consts.get(arg.id)
+            if targets is None:
+                warnings.append(f"marks: {cname} line {call.lineno} calls mark_cases_unsupported with a "
+                                f"list the lint cannot read — use a literal list of TestCase names")
+                continue
+            for t in targets:
+                m = re.fullmatch(r"TestCase_(\d+)", t)
+                if not m or t not in classes or int(m.group(1)) <= n_here:
+                    warnings.append(f"marks: {cname} line {call.lineno} marks `{t}`, which is not a TestCase "
+                                    f"that runs after {cname} — it cannot be skipped from here")
+                else:
+                    marked.setdefault(t, cname)
+    for t, by in sorted(marked.items()):
+        if not _skip_on(classes[t]):
+            errors.append(f"needs: {t} is marked unsupported by {by} but lacks `skipIfExcl = True` — "
+                          f"under -u it would still run and power-cycle the bench")
+    return errors, warnings
+
+
 def _lint_generated(sess: PtSession) -> dict:
     """Offline checks: py_compile + structural AST assertions + framework import check."""
     step6 = sess.step6 or {}
@@ -4570,6 +4888,16 @@ def _lint_generated(sess: PtSession) -> dict:
         warnings.extend(_lint_config_not_restored(tree))        # G13, 2026-09-24
         warnings.extend(_lint_published_unguarded(                # C7 (G15), 2026-09-25
             tree, _published_values((sess.step2 or {}).get("sequence") or [])))
+        _gate_errors, _gate_warnings = _lint_before_run_gate(tree)    # PLAN-unsupported-gating, 2026-10-02
+        for _e in _gate_errors:
+            errors.append(_e)
+        warnings.extend(_gate_warnings)
+        _seq = (sess.step2 or {}).get("sequence") or []
+        _mark_errors, _mark_warnings = _lint_before_run_marks(
+            tree, _published_values(_seq), _value_contributors(_seq))
+        for _e in _mark_errors:
+            errors.append(_e)
+        warnings.extend(_mark_warnings)
 
     # 4. OBJECTIVE COVERAGE (Terrence's invariant, 2026-07-27): every objective links to
     #    a Zephyr step, and every Zephyr step needs at least one PyTest step — otherwise
@@ -6789,6 +7117,11 @@ def _render_unit_prompt(key: str, data: dict, sess: PtSession, ctx: dict, unit: 
     return render_prompt("pt_generate_step.jinja", {
         "publishes_here": [p for p in published if tc_n is not None and p["tc_n"] == tc_n],
         "published_before": [p for p in published if tc_n is not None and p["tc_n"] < tc_n],
+        # Values an EARLIER case publishes that this step's own `publishes` declares too: it fills
+        # them in (a contributor, `_value_contributors`), so it does not list them in `ckNeeds`.
+        "contributes_here": sorted(
+            {p["name"] for p in _normalize_publishes((src or {}).get("publishes"))}
+            & {p["name"] for p in published if tc_n is not None and p["tc_n"] < tc_n}),
         "case_key": key,
         "case_title": _case_title(data, key),
         "mode": unit["kind"],

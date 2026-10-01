@@ -97,8 +97,10 @@ far end as the testbox link, and for every other link runs `show interface <port
 `copper`, fibre → `fibre`, `not present` → `absent`. **An empty cage is `absent` and is never a
 role** — Terrence: *"cages themselves aren't 'fibre' or 'copper' cause they're empty."* A
 pluggable role is satisfied only by a module **fitted at `init()`**; otherwise the flag is
-False, the handles are None, and the cases that need it report UNSUPPORTED
-(`self.supported = False`) instead of failing. Insertion steps therefore start from a fitted
+False, the handles are None, `dut.has_<role>_link` is False, and the cases that need it — gated
+on that property through `testCasePlatformWithPropertyIncl` — are skipped as UNSUPPORTED before
+they run, with no bench power cycle (2026-10-02, `ask-ck/plans/PLAN-unsupported-gating.md`); each
+keeps an in-`main()` check as the fallback. Insertion steps therefore start from a fitted
 module (remove, verify down, re-fit, verify up) and re-check media afterwards with the frame's
 module-level `assert_role_media_now(testCase, dut, port, role)`.
 

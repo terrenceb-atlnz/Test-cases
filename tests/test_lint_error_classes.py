@@ -87,6 +87,10 @@ BLOCKING = [
     # and factory-defaults the bench; the same site also raises the `timeOut=-1` (does not wait)
     # finding. Neither is a reviewer's call.
     "reboot: TestCase_33.main() line 6014 calls `.reboot(None, …)` — confFile=None ERASES the startup config",
+    # 2026-10-02 (PLAN-unsupported-gating): a case that can be known not to apply before it runs
+    # must be marked before it runs — reaching main() to say so power-cycles the whole bench.
+    "rolegate: TestCase_8.main() line 1804 reports UNSUPPORTED when the bench has no fibre link, but the class is not gated on it",
+    "needs: TestCase_19 line 3730 reads `self.testSet.speedMap` (published by TestCase_2) but its class does not list it in `ckNeeds`",
 ]
 
 POLICY = [

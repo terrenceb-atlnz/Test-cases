@@ -1,0 +1,107 @@
+2026-09-29 13:38:20: ================ TESTSET STARTED ================
+2026-09-29 13:38:20: ['/tmp/ck33234/run3-20260929T0037/test-9001.33234.py', '-s', '/home/st-art/st-art/configs/tb470.setup', '-v', '--noupdate', '--nodefaultcfg']
+2026-09-29 13:38:20: Loading setup file: /home/st-art/st-art/configs/tb470.setup
+2026-09-29 13:40:08: ======== Mark unsupported test cases
+2026-09-29 13:40:08: 
+2026-09-29 13:40:08: -- TestCase 1
+2026-09-29 13:40:08: ---- Checking testCasePlatformWithPropertyIncl
+2026-09-29 13:40:08:         match on dev.get_switch_family() : "IE520"
+2026-09-29 13:40:08:         no match on dev.has_fixed_copper_port : "has_fixed_copper_port"
+2026-09-29 13:40:08:         swi_a : .* without property "has_fixed_copper_port" is not supported
+2026-09-29 13:40:08: Test case 1 has been marked as unsupported on .* platform without property has_fixed_copper_port, for device swi_a
+2026-09-29 13:40:08: 
+2026-09-29 13:40:08: -- TestCase 2
+2026-09-29 13:40:08: ---- Checking testCasePlatformWithPropertyIncl
+2026-09-29 13:40:08:         match on dev.get_switch_family() : "IE520"
+2026-09-29 13:40:08:         no match on dev.has_fixed_copper_port : "has_fixed_copper_port"
+2026-09-29 13:40:08:         swi_a : .* without property "has_fixed_copper_port" is not supported
+2026-09-29 13:40:08: Test case 2 has been marked as unsupported on .* platform without property has_fixed_copper_port, for device swi_a
+2026-09-29 13:40:08: 
+2026-09-29 13:40:08: -- TestCase 3
+2026-09-29 13:40:08: ---- Checking testCasePlatformWithPropertyIncl
+2026-09-29 13:40:08:         match on dev.get_switch_family() : "IE520"
+2026-09-29 13:40:08:         no match on dev.has_fixed_copper_port : "has_fixed_copper_port"
+2026-09-29 13:40:08:         swi_a : .* without property "has_fixed_copper_port" is not supported
+2026-09-29 13:40:08: Test case 3 has been marked as unsupported on .* platform without property has_fixed_copper_port, for device swi_a
+2026-09-29 13:40:08: 
+2026-09-29 13:40:08: -- TestCase 4
+2026-09-29 13:40:08: ---- Checking testCasePlatformWithPropertyIncl
+2026-09-29 13:40:08:         match on dev.get_switch_family() : "IE520"
+2026-09-29 13:40:08:         no match on dev.has_fixed_copper_port : "has_fixed_copper_port"
+2026-09-29 13:40:08:         swi_a : .* without property "has_fixed_copper_port" is not supported
+2026-09-29 13:40:08: Test case 4 has been marked as unsupported on .* platform without property has_fixed_copper_port, for device swi_a
+2026-09-29 13:40:08: 
+2026-09-29 13:40:08: -- TestCase 5
+2026-09-29 13:40:08: ---- Checking testCasePlatformWithPropertyIncl
+2026-09-29 13:40:08:         match on dev.get_switch_family() : "IE520"
+2026-09-29 13:40:08:         no match on dev.has_fixed_copper_port : "has_fixed_copper_port"
+2026-09-29 13:40:08:         swi_a : .* without property "has_fixed_copper_port" is not supported
+2026-09-29 13:40:08: Test case 5 has been marked as unsupported on .* platform without property has_fixed_copper_port, for device swi_a
+2026-09-29 13:40:08: 
+2026-09-29 13:40:08: -- TestCase 6
+2026-09-29 13:40:08: ---- Checking testCasePlatformWithPropertyIncl
+2026-09-29 13:40:08:         match on dev.get_switch_family() : "IE520"
+2026-09-29 13:40:08:         no match on dev.has_fixed_copper_port : "has_fixed_copper_port"
+2026-09-29 13:40:08:         swi_a : .* without property "has_fixed_copper_port" is not supported
+2026-09-29 13:40:08: Test case 6 has been marked as unsupported on .* platform without property has_fixed_copper_port, for device swi_a
+2026-09-29 13:40:08: 
+2026-09-29 13:40:08: -- TestCase 7
+2026-09-29 13:40:08: ---- Checking testCasePlatformWithPropertyIncl
+2026-09-29 13:40:08:         match on dev.get_switch_family() : "IE520"
+2026-09-29 13:40:08:         no match on dev.has_fixed_copper_port : "has_fixed_copper_port"
+2026-09-29 13:40:08:         swi_a : .* without property "has_fixed_copper_port" is not supported
+2026-09-29 13:40:08: Test case 7 has been marked as unsupported on .* platform without property has_fixed_copper_port, for device swi_a
+2026-09-29 13:40:08: 
+2026-09-29 13:40:08: -- TestCase 8
+2026-09-29 13:40:08: ---- Checking testCasePlatformWithPropertyIncl
+2026-09-29 13:40:08:         match on dev.get_switch_family() : "IE520"
+2026-09-29 13:40:08:         no match on dev.has_fixed_copper_port : "has_fixed_copper_port"
+2026-09-29 13:40:08:         swi_a : .* without property "has_fixed_copper_port" is not supported
+2026-09-29 13:40:08: Test case 8 has been marked as unsupported on .* platform without property has_fixed_copper_port, for device swi_a
+2026-09-29 13:40:08: 
+2026-09-29 13:40:08: -- TestCase 9
+2026-09-29 13:40:08: ---- Checking testCasePlatformWithPropertyIncl
+2026-09-29 13:40:08:         match on dev.get_switch_family() : "IE520"
+2026-09-29 13:40:08:         no match on dev.has_fixed_copper_port : "has_fixed_copper_port"
+2026-09-29 13:40:08:         swi_a : .* without property "has_fixed_copper_port" is not supported
+2026-09-29 13:40:08: Test case 9 has been marked as unsupported on .* platform without property has_fixed_copper_port, for device swi_a
+2026-09-29 13:40:08: 
+2026-09-29 13:40:08: -- TestCase 10
+2026-09-29 13:40:08: ---- Checking testCasePlatformWithPropertyIncl
+2026-09-29 13:40:08:         match on dev.get_switch_family() : "IE520"
+2026-09-29 13:40:08:         no match on dev.has_fixed_copper_port : "has_fixed_copper_port"
+2026-09-29 13:40:08:         swi_a : .* without property "has_fixed_copper_port" is not supported
+2026-09-29 13:40:08: Test case 10 has been marked as unsupported on .* platform without property has_fixed_copper_port, for device swi_a
+2026-09-29 13:40:08: 
+2026-09-29 13:40:08: -- TestCase 11
+2026-09-29 13:40:08: ---- Checking testCasePlatformWithPropertyIncl
+2026-09-29 13:40:08:         match on dev.get_switch_family() : "IE520"
+2026-09-29 13:40:08:         no match on dev.has_fixed_copper_port : "has_fixed_copper_port"
+2026-09-29 13:40:08:         swi_a : .* without property "has_fixed_copper_port" is not supported
+2026-09-29 13:40:08: Test case 11 has been marked as unsupported on .* platform without property has_fixed_copper_port, for device swi_a
+2026-09-29 13:40:08: 
+2026-09-29 13:40:08: -- TestCase 12
+2026-09-29 13:40:08: ---- Checking testCasePlatformWithPropertyIncl
+2026-09-29 13:40:08:         match on dev.get_switch_family() : "IE520"
+2026-09-29 13:40:08:         no match on dev.has_fixed_copper_port : "has_fixed_copper_port"
+2026-09-29 13:40:08:         swi_a : .* without property "has_fixed_copper_port" is not supported
+2026-09-29 13:40:08: Test case 12 has been marked as unsupported on .* platform without property has_fixed_copper_port, for device swi_a
+2026-09-29 13:40:08: 
+2026-09-29 13:40:08: -- TestCase 13
+2026-09-29 13:40:08: ---- Checking testCasePlatformWithPropertyIncl
+2026-09-29 13:40:08:         match on dev.get_switch_family() : "IE520"
+2026-09-29 13:40:08:         no match on dev.has_fixed_copper_port : "has_fixed_copper_port"
+2026-09-29 13:40:08:         swi_a : .* without property "has_fixed_copper_port" is not supported
+2026-09-29 13:40:08: Test case 13 has been marked as unsupported on .* platform without property has_fixed_copper_port, for device swi_a
+2026-09-29 13:40:08: 
+2026-09-29 13:40:08: -- TestCase 14
+2026-09-29 13:40:08: ---- Checking testCasePlatformWithPropertyIncl
+2026-09-29 13:40:08:         match on dev.get_switch_family() : "IE520"
+2026-09-29 13:40:08:         no match on dev.has_fixed_copper_port : "has_fixed_copper_port"
+2026-09-29 13:40:08:         swi_a : .* without property "has_fixed_copper_port" is not supported
+2026-09-29 13:40:08: Test case 14 has been marked as unsupported on .* platform without property has_fixed_copper_port, for device swi_a
+2026-09-29 13:40:08: Exclude TestCases with run-priority 10
+2026-09-29 13:40:08: ======== TestSet preparation is now complete. Execute each TestCase one by one
+2026-09-29 13:40:08: ======== TestCase execution is now complete
+
+2026-09-29 13:40:08: ================ TESTSET FINISHED (rc = 0) ================

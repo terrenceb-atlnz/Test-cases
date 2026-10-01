@@ -69,6 +69,13 @@ rule 3e now names `polarity {auto|mdi|mdix}` beside `duplex` as a command with n
 every case — and says a lint (`noform:`, a warning) flags a `no <cmd>` the reference gives no
 `no` form for. The rendered diff was checked to be that one hunk inside 3e and nothing else.
 
+SNAPSHOT UPDATED 2026-10-02 (PLAN-unsupported-gating.md; Terrence: "build now", after the plan's
+review): rule 3's pluggable paragraph now gives a case that needs a fibre / copper-SFP link the
+`testCasePlatformWithPropertyIncl` class gate on `has_<role>_link`, keeping the in-main() flag
+check as the fallback; rule 3d gains "WHEN a case can know it does not apply decides HOW it says
+so" — the class gate, `ckNeeds` + `publish_value`, `mark_cases_unsupported`, or the in-main()
+pair. The rendered diff was checked to be those two hunks and nothing else.
+
 Everything below still holds: the rules live in one file, and any FURTHER change to the
 rendered whole-script prompt must be as deliberate as these two were.
 """

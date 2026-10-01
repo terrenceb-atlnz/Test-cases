@@ -2286,7 +2286,9 @@ function ptRenderRuns() {
     parsed.cases.forEach(c => {
       html += `<tr><td class="cell-id">${escapeHtml(c.name)}</td>
         <td><span class="badge ${c.result === 'PASS' ? 'badge-success' : ''}">${escapeHtml(c.result || '?')}</span></td>
-        <td class="justification-note">${(c.fail_msgs || []).map(escapeHtml).join('; ')}</td></tr>`;
+        <td class="justification-note">${c.ran === false
+          ? escapeHtml('not run: ' + (c.reason || 'marked unsupported before it ran'))
+          : (c.fail_msgs || []).map(escapeHtml).join('; ')}</td></tr>`;
     });
     html += `</tbody></table><div class="justification-note">numPassed ${parsed.numPassed || 0} · numFailed ${parsed.numFailed || 0}</div>`;
   }

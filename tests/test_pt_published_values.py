@@ -70,7 +70,7 @@ def test_the_producer_is_told_to_set_it_and_later_units_to_read_it_or_report_UNS
     prod = render_prompt("pt_generate_step.jinja", {**base, "tc_n": 1, "publishes_here": pub,
                                                      "published_before": []})
     assert "publishes for later cases" in prod and "`self.testSet.speedS`" in prod
-    assert "leave it `None` when the step could not" in prod
+    assert "Publish it with `publish_value(self, '<name>', <value>)`" in prod
     cons = render_prompt("pt_generate_step.jinja", {**base, "tc_n": 2, "publishes_here": [],
                                                      "published_before": pub})
     assert "values earlier cases publish" in cons and "(set by TestCase_1)" in cons
@@ -107,6 +107,24 @@ import sys
 from framework import ATTestSet, ATTestCase
 
 
+def mark_cases_unsupported(testCase, caseNames, why):
+    wanted = set(caseNames)
+    for tc in testCase.testSet.testCaseList:
+        name = type(tc).__name__
+        if name in wanted and tc.supported and not getattr(tc, 'hasBeenRun', False):
+            tc.supported = False
+            testCase.log('INFO: {} marked unsupported before it runs: {}'.format(name, why))
+
+
+def publish_value(testCase, name, value):
+    setattr(testCase.testSet, name, value)
+    if value is None:
+        mark_cases_unsupported(
+            testCase, [type(tc).__name__ for tc in testCase.testSet.testCaseList
+                       if name in getattr(type(tc), 'ckNeeds', ())],
+            '{} was not established by {}'.format(name, type(testCase).__name__))
+
+
 class TestSet(ATTestSet.TestSet):
     def init(self, setup):
         tb = setup.init_tb()
@@ -134,10 +152,11 @@ class TestCase_1(ATTestCase.TestCase):
         output = dut.cmd('show interface')
         self.log('OBSERVED: {}'.format(output))
         if 'Invalid input' in output:
+            publish_value(self, 'speedS', None)
             self.supported = False
             self.failed('show interface refused: {}'.format(output[:40]))
             return
-        self.testSet.speedS = 1000
+        publish_value(self, 'speedS', 1000)
         self.passed('S is {}'.format(self.testSet.speedS))
 
 
@@ -145,6 +164,8 @@ class TestCase_2(ATTestCase.TestCase):
     testCaseDesc = 'two'
     testCaseRef = 'AWPTCM-T1'
     testCaseMethod = 'two'
+    ckNeeds = ['speedS']
+    skipIfExcl = True
 
     def main(self):
         # AI m d
@@ -183,11 +204,13 @@ if __name__ == '__main__':
 def test_G10_every_shape_the_review_asks_for_passes_the_lint():
     rv = (_P / "pt_review_script.jinja").read_text(encoding="utf-8")
     for shape in ("`self.supported = False` then `self.failed('<why>')`",
-                  "`self.testSet.<name> = <value>`", "undone in the same case's `tear_down()`"):
+                  "`publish_value(self, '<name>', <value>)`", "undone in the same case's `tear_down()`"):
         assert shape in rv
     s = pc.PtSession(key="AWPTCM-T1")
     s.step6 = {"files": {"test": {"name": "t.py", "code": _FRAME}}}
-    s.step2 = {"sequence": [{"n": 1, "action": "a", "verify": "v"}, {"n": 2, "action": "b", "verify": "w"}]}
+    s.step2 = {"sequence": [{"n": 1, "action": "a", "verify": "v",
+                             "publishes": [{"name": "speedS", "shape": "int Mbps"}]},
+                            {"n": 2, "action": "b", "verify": "w"}]}
     lint = pc._lint_generated(s)
     bad = [e for e in lint["errors"] if not e.startswith("coverage")]
     assert bad == [], bad

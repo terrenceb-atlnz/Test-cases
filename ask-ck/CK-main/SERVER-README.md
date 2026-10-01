@@ -1285,6 +1285,24 @@ and what is still open are in `ask-ck/plans/PLAN-pt-followups-review-2026-09-24.
   the Sequence table shows it read-only). The frame declares each as `self.<name> = None` in
   `TestSet.init()` (not counted as a device); the producer's unit is told to set it, every later
   unit gets its shape and "None → UNSUPPORTED", and the Review lists it and checks consumers.
+- **Not-applicable cases are skipped BEFORE they run (2026-10-02, `ask-ck/plans/PLAN-unsupported-gating.md`).**
+  An UNSUPPORTED reached inside `main()` power-cycles every device on the bench; the TestSet runs
+  a case only while its `supported` is True, so a case marked before its turn is skipped with no
+  cycle. The frame sets `dut.has_fibre_link` / `has_cusfp_link` in `init()` and, when the sequence
+  publishes, defines `publish_value(testCase, name, value)` (None marks every case whose class
+  lists `name` in `ckNeeds`) and `mark_cases_unsupported(testCase, caseNames, why)`. The rules
+  (§3, §3d "WHEN … decides HOW") teach the class gate `testCasePlatformWithPropertyIncl`, `ckNeeds`
+  and the two calls; a step that also declares a value is a contributor, not a consumer
+  (`_value_contributors`). Lints: `_lint_before_run_gate` (`rolegate:`, BLOCKING — a role guard in
+  `main()` with no covering gate, a gate keyed off the device init() sets it on, a property init()
+  never sets, a platform list other than `['.*']`, no `skipIfExcl = True`; a WARNING for a gate on
+  a role the class never uses) and `_lint_before_run_marks` (`needs:`, BLOCKING — a producer
+  without `publish_value`, a consumer read without `ckNeeds`, a bad `ckNeeds`, a marked or `ckNeeds`
+  class without `skipIfExcl`; `marks:` WARNING for a mark naming no later case). The Review checks
+  the conditional case (B2). `parse_framework_log` reads the framework's `Test case N has been
+  marked as unsupported` and the frame's `INFO: TestCase_N marked unsupported before it runs:`
+  lines: a marked case with no result block is `UNSUPPORTED`, `ran: false`, with its reason
+  (`not_run_cases`), and the run panel shows "not run: <reason>".
 - **Review and Fix loop (P1, P5, G5, G10).** Each stored review is logged in `step6.review_log`
   (prompt size, model); after `_PT_REVIEW_ROUNDS_FREE` (2) the endpoint 409s with `review round cap:`
   unless the body has `extra_round: true` (the UI asks first; dry runs are never refused;
@@ -1346,7 +1364,8 @@ declaration goes stale the moment a module is swapped.
   discovered link per role — `tb`, then `cusfp`, `fibre`, `copper`, so copper cannot consume a
   copper SFP — never the same link twice, partner switch initialised once; a required role with
   no link raises `BENCH PROBLEM` and aborts, an optional one returns None and sets
-  `self.<role>_supported = False` (cases report UNSUPPORTED). **No `init_portlink()`, no
+  `self.<role>_supported = False` and `dut.has_<role>_link = False` (the cases gated on that
+  property are skipped as UNSUPPORTED before they run). **No `init_portlink()`, no
   `get_all_misc()`.** Far ports are role-specific — `peer.portDut`, `fibre_peer.portFibre`,
   `cusfp_peer.portCuSfp` — because two pluggables usually land on one partner switch and a
   shared `.portDut` would be overwritten. `assert_role_media_now()` (module level) ships with a

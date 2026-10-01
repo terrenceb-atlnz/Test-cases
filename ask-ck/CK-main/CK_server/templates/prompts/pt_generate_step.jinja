@@ -75,7 +75,7 @@ Key: {{ case_key }} | Title: {{ case_title }}
 ## Handles and ports `init()` has already bound — the ONLY names that exist (do not rebind, do not invent others)
 Devices, reached from a TestCase as `self.testSet.<name>`:
 {% for d in devices %}
-- `self.testSet.{{ d }}`{% if loop.first %} — the DUT (a Switch: `.mode()`, `.cmd()`){% elif d == 'tb' %} — the testbox (a TestBox: `.start_tcpdump()`, `.stop_tcpdump()`, `.cmd()` runs a shell command ON THE TESTBOX, never a switch CLI){% elif d == 'peer' %} — the neighbour switch at the far end of the copper link (a Switch, NOT the DUT){% elif d == 'fibre_peer' %} — the neighbour at the far end of the FIBRE link (a Switch, NOT the DUT); **None when `self.testSet.fibre_supported` is False** — check the flag first in `main()` and report UNSUPPORTED when it is off: `self.supported = False`, then `self.failed('<why>')`, then `return` (the flag alone reports ERROR){% elif d == 'cusfp_peer' %} — the neighbour at the far end of the COPPER-SFP link (a Switch, NOT the DUT); **None when `self.testSet.cusfp_supported` is False** — check the flag first and report UNSUPPORTED when it is off{% endif %}
+- `self.testSet.{{ d }}`{% if loop.first %} — the DUT (a Switch: `.mode()`, `.cmd()`){% elif d == 'tb' %} — the testbox (a TestBox: `.start_tcpdump()`, `.stop_tcpdump()`, `.cmd()` runs a shell command ON THE TESTBOX, never a switch CLI){% elif d == 'peer' %} — the neighbour switch at the far end of the copper link (a Switch, NOT the DUT){% elif d == 'fibre_peer' %} — the neighbour at the far end of the FIBRE link (a Switch, NOT the DUT); **None when `self.testSet.fibre_supported` is False** — a case that uses it carries the `has_fibre_link` class gate (rule 3), and still checks the flag first in `main()`, reporting UNSUPPORTED when it is off: `self.supported = False`, then `self.failed('<why>')`, then `return` (the flag alone reports ERROR){% elif d == 'cusfp_peer' %} — the neighbour at the far end of the COPPER-SFP link (a Switch, NOT the DUT); **None when `self.testSet.cusfp_supported` is False** — a case that uses it carries the `has_cusfp_link` class gate (rule 3), and still checks the flag first and reports UNSUPPORTED when it is off{% endif %}
 {%- endfor %}
 {% if bound_ports %}
 Links (each `.name` is the CLI text of that port; a port object is never a string):
@@ -198,15 +198,23 @@ This class implements **sequence step {{ source_n }}**.
 {%- endif %}
 {%- if publishes_here %}
 - **publishes for later cases**: {% for p in publishes_here %}`self.testSet.{{ p.name }}`{% if p.shape %} — {{ p.shape }}{% endif %}{% if not loop.last %}; {% endif %}{% endfor %}.
-  Set it (exactly that shape — later cases read it) once this step has established the value,
-  and leave it `None` when the step could not; `TestSet.init()` already declares it as None.
+  Publish it with `publish_value(self, '<name>', <value>)` (exactly that shape — later cases
+  read it) once this step has established the value, and with `None` on every path where it
+  could not: that marks the later cases that need it UNSUPPORTED before they run. `TestSet.init()`
+  already declares it as None; filling it in place afterwards (`self.testSet.<name>[k] = v`) is fine.
 {%- endif %}
 {%- if published_before %}
 - **values earlier cases publish** (declared in `TestSet.init()`; read them, never re-measure
   or hard-code them): {% for p in published_before %}`self.testSet.{{ p.name }}`{% if p.shape %} — {{ p.shape }}{% endif %} (set by TestCase_{{ p.tc_n }}){% if not loop.last %}; {% endif %}{% endfor %}.
-  If this step needs one and it is `None`, its producer could not establish it: report
-  UNSUPPORTED — `self.supported = False`, then `self.failed('<name> was not established by
-  TestCase_<n>')`, then `return` — never proceed with `None`.
+  Name each one this class reads in `ckNeeds = ['<name>', ...]` beside `testCaseRef`, with
+  `skipIfExcl = True`: a producer that publishes `None` then skips this case before it runs.
+  Still check it first in `main()`: if it is `None`, its producer could not establish it —
+  report UNSUPPORTED — `self.supported = False`, then `self.failed('<name> was not established by
+  TestCase_<n>')`, then `return` — never proceed with `None`.{% if contributes_here %}
+  Not so for {% for n in contributes_here %}`{{ n }}`{% if not loop.last %}, {% endif %}{% endfor %}: this step
+  fills it in too (its own step declares it), so leave it out of `ckNeeds`, and where it is still
+  `None` start it with `publish_value(self, '<name>', <fresh value>)` instead of reporting
+  UNSUPPORTED, then add this step's part.{% endif %}
 {%- endif %}
 
 The `verify` text is the contract. Your pass/fail determination must correspond to it — not

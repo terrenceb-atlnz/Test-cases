@@ -46,7 +46,12 @@ mis-used symbol, and do not re-derive what an argument means when the docstring 
 `TestSet.init()` declares each as None; the named case sets it. Every case that reads one must
 use exactly the declared shape, and must report UNSUPPORTED (not crash, not send `None` to a
 device) when it is still None. A consumer that hard-codes the value instead of reading it, or
-reads a key the producer never writes, is a `cross_unit_inconsistency`.
+reads a key the producer never writes, is a `cross_unit_inconsistency`. So is a later case
+whose step applies only when a published value shows something more than "it was established"
+("only where the sweep recorded both `speed 10` and `speed 100` accepted") while its producer
+never calls `mark_cases_unsupported(self, ['TestCase_<m>'], '<why>')` for it when it does not:
+that case then finds out inside its own `main()`, and every such UNSUPPORTED power-cycles the
+whole bench. `where` = the producer's `main`.
 {% for p in published %}
 - `self.testSet.{{ p.name }}` — set by TestCase_{{ p.tc_n }}{% if p.shape %}: {{ p.shape }}{% endif %}
 {%- endfor %}
@@ -110,8 +115,8 @@ issues, and never finding them all at once to be fixed as a batch".)
 - **A suggestion must be code the static checks accept** — they run again on every fix, and a
   fix they refuse is wasted: a verdict (`self.passed`/`self.failed`) only in `main()`; UNSUPPORTED
   as `self.supported = False` then `self.failed('<why>')` in `main()`; a value one case hands to a
-  later one written `self.testSet.<name> = <value>` by the producer and read
-  `self.testSet.<name>` by the consumer; devices only through the handles `TestSet.init()`
+  later one written `publish_value(self, '<name>', <value>)` by the producer and read
+  `self.testSet.<name>` by a consumer whose class lists it in `ckNeeds`; devices only through the handles `TestSet.init()`
   binds; every configuration change undone in the same case's `tear_down()`.
 - **A sound script is a legitimate result.** If you find nothing that meets the bar, return an
   empty `findings` list. Do not manufacture findings to appear thorough.

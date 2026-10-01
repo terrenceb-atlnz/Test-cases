@@ -58,7 +58,13 @@ hygiene with zero script code (see `../test-composer/ART-EXECUTION-CHAIN.md`).
   handle is `peer`, never `dut`: ART reserves `dut` for the DUT's own stack, and a partner
   called `dut` made every model read `dut.portA` as the DUT port. Which roles a case gets is
   text-driven (`_detect_links`); a missing required role raises `BENCH PROBLEM` at `init()`,
-  a missing optional one reports UNSUPPORTED.
+  a missing optional one sets `dut.has_<role>_link` False, and the cases gated on it are skipped
+  as UNSUPPORTED before they run (`ask-ck/plans/PLAN-unsupported-gating.md`).
+- **Before-run UNSUPPORTED helpers** (2026-10-02), module-level, emitted when the sequence
+  publishes a value: `publish_value(testCase, name, value)` sets `testSet.<name>` and, for None,
+  marks every case whose class lists `name` in `ckNeeds`; `mark_cases_unsupported(testCase,
+  caseNames, why)` marks named later cases. A marked case is not run (the framework runs a case
+  only while `supported` is True), so it costs no bench power cycle.
 - **The suite library** `library_<family>.py` — ART's `library_<suite>.py`, one per mother
   folder since 2026-09-22 (`9001_Port/library_9001.py`) — holds
   every selected fragment that is a stand-alone function, class or constant, verbatim under

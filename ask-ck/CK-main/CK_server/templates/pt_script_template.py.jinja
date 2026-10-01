@@ -187,6 +187,43 @@ def assert_role_media_now(testCase, dut, port, role):
 
 
 {% endif -%}
+{%- if published -%}
+
+def mark_cases_unsupported(testCase, caseNames, why):
+    """Mark LATER cases UNSUPPORTED before they run, from the case that has just learned why.
+
+    A case that finds out inside its own main() that it does not apply costs a power cycle of
+    every device on the bench: the framework re-arms powerCycleOnFail before each case and
+    cycles on any result but PASS. The TestSet runs a case only while its `supported` is True,
+    so a case marked here is not run at all - no configure, main or tear_down, no cycle - and
+    its class's `skipIfExcl = True` does the same under -u. Each marked case keeps its own check
+    in main() for a run where this case did not run first (--include-test-cases, run-priority
+    sampling). Module-level on purpose: the frame's lint reads every `self.testSet.<name>` as a
+    device handle init() must bind.
+    """
+    wanted = set(caseNames)
+    for tc in testCase.testSet.testCaseList:
+        name = type(tc).__name__
+        if name in wanted and tc.supported and not getattr(tc, 'hasBeenRun', False):
+            tc.supported = False
+            testCase.log('INFO: {} marked unsupported before it runs: {}'.format(name, why))
+
+
+def publish_value(testCase, name, value):
+    """Publish a value a later case reads: `testCase.testSet.<name> = value`.
+
+    `None` means this case could not establish it, so every later case whose class lists
+    `name` in its `ckNeeds` cannot run either: those are marked UNSUPPORTED before they run.
+    """
+    setattr(testCase.testSet, name, value)
+    if value is None:
+        mark_cases_unsupported(
+            testCase, [type(tc).__name__ for tc in testCase.testSet.testCaseList
+                       if name in getattr(type(tc), 'ckNeeds', ())],
+            '{} was not established by {}'.format(name, type(testCase).__name__))
+
+
+{% endif -%}
 class TestSet(ATTestSet.TestSet):
 
     FEATURES = ['ALL']
@@ -351,8 +388,9 @@ class TestSet(ATTestSet.TestSet):
         self.{{ dut }} = {{ dut }}
         self.dut_stack = dut_stack
         {%- if published %}
-        # Values a test case PUBLISHES for later cases (the sequence's `publishes`). Each is None
-        # until its producer sets it; a later case that finds it None reports UNSUPPORTED.
+        # Values a test case PUBLISHES for later cases (the sequence's `publishes`), through
+        # publish_value(). Each is None until its producer sets it; publishing None marks every
+        # case that lists it in `ckNeeds` UNSUPPORTED before that case runs.
         {%- for p in published %}
         self.{{ p.name }} = None  # set by TestCase_{{ p.tc_n }}{% if p.shape %}: {{ p.shape }}{% endif %}
         {%- endfor %}
@@ -381,6 +419,10 @@ class TestSet(ATTestSet.TestSet):
         if self.cusfp_supported:
             cusfp_peer.portCuSfp = cusfp_port
         self.cusfp_peer = cusfp_peer
+        # The same fact as a DUT property, for the cases that need this link: the framework's
+        # marking pass (after TestSet.configure()) reads it through their
+        # testCasePlatformWithPropertyIncl and does not run them on a bench without it.
+        {{ dut }}.has_cusfp_link = self.cusfp_supported
         {%- endif %}
         {%- if links.fibre %}
         # The FIBRE link (a fitted fibre module), OPTIONAL in the same shape; the flag is
@@ -393,6 +435,7 @@ class TestSet(ATTestSet.TestSet):
         if self.fibre_supported:
             fibre_peer.portFibre = fibre_port
         self.fibre_peer = fibre_peer
+        {{ dut }}.has_fibre_link = self.fibre_supported   # the DUT property its cases gate on
         {%- endif %}
         {%- if links.copper %}
         # The NEIGHBOUR switch on a fixed twisted-pair link, REQUIRED: a partner to negotiate
