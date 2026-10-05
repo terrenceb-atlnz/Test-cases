@@ -202,7 +202,7 @@ skeleton; lint enforces conformance) → *Run* (over SSH on a stored testbox) �
 Physical steps are **in scope**: they generate an operator prompt plus a wait-for-state-change
 poll, and manual checks generate a `yesNo()`.
 
-**Test Composer** and **Zephyr Templating Tool** — scaffolded, not yet implemented.
+**Test Composer** — scaffolded, not yet implemented. **Zephyr Templating Tool** — in progress: the template snapshot exists; the rest is planned in `ask-ck/plans/PLAN-zephyr-templating.md`.
 
 Stored testboxes live in the gitignored `secrets.testboxes.json`. Before touching lab
 hardware, read [`TESTBOX-ACCESS.md`](TESTBOX-ACCESS.md) in full.

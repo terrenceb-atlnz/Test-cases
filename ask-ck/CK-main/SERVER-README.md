@@ -45,7 +45,7 @@ This version replaces the original single-file static `index.html` approach.
 - Enforces the repeatable process state machine.
 - Direct LLM calls using templated prompts.
 - Post-processing of LLM output using templates/parsers for guaranteed repeatable structure.
-- REST API consumed by the frontend: `/api/wizard` (Generator), `/api/pytest-create` (PyTest Creator), plus stub routers `/api/zephyr-tool` and `/api/test-composer`.
+- REST API consumed by the frontend: `/api/wizard` (Generator), `/api/pytest-create` (PyTest Creator), `/api/zephyr-tool` (Zephyr Templating Tool — so far only its template snapshot, see below) and the stub router `/api/test-composer`.
 - Serves the process documentation as interactive web pages.
 
 **Frontend**: Static web UI (vanilla JS + HTML, served by the backend) — `frontend/ck-main/current/index.html`.
@@ -135,7 +135,7 @@ ask-ck/                              (layout of 2026-09-11 — PLAN-restructure-
 │       │   │   ├── config.py        ← session clear, CLI status, LLM config, health
 │       │   │   ├── synthesis.py     ← objectives + steps
 │       │   │   └── export.py        ← drop-in refined-cases bundle + push_to_zephyr
-│       │   ├── zephyr_tool.py       ← Zephyr Templating Tool stub (/api/zephyr-tool)
+│       │   ├── zephyr_tool.py       ← Zephyr Templating Tool: template snapshot (/api/zephyr-tool)
 │       │   ├── test_composer.py     ← Test Composer stub (/api/test-composer)
 │       │   ├── pytest_create.py     ← PyTest Creator (/api/pytest-create) — fully implemented
 │       │   ├── agent_bridge.py      ← the seat-agent broker (/api/agent) + /setup/ (seat setup)
@@ -153,7 +153,7 @@ ask-ck/                              (layout of 2026-09-11 — PLAN-restructure-
 │   ├── generator/                   ← PROGRESS.md, LESSONS_LEARNED.md, OBJECTIVE_DRAFTING_PROCESS.md, refined-cases/<Group>/AWPTCM-Txxxx/
 │   ├── pytest-creator/              ← TOPOLOGY-PROFILES.md, TEMPLATE-SPEC.md, SETUP-FILE-REFERENCE.md, LOGGING-CONTRACT.md, generated/
 │   ├── test-composer/               ← ART-EXECUTION-CHAIN.md + bench scripts
-│   └── zephyr-tool/                 ← stub
+│   └── zephyr-tool/                 ← README; the tool's data lives in ck.db (zt_template_*)
 ├── tools/                           ← every script not called by a page button: run_tests.sh (the gate), the two guards,
 │                                       ckdb_*, check_memory_*, db_wal_recover.sh, the CLI corpus loaders, pt_* (upload_refined.py is a page script, in frontend/…/generator/)
 ├── plans/                           ← PLAN-*.md (active) + DECISIONS-FOR-REVIEW.md; completed plans are in ../archive/plans/
@@ -480,7 +480,18 @@ Every LLM panel (Generator: objectives, steps, the 3 *Suggest* panels; PyTest Cr
 - Process as web-based page: `http://your-local-ip:8000/process`
 - Interactive API docs (Swagger): `http://your-local-ip:8000/docs`
 - Health: `http://your-local-ip:8000/health`
-- Tool stubs: `GET /api/zephyr-tool/status`, `GET /api/test-composer/status`. PyTest Creator status: `GET /api/pytest-create/status`.
+- Tool stubs: `GET /api/test-composer/status`. PyTest Creator status: `GET /api/pytest-create/status`.
+- **Zephyr Templating Tool — template snapshot (Phase 0b, 2026-10-05; `ask-ck/plans/PLAN-zephyr-templating.md`).**
+  `POST /api/zephyr-tool/templates/refresh[?dry_run=true]` runs `ask-ck/tools/zt_snapshot.py` as a
+  subprocess (GET-only against Zephyr; it reads `JIRA_KEY` itself, so the server never holds the
+  token; 180 s timeout; one refresh at a time → 409) and imports its JSON with
+  `db.replace_zt_templates` into ck.db's `zt_template_snapshot` / `_plans` / `_cycles` / `_cases` /
+  `_links` tables — created on first import, replaced whole in one transaction; a malformed snapshot
+  is refused (422) and a failed tool run (502/504) imports nothing, so the previous snapshot stays.
+  `GET /api/zephyr-tool/templates` returns the plan → cycle → case tree (`db.load_zt_templates`;
+  `{"snapshot": null}` before the first import); `GET /api/zephyr-tool/status` summarises it for the
+  Info panel. A RENEWABLE reference table like `cli_commands`, but server-written, so a refresh
+  needs no stop → load → start.
 
 ## Typical Workflow (Repeatable Process — Generator)
 

@@ -1,0 +1,86 @@
+{
+  "owner": "JIRAUSER18107",
+  "updatedBy": "JIRAUSER18107",
+  "updatedOn": "2026-10-04T23:42:47.000Z",
+  "createdOn": "2026-10-05T12:40:20.000Z",
+  "issueCount": 0,
+  "plannedEndDate": "2026-10-04T23:40:15.000Z",
+  "projectKey": "AWPTCM",
+  "testCaseCount": 7,
+  "folder": "/Platform Testing/Test Cycle TEMPLATES",
+  "plannedStartDate": "2026-10-04T23:40:15.000Z",
+  "createdBy": "JIRAUSER18107",
+  "name": "Port",
+  "items": [
+    {
+      "executedBy": null,
+      "actualEndDate": null,
+      "testCaseKey": "AWPTCM-T33237",
+      "plannedStartDate": "2026-10-04T23:40:15.000Z",
+      "id": 1011260,
+      "plannedEndDate": "2026-10-04T23:40:15.000Z",
+      "status": "Not Executed"
+    },
+    {
+      "executedBy": null,
+      "actualEndDate": null,
+      "testCaseKey": "AWPTCM-T33234",
+      "plannedStartDate": "2026-10-04T23:40:15.000Z",
+      "id": 1011262,
+      "plannedEndDate": "2026-10-04T23:40:15.000Z",
+      "status": "Not Executed"
+    },
+    {
+      "executedBy": null,
+      "actualEndDate": null,
+      "testCaseKey": "AWPTCM-T33233",
+      "plannedStartDate": "2026-10-04T23:40:15.000Z",
+      "id": 1011264,
+      "plannedEndDate": "2026-10-04T23:40:15.000Z",
+      "status": "Not Executed"
+    },
+    {
+      "executedBy": null,
+      "actualEndDate": null,
+      "testCaseKey": "AWPTCM-T43817",
+      "plannedStartDate": "2026-10-04T23:40:15.000Z",
+      "id": 1011266,
+      "assignedTo": "nings",
+      "plannedEndDate": "2026-10-04T23:40:15.000Z",
+      "status": "Not Executed"
+    },
+    {
+      "executedBy": null,
+      "actualEndDate": null,
+      "testCaseKey": "AWPTCM-T33236",
+      "plannedStartDate": "2026-10-04T23:40:15.000Z",
+      "id": 1011268,
+      "plannedEndDate": "2026-10-04T23:40:15.000Z",
+      "status": "Not Executed"
+    },
+    {
+      "executedBy": null,
+      "actualEndDate": null,
+      "testCaseKey": "AWPTCM-T33235",
+      "plannedStartDate": "2026-10-04T23:40:15.000Z",
+      "id": 1011270,
+      "plannedEndDate": "2026-10-04T23:40:15.000Z",
+      "status": "Not Executed"
+    },
+    {
+      "executedBy": null,
+      "actualEndDate": null,
+      "testCaseKey": "AWPTCM-T47871",
+      "plannedStartDate": "2026-10-04T23:40:15.000Z",
+      "id": 1011272,
+      "assignedTo": "JIRAUSER17403",
+      "plannedEndDate": "2026-10-04T23:40:15.000Z",
+      "status": "Not Executed"
+    }
+  ],
+  "key": "AWPTCM-C8451",
+  "executionSummary": {
+    "Not Executed": 7
+  },
+  "status": "Not Executed"
+}

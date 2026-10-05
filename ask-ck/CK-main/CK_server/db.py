@@ -1169,6 +1169,136 @@ def restore_sessions(rows: List[tuple]) -> None:
 
 
 # ─────────────────────────────────────────────────────────────────────────────
+# Zephyr Templating Tool — the template snapshot (ask-ck/plans/PLAN-zephyr-templating.md,
+# Phase 0b, 2026-10-05). The template plans, cycles and cases Terrence authors in Zephyr,
+# as `ask-ck/tools/zt_snapshot.py` reads them. A RENEWABLE reference table like
+# `cli_commands`, not a built-once corpus: re-imported whenever the templates change. Unlike
+# `cli_commands` it is written by the SERVER (this function, called by the zephyr-tool
+# router), so a refresh needs no stop -> load -> start. Created on first import.
+# ─────────────────────────────────────────────────────────────────────────────
+ZT_TEMPLATE_SCHEMA = """
+CREATE TABLE IF NOT EXISTS zt_template_snapshot (
+  id INTEGER PRIMARY KEY CHECK (id = 1),     -- one snapshot: an import replaces it whole
+  captured_at TEXT, imported_at TEXT,
+  source TEXT, counts TEXT, problems TEXT    -- JSON
+);
+CREATE TABLE IF NOT EXISTS zt_template_plans (
+  key TEXT PRIMARY KEY, name TEXT, folder TEXT, status TEXT
+);
+CREATE TABLE IF NOT EXISTS zt_template_cycles (
+  key TEXT PRIMARY KEY, name TEXT, folder TEXT, status TEXT
+);
+CREATE TABLE IF NOT EXISTS zt_template_cases (
+  key TEXT PRIMARY KEY, name TEXT, folder TEXT, status TEXT, priority TEXT,
+  labels TEXT, major_version INTEGER         -- labels: JSON
+);
+-- plan -> cycle and cycle -> case, in Zephyr's order. A case may sit in more than one
+-- cycle (5 do, 2026-10-05), so membership is a link table, not a parent column.
+CREATE TABLE IF NOT EXISTS zt_template_links (
+  kind TEXT NOT NULL CHECK (kind IN ('plan_cycle', 'cycle_case')),
+  parent_key TEXT NOT NULL, child_key TEXT NOT NULL, position INTEGER NOT NULL,
+  assigned_to TEXT,                          -- cycle_case only: the template item's assignee
+  PRIMARY KEY (kind, parent_key, child_key)
+);
+"""
+_ZT_KEY = re.compile(r"^[A-Z][A-Z0-9]*-[PCT]\d+$")
+
+
+def _zt_check(snapshot: dict) -> None:
+    """Refuse a snapshot that is not the shape `zt_snapshot.py` emits — before anything is
+    deleted, so a bad import leaves the previous snapshot in place."""
+    if not isinstance(snapshot, dict):
+        raise ValueError("snapshot must be an object")
+    for part, letter in (("plans", "P"), ("cycles", "C"), ("cases", "T")):
+        rows = snapshot.get(part)
+        if not isinstance(rows, list):
+            raise ValueError(f"snapshot.{part} must be a list")
+        for r in rows:
+            k = r.get("key") if isinstance(r, dict) else None
+            if not (isinstance(k, str) and _ZT_KEY.match(k) and k.split("-")[1][0] == letter):
+                raise ValueError(f"snapshot.{part}: bad key {k!r}")
+    if not snapshot["plans"]:
+        raise ValueError("snapshot has no plans — refusing to replace the templates with nothing")
+
+
+def replace_zt_templates(snapshot: dict) -> Dict[str, int]:
+    """Replace the template snapshot with `snapshot` (the JSON `zt_snapshot.py` prints) in one
+    transaction; returns the row counts written. Raises ValueError on a malformed snapshot,
+    leaving the previous one intact."""
+    import json
+    _zt_check(snapshot)
+    conn = get_connection()
+    conn.executescript(ZT_TEMPLATE_SCHEMA)       # CREATE IF NOT EXISTS; commits nothing else
+    try:
+        for t in ("zt_template_links", "zt_template_cases", "zt_template_cycles",
+                  "zt_template_plans", "zt_template_snapshot"):
+            conn.execute(f"DELETE FROM {t}")
+        conn.execute("INSERT INTO zt_template_snapshot VALUES (1,?,?,?,?,?)", (
+            snapshot.get("captured_at"), utc_now().isoformat(),
+            json.dumps(snapshot.get("source") or {}), json.dumps(snapshot.get("counts") or {}),
+            json.dumps(snapshot.get("problems") or [])))
+        conn.executemany("INSERT INTO zt_template_plans VALUES (?,?,?,?)", [
+            (p["key"], p.get("name"), p.get("folder"), p.get("status")) for p in snapshot["plans"]])
+        conn.executemany("INSERT INTO zt_template_cycles VALUES (?,?,?,?)", [
+            (c["key"], c.get("name"), c.get("folder"), c.get("status")) for c in snapshot["cycles"]])
+        conn.executemany("INSERT INTO zt_template_cases VALUES (?,?,?,?,?,?,?)", [
+            (c["key"], c.get("name"), c.get("folder"), c.get("status"), c.get("priority"),
+             json.dumps(c.get("labels") or []), c.get("majorVersion")) for c in snapshot["cases"]])
+        links = []
+        for p in snapshot["plans"]:
+            links += [("plan_cycle", p["key"], k, i, None) for i, k in enumerate(p.get("cycles") or [])]
+        for c in snapshot["cycles"]:
+            assigned = c.get("assigned") or {}
+            links += [("cycle_case", c["key"], k, i, assigned.get(k))
+                      for i, k in enumerate(dict.fromkeys(c.get("cases") or []))]
+        conn.executemany("INSERT INTO zt_template_links VALUES (?,?,?,?,?)", links)
+        conn.commit()
+    except Exception:
+        conn.rollback()
+        raise
+    return {"plans": len(snapshot["plans"]), "cycles": len(snapshot["cycles"]),
+            "cases": len(snapshot["cases"]), "links": len(links)}
+
+
+def load_zt_templates() -> Optional[Dict[str, Any]]:
+    """The template tree, plan -> cycle -> case in Zephyr's order, or None before the first
+    import. A link to an object the snapshot could not read keeps its key with `missing: True`."""
+    try:
+        snap = get_connection().execute("SELECT * FROM zt_template_snapshot WHERE id=1").fetchone()
+    except sqlite3.OperationalError:            # never imported: the tables do not exist yet
+        return None
+    if snap is None:
+        return None
+    conn = get_connection()
+    cycles = {r["key"]: dict(r) for r in conn.execute("SELECT * FROM zt_template_cycles")}
+    cases = {}
+    for r in conn.execute("SELECT * FROM zt_template_cases"):
+        d = dict(r)
+        d["labels"] = _json(d["labels"], [])
+        cases[r["key"]] = d
+    kids: Dict[tuple, list] = {}
+    for r in conn.execute("SELECT * FROM zt_template_links ORDER BY kind, parent_key, position"):
+        kids.setdefault((r["kind"], r["parent_key"]), []).append(r)
+
+    def _cycle(key):
+        c = dict(cycles.get(key) or {"key": key, "missing": True})
+        c["cases"] = [dict(cases.get(l["child_key"]) or {"key": l["child_key"], "missing": True},
+                           assigned_to=l["assigned_to"])
+                      for l in kids.get(("cycle_case", key), [])]
+        return c
+    plans = []
+    for r in conn.execute("SELECT * FROM zt_template_plans ORDER BY key"):
+        p = dict(r)
+        p["cycles"] = [_cycle(l["child_key"]) for l in kids.get(("plan_cycle", r["key"]), [])]
+        plans.append(p)
+    linked = {l["child_key"] for ls in kids.values() for l in ls if l["kind"] == "plan_cycle"}
+    return {"captured_at": snap["captured_at"], "imported_at": snap["imported_at"],
+            "source": _json(snap["source"], {}), "counts": _json(snap["counts"], {}),
+            "problems": _json(snap["problems"], []), "plans": plans,
+            "unlinked_cycles": [_cycle(k) for k in sorted(cycles) if k not in linked]}
+
+
+# ─────────────────────────────────────────────────────────────────────────────
 # Startup / health
 # ─────────────────────────────────────────────────────────────────────────────
 def get_meta(k: str) -> Optional[str]:

@@ -1,0 +1,32 @@
+{
+  "owner": "JIRAUSER18107",
+  "comments": [],
+  "updatedBy": "JIRAUSER18107",
+  "updatedOn": "2026-10-04T23:41:26.000Z",
+  "createdOn": "2026-10-04T23:39:22.000Z",
+  "projectKey": "AWPTCM",
+  "folder": "/Platform Testing/Test Plan TEMPLATES",
+  "createdBy": "JIRAUSER18107",
+  "issueLinks": [],
+  "name": "Port ",
+  "testRuns": [
+    {
+      "owner": "JIRAUSER18107",
+      "updatedBy": "JIRAUSER18107",
+      "updatedOn": "2026-10-04T23:42:47.000Z",
+      "createdOn": "2026-10-05T12:40:20.000Z",
+      "issueCount": 0,
+      "plannedEndDate": "2026-10-04T23:40:15.000Z",
+      "projectKey": "AWPTCM",
+      "testCaseCount": 7,
+      "folder": "/Platform Testing/Test Cycle TEMPLATES",
+      "plannedStartDate": "2026-10-04T23:40:15.000Z",
+      "createdBy": "JIRAUSER18107",
+      "name": "Port",
+      "key": "AWPTCM-C8451",
+      "status": "Not Executed"
+    }
+  ],
+  "key": "AWPTCM-P3248",
+  "status": "Draft"
+}

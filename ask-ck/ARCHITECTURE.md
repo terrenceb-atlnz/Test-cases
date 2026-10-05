@@ -116,7 +116,7 @@ Three boundaries matter, and they are the three places things break:
 | **Objective / Test Case Generator** | **Complete** | 6-step gated flow: pick case → review historical TestLink cases → Zephyr cross-refs → ATPyLib automated coverage → synthesise objectives + steps → export bundle and push to Zephyr Scale (v2.0, idempotent). ~53 cases were refined before the 2026-09-16 rewind reset every case; 4 are Complete again. |
 | **PyTest Creator** | **Complete** | 7-step gated flow: refined case → extract an automatable sequence → search 830 reused scripts → select code fragments → **fill a fixed skeleton** → run on a testbox over SSH → LLM fix loop to final validation. |
 | **Test Composer** | Scaffolded | Not implemented. |
-| **Zephyr Templating Tool** | Scaffolded | Not implemented. |
+| **Zephyr Templating Tool** | Phase 0b | Template snapshot only (Zephyr → `zt_template_*` in ck.db); the analysis, page and upload are planned in `ask-ck/plans/PLAN-zephyr-templating.md`. |
 
 **Every step is a review gate.** Nothing advances on model output alone — a human confirms, and
 the confirm button enforces machine-checkable rules (e.g. every Zephyr step must map to at

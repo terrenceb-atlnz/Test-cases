@@ -1,0 +1,1544 @@
+{
+"Project:3296 IE520 Software": {
+"parse": {
+"title": "Project:3296 IE520 Software",
+"wikitext": {
+"*": "==Status==\n{{Project Status|3296}}\n{| class=\"wikitable\" style=\"background-color: #ECF4FF; border:1px solid DimGray\" width=\"1150px\"\n ! colspan=\"4\" style=\"background-color:#cedff2; font-size:130%\" |[[5.5.6-2 Release|AW+ 5.5.6-2]] Project 3296 IE520 Software\n |-\n | style=\"width:225px\" |'''Jira Links:'''|| colspan=\"2\" |{{MRS|}}     [{{Jira|project|IE520}} Project IE520]|| style=\"width:308px\" |Project directory: ~/mnt/I/Projects/ATLNZ/Current/\n |-\n |'''Team Lead:'''||Richard Laing||'''Product Owner:'''||\n |-\n |'''Software Tech Lead:'''||Mark Tomlinson||'''CSG Engineer:'''||\n |-\n |'''Software Team Members:'''||Paul Davey, Elliot Ayrey, Rutger van Kruiningen, Max Johnstone, Calan Meechang, Stephen Hockey||{{#ifeq: hw | hw | '''SVT / DVT Members''' | [[Project: Test Lead and Tester Role Descriptions | '''System Test Team Members:''']]}}||Akhila Venkatesha\n |-\n |'''SW Consultant:'''|| ||[[Project:Test Consultant Role Description |'''Test Consultant:''']]||Sam Helem\n |-\n |'''Technical Writer:'''|| ||'''Validation Contact:'''||\n |-\n | || ||'''ART Contact:'''||\n |- style=\"background-color: #d9e9ff\"\n |'''Project Artifacts'''|| style=\"width:309px\" |{{Create page|{{FULLPAGENAME}}/Checklists|Requirements Brainstorm|Template:Project/Checklists}}|| style=\"width:308px\" |{{Create page|Project:3296 Architectural Impact Statement - IE520 Software|3296 Architectural Impact Statement|Template:Architectural Impact Statement}}||{{Create page|IE520 Software - Feature Page||Template:FeatureDocumentation/Preload|plparam1=IE520 Software}}\n |- style=\"background-color: #d9e9ff\"\n |{{#switch: hw | hw = {{Create page|IE520 Software TPS||Template:TPS|plparam1=3296|plparam2=IE520 Software}} | gui = {{Create page|IE520 Software TFS||Template:GUI TFS|plparam1=3296|plparam2=IE520 Software}} | {{Create page|IE520 Software TFS||Template:TFS|plparam1=3296|plparam2=IE520 Software}}}}||{{Create page|{{FULLPAGENAME}}/Draft FOG|Draft Feature Overview Guide|Template:Project/FOG}}||{{CLI Registry Project Search|3296}}||\n |- style=\"background-color: #d9e9ff\"\n |{{Create page|Test:3296 Test Strategy - IE520 Software |3296 Test Strategy|:Test Strategy Template}}|| || colspan=\"2\" |Test Results:<br>{{Test Status v2|5.5.6-2|3296}}\n|}\n{| class=\"wikitable\" width=\"1150px\" style=\"background: #ECF4FF\"\n! style=\"width:175px; background:#cedff2\" align=\"left\" |[[SW Project Milestone Definitions|'''Project Milestones''']]\n! colspan=\"2\" style=\"width:765px; background:#cedff2\" align=\"left\" |Checklist\n|-\n|Project Kick Off|| style=\"width:50px;\" |{{#ifexist: {{FULLPAGENAME}}/Checklists|{{#lst:{{FULLPAGENAME}}/Checklists|kickoff_check}}|<big>{{Create link|{{FULLPAGENAME}}/Checklists|Template:Project/Checklists}}</big>}}\n|-\n|Test Complete||{{#ifexist: {{FULLPAGENAME}}/Checklists|{{#lst:{{FULLPAGENAME}}/Checklists|test_check}}|<big>{{Create link|{{FULLPAGENAME}}/Checklists|Template:Project/Checklists}}</big>}}\n|-\n|Project Complete||{{#ifexist: {{FULLPAGENAME}}/Checklists|{{#lst:{{FULLPAGENAME}}/Checklists|projcomp_check}}|<big>{{Create link|{{FULLPAGENAME}}/Checklists|Template:Project/Checklists}}</big>}}\n|}\n\n=Project Documents= \n\n[[IE520_SVT_DVT]]\n\nSee hardware project 3275.\n\n= Run-up Info =\n[[Project:3296 IE520 Run-up]]\n\n[[Category:Project]] \n[[Category:5.5.6-2]] \n[[Category:IE520]]"
+},
+"sections": [
+{
+"toclevel": 1,
+"level": "2",
+"line": "Status",
+"number": "1",
+"index": "1",
+"fromtitle": "Project:3296_IE520_Software",
+"byteoffset": 0,
+"anchor": "Status"
+},
+{
+"toclevel": 1,
+"level": "1",
+"line": "Project Documents",
+"number": "2",
+"index": "2",
+"fromtitle": "Project:3296_IE520_Software",
+"byteoffset": 3093,
+"anchor": "Project_Documents"
+},
+{
+"toclevel": 1,
+"level": "1",
+"line": "Run-up Info",
+"number": "3",
+"index": "3",
+"fromtitle": "Project:3296_IE520_Software",
+"byteoffset": 3162,
+"anchor": "Run-up_Info"
+}
+],
+"links": [
+{
+"ns": 100,
+"exists": "",
+"*": "Project:3296 Status"
+},
+{
+"ns": 100,
+"exists": "",
+"*": "Project:3296 IE520 Software/Checklists"
+},
+{
+"ns": 100,
+"exists": "",
+"*": "Project:3296 Architectural Impact Statement - IE520 Software"
+},
+{
+"ns": 100,
+"*": "Project:3296 IE520 Software/Draft FOG"
+},
+{
+"ns": 100,
+"exists": "",
+"*": "Project:3296 IE520 Run-up"
+},
+{
+"ns": 100,
+"exists": "",
+"*": "Project:Test Consultant Role Description"
+},
+{
+"ns": 0,
+"exists": "",
+"*": "IE520 Software - Feature Page"
+},
+{
+"ns": 0,
+"exists": "",
+"*": "IE520 Software TPS"
+},
+{
+"ns": 0,
+"exists": "",
+"*": "5.5.6-2 Release"
+},
+{
+"ns": 0,
+"exists": "",
+"*": "AW+ Project Workflow"
+},
+{
+"ns": 0,
+"exists": "",
+"*": "IE520 SVT DVT"
+},
+{
+"ns": 0,
+"exists": "",
+"*": "SW Project Milestone Definitions"
+},
+{
+"ns": 0,
+"exists": "",
+"*": "TFS Reviews"
+},
+{
+"ns": 0,
+"exists": "",
+"*": "Zephyr Guidelines"
+},
+{
+"ns": 102,
+"exists": "",
+"*": "Test:3296 Test Strategy - IE520 Software"
+},
+{
+"ns": 102,
+"exists": "",
+"*": "Test:5.5.6-2/3296/Status"
+},
+{
+"ns": 10,
+"exists": "",
+"*": "Template:5.5.6-2/3296/TestStatus"
+},
+{
+"ns": 10,
+"exists": "",
+"*": "Template:5.5.6-2/3296/SWReady"
+},
+{
+"ns": 10,
+"exists": "",
+"*": "Template:5.5.6-2/3296/TestStrategy"
+},
+{
+"ns": 10,
+"exists": "",
+"*": "Template:5.5.6-2/3296/TestComplete"
+}
+],
+"categories": [
+{
+"sortkey": "",
+"*": "Project"
+},
+{
+"sortkey": "",
+"missing": "",
+"*": "5.5.6-2"
+},
+{
+"sortkey": "",
+"*": "IE520"
+}
+]
+}
+},
+"IE520 Software TPS": {
+"parse": {
+"title": "IE520 Software TPS",
+"wikitext": {
+"*": "\n<div style=\"padding:10px; page-break-after:always\">\n  <div style=\"text-align:right; float:right\">\n[[Image:Allied Telesis Logo.png]]\n\n'''''Software Target Platform Specification for {{{1|IE520 Software}}}'''''<br>\n'''''Project: {{{2|3296}}}'''''\n  </div>\n  <div style=\"text-align:left; padding-bottom:2em\">\n{| style=\"width:670px; background-color: #f5faff; border:1px solid DimGray;\"\n |-\n |[{{fullurl:{{FULLPAGENAME}}|}} This Document]\n |-\n |Current Approved Revision: NOT YET APPROVED\n |-\n |[{{fullurl:{{FULLPAGENAME}}|oldid=id}} Approved Revision]\n |-\n |Current Revision {{REVISIONID}} {{REVISIONDAY}}/{{REVISIONMONTH}}/{{REVISIONYEAR}}\n |-\n|}\n  </div>\n</div>\n\n==Approval==\n<section begin=\"Approval\" />\n{| class=\"wikitable\" style=\"background-color:white;\" \n!Name!!Role!! style=\"width: 200px;\" |Approved\n|-\n|Alex Murray||General Manager, ATL-NZ||\n|-\n| ||EPM / Product Owner, ATL-NZ||\n|-\n| ||Software Development, ATL-NZ||\n|-\n|CK||PGM, ATL-NZ||\n|-\n|{{Spec Signatory ATKK}}||PM, ATKK||\n|-\n| ||Manager System test and Release, ATL-NZ||\n|-\n| ||Hardware Development ATL-SJ||\n|-\n| ||Security Team||\n|}\n<section end=\"Approval\" />\n\n==Revision History==\n\n{| class=\"wikitable\" style=\"background-color:white;\" \n!Revision!!Author!!Date!!Modifications\n|-\n|0.1\n|Calan Meechang\n|8 April 2026||Document created\n|-\n|0.2\n|Calan Meechang\n|29 April 2026\n|Added tables for IE520 supported features and feature license policy\n|-\n|0.3\n|Richard Laing\n|4 May 2026\n|Updated SID feature table\n|-\n|0.4\n|Theuns Verwoerd\n|5 May 2026\n|Certification requirements\n|-\n|0.5\n|Richard Laing\n|6 May 2026\n|Updating vertification requirements, addressing comments following review.\n|-\n|0.6\n|Max Johnstone\n|8 June 2026\n|Document different ALARM LED behaviour.\n|-\n|0.7\n|Max Johnstone\n|10 June 2026\n|Remove stacking LEDs\n|-\n|0.8\n|Max Johnstone\n|12 June 2026\n|Remove SYS LED flashing while booting behaviour.\n|-\n|0.9\n|Max Johnstone\n|14 July 2026\n|Re-add stacking LEDs\n|-\n|0.10\n|Calan Meechang\n|24 July 2026\n|Updated SID feature table and added section for features that won't be supported\n|-\n|0.11\n|Rutger van Kruiningen\n|30 July 2026\n|Remove SPLX10/I Variant B support due to link flapping issues\n|-\n|0.12\n|Rutger van Kruiningen\n|9 Sep 2026\n|Only support SPLX10/I Variant C for SPLX10/I pluggables\n|}\n[{{fullurl:{{FULLPAGENAME}}|action=history}} Full History]\n\n==Scope of this Document==\nThis specification establishes the performance, design, development and test requirements of the software for the {{{1|IE520 Software}}}.\n\n==Overview of the {{{1|IE520 Software}}}==\n<!-- The <section> tags below allow the use of the Labeled Section Transclusion extension\n     to re-use the overview on other pages (e.g. Architectural Impact Statement) without\n     having to duplicate the text everywhere.\n  --><section begin=\"overview\" />The IE520 Series are hardened stackable Layer 3 switches for integration into video surveillance applications.\n\nThe IE520 Series extends the Industrial Ethernet portfolio making the IE Series a versatile solution for both access and distribution network.\n\nThe IE520 Series is designed to withstand environmental conditions found in outdoor deployment and spaces within buildings that lack mechanical heating, cooling, or humidity regulation. This device is fully qualified for use in railway (signalling and telecommunication), roadway transportation (traffic control) and video surveillance in outside plants.<section end=\"overview\" />\n=References and Definitions=\n==References==\n\n{| class=\"wikitable\" style=\"background-color:white;\" \n|[1]||[https://intranet.atlnz.lc/Projects/ATLNZ/Current/3275_IE520/PRD/IE520_prd_1.0.pdf IE520 v1.0 PRD]\n|-\n|[ATKK]||[http://dream.allied-telesis.co.jp/atkk-intra/standard/ATKK%20standard%20req%20for%20product%20EV01_01.pdf Standard Product Requirement for Product Maintainability rev 1.1]\n|}\n\n==Definitions==\n{| class=\"wikitable\"\n|POE\n|Power over Ethernet. Taken to mean Type 1 POE\n|-\n|POE+\n|Type 2 POE\n|-\n|POE++\n|POE that supports power supply at 802.3bt levels\n|-\n|GA\n|General Availability. Refers to a software release that has run through a full release test and is considered of suitable quality to be installed on all units shipping from the factory.\n|-\n|SFP\n|Small Form-factor Pluggable. Can support speeds of up to 1Gbps\n|-\n|SFP+\n|Enhanced Small Form-factor Pluggable. Can supports speeds from 1Gbps to 10Gbps\n|}\n\n={{{1|IE520 Software}}} Requirements=\n=={{{1|IE520 Software}}} Definition==\n==={{{1|IE520 Software}}} Functions and Operation===\n==={{{1|IE520 Software}}} Major Functional Components===\nThis sub-section defines the MFCs of the product in terms of their functions and how they contribute towards the overall functionality of the product.\n{| class=\"wikitable\"\n|+\n!Product\n!CPU\n!RAM\n!Flash\n!Switching Chip\n!PHYs\n|-\n|IE520-28GSX\n|Dual-core ARMv7 @ 800 MHz\n|512MB (DDR3)\n|128MB (NOR)\n|1 x Marvell 98DX3336\n|6 x Marvell 88E1548P\n|}\n\n====Switching Core====\nThe IE520 will use the Marvell 98DX3336 switching core\n\n====Processing Core====\nThe CPU on the IE520 series will be dual-core 800 MHz ARMv7 Processor\n\n====Memory====\nThe IE520 will use 512MB of RAM to provide system memory and 128MB SPI NOR flash memory for persistent storage.\n\n====Number of MAC Addresses Per Device====\nThe IE520 will have 1 system MAC per unit\n====Power Supply Unit====\nThe external power supply provides power for PoE sourcing\n{| class=\"wikitable\"\n|+\n!no.\n!Model No.\n!Description\n!OEM Vendor\n!Priority\n|-\n|(1)\n|AT-IE048-120-xxx\n|Industrial AC/DC Power Supply, 240W @48VDC, DIN rail mount\n|ATI\n|Available\n|-\n|(2)\n|AT-SDR120-48-20\n|120W @48Vdc, Industrial AC/DC power supply, DIN rail\n|MeanWell\n|Available\n|}\n\n====Embedded Operational Software====\nThe {{{1|IE520 Software}}} will run AlliedWare Plus.\n{| class=\"wikitable\"\n!Product\n!First Supported\nFAS\n!IE520 PRD\n!Comments\n|-\n|IE520-28GSX\n|5.5.6-2\n|Q4 2026\n|\n|}\n\n====Network Management Software====\nAlliedWare Plus implements a number of standard SNMP MIBs. Any NMS solution that uses these standard MIBs should be usable. Various enterprise MIBs are also supported which will enable the use of the AlliedView NMS however device specific additions will be needed. Any modifications to the AlliedView NMS will be resourced outside of this project.\n\n====Graphical User Interface====\nThe support for the existing GUI functionality on the {{{1|IE520 Software}}} will be provided. The {{{1|IE520 Software}}} will use the standard Device GUI resource file, device specific support will be added by ATLNZ.\n\n===New Software Features===\n====Board Support====\n{| class=\"wikitable\" style=\"background-color:white;\" \n!Board Name(Displayed in “show system”)!!Board ID!!System OID!!Board OID\n|-\n|IE520-28GSX||717||1.3.6.1.4.1.207.1.24.32\n|718\n|-\n|}\nAT-BOARDS-MIB and AT-PRODUCT-MIB will be modified to include the declarations for the new OIDs.\n\nAn example show system output is included below:\n  System Status                                           Mon Apr 14 16:59:09 2025\n  \n  Board      ID   Bay     Board Name                        Rev   Serial number\n  --------------------------------------------------------------------------------\n  Base       717  Base    IE520-28GSX                       A-0   G28VF100R       \n  --------------------------------------------------------------------------------\n  RAM: Total: 506920 kB Free: 320528 kB\n  Flash: 95.6MB Used: 25.0MB Available: 70.6MB\n  --------------------------------------------------------------------------------\n  Environment Status : Normal\n  Uptime             : 0 days 00:03:23\n  Bootloader version : 9.0.1\n  \n  Current software   : IE520-5.5.6-1.1.rel\n  Software version   : 5.5.6-1.1\n  Build date         : Mon May 5 05:02:25 UTC 2026\n  \n  Current boot config: flash:/default.cfg (file exists)\n  \n  System Name\n   IE520\n  System Contact\n  \n  System Location\n\n===Features that aren't going to be implemented===\n\n====IP address on switchport (no switchport)====\nBecause the IE520 uses a Marvell switchchip, and \"no switchport\" has not been tested on Marvell IE products, extra testing would be required to ensure this feature works correctly on the IE520. '''Therefore, for this first release, this feature won't be supported.'''\n\n===External Interfaces===\n====Network Ports====\n{| class=\"wikitable\"\n! rowspan=\"2\" |Model Name\n! colspan=\"4\" |Communication Ports\n! colspan=\"2\" |Maintenance Ports\n|-\n!10/100/1000\nBASE-T\n\nPoE++\n!SFP\n100/1000X\n\nCombo\n!SFP\n100/1000X\n!SFP +\n1/10G\n!USB\n!RS-232\nConsole\n|-\n|AT-IE520-28GSX\n|0\n|0\n|24\n|4\n|1\n|1\n|}\n\n====LED====\n{| class=\"wikitable\"\n!LED Label\n!LED State\n!Status Description\n!Quantity / Placement\n|-\n|PWR1\n|Off\n<font color=\"green\">Green ON  </font>\n|Not receiving power on the PWR 1 connector\nReceiving power on the PWR 1 connector and operating normally\n|1 x Front Panel\n|-\n|PWR2\n|Off\n<font color=\"green\">Green ON  </font>\n|Not receiving power on the PWR 2 connector\nReceiving power on the PWR 2 connector and operating normally\n|1 x Front Panel\n|-\n|SYS\n|Off\n<font color=\"green\">Green ON  </font>\n|Powered off\nSystem is powered.\n|1 x Front Panel\n|-\n|ALARM\n|Off\n<font color=\"red\">Red ON</font>\n\n<font color=\"red\">Red flash  </font>\n|Not experiencing alarm condition\nExperiencing alarm condition\n\nOverheating and might shutdown\n|1 x Front Panel\n|-\n|VCS\n|Off\n\n<font color=\"green\">Green ON  </font>\n|VCStacking is not configured\nVCStacking is enabled.\n|1 x Front Panel\n|-\n|MASTER\n|Off\n\n<font color=\"green\">Green ON  </font>\n|VCStacking is not configured or the switch is operating as a member of the stack\nVCStacking is enabled and the switch is operating as the master of the stack\n|1 x Front Panel\n|-\n|Link/Activity (L/A)\n|Off\n<font color=\"green\">Green ON  </font>\n\n<font color=\"green\">Green flash  </font>\n|No link established on SFP/SFP+ port\nLink established on SFP/SFP+ port\n\nTransmitting and receiving data on SFP/SFP+ port\n|28 x Front Panel\n|-\n|100/1000X SFP\nSpeed\n|Off\n<font color=\"orange\">Amber ON  </font>\n|Port speed is 100Mbps or link is down\nPort speed is 1000Mbps (1Gbps)\n|24 x Front Panel\n|-\n|1/10G SFP+\nSpeed\n|Off\n<font color=\"orange\">Amber ON  </font>\n|Port speed is 1Gbps or link is down\nPort speed is 10Gbps\n|4 x Front Panel\n|}\n'''NOTE''': The ALARM LED behavior differs form our other products. The Standard behavior is:\n{| class=\"wikitable\"\n|-\n|ALARM\n|Off\n<font color=\"red\">Red 1x flash and pause  </font>\n\n<font color=\"red\">Red 6x flash and pause  </font>\n|Not experiencing alarm condition\nExperiencing alarm condition\n\nOverheating and might shutdown\n|}\nThis is because for the IE520 all of the system status LEDs are driven from the switch-chip LED interfaces instead of from GPIO like our other products. With this configuration it is difficult to control the LED in a manner that results in the (flash '''X''' times and pause behavior). It would require a decent chunk of development time and testing to get working . Therefore to speed up development the decision was made to encode the alarm states as simply (off, on, flashing) as shown in the above table.\n\n====Console====\nThe IE520 Series will have the standard RJ-45 styled UART (RS232) console port. The cable will be supplied with each device. '''The pin out for the console cable is different from the standard cables used for other ATL products.'''\n\nThe default console configuration will be 9600 8N1. That is a baudrate of 9600, 8 bits per character, no parity, one stop bit.\n\n====Alarm Connections====\nThe IE520-28GHX has 1 Alarm relay output with a 2pins on the rear of the unit.\n\n====Reset Button====\n{| class=\"wikitable\"\n|+\n!Timing\n!Behaviour\n!Supported\n!Comments\n|-\n|< 10 seconds\n|Reboot\n|Yes\n|\n|-\n|10 ~ 20 seconds\n|Reset to factory defaults\n|Yes\n|\n|-\n|> 30 seconds\n|Export config to USB\n|No\n|Due to security concerns this will not be implemented.\n|}\n\n===Accessories and Related Products===\n====Pluggables====\nATL-NZ maintains a list of currently supported pluggable devices refer to [https://intranet.atlnz.lc/systest/products/Accessories/pluggable_transceiver/Pluggables_Qualification.xlsm PLUGGABLES] for the up to date list of supported devices. This will be updated with SFP+ information during project testing.\n\n{| class=\"wikitable sortable\"\n!Class\n!Model Name\n!Part Number\n!Status\n|-\n|100M SFP\n|SPFX/2-90\n|990-004929-90\n|GA\n|-\n|100M SFP\n|SPFX30/I-90\n|990-007587-90\n|GA\n|-\n|10G SFP+\n|SP10BD10-12/I\n|990-006169-90\n|GA\n|-\n|10G SFP+\n|SP10BD10-13/I\n|990-006170-90\n|GA\n|-\n|10G SFP+\n|SP10BD20-12\n|990-005872-90\n|GA\n|-\n|10G SFP+\n|SP10BD20-13\n|990-005873-90\n|GA\n|-\n|10G SFP+\n|SP10BD40/I-12\n|990-005874-90\n|GA\n|-\n|10G SFP+\n|SP10BD40/I-13\n|990-005875-90\n|GA\n|-\n|10G SFP+\n|SP10BD40/I-14\n|990-007859-90\n|GA\n|-\n|10G SFP+\n|SP10BD40/I-15\n|990-007860-90\n|GA\n|-\n|10G SFP+\n|SP10ER40a/I\n|990-007182-90\n|GA\n|-\n|10G SFP+\n|SP10ER40a/E\n|990-xxxxxx-90\n|planned\n|-\n|10G SFP+\n|SP10LRa/I\n|990-007181-90\n|GA\n|-\n|10G SFP+\n|SP10LRa/E\n|990-008163-90\n|planned\n|-\n|10G SFP+\n|SP10SR\n|990-004758-00\n|GA\n|-\n|10G SFP+\n|SP10SR/I-90\n|990-005876-90\n|GA\n|-\n|10G SFP+\n|SP10SRa/E\n|990-008110-90\n|planned\n|-\n|10G SFP+\n|SP10TM\n|990-007216-90\n|GA\n|-\n|10G SFP+\n|SP10TW1\n|990-003258-00\n|GA\n|-\n|10G SFP+\n|SP10TW3\n|990-003259-00\n|GA\n|-\n|10G SFP+\n|SP10TW7\n|990-003260-00\n|GA\n|-\n|10G SFP+\n|SP10ZR80/I\n|990-003733-00\n|GA\n|-\n|1G SFP\n|SPBD10-13\n|990-001204-00\n|GA\n|-\n|1G SFP\n|SPBD10-14\n|990-001205-00\n|GA\n|-\n|1G SFP\n|SPBD20-13/I\n|990-003878-00\n|GA\n|-\n|1G SFP\n|SPBD20-14/I\n|990-004863-00\n|GA\n|-\n|1G SFP\n|SPBD20LC/I-13\n|990-005768-90\n|GA\n|-\n|1G SFP\n|SPBD20LC/I-14\n|990-005769-90\n|GA\n|-\n|1G SFP\n|SPBD40-13/I\n|990-003671-00\n|GA\n|-\n|1G SFP\n|SPBD40-14/I\n|990-003672-00\n|GA\n|-\n|1G SFP\n|SPEX/E-90\n|990-005898-90\n|GA\n|-\n|1G SFP\n|SPLX10a\n|990-006007-90\n|GA\n|-\n|1G SFP\n|SPLX10/E-90\n|990-005900-90\n|GA\n|-\n|1G SFP\n|SPLX10/I Variant C\n|990-002638-00\n|GA\n|-\n|1G SFP\n|SPLX40\n|990-001202-00\n|GA\n|-\n|1G SFP\n|SPLX40/E-90\n|990-005901-90\n|GA\n|-\n|1G SFP\n|SPSX-90\n|990-004928-90\n|GA\n|-\n|1G SFP\n|SPSX/E-90\n|990-005899-90\n|GA\n|-\n|1G SFP\n|SPSX/I-90\n|990-002636-90\n|GA\n|-\n|1G SFP\n|SPTX/I\n|990-005841-00\n|GA\n|-\n|1G SFP\n|SPTX-90\n|990-006006-90\n|GA\n|-\n|1G SFP\n|SPZX120/I\n|990-006214-90\n|GA\n|}\n\n==Characteristics==\n===Performance===\n===Interoperability===\n==Target Cost==\n==Licensing==\nThe use of GPL components in AlliedWare Plus obliges Allied Telesis to make any modification to these components available. This will be done for the IE520 as is the current practice for all products running AlliedWare Plus by making relevant packages available upon request.\n\n==Documentation==\n===Specification Documentation===\n===Test Documentation===\nA SVT test plan and test case list will be created for the {{{1|IE520 Software}}}\n===User Documentation===\nA software reference manual will be provided for the {{{1|IE520 Software}}}\n\n==Training==\n=Project Testing=\n==General==\n\n*Design Verification Testing (DVT) will be conducted by ....\n*System Verification Testing (SVT) will be conducted by ATLNZ\n*New feature project testing will be conducted by ATLNZ\n*Pluggable qualification testing will be conducted by ATLNZ\n*Software regression testing will be conducted by ATLNZ\n\n=Notes=\nThe contents of this section do not form part of the binding requirements of this specification. Additional details intended as background information are included here.\n\n==Console Port Compatibility==\nThe console port on the IE520 has a different pinout to the usual one on Allied Telesis AW+ products, so it is incompatible with the usual RJ45<->DE9 RS-232 adapters and our USB console port adapters with RJ45 connectors.  Only the RJ45<->DE9 RS-232adapter cable that comes with the device is compatible.\n\n==New Commands==\nNone\n\n=Export Control Regulations=\n==Classified ECCN of EAR for Export Regulation Law of U.S. Government==\n\n=Certification requirements=\n==Radio Equipment Directive (RED)==\nIf the platform includes interfaces that are subject to EU RED requirements (i.e. has wireless interfaces that require an EC compliance mark), outline certification compliance and impacts here.\n\nThere are no wireless interfaces on the IE520 and is not subject to EU RED requirements.\n==Cyber Resilience Act (CRA)==\nFor products that require the EU legal compliance (CE), CRA will be required.  The following hardware and/or system-level requirements are based on ETSI EN 304 627 and ETSI EN 304 636:\n{| class=\"wikitable\"\n|+\n!Reference\n!Requirement\n!Capable Y/N\n!Compliant Y/N\n!Compliance details\n|-\n|INTEGRITY-1-RQ-1-01\n|Secure Boot\n|N\n|N\n|\n|-\n|DATA-1-RQ-1-1\n|Encrypted storage for data at rest\n|N\n|N\n|128MB NOR lacks space\n|-\n|DATA-1-RQ-1-1\n|TPM key storage for encrypted data\n|N\n|N\n|SW TPM is not adequate\n|-\n|RESET-1-RQ-1-04\n|Ability to clear user data unrecoverably\n|Y\n|Y\n|\n|-\n|EXPOSURE-1-RQ-1-01\n|Physical protection for hardware diagnostic interfaces\n|Y\n|Y\n|\n|}\nOverall CRA compliance capability is: NOT SUPPORTED\n\n==Japan Cyber Star (JC-STAR)==\nFor products that require JC-STAR Level 3 compliance, such as those intended for the Japan government market, the following hardware and/or system-level requirements apply:\n{| class=\"wikitable\"\n|+\n!Reference\n!Requirement\n!Capable Y/N\n!Compliant Y/N\n!Compliance details\n|-\n|S3.1-16\n|Secure storage for sensitive data\n|N\n|N\n|128MB NOR lacks space\n|-\n|S3.1-17\n|Tamper resistance for device unique ID\n|N\n|N\n|SW TPM is not adequate\n|-\n|S3.1-23\n|Disable unused physical and logical interfaces\n|Y\n|Y\n|\n|-\n|S3.1-25\n|Disable debug physical interfaces\n|Y\n|Y\n|\n|-\n|S3.1-31\n|Secure Boot/DSA\n|N\n|N\n|\n|-\n|S3.1-47\n|Hardware tamper resistance\n|Y\n|Y\n|\n|}\nOverall JC-STAR Level 3 compliance capability is: NOT SUPPORTED\n\n==Certificate of Volatility==\n\nFor US exports and compliance with EU certifications, the ability to remove user data (i.e. restore to factory default) must be clearly documented.\n{| class=\"wikitable\"\n|Memory\n\nPart No.\n|Memory Size\n|Memory Type\n\n(ex RAM, FLASH)\n|Volatile/\n\nNon-Volatile\n|Location\n|Function\n|Clearable?\n\nY/N\n|'''User Data?'''\n\n'''Y/N'''\n|Clearing method\n|-\n|MT41K256M16TW-107IT:P\n|512MB\n|RAM\n|Volatile\n|\n|\n|\n|\n|power-cycle\n|-\n|WINBOND W25Q01JVSFIM\n|128MB\n|FLASH\n|Non-Volatile\n|\n|Filesystem and environment storage\n|Y\n|Y\n|erase factory-default\n|-\n\n|}\n\n=Appendices=\n==TPS Processes==\n===Change Control===\nOnce the TPS has been signed off any further changes to the TPS and PS must go through the full change control process which includes internal ATL and external ATKK reviews, as well as other regions as determined by the product manager.\n\n===Processes===\nCompliance to the ATL Business System.\n\n\n===Uncertain Values===\nSome values may not be able to be known until the product has been tested. In this case the values should be identified in the TPS, where possible, and the TPS be updated as testing reveals the values. ATKK must be kept informed of these.\n\n==Standard Requirement for Product Maintainability==\nThis appendix describes the compliance of the {{{1|IE520 Software}}} to the [http://dream.allied-telesis.co.jp/atkk-intra/standard/ATKK%20standard%20req%20for%20product%20EV01_01.pdf ATKK Standard Requirement for Product Maintainability ver 1.1]. The {{{1|IE520 Software}}} is being developed as \"Grade B, products targeting enterprise workgroup\" products.\n\n{| class=\"wikitable\" style=\"background-color:white;\"\n! colspan=\"5\" |Section 1 Configuration\n|-\n!No.!!Function!! !!Note!!Supported\n|-\n|1.1||User Interface||1.1.1||Support CLI||YES\n|-\n| || ||1.1.2||Support a Dynamic configuration. Even during in operation, addition, change and deletion of a configuration must be effected dynamically unless a chip set or another hardware component requires restart to effect the change on the chip set.||YES\n|-\n| || ||1.1.3||Two or more configuration files can be stored.||YES\n|-\n| || ||1.1.4||Screen editor for Configuration File. Operator is able to edit configuration file by the editor in firmware. The screen size is 80x25 through 130x25.||YES\n|-\n| || ||1.1.5||Both Windows HyperTerminal and TeraTerm, which is a very popular freeware in Japan, can be used as a soft terminal.||YES\n|-\n|1.2||Creation & Back Up||1.2.1||Configuration files are text format.||YES\n|-\n|1.3||Down/Up load||1.3.1||Upload and download configuration files with FTP or http protocol (TCP application)||YES\n|-\n| || ||1.3.2||Upload and download configuration files with TFTP protocol.||YES\n|-\n| || ||1.3.3||Upload and download configuration files with xmodem or zmodem protocol using HyperTerminal and TeraTerm.||YES\n|-\n|1.4||External memory medium (USB storage device)||1.4.1||A product supporting an external memory medium, such as a USB storage device, is able to boot up from program and configuration file(s) stored in the medium instead of program and configuration file(s) stored in the internal memory so that it can be done to replace a failure unit with un-configured unit and reduce maintenance inventory.||YES\n|-\n! colspan=\"5\" |Section 2 Program Ver. UP\n|-\n!No.!!Function!! !!Note!!Supported\n|-\n|2.1||Down/Up load||2.1.1||Upload and download program files with FTP or http protocol (TCP application)||YES\n|-\n| || ||2.1.2||Upload and download program files with TFTP protocol||YES\n|-\n| || ||2.1.3||Upload and download program files with xmodem or zmodem protocol using HyperTerminal and TeraTerm.||YES\n|-\n| || ||2.1.4||Current configuration must be kept when program file(s) is updated.||YES\n|-\n|2.2||Firmware Redundancy||2.2.1||Flash ROM size is large enough to store three sets of the initial firmware or more and the product can work under any of installed firmwares at user’s select.||NO (no space for three releases)\n|-\n| || ||2.2.2||Those products which have dual CPUs supports Dynamic Firmware Update, which allow updated program files able to be effective without reboot.||N/A\n|-\n|2.3||External memory medium (USB storage device)||2.3.1||If a product has an external memory medium, such as a USB storage device, program file(s) can be updated from the external memory medium.||YES\n|-\n! colspan=\"5\" |Section 3 H/W Rev. & S/W Ver. Management\n|-\n!No.!!Function!! !!Note!!Supported\n|-\n|3.1||Firmware Ver.||3.1.1||Firmware version can be determined and displayed via telnet, SNMP etc.||YES\n|-\n| || ||3.1.2||Both “the stable, or matured, version” and “the latest feature version” are provided to customers. Only the latest patch of each “version” is provided.||YES\n|-\n|3.2||Hardware Rev.||3.2.1||H/W revision is distinguished and displayed by Telnet, SNMP and etc. even from remote.||YES\n|-\n| || ||3.2.2||Revision of “major components” is distinguished by firmware and displayed by Telnet, SNMP and etc. even from remote.As for box type products, “major components” includes at least main PCB, CPU, Switching Chip, ASIC, Module, and GBIC. As for chassis type product, it includes at least main PCB, CPU, Switching Chip, ASIC, Module, GBIC and PSU. All of such distinguished components must be listed in the comment column of MFL||YES\n|-\n| || ||3.2.3||External revision and internal revision (Main PCB) of a product are managed and linked with each other.||YES\n|-\n| || ||3.2.4||Internal revision may be changed when a product is reworked||YES\n|-\n| || ||3.2.5||When revision of an optional module is changed, all revision of main unit that can support the new revision of optional module has to be documented and published in the company.||YES\n|-\n! colspan=\"5\" |Section 4 H/W S/N Management\n|-\n!No.!!Function!! !!Note!!Supported\n|-\n|4.1||Firmware||4.1.1||Serial number of “major components” can be displayed by Telnet, SNMP and etc. even from remote. See 4.2 for distinguished components.||YES\n|-\n|4.2||Hardware N/A||4.2.1||Serial number of “major components” is distinguished by firmware.As for box type products, “major components” includes at least main PCB, CPU, Switching Chip, ASIC, Module, and GBIC. As for chassis type product, it includes at least main PCB, CPU, Switching Chip, ASIC, Module, GBIC and PSU. All of such distinguished components must be listed in the comment column of MFL||YES\n|-\n| || ||4.2.2||External serial number label is put on where it can be seen easily even if the product is mounted in a rack, such as on the front panel or the back panel, not on the bottom panel||YES\n|-\n| || ||4.2.3||External serial number and internal serial number (Main PCB) of a product are managed and linked with each other.||YES\n|-\n| || ||4.2.4||In case that the product has network ports and/or interfaces on the back panel, such as AR740, rack-mount brackets can be attached on both front side and back side of the product.||YES\n|-\n! colspan=\"5\" |Section 5 Trouble Shooting ＆ Diagnostics\n|-\n!No.!!Function!! !!Note!!Supported\n|-\n|5.1||Self-diagnostic function||5.1.1||Have diagnostic functions for each of the major components (CPU, RAM, Extension RAM, Flash ROM, SW ASIC, SIO Controller, etc.). The diagnostic works both under Boot ROM operation and firmware operation. All components that are objects of the diagnostic are to be listed in the comment column of MFL. -||YES\n|-\n| || ||5.1.2||Have diagnostic functions for each of the optional modules, at least I/O module, encryption, compression and accelerator module,||YES\n|-\n| || ||5.1.3||Have firmware diagnostic function.||YES\n|-\n|5.2||Obstacle analysis (ETH LED)||5.2.1||Link status monitor||YES\n|-\n| || ||5.2.2||Redundancy status monitor, which distinguishes a status change on a redundant feature, such as STP and PSU, and report the change as logging, trap, e-mail alert and etc.||YES\n|-\n| || ||5.2.3||Ping command. As for L3 and higher products, Source Address is configurable||YES\n|-\n| || ||5.2.4||Trace Route command as for L3 and higher products||YES\n|-\n| || ||5.2.5||DNS Client function as for L3 and higher products||YES\n|-\n|5.3||H/W failure surveillance||5.3.1||When a PSU of a product supporting redundant power supply fails the PSU that has failed can be distinguished by LED and remotely by telnet, SNMP etc.||YES\n|-\n| || ||5.3.2||FAN monitor. If a fan fails when two or more fans are present, the failed fan can be distinguished remotely and through the console.||YES\n|-\n| || ||5.3.3||Internal temperature can be distinguished both remotely and through the console.||YES\n|-\n| || ||5.3.4||All optional modules including but not limited to, I/O module, encryption, compression and accelerator module, can be monitored remotely and and through the console.||YES\n|-\n| || ||5.3.5||Hardware watchdog and reset function, will make the unit restart automatically when system failure is detected and log the cause of the failure and/or restart into a non-volatile memory area (such as Flash ROM or NVS where information is kept during power cycle) before restart.||YES\n|-\n| || ||5.3.6||The Watchdog function can be enabled or disabled by user command.||NO\n|-\n|5.4||A substantial LOG function||5.4.1||On hardware failure and if time is available before shutdown the cause or instructive information is logged into a nonvolatile memory area before the unit is shutdown.||YES\n|-\n| || ||5.4.2||Log core dump file into a nonvolatile memory area when system crash or OS or firmware fatal error occurrs.||YES\n|-\n| || ||5.4.3||SYSLOG severity is user selectable.||YES\n|-\n| || ||5.4.4||Confirm RFC3164 (syslog).||YES\n|-\n| || ||5.4.5||If the product supports an external memory medium, such as a USB storage device, logs can be stored in the external medium.||YES\n|-\n| || ||5.4.6||The accuracy of a real-time clock is +/-90 or less sec per month if it is equipped.||YES\n|-\n| || ||5.4.7||Support NTP Client.||YES\n|-\n| || ||5.4.8||Support SNMP v1, v2c or later. Those products which have one or more I/F of Giga bit per sec. or higher speed must support v2c or later.||YES\n|-\n| || ||5.4.9||Battery is swappable during operation without any impact on switching, routing or etc. (It must be clearly stated in TPS and PS if Li battery is used since it requires ATKK to recovery of waste batteries)||NO\n|-\n| || ||5.4.10||On battery failure, the operation of the product including but not limited to firmware boot up and configuration will operate as usual excepting the clock function.||YES\n|-\n| || ||5.4.11||The real time of a product is adjusted by NTP when the product is started||YES\n|-\n| || ||5.4.12||Those products targeting provider edge and customer edge can log all entered (or learned) and aged out MAC addresses and send it to syslog.||YES\n|-\n| || ||5.4.13||All log messages and meanings of each message must be documented within the company||YES\n|-\n|5.5||Substantial Debug function||5.5.1||Capture and log all packets addressed to the CPU (management I/F). Log is stored in a nonvolatile area during reboot in order to trace killer packets.||NO\n|-\n| || ||5.5.2||As for layer 3 or higher products, debugger for each of RIP, OSPF, NAT, ICMP and etc.||YES\n|-\n| || ||5.5.3||The debugger shows actual time stamp.||YES\n|-\n|5.6||Resource management function||5.6.1||Software process protection, which kills lower priority tasks when there is a lack of available memory under multitasking firmware.||YES\n|-\n| || ||5.6.2||Performance monitor, which shows usage rate of CPU, memory, accumulated time and etc.||YES\n|-\n| || ||5.6.3||Processes other than the kernel can be killed and reloaded manually.||YES\n|-\n! colspan=\"5\" |Section 6 Operation\n|-\n!No.!!Function!! !!Note!!Supported\n|-\n|6.1||Security||6.1.1||Access filter for management I/F, which denies all packets addressed to the management I/F other than those packets that come from user specified network(s) or host(s). Also TCP/UDP port number of all services such as telnet, SNMP, ICMP and etc. is configurable.||NO\n|-\n| || ||6.1.2||Number of simultaneous telnet sessions is configurable.||NO\n|-\n| || ||6.1.3||Telnet session and authentication logging, which logs date, time stamp and source IP address of each Telnet session, and logs Telnet login authentication success or failure attempts.||YES\n|-\n| || ||6.1.4||Two or more levels of trust can be set for logged-in users. For example, “Supervisor” trust can command everything and “Operator” trust can only view status and send ping, etc.||YES\n|-\n| || ||6.1.5||Attack Defense to defends against as many kinds of attack as possible. A list of security and protection features are documented [[Security_Testing#AW.2B_Security_Features_and_Protections|here]].||YES\n|-\n| || ||6.1.6||Attack Detector, which logs, sends a trap message etc. when an attack is detected.||YES\n|-\n| || ||6.1.7||Support SSH.||YES\n|-\n| || ||6.1.8||All unnecessary TCP/UDP ports are closed. It is better to be able to open or close individual TCP/UDP ports as needed.||YES\n|-\n| || ||6.1.9||RADIUS client for authentication of users who log-in to the management console.||YES\n|-\n|6.2||Product Performance||6.2.1||Target Performance is given in PRD and clarified in TPS prior to development.||YES\n|-\n| || ||6.2.2||Support Limits Value is given in PRD and clarified in TPS prior to development.||YES\n|-\n| || ||6.2.3||A calculation basis of above performance data is clarified so that those numbers can be used in a system design.||NO\n|-\n|6.3||Others||6.3.1||Have an out-of-band 10B-T/100B-TX management port (a physical port), which is wired as MDI= with MDI=/MDI-X selector switch or auto-MDI, as well as in-band management I/F (logical port).||NO\n|-\n| || ||6.3.2||File listing command, which shows all files including but not limited to, firmware and configurations stored in re-writable memory area such as Flash ROM and NVS on display.||YES\n|-\n| || ||6.3.3||Have power cord retainer or provide it as an option both for internal PSU product and external PSU or AC adapter product.||YES\n|-\n| || ||6.3.4||Files stored in Flash ROM, NVS or such nonvolatile areas confirm the following specifications.- 8.3 naming rules (a file name and file identifier) - Case sensitive - It is documented whether each special character is permitted or not.- Identifier of configuration file is ”.cfg”.- All files have the latest time stamp (year, month, day, hour, minute, second) - All files are displayed with the size. (by Byte) - It is documented where files are stored in, such as Flash ROM, NVS, by each product.||YES\n|-\n| || ||6.3.5||The file listing command shows the following properties of each file (details of the listing format should be discussed and agreed among all development centers): File name - Where the file is stored (Flash ROM or NVS or etc.) - Size - Time of save or edit (the latest time stamp)||YES\n|-\n! colspan=\"5\" |Section 7 Maintenance\n|-\n!No.!!Function!! !!Note!!Supported\n|-\n|7.1||Maintainability||7.1.1||All expansion interface modules are accessible without opening a product chassis or cover and support hot-swap (both extraction and insertion) without any impact on the operation of other network ports or interfaces, or warm-swap, which is defined as being similar to hot-swap but requiring some software commands entered or physical switch operation prior to extract/insert of module to avoid an impact on other operations.||YES\n|-\n| || ||7.1.2||An inserted expansion module starts operation in a couple of seconds dynamically. In another words, no reboot shall be required.||N/A\n|}\n\n==Supported features (Ref. SID Software Requirements)==\nThis appendix describes the correspondence of supported features in SID required by the IE520.\n\nThe ranking column states the feature relevance and expected delivery as follow:\n\n*M MANDATORY the feature SHALL be available since the first release\n*D DESIRABLE the feature is required for the first release, but its deferring in the short time is acceptable\n*O OPTIONAL the feature is relevant, so that shall be planned for future releases\n\nThe items with M ranking are mandatory for the first release of the IE520 Series. \n{| class=\"wikitable\"\n|+\n!No.\n!Ranking\n!Feature Group\n!Feature\n!Comment / Test Case\n|-\n!{{Incr|b}}\n|M\n|Application Programmable Interface (API)\n|ACL/QoS statistics (Hit Counter) support on AW+\n|\n|-\n!{{Incr|b}}\n|M\n|Application Programmable Interface (API)\n|Add GET API for GUI session user information\n|\n|-\n!{{Incr|b}}\n|M\n|Application Programmable Interface (API)\n|AMF application proxy - Connected device IP list view\n|\n|-\n!{{Incr|b}}\n|M\n|Application Programmable Interface (API)\n|AMF application proxy - White List - Auth status sync AMF-SEC/AW\n|\n|-\n!{{Incr|b}}\n|M\n|Application Programmable Interface (API)\n|AMF application proxy - White List - auth_whitelist supplicants\n|\n|-\n!{{Incr|b}}\n|M\n|Application Programmable Interface (API)\n|AMF application proxy - White List - Block packets to unauth use\n|\n|-\n!{{Incr|b}}\n|M\n|Application Programmable Interface (API)\n|AMF application proxy - White List - Log format enhancement\n|\n|-\n!{{Incr|b}}\n| -\n|Application Programmable Interface (API)\n|AMF application proxy - White List - Minimise reboot\n|\n|-\n!{{Incr|b}}\n| -\n|Application Programmable Interface (API)\n|AMF application proxy - White List - No Cert Validation mode\n|\n|-\n!{{Incr|b}}\n|M\n|Application Programmable Interface (API)\n|AMF application proxy - White List - Prevent packet loss on reau\n|\n|-\n!{{Incr|b}}\n|M\n|Application Programmable Interface (API)\n|AMF Application Proxy - White list control channel protection\n|\n|-\n!{{Incr|b}}\n|M\n|Application Programmable Interface (API)\n|AMF application proxy whitelist - Configurable IP per member\n|\n|-\n!{{Incr|b}}\n|M\n|Application Programmable Interface (API)\n|AMF backup enhancements API Support\n|\n|-\n!{{Incr|b}}\n|M\n|Application Programmable Interface (API)\n|AMF smart auditing (API)\n|\n|-\n!{{Incr|b}}\n|M\n|Application Programmable Interface (API)\n|AMF smart logging (API)\n|\n|-\n!{{Incr|b}}\n| -\n|Application Programmable Interface (API)\n|API env monitoring - hide PSUs not present on x930 and x530DP\n|\n|-\n!{{Incr|b}}\n|M\n|Application Programmable Interface (API)\n|API for ACL configuration and ACL statistics function on VistaEX\n|\n|-\n!{{Incr|b}}\n|M\n|Application Programmable Interface (API)\n|API for AMF distribute-firmware\n|\n|-\n!{{Incr|b}}\n|M\n|Application Programmable Interface (API)\n|API for AMF link configuration\n|\n|-\n!{{Incr|b}}\n|M\n|Application Programmable Interface (API)\n|API for AMF master configuration page\n|\n|-\n!{{Incr|b}}\n|M\n|Application Programmable Interface (API)\n|API for AMF provisioning\n|\n|-\n!{{Incr|b}}\n|M\n|Application Programmable Interface (API)\n|API for AMF working-sets\n|\n|-\n!{{Incr|b}}\n| -\n|Application Programmable Interface (API)\n|API for AWC-SC to get connection stats\n|\n|-\n!{{Incr|b}}\n|M\n|Application Programmable Interface (API)\n|API for CPU utilisation and maximum value over time\n|\n|-\n!{{Incr|b}}\n|M\n|Application Programmable Interface (API)\n|API for device GUI filename\n|\n|-\n!{{Incr|b}}\n|M\n|Application Programmable Interface (API)\n|API for DG2.7.0 to replace Java GUI\n|\n|-\n!{{Incr|b}}\n|M\n|Application Programmable Interface (API)\n|API for DNS (IP name server enhancement)\n|\n|-\n!{{Incr|b}}\n|M\n|Application Programmable Interface (API)\n|API for ECO LED control\n|\n|-\n!{{Incr|b}}\n|M\n|Application Programmable Interface (API)\n|API for FDB retrieval\n|\n|-\n!{{Incr|b}}\n|M\n|Application Programmable Interface (API)\n|API for initial HTML-based Graphical User Interface (GUI)\n|\n|-\n!{{Incr|b}}\n|M\n|Application Programmable Interface (API)\n|API for interface statistics\n|\n|-\n!{{Incr|b}}\n|M\n|Application Programmable Interface (API)\n|API for IPv4/IPv6 Neighbour retrieval\n|\n|-\n!{{Incr|b}}\n|M\n|Application Programmable Interface (API)\n|API for IPv4/IPv6 static addressing\n|\n|-\n!{{Incr|b}}\n|M\n|Application Programmable Interface (API)\n|API for link utilization\n|\n|-\n!{{Incr|b}}\n|M\n|Application Programmable Interface (API)\n|API for LLDP\n|\n|-\n!{{Incr|b}}\n|M\n|Application Programmable Interface (API)\n|API for log management\n|\n|-\n!{{Incr|b}}\n| -\n|Application Programmable Interface (API)\n|API for loop detection\n|\n|-\n!{{Incr|b}}\n|M\n|Application Programmable Interface (API)\n|API for Loop Protection configuration\n|\n|-\n!{{Incr|b}}\n|M\n|Application Programmable Interface (API)\n|API for managing device time settings\n|\n|-\n!{{Incr|b}}\n|M\n|Application Programmable Interface (API)\n|API for Operating System Info\n|\n|-\n!{{Incr|b}}\n|M\n|Application Programmable Interface (API)\n|API for Ping Poll\n|\n|-\n!{{Incr|b}}\n|M\n|Application Programmable Interface (API)\n|API for POE configuration\n|\n|-\n!{{Incr|b}}\n|M\n|Application Programmable Interface (API)\n|API for QoS Class-Map Set (Phase 1)\n|\n|-\n!{{Incr|b}}\n|M\n|Application Programmable Interface (API)\n|API for SFlow\n|\n|-\n!{{Incr|b}}\n|M\n|Application Programmable Interface (API)\n|API for show tech-support\n|\n|-\n!{{Incr|b}}\n|M\n|Application Programmable Interface (API)\n|API for static routes\n|\n|-\n!{{Incr|b}}\n|M\n|Application Programmable Interface (API)\n|API for subscription license manager in Vista\n|\n|-\n!{{Incr|b}}\n| -\n|Application Programmable Interface (API)\n|API for supported tunnel types\n|\n|-\n!{{Incr|b}}\n|M\n|Application Programmable Interface (API)\n|API for tracepath\n|\n|-\n!{{Incr|b}}\n|M\n|Application Programmable Interface (API)\n|API for tri-authentication\n|\n|-\n!{{Incr|b}}\n|M\n|Application Programmable Interface (API)\n|API for triggers\n|\n|-\n!{{Incr|b}}\n|M\n|Application Programmable Interface (API)\n|API for user account management\n|\n|-\n!{{Incr|b}}\n|M\n|Application Programmable Interface (API)\n|API for VCStack\n|\n|-\n!{{Incr|b}}\n|M\n|Application Programmable Interface (API)\n|API for VLAN interfaces\n|\n|-\n!{{Incr|b}}\n|M\n|Application Programmable Interface (API)\n|API Support for DG2.5.0 (placeholder)\n|\n|-\n!{{Incr|b}}\n|M\n|Application Programmable Interface (API)\n|API Support for DG2.6.0 (placeholder)\n|\n|-\n!{{Incr|b}}\n|M\n|Application Programmable Interface (API)\n|API support for local RADIUS server\n|\n|-\n!{{Incr|b}}\n|M\n|Application Programmable Interface (API)\n|API Support for VM3.2.0 (Placeholder)\n|\n|-\n!{{Incr|b}}\n|M\n|Application Programmable Interface (API)\n|API Support for VM3.3.0 (placeholder)\n|\n|-\n!{{Incr|b}}\n|M\n|Application Programmable Interface (API)\n|API Support for Web GUI replacement for Java Applet GUI (placeho\n|\n|-\n!{{Incr|b}}\n|M\n|Application Programmable Interface (API)\n|API to configure eventwatch RMON alarms\n|\n|-\n!{{Incr|b}}\n|M\n|Application Programmable Interface (API)\n|API to enable IP forwarding\n|\n|-\n!{{Incr|b}}\n|M\n|Application Programmable Interface (API)\n|API to get file checksum\n|\n|-\n!{{Incr|b}}\n|M\n|Application Programmable Interface (API)\n|API to set description for an interface\n|\n|-\n!{{Incr|b}}\n|M\n|Application Programmable Interface (API)\n|API to view ports in a LAG\n|\n|-\n!{{Incr|b}}\n|M\n|Application Programmable Interface (API)\n|Auto optimization functions for SD-WAN (Realization of Intent Ba\n|\n|-\n!{{Incr|b}}\n|M\n|Application Programmable Interface (API)\n|AW+ device direct API access\n|\n|-\n!{{Incr|b}}\n| -\n|Application Programmable Interface (API)\n|AWC Lite - AWC-CB Channel Blanket support for TQ6602\n|\n|-\n!{{Incr|b}}\n| -\n|Application Programmable Interface (API)\n|AWC Lite - Captive Portal Phase2-1 Improve Vulnerable cases\n|\n|-\n!{{Incr|b}}\n| -\n|Application Programmable Interface (API)\n|AWC Lite - Captive Portal Phase2-1 Radius Accounting-API/CLI\n|\n|-\n!{{Incr|b}}\n| -\n|Application Programmable Interface (API)\n|AWC Lite - Captive Portal Phase2-1- TQ1K/TQ5K - API/CLI\n|\n|-\n!{{Incr|b}}\n|M\n|Application Programmable Interface (API)\n|Change response message when AP is busy\n|\n|-\n!{{Incr|b}}\n|M\n|Application Programmable Interface (API)\n|Data model for NetCONF post MRS-1128 release\n|\n|-\n!{{Incr|b}}\n|M\n|Application Programmable Interface (API)\n|Device Discovery - UUID and DHCP Snooping Enhancement\n|\n|-\n!{{Incr|b}}\n|M\n|Application Programmable Interface (API)\n|Enhanced LAG information between two nodes\n|\n|-\n!{{Incr|b}}\n|M\n|Application Programmable Interface (API)\n|Eventwatch for LACP LAG state changes\n|\n|-\n!{{Incr|b}}\n|M\n|Application Programmable Interface (API)\n|Eventwatch support for linkmon\n|\n|-\n!{{Incr|b}}\n|M\n|Application Programmable Interface (API)\n|External management CLI notification\n|\n|-\n!{{Incr|b}}\n| -\n|Application Programmable Interface (API)\n|FCC with DFS support on TQ6K\n|\n|-\n!{{Incr|b}}\n|M\n|Application Programmable Interface (API)\n|Hide AMF Block link on Topology map and display user protocol bl\n|\n|-\n!{{Incr|b}}\n| -\n|Application Programmable Interface (API)\n|Indicate wireless client's NetBIOS information on TQ1K & TQ5K GU\n|\n|-\n!{{Incr|b}}\n|M\n|Application Programmable Interface (API)\n|Intent-based Access Control List ACL\n|\n|-\n!{{Incr|b}}\n|M\n|Application Programmable Interface (API)\n|LAG API additions (for Device GUI)\n|\n|-\n!{{Incr|b}}\n|M\n|Application Programmable Interface (API)\n|Northbound interface (NBI) YANG models (phase-2)\n|\n|-\n!{{Incr|b}}\n|M\n|Application Programmable Interface (API)\n|Northbound interface (NBI) YANG models: PoE\n|\n|-\n!{{Incr|b}}\n|M\n|Application Programmable Interface (API)\n|Object Groups for ACLs\n|\n|-\n!{{Incr|b}}\n|M\n|Application Programmable Interface (API)\n|Packet Capture API\n|\n|-\n!{{Incr|b}}\n|M\n|Application Programmable Interface (API)\n|QoS Mapping and Configuration - Phase1\n|\n|-\n!{{Incr|b}}\n|M\n|Application Programmable Interface (API)\n|Read only API support\n|\n|-\n!{{Incr|b}}\n| -\n|Application Programmable Interface (API)\n|Read only API support for AWC-Lite Position info\n|\n|-\n!{{Incr|b}}\n|M\n|Application Programmable Interface (API)\n|RND-Ph1: Eco button status view and setting\n|\n|-\n!{{Incr|b}}\n|M\n|Application Programmable Interface (API)\n|RND: Loop prevention setting from Vista (phase2-setting Rate lim\n|\n|-\n!{{Incr|b}}\n|M\n|Application Programmable Interface (API)\n|Static routing API improvements (for Device GUI)\n|\n|-\n!{{Incr|b}}\n|M\n|Application Programmable Interface (API)\n|Support for Vista Manager to support 18,000 nodes\n|\n|-\n!{{Incr|b}}\n| -\n|Application Programmable Interface (API)\n|Support Passpoint release 2 GUI for covering TQ's setting\n|\n|-\n!{{Incr|b}}\n|M\n|Application Programmable Interface (API)\n|Suppress unicast flooding on Guest VLAN (MRS-728)\n|\n|-\n!{{Incr|b}}\n|M\n|Application Programmable Interface (API)\n|Vista Manager efficiency support\n|\n|-\n!{{Incr|b}}\n| -\n|Application Programmable Interface (API)\n|VMS PoC\n|\n|-\n!{{Incr|b}}\n|M\n|Application Programmable Interface (API)\n|WebAPI to return all available interface counters\n|\n|-\n!{{Incr|b}}\n|M\n|Application Support\n|AMF application proxy - link status feedback using eventwatch\n|\n|-\n!{{Incr|b}}\n|M\n|Application Support\n|AMF application proxy Log Only Action\n|\n|-\n!{{Incr|b}}\n|M\n|Application Support\n|AMF application proxy Redirect Action\n|\n|-\n!{{Incr|b}}\n|M\n|Application Support\n|AMF Application Proxy-Black List - Dynamic VLAN / AMF App Proxy\n|\n|-\n!{{Incr|b}}\n|M\n|Application Support\n|Industrial Ethernet: Modbus over Ethernet\n|\n|-\n!{{Incr|b}}\n|M\n|Application Support\n|Industrial Ethernet: Modbus over Ethernet - VCStack Support\n|\n|-\n!{{Incr|b}}\n|M\n|Application Support\n|Industrial Ethernet: Modbus/TCP heartbeats\n|\n|-\n!{{Incr|b}}\n|M\n|Application Support\n|Microsoft Network Load Balancing (MS NLB) support\n|\n|-\n!{{Incr|b}}\n|M\n|Application Support\n|MPLS-edge investigation\n|\n|-\n!{{Incr|b}}\n| -\n|Application Support\n|Precision Time Protocol (PTPv2) end-to-end transparent clock\n|\n|-\n!{{Incr|b}}\n| -\n|Application Support\n|PTP E2E TC over VCS (excludes 100G VCS links)\n|\n|-\n!{{Incr|b}}\n| -\n|Application Support\n|PTP E2E TC over VCS and LAG support\n|\n|-\n!{{Incr|b}}\n| -\n|Application Support\n|PTP E2E TC with UDP transport\n|\n|-\n!{{Incr|b}}\n| -\n|Application Support\n|PTP Profile: Delay Request-Response (IEEE 1588-2019, Annex I)\n|\n|-\n!{{Incr|b}}\n| -\n|Application Support\n|PTP Profile: Peer-to-Peer Default PTP profile (IEEE 1588-2019, A\n|\n|-\n!{{Incr|b}}\n| -\n|Application Support\n|Support flow control on x530 without limitation\n|\n|-\n!{{Incr|b}}\n|M\n|Application Support\n|Video VLAN\n|\n|-\n!{{Incr|b}}\n| -\n|Application Support\n|VistaMini - Allow configuration of APs AMF Security settings\n|\n|-\n!{{Incr|b}}\n|M\n|Application Support\n|Voice VLAN\n|\n|-\n!{{Incr|b}}\n| -\n|Application Support\n|VRF common Interface and AMF Application Proxy\n|\n|-\n!{{Incr|b}}\n| -\n|Application Support\n|VxLAN support\n|\n|-\n!{{Incr|b}}\n|M\n|Authentication\n|2-step MAC-auth and web-auth process\n|\n|-\n!{{Incr|b}}\n|M\n|Authentication\n|802.1x auth with X.509 certificates\n|\n|-\n!{{Incr|b}}\n|M\n|Authentication\n|802.1x max-req command\n|\n|-\n!{{Incr|b}}\n|M\n|Authentication\n|802.1x port auth: authenticator\n|\n|-\n!{{Incr|b}}\n|M\n|Authentication\n|802.1x port auth: multi-supplicant\n|\n|-\n!{{Incr|b}}\n|M\n|Authentication\n|802.1x port auth: supplicant\n|\n|-\n!{{Incr|b}}\n|M\n|Authentication\n|Allows to access specific destination before MAC auth\n|\n|-\n!{{Incr|b}}\n|M\n|Authentication\n|Auth-fail and guest VLANs\n|\n|-\n!{{Incr|b}}\n|M\n|Authentication\n|Authentication features for TTDC\n|\n|-\n!{{Incr|b}}\n|M\n|Authentication\n|Detect disconnected mobile supplicant\n|\n|-\n!{{Incr|b}}\n|M\n|Authentication\n|Dynamic ACL using Port Authentication\n|\n|-\n!{{Incr|b}}\n|M\n|Authentication\n|Dynamic VLAN assignment\n|\n|-\n!{{Incr|b}}\n|M\n|Authentication\n|Expand MAC-auth capabilities\n|\n|-\n!{{Incr|b}}\n|M\n|Authentication\n|Flexible RADIUS group selection\n|\n|-\n!{{Incr|b}}\n|M\n|Authentication\n|HTTP redirect with proxy server\n|\n|-\n!{{Incr|b}}\n|M\n|Authentication\n|MAC-auth enhancement for dynamic & static entries\n|\n|-\n!{{Incr|b}}\n|M\n|Authentication\n|MAC-based authentication\n|\n|-\n!{{Incr|b}}\n|M\n|Authentication\n|MD5 Message-Digest algorithm\n|\n|-\n!{{Incr|b}}\n|M\n|Authentication\n|Multi-Domain Authentication (phase 2)\n|\n|-\n!{{Incr|b}}\n|M\n|Authentication\n|Multiple dynamic VLAN assignment (MAC-based supplicant)\n|\n|-\n!{{Incr|b}}\n|M\n|Authentication\n|Port authentication - auth priority option\n|\n|-\n!{{Incr|b}}\n|M\n|Authentication\n|Port authentication - multiple tagged vlans\n|\n|-\n!{{Incr|b}}\n|M\n|Authentication\n|Port authentication - option to set authentication order\n|\n|-\n!{{Incr|b}}\n|M\n|Authentication\n|Radius Authenticator - Next Gen Security Enhancement\n|\n|-\n!{{Incr|b}}\n|M\n|Authentication\n|RADIUS client\n|\n|-\n!{{Incr|b}}\n|M\n|Authentication\n|RADIUS CoA (Change of Authorisation)\n|\n|-\n!{{Incr|b}}\n|M\n|Authentication\n|RADIUS local server (100 users) and accounting\n|\n|-\n!{{Incr|b}}\n|M\n|Authentication\n|RADIUS local server - Config and status API improvements\n|\n|-\n!{{Incr|b}}\n|M\n|Authentication\n|Radius local server - Next Gen Security Enhancement\n|\n|-\n!{{Incr|b}}\n|M\n|Authentication\n|RADIUS local server - support enable/disable user\n|\n|-\n!{{Incr|b}}\n|M\n|Authentication\n|RADIUS local server TLSv1.2\n|\n|-\n!{{Incr|b}}\n|M\n|Authentication\n|RADIUS local server TLSv1.3\n|\n|-\n!{{Incr|b}}\n|M\n|Authentication\n|RADIUS over TLS (RadSecProxy)\n|\n|-\n!{{Incr|b}}\n|M\n|Authentication\n|RADIUS over TLS v1.3 (RadSecProxy)\n|\n|-\n!{{Incr|b}}\n| -\n|Authentication\n|RADIUS proxy\n|\n|-\n!{{Incr|b}}\n|M\n|Authentication\n|Re-authentication option\n|\n|-\n!{{Incr|b}}\n|M\n|Authentication\n|Roaming authentication\n|\n|-\n!{{Incr|b}}\n|M\n|Authentication\n|Robust web-auth enhancements\n|\n|-\n!{{Incr|b}}\n|M\n|Authentication\n|Shared MAC-auth password\n|\n|-\n!{{Incr|b}}\n|M\n|Authentication\n|Show MAC-auth result on GUI\n|\n|-\n!{{Incr|b}}\n|M\n|Authentication\n|Single supplicant with multiple VLANs\n|\n|-\n!{{Incr|b}}\n|M\n|Authentication\n|Support Captive Portal and Radius Accounting on TQ6602\n|\n|-\n!{{Incr|b}}\n|M\n|Authentication\n|TACACS+ accounting\n|\n|-\n!{{Incr|b}}\n|M\n|Authentication\n|TACACS+ authentication\n|\n|-\n!{{Incr|b}}\n|M\n|Authentication\n|TACACS+ New Key Encryption Type\n|\n|-\n!{{Incr|b}}\n|M\n|Authentication\n|Tri-authentication\n|\n|-\n!{{Incr|b}}\n|M\n|Authentication\n|Update RADIUS clients to use message-authenticator in requests\n|\n|-\n!{{Incr|b}}\n|M\n|Authentication\n|Web-auth ARP-polling\n|\n|-\n!{{Incr|b}}\n|M\n|Authentication\n|Web-auth configurable redirect time delay\n|\n|-\n!{{Incr|b}}\n|M\n|Authentication\n|Web-auth custom login page\n|\n|-\n!{{Incr|b}}\n|M\n|Authentication\n|Web-auth custom success page\n|\n|-\n!{{Incr|b}}\n|M\n|Authentication\n|Web-auth enhancements for Kansai University\n|\n|-\n!{{Incr|b}}\n|M\n|Authentication\n|Web-auth gateway registration\n|\n|-\n!{{Incr|b}}\n|M\n|Authentication\n|Web-auth increased password length\n|\n|-\n!{{Incr|b}}\n|M\n|Authentication\n|Web-auth language localisation\n|\n|-\n!{{Incr|b}}\n|M\n|Authentication\n|Web-based authentication\n|\n|-\n!{{Incr|b}}\n|M\n|Autonomous Management Framework (AMF)\n|AMF agent for 3rd party devices\n|\n|-\n!{{Incr|b}}\n| -\n|Autonomous Management Framework (AMF)\n|AMF agent for x600, SBx3100 and Extricom devices\n|\n|-\n!{{Incr|b}}\n|M\n|Autonomous Management Framework (AMF)\n|AMF allow network name changes on the fly\n|\n|-\n!{{Incr|b}}\n|M\n|Autonomous Management Framework (AMF)\n|AMF application proxy block feedback mechanism\n|\n|-\n!{{Incr|b}}\n|M\n|Autonomous Management Framework (AMF)\n|AMF application proxy for distribution layer (static IP)\n|\n|-\n!{{Incr|b}}\n|M\n|Autonomous Management Framework (AMF)\n|AMF application proxy for IP filtering\n|\n|-\n!{{Incr|b}}\n|M\n|Autonomous Management Framework (AMF)\n|AMF application proxy for MAC addresses\n|\n|-\n!{{Incr|b}}\n|M\n|Autonomous Management Framework (AMF)\n|AMF application proxy for quarantine VLAN\n|\n|-\n!{{Incr|b}}\n|M\n|Autonomous Management Framework (AMF)\n|AMF application proxy state preserved during VCStack failover\n|\n|-\n!{{Incr|b}}\n|M\n|Autonomous Management Framework (AMF)\n|AMF auto-recover single node at end of virtual-link\n|\n|-\n!{{Incr|b}}\n|M\n|Autonomous Management Framework (AMF)\n|AMF auto-recover single node with external memory device\n|\n|-\n!{{Incr|b}}\n|M\n|Autonomous Management Framework (AMF)\n|AMF auto-recovery and backup node for routers\n|\n|-\n!{{Incr|b}}\n|M\n|Autonomous Management Framework (AMF)\n|AMF backups to remote file server (master only)\n|\n|-\n!{{Incr|b}}\n|M\n|Autonomous Management Framework (AMF)\n|AMF clean node command\n|\n|-\n!{{Incr|b}}\n|M\n|Autonomous Management Framework (AMF)\n|AMF guest node (phase 1 - manual config)\n|\n|-\n!{{Incr|b}}\n| -\n|Autonomous Management Framework (AMF)\n|AMF Guest node support for TQ1402, TQm1402, TQ5403e\n|\n|-\n!{{Incr|b}}\n| -\n|Autonomous Management Framework (AMF)\n|AMF Guest node support for TQ5403\n|\n|-\n!{{Incr|b}}\n|M\n|Autonomous Management Framework (AMF)\n|AMF Guest node support for TQ6403 / TQm6403\n|\n|-\n!{{Incr|b}}\n|M\n|Autonomous Management Framework (AMF)\n|AMF Guest node support for TQ6602\n|\n|-\n!{{Incr|b}}\n|M\n|Autonomous Management Framework (AMF)\n|AMF Guest node support for TQ6702 GEN2 / TQ6602 GEN2\n|\n|-\n!{{Incr|b}}\n| -\n|Autonomous Management Framework (AMF)\n|AMF Guest node support for TQm5403\n|\n|-\n!{{Incr|b}}\n|M\n|Autonomous Management Framework (AMF)\n|AMF infrastructure (not customer visible)\n|\n|-\n!{{Incr|b}}\n| -\n|Autonomous Management Framework (AMF)\n|AMF integration with Extricom wireless\n|\n|-\n!{{Incr|b}}\n|M\n|Autonomous Management Framework (AMF)\n|AMF interop rules for xSTP and LACP\n|\n|-\n!{{Incr|b}}\n| -\n|Autonomous Management Framework (AMF)\n|AMF License Fudge Factor\n|\n|-\n!{{Incr|b}}\n|M\n|Autonomous Management Framework (AMF)\n|AMF master (up to 20 nodes)\n|\n|-\n!{{Incr|b}}\n| -\n|Autonomous Management Framework (AMF)\n|AMF master (up to 40 nodes)\n|\n|-\n!{{Incr|b}}\n|M\n|Autonomous Management Framework (AMF)\n|AMF MIB and SNMP traps\n|\n|-\n!{{Incr|b}}\n|M\n|Autonomous Management Framework (AMF)\n|AMF node\n|\n|-\n!{{Incr|b}}\n|M\n|Autonomous Management Framework (AMF)\n|AMF node pre-provisioning\n|\n|-\n!{{Incr|b}}\n|M\n|Autonomous Management Framework (AMF)\n|AMF Plus - Grasp - Pledge\n|\n|-\n!{{Incr|b}}\n| -\n|Autonomous Management Framework (AMF)\n|AMF Plus - IS-IS\n|\n|-\n!{{Incr|b}}\n| -\n|Autonomous Management Framework (AMF)\n|AMF Plus License Control\n|\n|-\n!{{Incr|b}}\n|M\n|Autonomous Management Framework (AMF)\n|AMF restricted login (admin from masters only)\n|\n|-\n!{{Incr|b}}\n|M\n|Autonomous Management Framework (AMF)\n|AMF rolling firmware upgrade\n|\n|-\n!{{Incr|b}}\n|M\n|Autonomous Management Framework (AMF)\n|AMF secure mode\n|\n|-\n!{{Incr|b}}\n|M\n|Autonomous Management Framework (AMF)\n|AMF show node recovery progress on port LEDs\n|\n|-\n!{{Incr|b}}\n|M\n|Autonomous Management Framework (AMF)\n|AMF special link auto-recovery mechanism\n|\n|-\n!{{Incr|b}}\n| -\n|Autonomous Management Framework (AMF)\n|AMF starter license (free master for 3 nodes)\n|\n|-\n!{{Incr|b}}\n|M\n|Autonomous Management Framework (AMF)\n|AMF virtual link ID numbering up to 4096\n|\n|-\n!{{Incr|b}}\n|M\n|Autonomous Management Framework (AMF)\n|AMF virtual links (AMF tunneling)\n|\n|-\n!{{Incr|b}}\n|M\n|Autonomous Management Framework (AMF)\n|ATMF Single Certificate API\n|\n|-\n!{{Incr|b}}\n|M\n|Autonomous Management Framework (AMF)\n|Auto Recovery for Replacement Models\n|\n|-\n!{{Incr|b}}\n|M\n|Autonomous Management Framework (AMF)\n|Auto-recovery for subscription licenses\n|\n|-\n!{{Incr|b}}\n| -\n|Autonomous Management Framework (AMF)\n|AW+ Support for TQ automatic recovery\n|\n|-\n!{{Incr|b}}\n|M\n|Autonomous Management Framework (AMF)\n|Expand ATMF provision to select from multiple targeted devices\n|\n|-\n!{{Incr|b}}\n|M\n|Autonomous Management Framework (AMF)\n|Expand Auto Recovery for replacement models\n|\n|-\n!{{Incr|b}}\n|M\n|Autonomous Management Framework (AMF)\n|FlexNet subscription license for AMF\n|\n|-\n!{{Incr|b}}\n|M\n|Autonomous Management Framework (AMF)\n|Increase number of AMF nodes in a single area\n|\n|-\n!{{Incr|b}}\n| -\n|Autonomous Management Framework (AMF)\n|Obsolete AMF ALL-CLIENTS license\n|\n|-\n!{{Incr|b}}\n|M\n|Autonomous Management Framework (AMF)\n|Remove AMF DSA key dependency\n|\n|-\n!{{Incr|b}}\n| -\n|Autonomous Management Framework (AMF)\n|SESC Application Proxy - White list\n|\n|-\n!{{Incr|b}}\n| -\n|Autonomous Management Framework (AMF)\n|Support cumulative subscription licenses on Vista mini, AMF mast\n|\n|-\n!{{Incr|b}}\n|M\n|Autonomous Management Framework (AMF)\n|TRAP transmission by leave/join of guest node\n|\n|-\n!{{Incr|b}}\n|M\n|Bootloader and Factory Support\n|Auto burn-in (MAT)\n|\n|-\n!{{Incr|b}}\n|M\n|Bootloader and Factory Support\n|Bootloader secure mode\n|\n|-\n!{{Incr|b}}\n|M\n|Bootloader and Factory Support\n|Built-In Self Test (BIST)\n|\n|-\n!{{Incr|b}}\n|M\n|Bootloader and Factory Support\n|Packet generator (test module)\n|\n|-\n!{{Incr|b}}\n| -\n|Bootloader and Factory Support\n|Platform LED test - selectable colour\n|Not supported as the factory will not be using this\n|-\n!{{Incr|b}}\n|M\n|Bootloader and Factory Support\n|Single device serial number\n|\n|-\n!{{Incr|b}}\n|M\n|Certifications\n|FIPS 140 certification\n|\n|-\n!{{Incr|b}}\n|M\n|Certifications\n|IPv6 Ready Gold certification\n|\n|-\n!{{Incr|b}}\n| -\n|Certifications\n|OpenFlow conformance certification\n|\n|-\n!{{Incr|b}}\n| -\n|Certifications\n|US Dept of Defense Approved Product List (APL)\n|\n|-\n!{{Incr|b}}\n|M\n|CLI Features\n|Cisco-like \"show interface\" command\n|\n|-\n!{{Incr|b}}\n|M\n|CLI Features\n|Enhanced port ranges\n|\n|-\n!{{Incr|b}}\n|M\n|CLI Features\n|Erase to factory default\n|\n|-\n!{{Incr|b}}\n|M\n|CLI Features\n|Help system\n|\n|-\n!{{Incr|b}}\n|M\n|CLI Features\n|Increase size of description field in \"show interface status\"\n|\n|-\n!{{Incr|b}}\n|M\n|CLI Features\n|Industry-standard CLI\n|\n|-\n!{{Incr|b}}\n|M\n|CLI Features\n|Restrict access to shell\n|\n|-\n!{{Incr|b}}\n|M\n|Data Security\n|MACsec with Pre-shared Keys\n|\n|-\n!{{Incr|b}}\n|M\n|Data Security\n|Private VLANs\n|\n|-\n!{{Incr|b}}\n|M\n|Data Security\n|Private VLANs for tree topologies\n|\n|-\n!{{Incr|b}}\n|M\n|Data Security\n|Upstream Forwarding Only (UFO)\n|\n|-\n!{{Incr|b}}\n|M\n|Device GUI\n|Access to Device's GUI from Network Map in Vista Mini\n|\n|-\n!{{Incr|b}}\n| -\n|Device GUI\n|Graphical User Interface (GUI) (Java-based)\n|Java GUI is not supported\n|-\n!{{Incr|b}}\n|M\n|Device GUI\n|GUI session timeout\n|\n|-\n!{{Incr|b}}\n|M\n|Device GUI\n|HTTP server\n|\n|-\n!{{Incr|b}}\n|M\n|Device GUI\n|HTTPS for secure connection to GUI\n|\n|-\n!{{Incr|b}}\n| -\n|Device GUI\n|Java GUI support for SFP+\n|Java GUI is not supported\n|-\n!{{Incr|b}}\n| -\n|Device GUI\n|Java GUI support for VCS and VCS-LD\n|Java GUI is not supported\n|-\n!{{Incr|b}}\n|M\n|Device GUI\n|Web-based device GUI\n|\n|-\n!{{Incr|b}}\n| -\n|Device Management\n|7-segment LED\n|\n|-\n!{{Incr|b}}\n|M\n|Device Management\n|Alarm management with web config\n|\n|-\n!{{Incr|b}}\n| -\n|Device Management\n|Alarm Monitoring - Configurable alarm contacts per VCS member\n|\n|-\n!{{Incr|b}}\n|M\n|Device Management\n|Auto MDI/MDIX\n|\n|-\n!{{Incr|b}}\n|M\n|Device Management\n|Auto-negotiation\n|\n|-\n!{{Incr|b}}\n|M\n|Device Management\n|Cloud Client Service\n|\n|-\n!{{Incr|b}}\n|M\n|Device Management\n|Cloud Config Centre (CCC) - SZTP Client\n|\n|-\n!{{Incr|b}}\n|M\n|Device Management\n|Console port\n|\n|-\n!{{Incr|b}}\n|M\n|Device Management\n|Control plane prioritisation (CPU protection)\n|\n|-\n!{{Incr|b}}\n|M\n|Device Management\n|Device management enhancements\n|\n|-\n!{{Incr|b}}\n|M\n|Device Management\n|Eco-friendly mode (turn off port LEDs)\n|\n|-\n!{{Incr|b}}\n|M\n|Device Management\n|Energy Efficient Ethernet (IEEE 802.3az)\n|\n|-\n!{{Incr|b}}\n|M\n|Device Management\n|Enhance \"show interface\" for traffic stats\n|\n|-\n!{{Incr|b}}\n| -\n|Device Management\n|External alarm contact support\n|\n|-\n!{{Incr|b}}\n|M\n|Device Management\n|Fast device startup\n|\n|-\n!{{Incr|b}}\n|M\n|Device Management\n|Fixed port duplex\n|\n|-\n!{{Incr|b}}\n|M\n|Device Management\n|Fixed port speed\n|\n|-\n!{{Incr|b}}\n|M\n|Device Management\n|Flow control\n|\n|-\n!{{Incr|b}}\n|M\n|Device Management\n|Improved interface triggers\n|\n|-\n!{{Incr|b}}\n|M\n|Device Management\n|IPv6 management via SNMPv6, SSHv6 and Telnetv6\n|\n|-\n!{{Incr|b}}\n|M\n|Device Management\n|Login banner (MotD)\n|\n|-\n!{{Incr|b}}\n|M\n|Device Management\n|Management stacking\n|\n|-\n!{{Incr|b}}\n| -\n|Device Management\n|Mixed-VCS mode for x530 and x530L\n|\n|-\n!{{Incr|b}}\n|M\n|Device Management\n|NETCONF and RESTCONF - Phase 1 - CI release\n|\n|-\n!{{Incr|b}}\n| -\n|Device Management\n|PSU Enable Command\n|\n|-\n!{{Incr|b}}\n|M\n|Device Management\n|Show interface statistics\n|\n|-\n!{{Incr|b}}\n|M\n|Device Management\n|Show warning message when user continue to use default PW\n|\n|-\n!{{Incr|b}}\n|M\n|Device Management\n|Stack-aware external alarm monitoring\n|\n|-\n!{{Incr|b}}\n|M\n|Device Management\n|TCPdump debugging\n|\n|-\n!{{Incr|b}}\n|M\n|Device Management\n|Topology Discovery - Phase 1 (Infrastructure / LLDP / DHCP Snoop\n|\n|-\n!{{Incr|b}}\n|M\n|Device Management\n|Trigger Facility - PoE PSE related events\n|\n|-\n!{{Incr|b}}\n|M\n|Device Management\n|Trigger Facility - polling time (IE Series)\n|\n|-\n!{{Incr|b}}\n|M\n|Device Management\n|Trigger Facility - variable low limit of input voltage\n|\n|-\n!{{Incr|b}}\n|M\n|Device Management\n|Triggers\n|\n|-\n!{{Incr|b}}\n|M\n|Device Management\n|Triggers - Day of the month trigger\n|\n|-\n!{{Incr|b}}\n|M\n|Device Management\n|Unit information\n|\n|-\n!{{Incr|b}}\n|M\n|Device Management\n|User-defined log-driven triggers\n|\n|-\n!{{Incr|b}}\n|M\n|DHCP\n|BOOTP relay\n|\n|-\n!{{Incr|b}}\n|M\n|DHCP\n|Change default startup behaviour\n|\n|-\n!{{Incr|b}}\n|M\n|DHCP\n|Delete individual DHCP leases\n|\n|-\n!{{Incr|b}}\n|M\n|DHCP\n|DHCP 120-day lease\n|\n|-\n!{{Incr|b}}\n|M\n|DHCP\n|DHCP ARP probe\n|\n|-\n!{{Incr|b}}\n|M\n|DHCP\n|DHCP option 82 remote-id and circuit-id\n|\n|-\n!{{Incr|b}}\n|M\n|DHCP\n|DHCP Server framed IP lease\n|\n|-\n!{{Incr|b}}\n|M\n|DHCP\n|DHCPv4 (client and server)\n|\n|-\n!{{Incr|b}}\n|M\n|DHCP\n|DHCPv4 relay\n|\n|-\n!{{Incr|b}}\n|M\n|DHCP\n|DHCPv4 Relay Short-Lease\n|\n|-\n!{{Incr|b}}\n|M\n|DHCP\n|DHCPv4 Snooping per VLAN\n|\n|-\n!{{Incr|b}}\n|M\n|DHCP\n|DHCPv6 (client and server)\n|\n|-\n!{{Incr|b}}\n| -\n|DHCP\n|DHCPv6 (client only)\n|\n|-\n!{{Incr|b}}\n|M\n|DHCP\n|DHCPv6 client triggered by IPv6 RA with 'other-config' flag\n|\n|-\n!{{Incr|b}}\n|M\n|DHCP\n|DHCPv6 Prefix Delegation (PD)\n|\n|-\n!{{Incr|b}}\n|M\n|DHCP\n|DHCPv6 relay\n|\n|-\n!{{Incr|b}}\n|M\n|DHCP\n|DHCPv6 relay DUID enhancement\n|\n|-\n!{{Incr|b}}\n|M\n|DHCP\n|DHCPv6 server advertises interface address for DNS, SNTP servers\n|\n|-\n!{{Incr|b}}\n|M\n|DHCP\n|Expand DHCP address range\n|\n|-\n!{{Incr|b}}\n|M\n|DHCP\n|Install IPv6 default route to DHCP server address (NTT only)\n|\n|-\n!{{Incr|b}}\n|M\n|Diagnostic Tools\n|\"test interface\" command support for loopback test for media con\n|\n|-\n!{{Incr|b}}\n|M\n|Diagnostic Tools\n|Active Fiber Monitoring (AFM)\n|\n|-\n!{{Incr|b}}\n|M\n|Diagnostic Tools\n|Active Fiber Monitoring (AFM) - new timer\n|\n|-\n!{{Incr|b}}\n|M\n|Diagnostic Tools\n|Active Fiber Monitoring (AFM) - prevent alarm cancel\n|\n|-\n!{{Incr|b}}\n|M\n|Diagnostic Tools\n|Active Fiber Monitoring (AFM) - trap options\n|\n|-\n!{{Incr|b}}\n|M\n|Diagnostic Tools\n|Active Fiber Monitoring (AFM) over Long Distance VCS links\n|\n|-\n!{{Incr|b}}\n|M\n|Diagnostic Tools\n|Cable fault locator (TDR)\n|\n|-\n!{{Incr|b}}\n|M\n|Diagnostic Tools\n|Continuous reboot prevention\n|\n|-\n!{{Incr|b}}\n|M\n|Diagnostic Tools\n|Dynamic link failover (host attach)\n|\n|-\n!{{Incr|b}}\n|M\n|Diagnostic Tools\n|Ethernet CFM (802.1ag) - Check Continuity Protocol (CCP)\n|\n|-\n!{{Incr|b}}\n|M\n|Diagnostic Tools\n|Find me - device locator\n|\n|-\n!{{Incr|b}}\n|M\n|Diagnostic Tools\n|ICMP Router Discovery Protocol (IRDP)\n|\n|-\n!{{Incr|b}}\n|M\n|Diagnostic Tools\n|Low Memory Management - Kill process\n|\n|-\n!{{Incr|b}}\n|M\n|Diagnostic Tools\n|Optical DDM MIB\n|\n|-\n!{{Incr|b}}\n|M\n|Diagnostic Tools\n|Optical Digital Diagnostics Monitoring (DDM)\n|\n|-\n!{{Incr|b}}\n|M\n|Diagnostic Tools\n|Ping for IPv4 traffic (ICMP)\n|\n|-\n!{{Incr|b}}\n|M\n|Diagnostic Tools\n|Ping for IPv6 traffic (ICMPv6)\n|\n|-\n!{{Incr|b}}\n|M\n|Diagnostic Tools\n|Ping polling (for up to 5 scripts)\n|\n|-\n!{{Incr|b}}\n|M\n|Diagnostic Tools\n|Port mirroring\n|\n|-\n!{{Incr|b}}\n|M\n|Diagnostic Tools\n|Port Mirroring - Advanced\n|\n|-\n!{{Incr|b}}\n| -\n|Diagnostic Tools\n|RND-Ph1: ACL statistics on Vista Manager EX\n|\n|-\n!{{Incr|b}}\n|M\n|Diagnostic Tools\n|RSPAN (VLAN mirroring)\n|\n|-\n!{{Incr|b}}\n|M\n|Diagnostic Tools\n|Trace Route for IPv4\n|\n|-\n!{{Incr|b}}\n|M\n|Diagnostic Tools\n|Trace Route for IPv6\n|\n|-\n!{{Incr|b}}\n|M\n|Diagnostic Tools\n|UniDirectional Link Detection (UDLD)\n|\n|-\n!{{Incr|b}}\n|M\n|Diagnostic Tools\n|UniDirectional Link Detection (UDLD) - JAPAN ONLY\n|\n|-\n!{{Incr|b}}\n| -\n|Discovery Protocols\n|Device Discovery - TQR Connected Wifi Clients\n|\n|-\n!{{Incr|b}}\n|M\n|Discovery Protocols\n|Link Layer Discovery Protocol (LLDP)\n|\n|-\n!{{Incr|b}}\n|M\n|Discovery Protocols\n|LLDP-MED (Media Endpoint Discovery)\n|\n|-\n!{{Incr|b}}\n|M\n|Discovery Protocols\n|ONVIF Profile Q - Device discovery, backup, manual recovery\n|\n|-\n!{{Incr|b}}\n|M\n|Domain Name Service (DNS)\n|DNS client\n|\n|-\n!{{Incr|b}}\n|M\n|Domain Name Service (DNS)\n|DNS relay\n|\n|-\n!{{Incr|b}}\n|M\n|Domain Name Service (DNS)\n|DNSv6\n|\n|-\n!{{Incr|b}}\n|M\n|Domain Name Service (DNS)\n|User can select priority between static and dynamic DNS servers\n|\n|-\n!{{Incr|b}}\n|M\n|Encryption Protocols\n|DES/3DES\n|\n|-\n!{{Incr|b}}\n|M\n|Encryption Protocols\n|EST Support\n|\n|-\n!{{Incr|b}}\n|M\n|Encryption Protocols\n|RSA for SSH\n|\n|-\n!{{Incr|b}}\n|M\n|Encryption Protocols\n|Secure Hash Algorithm (SHA-1)\n|\n|-\n!{{Incr|b}}\n|M\n|File System\n|Auto-boot from external media\n|\n|-\n!{{Incr|b}}\n|M\n|File System\n|Boot from USB memory device\n|\n|-\n!{{Incr|b}}\n|M\n|File System\n|EXT2/3/4 file system support for external media\n|\n|-\n!{{Incr|b}}\n|M\n|File System\n|FAT32, FAT16 and FAT12 file system support for external media\n|\n|-\n!{{Incr|b}}\n|M\n|File System\n|File upload and download\n|\n|-\n!{{Incr|b}}\n|M\n|File System\n|Generate triggers and logs from external media events\n|\n|-\n!{{Incr|b}}\n|M\n|File System\n|HTTP file transfer client\n|\n|-\n!{{Incr|b}}\n|M\n|File System\n|Load via Zmodem\n|\n|-\n!{{Incr|b}}\n|M\n|File System\n|Long file and directory names\n|\n|-\n!{{Incr|b}}\n|M\n|File System\n|Script interpreter\n|\n|-\n!{{Incr|b}}\n|M\n|File System\n|Secure Copy Protocol (SCP)\n|\n|-\n!{{Incr|b}}\n|M\n|File System\n|Secure File Transfer Protocol (SFTP) client\n|\n|-\n!{{Incr|b}}\n|M\n|File System\n|Text editor\n|\n|-\n!{{Incr|b}}\n|M\n|File System\n|TFTP client for IPv6\n|\n|-\n!{{Incr|b}}\n|M\n|File System\n|Trvial File Transfer Protocol (TFTP) client\n|\n|-\n!{{Incr|b}}\n|M\n|File System\n|USB interface support for files\n|\n|-\n!{{Incr|b}}\n| -\n|Firewall\n|VRF OSPFv3 Support\n|\n|-\n!{{Incr|b}}\n|M\n|Hardware Monitoring\n|Environment Monitoring: Support Fixed System Resource IDs\n|\n|-\n!{{Incr|b}}\n|M\n|Hardware Monitoring\n|Environmental monitoring\n|\n|-\n!{{Incr|b}}\n|M\n|Hardware Monitoring\n|Hardware health check framework\n|\n|-\n!{{Incr|b}}\n|M\n|Hardware Monitoring\n|Hardware health checks (P1-P3)\n|\n|-\n!{{Incr|b}}\n|M\n|Hardware Monitoring\n|Thermal shutdown enhancements\n|\n|-\n!{{Incr|b}}\n|M\n|Hardware Monitoring\n|Unit alarms\n|\n|-\n!{{Incr|b}}\n|M\n|IPv4 Forwarding & Routing\n|ARP requests and replies\n|\n|-\n!{{Incr|b}}\n|M\n|IPv4 Forwarding & Routing\n|Black-hole routing\n|\n|-\n!{{Incr|b}}\n|M\n|IPv4 Forwarding & Routing\n|Directed broadcast forwarding\n|\n|-\n!{{Incr|b}}\n|M\n|IPv4 Forwarding & Routing\n|Dynamic ARP entries\n|\n|-\n!{{Incr|b}}\n|M\n|IPv4 Forwarding & Routing\n|Equal Cost Multi Path (ECMP) routing\n|\n|-\n!{{Incr|b}}\n|M\n|IPv4 Forwarding & Routing\n|FDB table disable age-out\n|\n|-\n!{{Incr|b}}\n|M\n|IPv4 Forwarding & Routing\n|Gratuitous ARP\n|\n|-\n!{{Incr|b}}\n| -\n|IPv4 Forwarding & Routing\n|IP address on switchport (no switchport)\n|\n|-\n!{{Incr|b}}\n|M\n|IPv4 Forwarding & Routing\n|IPv4 static routes\n|\n|-\n!{{Incr|b}}\n|M\n|IPv4 Forwarding & Routing\n|IPv4 unicast forwarding\n|\n|-\n!{{Incr|b}}\n|M\n|IPv4 Forwarding & Routing\n|Local (loopback) addresses\n|\n|-\n!{{Incr|b}}\n|M\n|IPv4 Forwarding & Routing\n|Local proxy ARP\n|\n|-\n!{{Incr|b}}\n|M\n|IPv4 Forwarding & Routing\n|MAC learning\n|\n|-\n!{{Incr|b}}\n| -\n|IPv4 Forwarding & Routing\n|Multihoming feature on AR3050S & AR4050S\n|\n|-\n!{{Incr|b}}\n|M\n|IPv4 Forwarding & Routing\n|Policy-based routing (PBR)\n|\n|-\n!{{Incr|b}}\n|M\n|IPv4 Forwarding & Routing\n|Proxy ARP\n|\n|-\n!{{Incr|b}}\n|M\n|IPv4 Forwarding & Routing\n|Route maps and redistribution (BGP, RIP, OSPF)\n|\n|-\n!{{Incr|b}}\n| -\n|IPv4 Forwarding & Routing\n|Route maps and redistribution (RIP, OSPF)\n|\n|-\n!{{Incr|b}}\n|M\n|IPv4 Forwarding & Routing\n|Static ARP entries\n|\n|-\n!{{Incr|b}}\n|M\n|IPv4 Forwarding & Routing\n|UDP broadcast helper\n|\n|-\n!{{Incr|b}}\n|M\n|IPv4 Forwarding & Routing\n|Use of /31 IPv4 addresses\n|\n|-\n!{{Incr|b}}\n|M\n|IPv6 Forwarding & Routing\n|Configuration of static suffix for RA autoconfig\n|\n|-\n!{{Incr|b}}\n|M\n|IPv6 Forwarding & Routing\n|IPv4/IPv6 dual stack\n|\n|-\n!{{Incr|b}}\n|M\n|IPv6 Forwarding & Routing\n|IPv6 local (loopback) addresses\n|\n|-\n!{{Incr|b}}\n|M\n|IPv6 Forwarding & Routing\n|IPv6 static routes\n|\n|-\n!{{Incr|b}}\n|M\n|IPv6 Forwarding & Routing\n|IPv6 unicast forwarding\n|\n|-\n!{{Incr|b}}\n|M\n|IPv6 Forwarding & Routing\n|Relax IPv6 licensing\n|\n|-\n!{{Incr|b}}\n|M\n|IPv6 Forwarding & Routing\n|SLAAC for IPv6 addresses\n|\n|-\n!{{Incr|b}}\n|M\n|IPv6 Forwarding & Routing\n|Use of /126 IPv6 addresses\n|\n|-\n!{{Incr|b}}\n|M\n|L2 Multicasting\n|IGMP proxy\n|\n|-\n!{{Incr|b}}\n|M\n|L2 Multicasting\n|IGMP query solicitation\n|\n|-\n!{{Incr|b}}\n|M\n|L2 Multicasting\n|IGMP snooping - fast leave\n|\n|-\n!{{Incr|b}}\n|M\n|L2 Multicasting\n|IGMP snooping no timeout\n|\n|-\n!{{Incr|b}}\n|M\n|L2 Multicasting\n|IGMP static groups\n|\n|-\n!{{Incr|b}}\n|M\n|L2 Multicasting\n|IGMP v2/v3 snooping\n|\n|-\n!{{Incr|b}}\n|M\n|L2 Multicasting\n|Internet Group Membership Protocol (IGMPv1)\n|\n|-\n!{{Incr|b}}\n|M\n|L2 Multicasting\n|Internet Group Membership Protocol (IGMPv2)\n|\n|-\n!{{Incr|b}}\n|M\n|L2 Multicasting\n|Internet Group Membership Protocol (IGMPv3)\n|\n|-\n!{{Incr|b}}\n|M\n|L2 Multicasting\n|MLD snooping v1 and v2\n|\n|-\n!{{Incr|b}}\n|M\n|L2 Multicasting\n|Multicast flood to CPU prevention when IGMP/MLD snooping disable\n|\n|-\n!{{Incr|b}}\n|M\n|L2 Multicasting\n|Multicast Listener Discovery (MLD) v1 and v2\n|\n|-\n!{{Incr|b}}\n|M\n|L3 Multicasting\n|IPv4 multicast - static routes\n|\n|-\n!{{Incr|b}}\n|M\n|L3 Multicasting\n|IPv4 multicast forwarding\n|\n|-\n!{{Incr|b}}\n|M\n|L3 Multicasting\n|IPv6 multicast - static routes\n|\n|-\n!{{Incr|b}}\n|M\n|L3 Multicasting\n|IPv6 multicast forwarding\n|\n|-\n!{{Incr|b}}\n| -\n|L3 Multicasting\n|Multicast failover optimisation\n|\n|-\n!{{Incr|b}}\n|M\n|L3 Multicasting\n|Multicast Source Discovery Protocol (MSDP)\n|\n|-\n!{{Incr|b}}\n|M\n|L3 Multicasting\n|PIM Dense Mode to Sparse Mode translation\n|\n|-\n!{{Incr|b}}\n|M\n|L3 Multicasting\n|PIM Source Specific Multicast (SSM) for IPv4\n|\n|-\n!{{Incr|b}}\n|M\n|L3 Multicasting\n|PIM Source Specific Multicast (SSM) for IPv6\n|\n|-\n!{{Incr|b}}\n|M\n|L3 Multicasting\n|Protocol Independent Multicast (PIM) Dense Mode (DM) for IPv4\n|\n|-\n!{{Incr|b}}\n|M\n|L3 Multicasting\n|Protocol Independent Multicast (PIM) Sparse Mode (SM) for IPv4\n|\n|-\n!{{Incr|b}}\n|M\n|L3 Multicasting\n|Protocol Independent Multicast (PIM) Sparse Mode (SM) for IPv6\n|\n|-\n!{{Incr|b}}\n|M\n|L3 Multicasting\n|Support IP Multicast without UDP headers\n|\n|-\n!{{Incr|b}}\n|M\n|Link Aggregation\n|Extend LAG support up to 128 channel groups\n|\n|-\n!{{Incr|b}}\n| -\n|Link Aggregation\n|Flexible LAG support between Static and Dynamic LAGs\n|\n|-\n!{{Incr|b}}\n|M\n|Link Aggregation\n|Link aggregation (static)\n|\n|-\n!{{Incr|b}}\n|M\n|Link Aggregation\n|Link Aggregation Control Protocol (LACP)\n|\n|-\n!{{Incr|b}}\n|M\n|Link Aggregation\n|Link aggregations across VCStack members\n|\n|-\n!{{Incr|b}}\n|M\n|Logging\n|ARP log\n|\n|-\n!{{Incr|b}}\n|M\n|Logging\n|FDB table logging\n|\n|-\n!{{Incr|b}}\n|M\n|Logging\n|Log message for system audit\n|\n|-\n!{{Incr|b}}\n|M\n|Logging\n|Logging to external media\n|\n|-\n!{{Incr|b}}\n|M\n|Logging\n|Logging to non-volatile storage (NVS)\n|\n|-\n!{{Incr|b}}\n|M\n|Logging\n|Set source-interface for Syslog\n|\n|-\n!{{Incr|b}}\n|M\n|Logging\n|Syslog message startup delay\n|\n|-\n!{{Incr|b}}\n|M\n|Logging\n|Syslog over IPv4 (event logging to IPv4 host)\n|\n|-\n!{{Incr|b}}\n|M\n|Logging\n|Syslog over IPv6 (log to IPv6 host)\n|\n|-\n!{{Incr|b}}\n|M\n|Logging\n|Syslog over TLS\n|\n|-\n!{{Incr|b}}\n|M\n|Management (SNMP)\n|ACLs for SNMPv3 Groups\n|\n|-\n!{{Incr|b}}\n|M\n|Management (SNMP)\n|Agent Extensibility Protocol (AgentX) for SNMP\n|\n|-\n!{{Incr|b}}\n|M\n|Management (SNMP)\n|Entity MIB\n|\n|-\n!{{Incr|b}}\n|M\n|Management (SNMP)\n|MAC address thrashing SNMP trap\n|\n|-\n!{{Incr|b}}\n|M\n|Management (SNMP)\n|MIB support (5.2.2)\n|\n|-\n!{{Incr|b}}\n|M\n|Management (SNMP)\n|MIB support for SolarWinds\n|\n|-\n!{{Incr|b}}\n|M\n|Management (SNMP)\n|Per-port link trap\n|\n|-\n!{{Incr|b}}\n| -\n|Management (SNMP)\n|Private trap when PSU or FAN presence status changes\n|\n|-\n!{{Incr|b}}\n|M\n|Management (SNMP)\n|Restart Notification Trap\n|\n|-\n!{{Incr|b}}\n|M\n|Management (SNMP)\n|Simple Network Management Protocol (SNMP) version 1\n|\n|-\n!{{Incr|b}}\n|M\n|Management (SNMP)\n|Simple Network Management Protocol (SNMP) version 2c\n|\n|-\n!{{Incr|b}}\n|M\n|Management (SNMP)\n|Simple Network Management Protocol (SNMP) version 3\n|\n|-\n!{{Incr|b}}\n|M\n|Management (SNMP)\n|SNMP Device Discovery\n|\n|-\n!{{Incr|b}}\n|M\n|Management (SNMP)\n|SNMP MAC Notifications\n|\n|-\n!{{Incr|b}}\n|M\n|Management (SNMP)\n|SNMP Trap - Test trap destination and custom field\n|\n|-\n!{{Incr|b}}\n|M\n|Management (SNMP)\n|SNMP Trap - Test trap generation\n|\n|-\n!{{Incr|b}}\n|M\n|Management (SNMP)\n|SNMP Trap Low Memory\n|\n|-\n!{{Incr|b}}\n| -\n|Management (SNMP)\n|SNMP Trap Receiver\n|\n|-\n!{{Incr|b}}\n|M\n|Management (SNMP)\n|SNMP trap startup delay\n|\n|-\n!{{Incr|b}}\n|M\n|Management (SNMP)\n|SNMP traps\n|\n|-\n!{{Incr|b}}\n|M\n|Management (SNMP)\n|SNMP Traps for MRP\n|\n|-\n!{{Incr|b}}\n| -\n|Management (SNMP)\n|TRAP transmission by Left/Managed of TQ series\n|\n|-\n!{{Incr|b}}\n|M\n|Management (SNMP)\n|Upgrade MIB support\n|\n|-\n!{{Incr|b}}\n| -\n|Network Resiliency\n|BFD phase-3 (Support on x530 / BFD with VRF on all platforms)\n|\n|-\n!{{Incr|b}}\n|M\n|Network Resiliency\n|BPDU forwarding\n|\n|-\n!{{Incr|b}}\n|M\n|Network Resiliency\n|Link flap detection and shutdown\n|\n|-\n!{{Incr|b}}\n|M\n|Network Resiliency\n|LinkMon for Switches\n|\n|-\n!{{Incr|b}}\n|M\n|Network Resiliency\n|Multiple Spanning Tree Protocol (MSTP)\n|\n|-\n!{{Incr|b}}\n|M\n|Network Resiliency\n|PVST+ compatibility\n|\n|-\n!{{Incr|b}}\n|M\n|Network Resiliency\n|Rapid Spanning Tree Protocol (RSTP)\n|\n|-\n!{{Incr|b}}\n|M\n|Network Resiliency\n|Spanning Tree Protocol (IEEE 802.1D)\n|\n|-\n!{{Incr|b}}\n|M\n|Network Security\n|Access Control Lists (ACLs)\n|\n|-\n!{{Incr|b}}\n|M\n|Network Security\n|ACL for Directed Broadcast\n|\n|-\n!{{Incr|b}}\n|M\n|Network Security\n|ACL Traffic Logging for APL\n|\n|-\n!{{Incr|b}}\n|M\n|Network Security\n|ACLs for a VLAN or VLAN range (VLAN ACLs)\n|\n|-\n!{{Incr|b}}\n|M\n|Network Security\n|ACLs per port interface (Port ACLs)\n|\n|-\n!{{Incr|b}}\n|M\n|Network Security\n|BPDU protection\n|\n|-\n!{{Incr|b}}\n|M\n|Network Security\n|Crypto secure-mode\n|\n|-\n!{{Incr|b}}\n|M\n|Network Security\n|Delete ACL by sequence number\n|\n|-\n!{{Incr|b}}\n|M\n|Network Security\n|DHCPv4 snooping (including DAI and IP source guard)\n|\n|-\n!{{Incr|b}}\n|M\n|Network Security\n|DoS attack / virus protection\n|\n|-\n!{{Incr|b}}\n|M\n|Network Security\n|Extended IP flags classification\n|\n|-\n!{{Incr|b}}\n|M\n|Network Security\n|Force default password change\n|\n|-\n!{{Incr|b}}\n|M\n|Network Security\n|Improve ACL/QoS scalability for Broadcom devices\n|\n|-\n!{{Incr|b}}\n|M\n|Network Security\n|IPv6 hardware ACLs\n|\n|-\n!{{Incr|b}}\n|M\n|Network Security\n|MAC address filtering and limiting (lock-down)\n|\n|-\n!{{Incr|b}}\n|M\n|Network Security\n|Mask user password during login\n|\n|-\n!{{Incr|b}}\n|M\n|Network Security\n|Multi-Domain Authentication\n|\n|-\n!{{Incr|b}}\n|M\n|Network Security\n|Network Access and Control (NAC)\n|\n|-\n!{{Incr|b}}\n|M\n|Network Security\n|OpenSSL 3.1 Upgrade\n|\n|-\n!{{Incr|b}}\n|M\n|Network Security\n|Port security on LAG(Static and LACP) ports\n|\n|-\n!{{Incr|b}}\n|M\n|Network Security\n|Port-based learn limiting\n|\n|-\n!{{Incr|b}}\n|M\n|Network Security\n|RA guard\n|\n|-\n!{{Incr|b}}\n|M\n|Network Security\n|Secure hash user passwords\n|\n|-\n!{{Incr|b}}\n|M\n|Network Security\n|Show ACL and QoS table utilisation\n|\n|-\n!{{Incr|b}}\n|M\n|Network Security\n|Show log is a privileged command\n|\n|-\n!{{Incr|b}}\n|M\n|Network Security\n|STP root guard\n|\n|-\n!{{Incr|b}}\n|M\n|Network Security\n|Update OpenSSH to fix HeartBleed vulnerability\n|\n|-\n!{{Incr|b}}\n| -\n|Network Security\n|VLAN ACL usage improvement\n|\n|-\n!{{Incr|b}}\n|M\n|Network Security\n|VLAN ACL usage improvement on GS980M, x220, x320 and SBx8100\n|\n|-\n!{{Incr|b}}\n| -\n|Platform Support\n|AWC Lite support for TQ1402\n|\n|-\n!{{Incr|b}}\n| -\n|Platform Support\n|AWC Lite support for TQ6602\n|\n|-\n!{{Incr|b}}\n|M\n|Platform Support\n|Dual-rate fiber pluggable support (100M/1000M)\n|\n|-\n!{{Incr|b}}\n|M\n|Platform Support\n|Dual-rate fiber pluggable support (1G/10G)\n|\n|-\n!{{Incr|b}}\n| -\n|Platform Support\n|Ethernet driver (10/100Mbps) for copper interfaces\n|\n|-\n!{{Incr|b}}\n| -\n|Platform Support\n|Ethernet driver (1000Mbps) for copper interfaces\n|\n|-\n!{{Incr|b}}\n|M\n|Platform Support\n|Ethernet driver (1000Mbps) for fiber interfaces\n|\n|-\n!{{Incr|b}}\n|M\n|Platform Support\n|Ethernet driver (100Mbps) for fiber interfaces\n|\n|-\n!{{Incr|b}}\n|M\n|Platform Support\n|Ethernet driver (10Gbps over fiber)\n|\n|-\n!{{Incr|b}}\n| -\n|Platform Support\n|Ethernet driver (2.5G and 5G over copper)\n|\n|-\n!{{Incr|b}}\n|M\n|Platform Support\n|Ethernet support (IEEE802.2 LLC and IEEE802.3 Ethernet)\n|\n|-\n!{{Incr|b}}\n| -\n|Platform Support\n|FAN10R Support\n|\n|-\n!{{Incr|b}}\n| -\n|Platform Support\n|IE360-12GHX Platform Support\n|\n|-\n!{{Incr|b}}\n| -\n|Platform Support\n|IE360-12GTX Platform Support\n|\n|-\n!{{Incr|b}}\n| -\n|Platform Support\n|IE510 platform support\n|\n|-\n!{{Incr|b}}\n| -\n|Platform Support\n|IE560-12GSX Platform Support\n|\n|-\n!{{Incr|b}}\n|M\n|Platform Support\n|Ifindex support for ports over 99\n|\n|-\n!{{Incr|b}}\n|M\n|Platform Support\n|Jumbo frames support (L2 only)\n|\n|-\n!{{Incr|b}}\n| -\n|Platform Support\n|Prepare ATKK licenses of IE220/IE360 for release in Japan\n|\n|-\n!{{Incr|b}}\n| -\n|Platform Support\n|PWR1200 support\n|\n|-\n!{{Incr|b}}\n| -\n|Platform Support\n|PWR1200 v2\n|\n|-\n!{{Incr|b}}\n| -\n|Platform Support\n|PWR150R-70 support\n|\n|-\n!{{Incr|b}}\n| -\n|Platform Support\n|PWR250 support\n|\n|-\n!{{Incr|b}}\n| -\n|Platform Support\n|PWR250 v2 AC Platform Support\n|\n|-\n!{{Incr|b}}\n| -\n|Platform Support\n|PWR250R v2 AC Platform Support\n|\n|-\n!{{Incr|b}}\n| -\n|Platform Support\n|PWR300 support for x320 and GS980EM\n|\n|-\n!{{Incr|b}}\n| -\n|Platform Support\n|PWR800 support\n|\n|-\n!{{Incr|b}}\n| -\n|Platform Support\n|PWR800 v2\n|\n|-\n!{{Incr|b}}\n| -\n|Platform Support\n|PWR90ADP support\n|\n|-\n!{{Incr|b}}\n|M\n|Platform Support\n|SP10T 10G copper SFP+ module (RevB)\n|\n|-\n!{{Incr|b}}\n|M\n|Platform Support\n|SP10Ta Platform Support\n|\n|-\n!{{Incr|b}}\n|M\n|Platform Support\n|SP10TM Platform Support\n|\n|-\n!{{Incr|b}}\n|M\n|Platform Support\n|SP10TM/I\n|\n|-\n!{{Incr|b}}\n|M\n|Platform Support\n|SPTXc pluggable support\n|\n|-\n!{{Incr|b}}\n|M\n|Platform Support\n|Support 1G copper SFP on 10G SFP+ port\n|\n|-\n!{{Incr|b}}\n| -\n|Platform Support\n|x320-10GH platform support\n|\n|-\n!{{Incr|b}}\n| -\n|Platform Support\n|x320-11GPT platform support\n|\n|-\n!{{Incr|b}}\n| -\n|Platform Support\n|x530 / GS980MX Full 2.5G/5G support\n|\n|-\n!{{Incr|b}}\n| -\n|Platform Support\n|x530-10GHXm Platform Support\n|\n|-\n!{{Incr|b}}\n| -\n|Platform Support\n|x530-18GHXm Platform Support\n|\n|-\n!{{Incr|b}}\n| -\n|Platform Support\n|x530-28GPXm / 28GTXm platform support\n|\n|-\n!{{Incr|b}}\n| -\n|Platform Support\n|x530-28GSX Platform Support\n|\n|-\n!{{Incr|b}}\n| -\n|Platform Support\n|x530-52 (GPXm & GTXm) Platform Support\n|\n|-\n!{{Incr|b}}\n| -\n|Platform Support\n|x530DP mixed AC and DC PSU support\n|\n|-\n!{{Incr|b}}\n| -\n|Platform Support\n|x530DP-28GHXm Platform Support\n|\n|-\n!{{Incr|b}}\n| -\n|Platform Support\n|x530DP-52GHXm Platform Support\n|\n|-\n!{{Incr|b}}\n| -\n|Platform Support\n|x530L-10GHXm - Delta fan platform support\n|\n|-\n!{{Incr|b}}\n| -\n|Platform Support\n|x530L-10GHXm platform support\n|\n|-\n!{{Incr|b}}\n| -\n|Platform Support\n|x530L-18GHXm Platform Support\n|\n|-\n!{{Incr|b}}\n| -\n|Platform Support\n|x530L-28 Platform Support\n|\n|-\n!{{Incr|b}}\n| -\n|Platform Support\n|x530L-52GPXm Platform Support\n|\n|-\n!{{Incr|b}}\n| -\n|Platform Support\n|x530L-52GTX Platform Support\n|\n|-\n!{{Incr|b}}\n| -\n|Power over Ethernet (PoE)\n|Continuous POE (aka CPOE)\n|\n|-\n!{{Incr|b}}\n| -\n|Power over Ethernet (PoE)\n|PoE power budget override\n|\n|-\n!{{Incr|b}}\n| -\n|Power over Ethernet (PoE)\n|PoE power management (up to 15.4W per port)\n|\n|-\n!{{Incr|b}}\n| -\n|Power over Ethernet (PoE)\n|PoE+ power management (up to 30W per port)\n|\n|-\n!{{Incr|b}}\n| -\n|Power over Ethernet (PoE)\n|POE++ PD Receive Power (up to 90W per port) (IEEE 802.3bt)\n|\n|-\n!{{Incr|b}}\n| -\n|Power over Ethernet (PoE)\n|POE++ PSE Power Management (up to 60W per port) (IEEE 802.3bt)\n|\n|-\n!{{Incr|b}}\n| -\n|Power over Ethernet (PoE)\n|POE++ PSE Power Management (up to 90W per port) (IEEE 802.3bt)\n|\n|-\n!{{Incr|b}}\n| -\n|Power over Ethernet (PoE)\n|Power over Ethernet (PoE) MIB\n|\n|-\n!{{Incr|b}}\n|M\n|Public Key Infrastructure (PKI)\n|Ability to Generate 1 year Certs needed on AR/ARX Router\n|\n|-\n!{{Incr|b}}\n|M\n|Public Key Infrastructure (PKI)\n|Cloud Config Centre (CCC) - IDevID Support\n|\n|-\n!{{Incr|b}}\n|M\n|Public Key Infrastructure (PKI)\n|Configurable parameters for trustpoints\n|\n|-\n!{{Incr|b}}\n|M\n|Public Key Infrastructure (PKI)\n|External and intermediate Certificate Authorities (CA)\n|\n|-\n!{{Incr|b}}\n|M\n|Public Key Infrastructure (PKI)\n|Generate and zeroize multiple private keys\n|\n|-\n!{{Incr|b}}\n|M\n|Public Key Infrastructure (PKI)\n|Multiple trustpoints\n|\n|-\n!{{Incr|b}}\n|M\n|Public Key Infrastructure (PKI)\n|Online Certificate Status Protocol (OCSP) support\n|\n|-\n!{{Incr|b}}\n|M\n|Public Key Infrastructure (PKI)\n|PKI trustpoint ECDSA certificate support\n|\n|-\n!{{Incr|b}}\n|M\n|Public Key Infrastructure (PKI)\n|PKI X.509 certificate management\n|\n|-\n!{{Incr|b}}\n|M\n|Public Key Infrastructure (PKI)\n|Support passphrase encrypted PKCS#12 files\n|\n|-\n!{{Incr|b}}\n|M\n|Public Key Infrastructure (PKI)\n|Trustpoint migration\n|\n|-\n!{{Incr|b}}\n|M\n|QoS and Traffic Shaping\n|Bandwidth limiting control for ingress and egress\n|\n|-\n!{{Incr|b}}\n|M\n|QoS and Traffic Shaping\n|DC - ETS (Enhanced Transmission Selection)\n|\n|-\n!{{Incr|b}}\n|M\n|QoS and Traffic Shaping\n|DiffServ Code Point (DSCP) for 8 queues\n|\n|-\n!{{Incr|b}}\n|M\n|QoS and Traffic Shaping\n|Dynamic policy-map content changes\n|\n|-\n!{{Incr|b}}\n|M\n|QoS and Traffic Shaping\n|IPv6 QoS support\n|\n|-\n!{{Incr|b}}\n|M\n|QoS and Traffic Shaping\n|Policy-based QoS\n|\n|-\n!{{Incr|b}}\n|M\n|QoS and Traffic Shaping\n|Priority queuing based on 802.1p\n|\n|-\n!{{Incr|b}}\n|M\n|QoS and Traffic Shaping\n|QoS on trunks and port groups\n|\n|-\n!{{Incr|b}}\n|M\n|QoS and Traffic Shaping\n|QoS queueing, scheduling and queue congestion control\n|\n|-\n!{{Incr|b}}\n|M\n|QoS and Traffic Shaping\n|QoS remarking\n|\n|-\n!{{Incr|b}}\n|M\n|QoS and Traffic Shaping\n|SendVlanPort action\n|\n|-\n!{{Incr|b}}\n|M\n|QoS and Traffic Shaping\n|Type of Service (ToS)\n|\n|-\n!{{Incr|b}}\n|M\n|QoS and Traffic Shaping\n|Wirespeed packet classification (QoS)\n|\n|-\n!{{Incr|b}}\n|M\n|Ring Resiliency Protocols\n|EPSR allow mix of port types on ring ports\n|\n|-\n!{{Incr|b}}\n|M\n|Ring Resiliency Protocols\n|EPSR interop with LACP on ring ports\n|\n|-\n!{{Incr|b}}\n|M\n|Ring Resiliency Protocols\n|EPSR master (license required)\n|\n|-\n!{{Incr|b}}\n|M\n|Ring Resiliency Protocols\n|EPSR MIB and trap\n|\n|-\n!{{Incr|b}}\n|M\n|Ring Resiliency Protocols\n|EPSR SuperLoop Protection (SLP)\n|\n|-\n!{{Incr|b}}\n|M\n|Ring Resiliency Protocols\n|EPSR transit node\n|\n|-\n!{{Incr|b}}\n|M\n|Ring Resiliency Protocols\n|EPSR+\n|\n|-\n!{{Incr|b}}\n|M\n|Ring Resiliency Protocols\n|EPSR++\n|\n|-\n!{{Incr|b}}\n|M\n|Ring Resiliency Protocols\n|Ethernet Protection Switched Rings (EPSR)\n|\n|-\n!{{Incr|b}}\n|M\n|Ring Resiliency Protocols\n|G.8032 Ethernet rings (Y.1344 ERPS)\n|\n|-\n!{{Incr|b}}\n|M\n|Ring Resiliency Protocols\n|Industrial Ethernet: MRP Manager and Client\n|\n|-\n!{{Incr|b}}\n|M\n|Ring Resiliency Protocols\n|Multiple MRP rings\n|\n|-\n!{{Incr|b}}\n|M\n|Ring Resiliency Protocols\n|Support MRP on VCS\n|\n|-\n!{{Incr|b}}\n|M\n|Routing Protocols (BGP, OSPF, RIP)\n|ASN4 for BGP\n|\n|-\n!{{Incr|b}}\n|M\n|Routing Protocols (BGP, OSPF, RIP)\n|BGP 100 peers\n|\n|-\n!{{Incr|b}}\n| -\n|Routing Protocols (BGP, OSPF, RIP)\n|BGP-64 (64 routes) in the base license\n|\n|-\n!{{Incr|b}}\n|M\n|Routing Protocols (BGP, OSPF, RIP)\n|BGP4+ for IPv6\n|\n|-\n!{{Incr|b}}\n|M\n|Routing Protocols (BGP, OSPF, RIP)\n|Border Gateway Protocol (BGP4)\n|\n|-\n!{{Incr|b}}\n|M\n|Routing Protocols (BGP, OSPF, RIP)\n|ECMP for BGP routes and VRF-Lite\n|\n|-\n!{{Incr|b}}\n|M\n|Routing Protocols (BGP, OSPF, RIP)\n|IP summary address for RIPv2\n|\n|-\n!{{Incr|b}}\n|M\n|Routing Protocols (BGP, OSPF, RIP)\n|License for 256 BGP routes\n!\n|-\n!{{Incr|b}}\n| -\n|Routing Protocols (BGP, OSPF, RIP)\n|License for 5,000 BGP routes\n!\n|-\n!{{Incr|b}}\n| -\n|Routing Protocols (BGP, OSPF, RIP)\n|License for 64 BGP routes\n!\n|-\n!{{Incr|b}}\n|M\n|Routing Protocols (BGP, OSPF, RIP)\n|Open Shortest Path First (OSPFv2) for IPv4\n!\n|-\n!{{Incr|b}}\n|M\n|Routing Protocols (BGP, OSPF, RIP)\n|Open Shortest Path First (OSPFv3) for IPv6\n!\n|-\n!{{Incr|b}}\n|M\n|Routing Protocols (BGP, OSPF, RIP)\n|OSPF distribute-list for route-map\n!\n|-\n!{{Incr|b}}\n|M\n|Routing Protocols (BGP, OSPF, RIP)\n|OSPFv3 authentication / confidentiality\n!\n|-\n!{{Incr|b}}\n|M\n|Routing Protocols (BGP, OSPF, RIP)\n|Password protect BGP neighbours\n!\n|-\n!{{Incr|b}}\n|M\n|Routing Protocols (BGP, OSPF, RIP)\n|RIPng for IPv6\n!\n|-\n!{{Incr|b}}\n|M\n|Routing Protocols (BGP, OSPF, RIP)\n|RIPv2 extension MIB\n!\n|-\n!{{Incr|b}}\n|M\n|Routing Protocols (BGP, OSPF, RIP)\n|Routing Information Protocol (RIP) v1 and v2\n!\n|-\n!{{Incr|b}}\n|M\n|Secure Management\n|ACLs for management traffic\n!\n|-\n!{{Incr|b}}\n|M\n|Secure Management\n|Authentication, Authorisation & Accounting (AAA)\n!\n|-\n!{{Incr|b}}\n|M\n|Secure Management\n|Command authorisation (based on privilege level)\n!\n|-\n!{{Incr|b}}\n|M\n|Secure Management\n|Force password change on first config\n!\n|-\n!{{Incr|b}}\n|M\n|Secure Management\n|Intermediate CLI security level\n!\n|-\n!{{Incr|b}}\n|M\n|Secure Management\n|Login prompt and security\n!\n|-\n!{{Incr|b}}\n|M\n|Secure Management\n|Password encryption - Phase 1 - RADIUS and BGP secrets\n!\n|-\n!{{Incr|b}}\n|M\n|Secure Management\n|Password encryption - Phase 2 - OSPF/PPP/DDNS/RIP/CWM/L2TP\n!\n|-\n!{{Incr|b}}\n|M\n|Secure Management\n|Password recovery\n!\n|-\n!{{Incr|b}}\n|M\n|Secure Management\n|SSH client\n!\n|-\n!{{Incr|b}}\n|M\n|Secure Management\n|SSH server\n!\n|-\n!{{Incr|b}}\n|M\n|Secure Management\n|SSHv2\n!\n|-\n!{{Incr|b}}\n|M\n|Secure Management\n|SSL (crypto functions only)\n!\n|-\n!{{Incr|b}}\n|M\n|Secure Management\n|Strong passwords\n!\n|-\n!{{Incr|b}}\n|M\n|Secure Management\n|TACACS+ command authorisation\n!\n|-\n!{{Incr|b}}\n|M\n|Secure Management\n|TPM Support - Software TPM\n!\n|-\n!{{Incr|b}}\n|M\n|Secure Management\n|User database\n!\n|-\n!{{Incr|b}}\n|M\n|Services\n|Configurable IP interface for NTP\n!\n|-\n!{{Incr|b}}\n|M\n|Services\n|Daylight savings time\n!\n|-\n!{{Incr|b}}\n|M\n|Services\n|Email notifications OAuth 2.0 support\n!\n|-\n!{{Incr|b}}\n|M\n|Services\n|Network Time Protocol (NTP)\n!\n|-\n!{{Incr|b}}\n|M\n|Services\n|Network Time Protocol (NTP) for IPv6\n!\n|-\n!{{Incr|b}}\n|M\n|Services\n|Simple Mail Transfer Protocol (SMTP) email support for logging\n!\n|-\n!{{Incr|b}}\n|M\n|Services\n|SMTP authentication & Embedded SMTP Log Events\n!\n|-\n!{{Incr|b}}\n|M\n|Services\n|Specify SMTP domain name\n!\n|-\n!{{Incr|b}}\n|M\n|Services\n|Telnet client\n!\n|-\n!{{Incr|b}}\n|M\n|Services\n|Telnet server\n!\n|-\n!{{Incr|b}}\n|M\n|Services\n|TLS authentication support in the AW+ mail client\n!\n|-\n!{{Incr|b}}\n| -\n|Software Defined Networking (SDN)\n|FlexNet subscription license for OpenFlow\n!\n|-\n!{{Incr|b}}\n| -\n|Software Defined Networking (SDN)\n|Openflow - Open vSwitch Upgrade (v2.12.90)\n!\n|-\n!{{Incr|b}}\n| -\n|Software Defined Networking (SDN)\n|Openflow Config Refactoring for OpenConfig\n!\n|-\n!{{Incr|b}}\n| -\n|Software Defined Networking (SDN)\n|OpenFlow connection interruption\n!\n|-\n!{{Incr|b}}\n| -\n|Software Defined Networking (SDN)\n|OpenFlow connection interruption - non-rule-expired option\n!\n|-\n!{{Incr|b}}\n| -\n|Software Defined Networking (SDN)\n|OpenFlow encryption\n!\n|-\n!{{Incr|b}}\n| -\n|Software Defined Networking (SDN)\n|OpenFlow Hairpin link support\n!\n|-\n!{{Incr|b}}\n| -\n|Software Defined Networking (SDN)\n|OpenFlow inactivity probe\n!\n|-\n!{{Incr|b}}\n| -\n|Software Defined Networking (SDN)\n|OpenFlow support across 2-chip devices\n!\n|-\n!{{Incr|b}}\n| -\n|Software Defined Networking (SDN)\n|OpenFlow support for LAGs\n!\n|-\n!{{Incr|b}}\n| -\n|Software Defined Networking (SDN)\n|OpenFlow support for Marvell products [Phase1]\n!\n|-\n!{{Incr|b}}\n| -\n|Software Defined Networking (SDN)\n|Openflow support for Meters\n!\n|-\n!{{Incr|b}}\n| -\n|Software Defined Networking (SDN)\n|Openflow support for VLAN Stacking (Q-in-Q)\n!\n|-\n!{{Incr|b}}\n| -\n|Software Defined Networking (SDN)\n|OpenFlow v1.3 support\n!\n|-\n!{{Incr|b}}\n|M\n|Software Licensing\n|Base License enhancements\n!\n|-\n!{{Incr|b}}\n|M\n|Software Licensing\n|Base software license\n!\n|-\n!{{Incr|b}}\n|M\n|Software Licensing\n|Cumulative subscription licenses support\n!\n|-\n!{{Incr|b}}\n| -\n|Software Licensing\n|Feature licenses for IE series moved to base license (ROW)\n!\n|-\n!{{Incr|b}}\n| -\n|Software Licensing\n|FlexNet subscription license for SES\n!\n|-\n!{{Incr|b}}\n|M\n|Software Licensing\n|FlexNet subscription licensing auto-updates\n!\n|-\n!{{Incr|b}}\n|M\n|Software Licensing\n|Licensed software features\n!\n|-\n!{{Incr|b}}\n|M\n|Software Licensing\n|Package management\n!\n|-\n!{{Incr|b}}\n|M\n|Software Licensing\n|Premium license (permanent)\n!\n|-\n!{{Incr|b}}\n|M\n|Software Licensing\n|Replacement for Flexera licensing in AW+\n!\n|-\n!{{Incr|b}}\n|M\n|Software Licensing\n|Software information\n!\n|-\n!{{Incr|b}}\n|M\n|Software Licensing\n|Tiered routing licenses\n!\n|-\n!{{Incr|b}}\n|M\n|Stacking (VCStack)\n|Configure 10G ports for stacking or user traffic\n!\n|-\n!{{Incr|b}}\n|M\n|Stacking (VCStack)\n|ICMP reply from VCS member\n!\n|-\n!{{Incr|b}}\n|M\n|Stacking (VCStack)\n|Relax stacking module restrictions (AT optics, Tyco cables)\n!\n|-\n!{{Incr|b}}\n|M\n|Stacking (VCStack)\n|Simplified stack license management\n!\n|-\n!{{Incr|b}}\n|M\n|Stacking (VCStack)\n|Simplify stacking module restrictions (AT optics, any cable)\n!\n|-\n!{{Incr|b}}\n|M\n|Stacking (VCStack)\n|VCS disabled master behaviour change\n!\n|-\n!{{Incr|b}}\n|M\n|Stacking (VCStack)\n|VCS disabled master monitoring\n!\n|-\n!{{Incr|b}}\n| -\n|Stacking (VCStack)\n|VCS flexible stacking with 1G copper or SFP interface\n!\n|-\n!{{Incr|b}}\n|M\n|Stacking (VCStack)\n|VCS Long-Distance over fiber with 10G SFP+ modules\n!\n|-\n!{{Incr|b}}\n|M\n|Stacking (VCStack)\n|VCS MIB info enhancements\n!\n|-\n!{{Incr|b}}\n|M\n|Stacking (VCStack)\n|VCS normal-speed failover\n!\n|-\n!{{Incr|b}}\n|M\n|Stacking (VCStack)\n|VCS resiliency link hello counter\n!\n|-\n!{{Incr|b}}\n|M\n|Stacking (VCStack)\n|VCS simplified software upgrade\n!\n|-\n!{{Incr|b}}\n|M\n|Stacking (VCStack)\n|VCS switch port resiliency link\n!\n|-\n!{{Incr|b}}\n|M\n|Stacking (VCStack)\n|VCStack 4-unit stacking\n!\n|-\n!{{Incr|b}}\n| -\n|Stacking (VCStack)\n|VCStack 8-unit stacking\n!\n|-\n!{{Incr|b}}\n|M\n|Stacking (VCStack)\n|VCStack fast failover (FULL support)\n!\n|-\n!{{Incr|b}}\n| -\n|Stacking (VCStack)\n|VCStack support for up to 400 ports\n!\n|-\n!{{Incr|b}}\n|M\n|Stacking (VCStack)\n|VCStack virtual MAC\n!\n|-\n!{{Incr|b}}\n|M\n|Storm Control\n|Disable loop-protection timeout\n!\n|-\n!{{Incr|b}}\n|M\n|Storm Control\n|LDF enhancements\n!\n|-\n!{{Incr|b}}\n|M\n|Storm Control\n|Loop protection - loop detect\n!\n|-\n!{{Incr|b}}\n|M\n|Storm Control\n|Loop protection - thrash limiting\n!\n|-\n!{{Incr|b}}\n|M\n|Storm Control\n|QOS Storm Protection Log Message\n!\n|-\n!{{Incr|b}}\n|M\n|Storm Control\n|Storm protection (QoS based)\n!\n|-\n!{{Incr|b}}\n|M\n|Storm Control\n|Storm protection for IPv6 traffic\n!\n|-\n!{{Incr|b}}\n|M\n|Traffic Monitoring\n|IPFIX Basic - ACL Based Flows with SW Learning\n!\n|-\n!{{Incr|b}}\n|M\n|Traffic Monitoring\n|RMON\n!\n|-\n!{{Incr|b}}\n|M\n|Traffic Monitoring\n|sFlow agent\n!\n|-\n!{{Incr|b}}\n|M\n|Traffic Monitoring\n|sFlow multiple collector configuration\n!\n|-\n!{{Incr|b}}\n|M\n|Tunneling\n|IPv6 over IPv4 tunnelling\n!\n|-\n!{{Incr|b}}\n|M\n|Virtual Router Redundancy Protocol (VRRP)\n|Virtual Router Redundancy Protocol (VRRP)\n!\n|-\n!{{Incr|b}}\n|M\n|Virtual Router Redundancy Protocol (VRRP)\n|VRRP MIB and trap\n!\n|-\n!{{Incr|b}}\n|M\n|Virtual Router Redundancy Protocol (VRRP)\n|VRRPv3\n!\n|-\n!{{Incr|b}}\n|M\n|Virtual Router Redundancy Protocol (VRRP)\n|VRRPv3 MIB\n!\n|-\n!{{Incr|b}}\n|M\n|Virtual Router Redundancy Protocol (VRRP)\n|VRRPv3 pre-empt delay parameter\n!\n|-\n!{{Incr|b}}\n|M\n|Vista Manager\n|Vista Manager v1.1.0 - monitoring only\n!\n|-\n!{{Incr|b}}\n|M\n|Vista Manager\n|Vista Manager v2.0 - WebAPI work (phase 1)\n!\n|-\n!{{Incr|b}}\n|M\n|Vista Manager\n|Vista Manager v2.0 - WebAPI work (phase 2)\n!\n|-\n!{{Incr|b}}\n|M\n|VLAN\n|Generic VLAN Registration Protocol (GVRP)\n!\n|-\n!{{Incr|b}}\n|M\n|VLAN\n|L3 Jumbo Frame Support\n!\n|-\n!{{Incr|b}}\n|M\n|VLAN\n|Port-based VLANs\n!\n|-\n!{{Incr|b}}\n|M\n|VLAN\n|Subnet-based and protocol-based VLAN classifiers\n!\n|-\n!{{Incr|b}}\n|M\n|VLAN\n|VLAN double tagging (Q-in-Q)\n!\n|-\n!{{Incr|b}}\n|M\n|VLAN\n|VLAN ID translation\n!\n|-\n!{{Incr|b}}\n|M\n|VLAN\n|VLAN stacking and VLAN ID translation on same port\n!\n|-\n!{{Incr|b}}\n|M\n|VLAN\n|VLAN statistics (per-VLAN traffic counters)\n!\n|-\n!{{Incr|b}}\n|M\n|VLAN\n|VLAN tagging (802.3ac)\n!\n|-\n!{{Incr|b}}\n|M\n|VRF Lite\n|Allow to configure management feature on VRF instance\n!\n|-\n!{{Incr|b}}\n|M\n|VRF Lite\n|DHCP server per VRF instance\n!\n|-\n!{{Incr|b}}\n|M\n|VRF Lite\n|First multicast packet forwarding on VRF interface\n!\n|-\n!{{Incr|b}}\n|M\n|VRF Lite\n|Multiple VRF Lite instances per 802.1Q trunk\n!\n|-\n!{{Incr|b}}\n|M\n|VRF Lite\n|PIM SSM Support in VRF\n!\n|-\n!{{Incr|b}}\n|M\n|VRF Lite\n|VRF IPv6 Support - Phase 1\n!\n|-\n!{{Incr|b}}\n|M\n|VRF Lite\n|VRF Lite (Virtual Routing and Forwarding, Ethernet)\n!\n|-\n!{{Incr|b}}\n|M\n|VRF Lite\n|VRF Lite 64 instances\n!\n|-\n!{{Incr|b}}\n|M\n|VRF Lite\n|VRF Lite awareness for DHCP relay and DNS relay\n!\n|-\n!{{Incr|b}}\n|M\n|VRF Lite\n|VRF Lite support for IPv6 multicasting plus PIM-SSM\n!\n|-\n!{{Incr|b}}\n|M\n|VRF Lite\n|VRF Lite support for multicasting\n!\n|-\n!{{Incr|b}}\n|M\n|VRF Lite\n|VRF Lite support for OSPF\n!\n|-\n!{{Incr|b}}\n|M\n|VRF Lite\n|VRF Lite support for RIPNG (RIP IPv6)\n!\n|-\n!{{Incr|b}}\n|M\n|VRF Lite\n|VRF Lite support for VCStack\n!\n|-\n!{{Incr|b}}\n|M\n|VRF Lite\n|VRF Management Support Phase 2 (NTP / SNMP)\n!\n|}\n\n==Supported features (Ref. PRD Software Requirements)==\nThis appendix describes the correspondence of supported features to the requirement of PRD.\n{| class=\"wikitable\" style=\"background-color:white;\"\n! rowspan=\"2\" |No.\n! rowspan=\"2\" |Item\n! colspan=\"2\" rowspan=\"2\" |Specification\n! rowspan=\"2\" |Priority\n! colspan=\"1\" |Supported\n! rowspan=\"2\" |Note\n|-\n!IE520 1<sup>st</sup> rel\n|-\n!{{Incr|}}\n| rowspan=\"5\" |Port\n| colspan=\"2\" |Auto Negotiation||1||YES||\n|-\n!{{Incr|}}\n| colspan=\"2\" |Auto MDI/MDI-X||1||YES||\n|-\n!{{Incr|}}\n| colspan=\"2\" |Fixed port Speed||1||YES||\n|-\n!{{Incr|}}\n| colspan=\"2\" |Fixed Full or half Duplex||1||YES||\n|-\n!{{Incr|}}\n| colspan=\"2\" |Continuous POE (HANP)||1||NO||\n|-\n!{{Incr|}}\n| rowspan=\"25\" |IPv4\n| colspan=\"2\" |IGMPv1||1||YES||\n|-\n!{{Incr|}}\n| rowspan=\"2\" |IGMPv2\n|Static IGMP||1||YES||\n|-\n!{{Incr|}}\n|Query Solicitation||1||YES||\n|-\n!{{Incr|}}\n| colspan=\"2\" |IGMPv3||1||YES||\n|-\n!{{Incr|}}\n|Local Interfaces||Loopback Address||1||YES||\n|-\n!{{Incr|}}\n| colspan=\"2\" |ICMP||1||YES||\n|-\n!{{Incr|}}\n| colspan=\"2\" |VRRP||1||YES||\n|-\n!{{Incr|}}\n| colspan=\"2\" |Route Filtering||1||YES||\n|-\n!{{Incr|}}\n| rowspan=\"6\" |ARP\n|Gratuitous ARP||1||YES||\n|-\n!{{Incr|}}\n|ARP Polling||1||YES||\n|-\n!{{Incr|}}\n|Clear ARP||1||YES||\n|-\n!{{Incr|}}\n|Static ARP||1||YES||\n|-\n!{{Incr|}}\n|ARP Logging||1||YES||\n|-\n!{{Incr|}}\n|Multicast/Disparate MAC Arps (MS NLB Support)||1||YES||\n|-\n!{{Incr|}}\n| rowspan=\"6\" |Unicast Routing\n|IPv4 Static routing (64 routes)||1||YES||\n|-\n!{{Incr|}}\n|BGP-4 (256 Routes)||1||YES||\n|-\n!{{Incr|}}\n|RIP v1/v2 (256 routes)||1||YES||\n|-\n!{{Incr|}}\n|OSPFv2 (256 routes)||1||YES||\n|-\n!{{Incr|}}\n|ECMP (Equal-cost Multi-Path) routing||1||YES||\n|-\n!{{Incr|}}\n|VRF-Lite||1||YES||\n|-\n!{{Incr|}}\n| rowspan=\"3\" |Multicast<br>Routing\n|PIM-SM||1||YES||\n|-\n!{{Incr|}}\n|PIM-DM||1||YES||\n|-\n!{{Incr|}}\n|PIM-SSM||1||YES||\n|-\n!{{Incr|}}\n| colspan=\"2\" |UDP Broadcast Helper||1||YES||\n|-\n!{{Incr|}}\n| colspan=\"2\" |Directed-Broadcast Forwarding||1||YES||\n|-\n!{{Incr|}}\n| rowspan=\"27\" |IPv6\n| colspan=\"2\" |Management Interface||1||YES||\n|-\n!{{Incr|}}\n| colspan=\"2\" |Telnet Server||1||YES||\n|-\n!{{Incr|}}\n| colspan=\"2\" |Telnet Client||1||YES||\n|-\n!{{Incr|}}\n| colspan=\"2\" |SSH Server||1||YES||\n|-\n!{{Incr|}}\n| colspan=\"2\" |SSH Client||1||YES||\n|-\n!{{Incr|}}\n| colspan=\"2\" |DNS Relay||1||YES||\n|-\n!{{Incr|}}\n| colspan=\"2\" |DHCP Server Relay||1||YES||\n|-\n!{{Incr|}}\n| colspan=\"2\" |DHCP Server||1||YES||\n|-\n!{{Incr|}}\n| colspan=\"2\" |ICMPv6||1||YES||\n|-\n!{{Incr|}}\n| colspan=\"2\" |Trace route||1||YES||\n|-\n!{{Incr|}}\n| colspan=\"2\" |VRRPv3||1||YES||\n|-\n!{{Incr|}}\n| colspan=\"2\" |Route filtering||1||YES||\n|-\n!{{Incr|}}\n| rowspan=\"6\" |Routing\n|IPv6 Static routing (64 routes)||1||YES||\n|-\n!{{Incr|}}\n|BGP4+ (256 routes)||1||YES||\n|-\n!{{Incr|}}\n|RIPng (256 routes)||1||YES||\n|-\n!{{Incr|}}\n|OSPFv3 (256 routes)||1||YES||\n|-\n!{{Incr|}}\n|PIM-SSMv6||1||YES||\n|-\n!{{Incr|}}\n|PIM-SM/DMv6||1||YES||\n|-\n!{{Incr|}}\n| rowspan=\"3\" |SNMP\n|SNMP v1(IPv6)||1||YES||\n|-\n!{{Incr|}}\n|SNMPv2c(IPv6)||1||YES||\n|-\n!{{Incr|}}\n|SNMPv3(IPv6)||1||YES||\n|-\n!{{Incr|}}\n| colspan=\"2\" |MLDv1/v2||1||YES||\n|-\n!{{Incr|}}\n| colspan=\"2\" |MLD v1 Snooping||1||YES||\n|-\n!{{Incr|}}\n| colspan=\"2\" |MLD v2 Snooping||1||YES||\n|-\n!{{Incr|}}\n| colspan=\"2\" |QoS for IPv6 traffic||1||YES||\n|-\n!{{Incr|}}\n| colspan=\"2\" |ACL for IPv6 traffic||1||YES||\n|-\n!{{Incr|}}\n| colspan=\"2\" |IPv6 Ready Logo||3||YES||\n|-\n!{{Incr|}}\n| rowspan=\"43\" |Switching\n| colspan=\"2\" |Port Trunking (802.3ad(LACP))||1||YES||\n|-\n!{{Incr|}}\n| colspan=\"2\" |Port Trunking (802.3ad(Manual configuration))||1||YES||\n|-\n!{{Incr|}}\n| colspan=\"2\" |Port Mirroring||1||YES||\n|- \n!{{Incr|}}\n| colspan=\"2\" |VLAN Mirroring (RSPAN)||1||YES||\n|-\n!{{Incr|}}\n| rowspan=\"4\" |Port Security\n|Dynamic Port Security||-||YES||\n|-\n!{{Incr|}}\n|Dynamic Limited Mode||1||YES||\n|-\n!{{Incr|}}\n|Limited Mode||1||YES||\n|-\n!{{Incr|}}\n|Secure Mode||-||NO||\n|-\n!{{Incr|}}\n| colspan=\"2\" |Disabling 10/100 Port at the Hardware Level||1||YES||\n|-\n!{{Incr|}}\n| colspan=\"2\" |Flow Control||1||YES||\n|-\n!{{Incr|}}\n| colspan=\"2\" |Packet Storm Protection||1||YES||\n|-\n!{{Incr|}}\n| rowspan=\"4\" |EPSR\n|Master||1||YES||\n|-\n!{{Incr|}}\n|Transit||1||YES||\n|-\n!{{Incr|}}\n|EPSR MIB||1||YES||\n|-\n!{{Incr|}}\n|SLP||1||YES||\n|-\n!{{Incr|}}\n| rowspan=\"4\" |STP\n|STP(IEEE 802.1D)||1||YES||\n|-\n!{{Incr|}}\n|RSTP (IEEE 802.1w)||1||YES||\n|-\n!{{Incr|}}\n|MSTP(IEEE 802.1s)||1||YES||\n|-\n!{{Incr|}}\n|BPDU forwarding||1||YES||\n|-\n!{{Incr|}}\n| colspan=\"2\" |PVST+ compatibility||1||YES||\n|-\n!{{Incr|}}\n| colspan=\"2\" |G.8032 ERPS & CFM||1||YES||\n|-\n!{{Incr|}}\n| rowspan=\"5\" |Hardware Packet Filter(IP)\n|Access Control Lists||1||YES||\n|-\n!{{Incr|}}\n|ACL Table Utilization||1||YES||\n|-\n!{{Incr|}}\n|Sequence Number||1||YES||\n|-\n!{{Incr|}}\n|hardware ACL action \"send-to-vlan-port\"||1||YES||\n|-\n!{{Incr|}}\n|ACLs for a VLAN or VLAN range (VLAN ACLs)||1||YES||\n|-\n!{{Incr|}}\n| colspan=\"2\" |L2 Filter||1||YES||\n|-\n!{{Incr|}}\n| rowspan=\"2\" |IGMP v2 Snooping\n|IGMP Snooping All-groups||1||YES||\n|-\n!{{Incr|}}\n|IGMP Fast Leave||1||YES||\n|-\n!{{Incr|}}\n| colspan=\"2\" |IGMP v3 Snooping||1||YES||\n|-\n!{{Incr|}}\n| rowspan=\"6\" |DHCP Snooping\n|ARP security||1||YES||\n|-\n!{{Incr|}}\n|Option 82||1||YES||\n|-\n!{{Incr|}}\n|Enhancement to clear an entry in DHCP-BIND-DB\n\n*Link Down\n*DHCP Release\n|1||YES||\n|-\n!{{Incr|}}\n|Subscriber-ID||1||YES||\n|-\n!{{Incr|}}\n|IP Source Guard||1||YES||\n|-\n!{{Incr|}}\n|Dynamic ARP Inspection||1||YES||\n|-\n!{{Incr|}}\n| rowspan=\"3\" |Rate Limit\n|Ingress Limit||-||NO||\n|-\n!{{Incr|}}\n|Multicast/Broadcast/DLF per 1 port||1||YES||\n|-\n!{{Incr|}}\n|Egress Limit||1||YES||\n|-\n!{{Incr|}}\n| rowspan=\"2\" |Loop Guard\n|LDF||1||YES||\n|-\n!{{Incr|}}\n|MAC Address Thrashing||1||YES||\n|-\n!{{Incr|}}\n| colspan=\"2\" |MAC security||-||NO||\n|-\n!{{Incr|}}\n| colspan=\"2\" |GVRP||1||YES||\n|-\n!{{Incr|}}\n| rowspan=\"11\" |VLAN\n| colspan=\"2\" |Port VLAN||1||YES||\n|-\n!{{Incr|}}\n| colspan=\"2\" |IEEE802.1Q Tag||1||YES||\n|-\n!{{Incr|}}\n| colspan=\"2\" |Multiple VLAN (Private VLAN)||1||YES||\n|-\n!{{Incr|}}\n| colspan=\"2\" |IP Subnet VLAN||1||YES||\n|-\n!{{Incr|}}\n| colspan=\"2\" |Protocol VLAN||1||YES||\n|-\n!{{Incr|}}\n| colspan=\"2\" |MAC based VLAN||-||NO||\n|-\n!{{Incr|}}\n| colspan=\"2\" |Guest VLAN||1||YES||\n|-\n!{{Incr|}}\n| colspan=\"2\" |Voice VLAN||1||YES||\n|-\n!{{Incr|}}\n| colspan=\"2\" |Q-in-Q (Double Tag VLAN)||1||YES||\n|-\n!{{Incr|}}\n| colspan=\"2\" |VLAN Translation||1||YES||\n|-\n!{{Incr|}}\n| colspan=\"2\" |UFO VLAN||1||YES||\n|-\n!{{Incr|}}\n| rowspan=\"17\" |QoS\n| colspan=\"2\" |Physical Queue: 8||1||YES||\n|-\n!{{Incr|}}\n| colspan=\"2\" |CoS||1||YES||\n|-\n!{{Incr|}}\n| colspan=\"2\" |ToS||1||YES||\n|-\n!{{Incr|}}\n| colspan=\"2\" |DSCP||1||YES||\n|-\n!{{Incr|}}\n| rowspan=\"4\" |Priority Remarking\n|CoS Remarking||1||YES||\n|-\n!{{Incr|}}\n|ToS Remarking||1||YES||\n|-\n!{{Incr|}}\n|DSCP Remarking||1||YES||\n|-\n!{{Incr|}}\n|IP DSCP Override||1||YES||\n|-\n!{{Incr|}}\n| colspan=\"2\" |Port Priority||1||YES||\n|-\n!{{Incr|}}\n| rowspan=\"6\" |Policy base\n|Maximum band width||1||YES||\n|-\n!{{Incr|}}\n|Minimum band width||1||YES||\n|-\n!{{Incr|}}\n|QoS Action in Hardware Filter||1||YES||\n|-\n!{{Incr|}}\n|RED Curve||-||NO||\n|-\n!{{Incr|}}\n|Dynamic changes to policy-map content||1||YES||\n|-\n!{{Incr|}}\n|PBR (Policy Based Routing)||-||NO||\n|-\n!{{Incr|}}\n| colspan=\"2\" |Enable/Disable Port Egress Queue and Flow Control||1||YES||\n|-\n!{{Incr|}}\n| colspan=\"2\" |Scheduling (Strict Priority, Weighted Round Robin)||1||YES||\n|-\n!{{Incr|}}\n| rowspan=\"28\" |Authentication & Security\n| rowspan=\"5\" |IEEE 802.1X\n|Single host||1||YES||\n|-\n!{{Incr|}}\n|Multiple Host||1||YES||\n|-\n!{{Incr|}}\n|Multiple Authentication||1||YES||\n|-\n!{{Incr|}}\n|EAP-Notification||1||YES||\n|-\n!{{Incr|}}\n|IEEE 802.1X-2004||1||YES||\n|-\n!{{Incr|}}\n| rowspan=\"8\" |IEEE 802.1X <br>encryption type\n|EAP-MC5||1||YES||\n|-\n!{{Incr|}}\n|EAP-TLS||1||YES|||\n|-\n!{{Incr|}}\n|EAP-TTLS||1||YES||\n|-\n!{{Incr|}}\n|EAP-PEAP||1||YES||\n|-\n!{{Incr|}}\n|EAP-LEAP||1||YES||\n|-\n!{{Incr|}}\n|EAP-OTP||1||YES||\n|-\n!{{Incr|}}\n|Multiple Authentication||1||YES||\n|-\n!{{Incr|}}\n|MAC Auth fail log||1||YES||\n|-\n!{{Incr|}}\n| rowspan=\"3\" |Dynamic VLAN\n|Multiple Dynamic VLAN(Un-tag)||1||YES||\n|-\n!{{Incr|}}\n|Single Dynamic VLAN(Tag)||1||<span style=\"color:red\">NO</span>||Because this feature is not supported in AW+\n|-\n!{{Incr|}}\n|Single Dynamic VLAN(Un-tag)||1||YES||\n|-\n!{{Incr|}}\n| rowspan=\"4\" |Web Authentication\n|Multiple Authentication||1||YES||\n|-\n!{{Incr|}}\n|Public key encryption(X509)||1||YES||\n|-\n!{{Incr|}}\n|Promiscuous / Intercept web Authentication||1||YES||\n|-\n!{{Incr|}}\n|DHCP Server (Web Authentication)||1||YES||\n|-\n!{{Incr|}}\n| colspan=\"2\" |Supplicant MAC||1||YES||\n|-\n!{{Incr|}}\n| colspan=\"2\" |Roaming Authentication||1||YES||\n|-\n!{{Incr|}}\n| colspan=\"2\" |Re-authentication option||1||YES||\n|-\n!{{Incr|}}\n| colspan=\"2\" |Tri-Authentication||1||YES||\n|-\n!{{Incr|}}\n| colspan=\"2\" |MAC Auth/Web Auth||1||YES||\n|-\n!{{Incr|}}\n| colspan=\"2\" |Auth-fail VLAN||1||YES||\n|-\n!{{Incr|}}\n| colspan=\"2\" |Enhanced Guest VLAN||1||YES||\n|-\n!{{Incr|}}\n|Crypt Secure-mode||Disable Telnet, <br> SSHv1, <br> SNMPv1/v2, <br> All privilege levels except 1 and 15, <br> Weak cryptographic algorithms <br> e.g. MD5, RSA1, DSA, etc||1||YES||\n|-\n!{{Incr|}}\n| rowspan=\"65\" |Management\n| colspan=\"2\" |Telnet Server(IPv4)||1||YES||\n|-\n!{{Incr|}}\n| colspan=\"2\" |Telnet Client(IPv4)||1||YES||\n|-\n!{{Incr|}}\n| colspan=\"2\" |SSH Server(IPv4)||1||YES||\n|-\n!{{Incr|}}\n| colspan=\"2\" |SSH Client(IPv4)||1||YES||\n|-\n!{{Incr|}}\n| rowspan=\"2\" |RADIUS||Local RADIUS Server||1||YES||\n|-\n!{{Incr|}}\n|Local Proxy||1||YES||\n|-\n!{{Incr|}}\n| rowspan=\"2\" |TACACS+||Accounting||1||YES||\n|-\n!{{Incr|}}\n|Authentication||1||YES||\n|-\n!{{Incr|}}\n|User Authentication <br>Data Base||Strong Password||1||YES||\n|-\n!{{Incr|}}\n| rowspan=\"3\" |SNMP\n|SNMP v1(IPv4)||1||YES||\n|-\n!{{Incr|}}\n|SNMPv2c(IPv4)||1||YES||\n|-\n!{{Incr|}}\n|SNMPv3(IPv4)||1||YES||\n|-\n!{{Incr|}}\n| rowspan=\"2\" |Northvound Interface\n|NETCONF - YANG||1||YES||\n|-\n!{{Incr|}}\n|RESTCONF - YANG||1||YES||\n|-\n!{{Incr|}}\n|Trap||Temperature Trap||1||YES||\n|-\n!{{Incr|}}\n| colspan=\"2\" |RMON||1||YES||\n|-\n!{{Incr|}}\n| colspan=\"2\" |Per Port Link Trap||1||YES||\n|-\n!{{Incr|}}\n|LLDP||LLDP-MED||1||YES||\n|-\n!{{Incr|}}\n|sFlow||sFlow Agent||1||YES||\n|-\n!{{Incr|}}\n| colspan=\"2\" |Industry Standard SHOW INT STATUS||1||YES||\n|-\n!{{Incr|}}\n| rowspan=\"2\" |Log\n|Syslog Facility Override||1||YES||\n|-\n!{{Incr|}}\n|Syslog stored in NVS||-||NO||\n|-\n!{{Incr|}}\n| colspan=\"2\" |NTP Server||1||YES||\n|-\n!{{Incr|}}\n| colspan=\"2\" |NTP Client||1||YES||\n|-\n!{{Incr|}}\n| rowspan=\"3\" |DHCP server\n|DHCP 120-day lease||1||YES||\n|-\n!{{Incr|}}\n|Option 82||1||YES||\n|-\n!{{Incr|}}\n|DHCP ARP Probe||1||YES||\n|-\n!{{Incr|}}\n| colspan=\"2\" |DHCPv6 Sever||1||YES||\n|-\n!{{Incr|}}\n|DHCP Client||Extended ID||1||YES||\n|-\n!{{Incr|}}\n| colspan=\"2\" |DHCP Relay||1||YES||\n|-\n!{{Incr|}}\n| colspan=\"2\" |DNS Relay||1||YES||\n|-\n!{{Incr|}}\n| colspan=\"2\" |Host Name||1||YES||\n|-\n!{{Incr|}}\n| colspan=\"2\" |Ping Polling||1||YES||\n|-\n!{{Incr|}}\n| colspan=\"2\" |Scripting||1||YES||\n|-\n!{{Incr|}}\n| rowspan=\"10\" |Trigger\n|CPU||1||YES||\n|-\n!{{Incr|}}\n|Interface||1||YES||\n|-\n!{{Incr|}}\n|Memory||1||YES||\n|-\n!{{Incr|}}\n|Period||1||YES||\n|-\n!{{Incr|}}\n|Time||1||YES||\n|-\n!{{Incr|}}\n|Mail||1||YES||\n|-\n!{{Incr|}}\n|Ping Polling||1||YES||\n|-\n!{{Incr|}}\n|Reboot||1||YES||\n|-\n!{{Incr|}}\n|External Media (USB)||1||YES||\n|-\n!{{Incr|}}\n|Stack||1||YES||\n|-\n!{{Incr|}}\n| colspan=\"2\" |CLI||1||YES||\n|-\n!{{Incr|}}\n| colspan=\"2\" |Web GUI||1||YES||\n|-\n!{{Incr|}}\n| rowspan=\"6\" |Managing <br>Configuration Files <br>and Software <br>Versions\n|Loading Files using HTTP||1||YES||\n|-\n!{{Incr|}}\n|Loading Files using TFTP||1||YES||\n|-\n!{{Incr|}}\n|Loading Files using Zmodem||1||YES||\n|-\n!{{Incr|}}\n|Uploading Files using HTTP||1||YES||\n|-\n!{{Incr|}}\n|Uploading Files using TFTP||1||YES||\n|-\n!{{Incr|}}\n|Uploading Files using Zmodem||1||YES||\n|-\n!{{Incr|}}\n| colspan=\"2\" |Hardware Watchdog||1||YES||\n|-\n!{{Incr|}}\n| colspan=\"2\" |Software Watchdog||1||YES||\n|-\n!{{Incr|}}\n| colspan=\"2\" |Fixed Password of AT-FL||1||YES||\n|-\n!{{Incr|}}\n| colspan=\"2\" |UDLD||1||YES||\n|-\n!{{Incr|}}\n| colspan=\"2\" |Ethernet CFM||1||YES||\n|-\n!{{Incr|}}\n| colspan=\"2\" |Auto boot From External Media||1||YES||\n|- \n!{{Incr|}}\n| colspan=\"2\" |Eco LED feature (Eco LED command / Eco LED button)||-||NO||\n|-\n!{{Incr|}}\n| colspan=\"2\" |Eco LPI feature (IEEE 802.3az Energy Efficient Ethernet)||1||YES||\n|-\n!{{Incr|}}\n| colspan=\"2\" |Management ACL||1||YES||\n|-\n!{{Incr|}}\n| colspan=\"2\" |Management stacking (24 units in stack)||1||YES||\n|-\n!{{Incr|}}\n| colspan=\"2\" |DoS Attack Detection||1||YES||\n|-\n!{{Incr|}}\n| colspan=\"2\" |Active Fiber Monitoring||1||YES||\n|-\n!{{Incr|}}\n| colspan=\"2\" |Flexera Licensing||1||YES||\n|-\n!{{Incr|}}\n| rowspan=\"5\" |Redundancy\n| colspan=\"2\" |VCS||1||YES||\n|-\n!{{Incr|}}\n| colspan=\"2\" |Long Distance VCS on Fiber SFP+||1||YES||\n|-\n!{{Incr|}}\n| colspan=\"2\" |Long Distance VCS on Fiber QSFP+||-||NO||\n|-\n!{{Incr|}}\n| colspan=\"2\" |Stacking with Basic license’s features||1||YES||\n|-\n!{{Incr|}}\n| colspan=\"2\" |Flexi-stacking||1||NO||This is not possible, only the 4 SFP+ ports will stack\n|-\n!{{Incr|}}\n| rowspan=\"9\" |Advanced Management\n| rowspan=\"6\" |AMF\n|AMF-Member support||1||YES||\n|-\n!{{Incr|}}\n|AMF-Master support||1||YES||20 nodes\n|-\n!{{Incr|}}\n|AMF-Controller support||-||NO||\n|-\n!{{Incr|}}\n|AMF API for AMF Vista Manager||1||YES||\n|-\n!{{Incr|}}\n|AMF Guest Node (Infrastructure)||1||YES||\n|-\n!{{Incr|}}\n|AMF Guest Node (Guest Node U.I.)||1||YES||\n|-\n!{{Incr|}}\n| rowspan=\"2\" |SDN\n|OpenFlow||-||NO||\n|-\n!{{Incr|}}\n|OpenFlow Logo||-||NO||\n|-\n!{{Incr|}}\n| rowspan=\"1\" |Wireless Manager\n|Wireless Manager support||-||NO||\n|-\n!{{Incr|}}\n| rowspan=\"9\" |Other\n| rowspan=\"8\" |Windows Support\n|802.1x Authentication Server||1||YES||\n|-\n!{{Incr|}}\n|DHCP Server||1||YES||\n|-\n!{{Incr|}}\n|IPv4 Ping Traceroute||1||YES||\n|-\n!{{Incr|}}\n|IPv6 Ping Traceroute||1||YES||\n|-\n!{{Incr|}}\n|Radius Client||1||YES||\n|-\n!{{Incr|}}\n|Web Browser setting||1||YES||\n|-\n!{{Incr|}}\n|NTP Server||1||YES||\n|-\n!{{Incr|}}\n|Crypto secure-mode||1||YES||\n|-\n!{{Incr|}}\n|Combo port\n|Controlled by software||-||NO||There are no combo ports on the IE520\n|-\n!{{Incr|}}\n| rowspan=\"16\" |Application Support\n| rowspan=\"2\" |BACnet\n|BACnet Broadcast Management Device (BBMD)||2||YES||\n|-\n!{{Incr|}}\n|BACnet Broadcast Management Device (BBMD) - VCStack support||-||NO||\n|-\n!{{Incr|}}\n| rowspan=\"3\" |EtherNet/IP\n| colspan=\"1\" |Common Industrial Protocol||3||NO||\n|-\n!{{Incr|}}\n|CIP sync||3||NO||\n|-\n!{{Incr|}}\n|Device Level Ring (DLR)||3||NO||\n|-\n!{{Incr|}}\n| rowspan=\"6\" |IEEE 1588 PTPv2\n| colspan=\"1\" |Boundary clock||-||NO||\n|-\n!{{Incr|}}\n|Transparent Clock||-||NO||\n|-\n!{{Incr|}}\n|Transparent Clock (end-to-end TC, 1-step variant only)||-||NO||\n|-\n!{{Incr|}}\n|Profile: IEEE 1588-2008, Delay Request-response Default PTP profile (annex J.3)||-||NO||\n|-\n!{{Incr|}}\n|Profile: IEEE 1588-2008, Peer-to-Peer Default PTP profile (annex J.3)||-||NO||\n|-\n!{{Incr|}}\n|Profile: IEEE 1588-2008, LXI instrumentation and supporting infrastructure (annex J.3)||-||NO||\n|-\n!{{Incr|}}\n| rowspan=\"3\" |Modbus/TCP\n| colspan=\"1\" |Read/write access to registers||1||YES||\n|-\n!{{Incr|}}\n|Heartbeats||1||YES||\n|-\n!{{Incr|}}\n|VCStack support||1||YES||\n|-\n!{{Incr|}}\n| rowspan=\"1\" |PROInet IO\n| colspan=\"1\" |Read/write access to registers||1||NO||\n|-\n|-\n!{{Incr|}}\n| rowspan=\"1\" |High availability\n| colspan=\"1\" |Media Redundancy Protocol (MRP)||1||YES||\n|-\n|}\n\n===Feature license policy===\n{| class=\"wikitable sortable\" style=\"background-color:white;\"\n!License Bit!!Feature!!Description!!Base License\n!AT-IE520-FL01!!Comment\n|-\n|1||BGP 64||BGP with up to 64 routes||NO\n|YES||\n|-\n|2||BGP4 Plus||BGP4+||NO\n|YES\n|\n|-\n|3||OSPF6 64||OSPFv3 with up to 64 routes||NO\n| ||\n|-\n|4||PIM IPv4 Sparse/Dense Mode||IPv4 PIM Sparse Mode and Dense Mode support||NO\n|YES\n|\n|-\n|5||PIM6 Sparse Mode||IPv6 PIM Sparse Mode support||NO\n|YES||\n|-\n|6||RIPNG||RIPng, this needs IPv6 basic support||NO\n|YES||\n|-\n|7||VRRP||VRRP support||YES\n| ||\n|-\n|8||OSPF Full||Full OSPF support||NO\n| ||\n|-\n|9||VLAN Double Tagging||VLAN double tagging support (Q-in-Q)||YES\n| ||\n|-\n|10||OSPF 64||OSPF support with up to 64 routes||NO\n| ||\n|-\n|11||BGP Full||Full BGP support||NO\n|YES||\n|-\n|12||IPv6 Basic||Basic IPv6 support||YES\n| ||\n|-\n|13||MLD Snooping||MLD support||YES\n| ||\n|-\n|14||BGP 5K||BGP support for up to 5000 routes||NO\n| ||\n|-\n|15||Radius 100||Radius server support for up to 100 clients||YES\n| ||\n|-\n|16||Radius Full||Radius server support||NO\n| ||\n|-\n|17||PIM 100||PIM support for up to 100 neighbors||NO\n| ||\n|-\n|18||Access License||Access license, this is for developers only||NO\n| ||\n|-\n|19||LAG Full||Link aggregation support||YES\n| ||\n|-\n|20||Virtual-MAC||-||N/A\n| ||No longer used\n|-\n|21||OSPFv3-FULL||Full OSPF6 support||NO\n| ||\n|-\n|22||VRF-LITE||Full VRF lite support||NO\n|YES||\n|-\n|23||UDLD||UDLD support||YES\n| ||\n|-\n|24||VRF-LITE-63||VRF lite support for up to 63 VRFs||NO\n| ||\n|-\n|25||AMF-MASTER-40||AMF master support for up to 40 nodes||NO\n| ||\n|-\n|26||EPSR-MASTER||EPSR master support||YES\n| ||\n|-\n|27||RIP||RIP support||NO\n| ||\n|-\n|28||IPv6-6to4|| ||N/A\n| ||\n|-\n|29||NO_SFPCHECK||No SFP check, internal use only||NO\n| ||\n|-\n|30||AMF-MASTER-20||AMF master support for up to 20 nodes||NO\n| ||\n|-\n|31||OSPF-256||OSPF support for up to 256 routes||NO\n|YES||\n|-\n|32||OSPFv3-256||OSPFv3 support for up to 256 routes||NO\n|YES||\n|-\n|33||No-License-Lock||No software version check required||YES\n| ||\n|-\n|34||AMF-MASTER-80||AMF master support for up to 80 nodes||NO\n| ||\n|-\n|35||AMF-MASTER-120||AMF master support for up to 120 nodes||NO\n| ||\n|-\n|36||AMF-MASTER-250||AMF master support for up to 250 nodes||NO\n| ||\n|-\n|37||AMF MINOR||-||N/A\n| ||\n|-\n|38||VCS||VCS (Virtual Chassis Stacking) support||YES\n| ||\n|-\n|39||CPU-L3-Route||L3 routing via CPU||YES\n| ||\n|-\n|40||RADIUS-3||Radius server for up to 3 clients||NO\n| ||\n|-\n|41||No-Tier-Check||No tier checking||NO\n| ||\n|-\n|42||LICD Dev||licd developer||N/A\n| ||\n|-\n|43||EOL OpenFlow|| ||NO\n| ||\n|-\n|44||SFP+||Support SFP+ devices||NO\n| ||\n|-\n|45||AMF-CONTROL-10||AMF controller support for 10 nodes||NO\n| ||\n|-\n|46||AMF-CONTROL-30||AMF controller support for 60 nodes||NO\n| ||\n|-\n|47||AMF-CONTROL-60||AMF controller support for 60 nodes||NO\n| ||\n|-\n|48||WMD-AP-20||Wireless manager support for 20 nodes||N/A\n| ||\n|-\n|49||WMD-AP-40||Wireless manager support for 40 nodes||N/A\n| ||\n|-\n|50||WMD-AP-80||Wireless manager support for 80 nodes||N/A\n| ||\n|-\n|51||WMD-AP-120||Wireless manager support for 120 nodes||N/A\n| ||\n|-\n|52||AMF-Starter||AMF master support for up to 3 nodes||NO\n| ||\n|-\n|53||AMF-GUEST||AMF Guest node support||NO\n| ||\n|-\n|54||VLAN-TRANS-LITE||VLAN translation lite||NO\n| ||\n|-\n|55||VLAN-TRANS-FULL||VLAN translation full||YES\n| ||\n|-\n|56||EOL SES|| ||N/A\n| ||\n|-\n|57||Continuous POE||HANP support||NO\n| ||\n|-\n|58||PTP-TRANS||Transparent PTP support||NO\n|\n|\n|-\n|59||PTP-BOUND||Bound PTP support||N/A\n| ||\n|-\n|60||PTP-ORD||-||N/A\n| ||Not implemented\n|-\n|61||G8032||G.8032 support||YES\n| ||\n|-\n|62||CFM||CFM support||YES\n| ||\n|-\n|63||AMF-APP-PROXY||AMF application proxy||NO\n| ||\n|-\n|64||L3-FORWARDING||L3 forwarding support||YES\n| ||\n|-\n|65||UFO||UFO support||YES\n| ||\n|-\n|66||BGP-256||BGP with up to 256 routes||NO\n|YES||\n|-\n|67||L3-MC-ROUTE||L3 multicast routing support||YES\n| ||\n|-\n|68||OpenFlow||OpenFlow support||NO\n| ||\n|-\n|69||SES||Secure Enterprise SDN support||NO\n| ||\n|-\n|70||PIM-1024||PIM with up to 1024 neighbors||NO\n| ||\n|-\n|71||MODBUS||MODBUS support||NO\n| ||\n|-\n|72||RIP-256||RIP with up to 256 routes||NO\n|YES\n|\n|-\n|73||RIPNG-256||RIPng with up to 256 routes||NO\n|YES\n|\n|-\n|74||VCS_Mixed-Mode||VCS mixed stack node mode||NO\n| ||\n|-\n|75||RIP-16||RIP with up to 16 routes||NO\n| ||\n|-\n|76||STATIC-128||Static routing with up to 128 routes||NO\n| ||\n|-\n|77||OSPF-16||OSPF with up to 16 routes||NO\n| ||\n|-\n|78||OSPF-128||OSPF with up to 128 routes||NO\n| ||\n|-\n|79||VRF-LITE-FULL||Full VRF lite support||NO\n| ||\n|-\n|80||ISIS-FULL||ISIS support||NO\n| ||\n|-\n|81||MRP||Media Redundancy Protocol support||YES\n| ||\n|-\n|82||PROFINET||PROFINET support||NO\n| ||\n|-\n|83||VXLAN||VXLAN support||NO\n| ||\n|-\n|84||FIREWALL||Firewall support||NO\n| ||\n|-\n|85||VPN||VPN support||NO\n| ||\n|-\n|86||DPI_RMT_CLIENT||DPI remote support||NO\n| ||\n|-\n|87||BASE-AW+||AWP base support||YES\n| ||\n|-\n|-\n|88||10G_SFP+||Enable 10G uplink support (copper or SFP+)||YES\n| ||\n|-\n|89||POE++||Enable POE++ support||NO\n| ||\n|-\n|90||BW-UNLIMITED||Unlimited bandwidth||YES\n| ||\n|-\n|91||AMF-INTERMEDIATE||ATMF intermediate node support||NO\n| ||\n|-\n|92||MACSEC||MACSEC support||NO\n| ||\n|-\n|}\n\n====IE520-28GSX subscription license support====\nAMF master support for up to 20 nodes will be enabled via subscription licensing\n\n==Ranges and Limits==\n===Hardware Limits===\n====L2 Features====\n{| class=\"wikitable\" style=\"background-color:white;\"\n!Feature!!Hardware Limit!!Comment\n|-\n|Max Standard Frame size||1522||\n|-\n|Max Jumbo Frame Size||10kB||\n|-\n|Number of vlans||4k||\n|-\n|Number of channel-groups (static and dynamic)||125||HW supports 127 but 2 will be reserved for VCS use.\n|-\n|Number of ports per channel-group||32||AW+ currently supports 8 ports per trunk.\n|-\n|Number of MSTP instances||1023||\n|-\n|Number of FDB entries||16k||\n|-\n|Number of L2 Multicast entries||4k||\n|-\n|Number of protocol based vlans||12||\n|-\n|Number of subnet based vlans||3072||\n|-\n|Number of Mac based vlans||3072||\n|-\n|Number of ACLs/QoS Policymaps\n|1536\n|\n|}\n\n====L3 Features====\n\n{| class=\"wikitable\" style=\"background-color:white;\"\n!Feature!!Hardware Limit!!Comment\n|-\n|L3 host route table||4096||This is how large the table possibly is but it is split into UC / MC which halves the possible entries\n|-\n|L3 LPM route table||3k IPv4 or 3.25k IPv6 prefixes\n|But is shared with TCAM for Multiple Dynamic VLANs so will be less.\n|-\n|L3 IP multicast table||4096||Limited by the number of Route Entries, this is the max but with no unicast routes.\n|-\n|L3 tunnel table||128||This requires entries from the L3 LPM route table.\n|-\n|ContentAware preclassification stage processor table|| ||\n|-\n|Ingress ContentAware processor table|| ||\n|-\n|Egress ContentAware processor table|| ||\n|}\n\n====QoS====\n\n{| class=\"wikitable\" style=\"background-color:white;\"\n!Feature!!Hardware Limit!!Comment\n|-\n|Number of class-maps||1536||\n|-\n|Number of class-maps per policy||127||\n|-\n|Number of queues per port||8||\n|}\n\n====System Limits (Ref. x320 PRD and GS980EM PRD Appendix A)====\n\n{| class=\"wikitable\" style=\"background-color:white;\"\n! rowspan=\"2\" |No.!! rowspan=\"2\" |Items!! rowspan=\"2\" |Feature!! colspan=\"2\" |Support limitIE520!! rowspan=\"2\" style=\"width: 40%\" |Comment\n|-\n!Required!!Actual\n|-\n!(1)\n| rowspan=\"2\" |MAC Address entries\n|Number of Dynamic MAC Entries||16,000||16K||\n|-\n!(2)\n|Number of Static MAC Entries||256||256||\n|-\n!(3)\n| rowspan=\"2\" |IP Interfaces\n|Number of active IPv4 interface||4,000||4094||There is no hard limit on the number of interfaces, just what we support.\n|-\n!(4)\n|Number of active IPv6 interface||2,498||1,000||There is no hard limit on the number of interfaces, just what we support.\n|-\n!(5)\n| rowspan=\"2\" |ARP / IPv6 neighbours\n|Number of Dynamic ARP Entries||4,000||<span style=\"color:red;\">2,044</span>||When in WEIGHTING UNICAST mode 3,060 can be supported.\n|-\n!(6)\n|IP Static ARP Entries||1,024||1,024||\n|-\n!(7)\n| rowspan=\"4\" |Link Aggregation\n|Ports in an aggregation (Static Channel)||8||8||\n|-\n!(8)\n|Minimum number of aggregation (Static Ch)||128||90||Total number of aggregators, Static and LACP, will be 127.<br>The actual split between these will be determined closer to release time.\n|-\n!(9)\n|Ports in an aggregation (LACP)||8||8||\n|-\n!(10)\n|Minimum number of aggregation (LACP)||128||30||Total number of aggregators, Static and LACP, will be 127.<br>The actual split between these will be determined closer to release time.\n|-\n!(11)\n|Port Mirroring\n|Mirrored Ports||8||8||\n|-\n!(12)\n| rowspan=\"2\" |Port Security\n|Port Security per unit||2,816||2,816||number of ports * 256 (11 * 256)\n|-\n!(13)\n|Port Security per port||256||256||\n|-\n!(14)\n| rowspan=\"2\" |STP （IEEE 802.1D）\n|Number of STP domain||16||<span style=\"color:red;\">-</span>||not supported\n|-\n!(15)\n|Number of Ports in a STP domain||8||<span style=\"color:red;\">-</span>||not supported\n|-\n!(16)\n| rowspan=\"2\" |MSTP （IEEE 802.1s）\n|MSTI Instance||15||15||S/W limit. H/W limit value is 256\n|-\n!(17)\n|Number of VLAN for one MSTI||4,094||4,094||\n|-\n!(18)\n|ACL/QoS\n|Number of ACL/QoS entries||512||<span style=\"color:red\">1,536</span>||This is how many entries we can get out of the silicon with the current SW.\n|-\n!(19)\n| rowspan=\"5\" |VLAN\n|VLAN IDs||1-4094||1-4094||Some VLAN IDs get reserved for ATMF\n|-\n!(20)\n|Entry number of Port Based VLANs(Tag Based VLAN)||4,096||4,096||\n|-\n!(21)\n|Entry number of IP Subnet Based VLANs||256||256||\n|-\n!(22)\n|Entry number of MAC Based VLANs||1,000||<span style=\"color:red\">-</span>||Mac based VLANs are not currently supported on AW+ and so this target cannot be met.\n|-\n!(23)\n|Entry number of Protocol Based VLANs||256||<span style=\"color:red\">12</span>||HW limitation\n|-\n!(24)\n| rowspan=\"2\" |IGMPv2/v3\n|IGMP entries||1,024||2,046||\n|-\n!(25)\n|IGMP Interfaces||1,024||<span style=\"color:red\">100</span>||100 interfaces is all that AW+ supports.\n|-\n!(26)\n|IGMPv2/v3 Snooping Group Entries\n|Number of IGMP Snooping Group Entries||1,000||2,046||This limit indicates port groups of multicast entries. <br> If some multicast groups use the same port group, multicast groups are allowed higher than the limit.\n|-\n!(27)\n|MLDv1/v2 Snooping Group Entries\n|Number of MLD Snooping Group Entries||256||2,046||This limit indicates port groups of multicast entries. <br> If some multicast groups use a same port group, multicast groups are allowed higher than the limit.\n|-\n!(28)\n| rowspan=\"2\" |IEEE 802.1X\n|Authentication entries per port||1,024||1,024||\n|-\n!(29)\n|Authentication entries per unit||1,024||1,024||\n|-\n!(30)\n| rowspan=\"2\" |MAC Based Auth\n|Authentication entries per port||1,024||1,024||\n|-\n!(31)\n|Authentication entries per unit||1,024||1,024||\n|-\n!(32)\n| rowspan=\"2\" |Web Auth\n|Authentication entries per port||1,024||1,024||\n|-\n!(33)\n|Authentication entries per unit||1,024||1,024||\n|-\n!(34)\n| rowspan=\"2\" |Multiple Dynamic VLAN\n|Authentication entries per port||2,048||2,560||Shares memory with Routes.<br>This is the total when the slit is towards MDV.<br>  Refer to [[X320_Software_TPS#IP_Routing_vs_Multiple_Dynamic_VLAN|IP Routing vs Multiple Dynamic VLAN]]\n|-\n!(35)\n|Authentication entries per unit||2,048||2,560||Shares memory with Routes.<br>This is the total when the slit is towards MDV.<br>  Refer to [[X320_Software_TPS#IP_Routing_vs_Multiple_Dynamic_VLAN|IP Routing vs Multiple Dynamic VLAN]]\n|-\n!(36)\n|Telnet Server (IPv4)\n|Number of sessions||33||10||\n|-\n!(37)\n|RADIUS\n|Number of registered users||3||3||\n|-\n!(38)\n| rowspan=\"2\" |Local RADIUS Server\n|Number of users||1,000||<span style=\"color:red\">100</span>||x320: Using RADIUS-100 base license which is consistent with similar products\n|-\n!(39)\n|Number of NAS||100||<span style=\"color:red\">24</span>||x320: Using RADIUS-100 base license which is consistent with similar products\n|-\n!(40)\n| rowspan=\"2\" |SNMP\n|Number of communities||16||4||\n|-\n!(41)\n|Number of TRAP receivers||35||4||\n|-\n!(42)\n|Log (Syslog)\n|Number of syslog receivers||20||20||\n|-\n!(43)\n| rowspan=\"3\" |DHCP Server\n|Number of Policies per unit||254||5,000||\n|-\n!(44)\n|Number of Ranges per unit||255||5,000||\n|-\n!(45)\n|Number of client entries||5,000||5,000||\n|-\n!(46)\n|Trigger\n|Number of trigger entries||250||250||\n|-\n!(47)\n|TACACS+\n|Number of registered users||1||1||\n|-\n!(48)\n|FDB\n|Number of FDB entries||16,000||16K||\n|-\n!(49)\n| rowspan=\"2\" |EPSR\n|Number of Data VLANs||512||512||\n|-\n!(50)\n|Number of domains per port||64||64||\n|-\n!(51)\n| rowspan=\"9\" |IP Routing\n|Static (IPv4) no license||1,000||1,000||\n|-\n!(52)\n|Static (IPv4) with premium license||1,000||1,000||\n|-\n!(53)\n|Static (IPv6) no license||1,000||1,000||\n|-\n!(54)\n|RIP v1/v2 (IPv4) no license||256||256||\n|-\n!(55)\n|RIP v1/v2 (IPv4) with premium license||256||256||\n|-\n!(56)\n|RIPng (IPv6)||256||256||x320:  With Premium License\n|-\n!(57)\n|OSPFv2 (IPv4) no license||256||256||\n|-\n!(58)\n|OSPFv2 (IPv4) with premium license||256||256||\n|-\n!(59)\n|OSPFv3 (IPv6)||256||256||x320: With Premium License\n|-\n!(60)\n| rowspan=\"5\" |PIM (IPv4/v6)\n|PIM-SM Interface||100||100||Base license does include 32 PIM interfaces if PIM license bit is set\n|-\n!(61)\n|PIM-SM PIM (S,G) entries||1,023||<span style=\"color:red\">1,023</span>||The way the routes are allowed is that they are limited by the number of route entries<br>available for MC, which is 2k, split between *,G and S,G routes.\n|-\n!(62)\n|Neighbors Per PIM Interface||500||500||\n|-\n!(63)\n|PIM Forwarding routes (groups)||2,047||<span style=\"color:red\">1,023</span>||The way the routes are allowed is that they are limited by the number of route entries<br>available for MC, which is 2k, split between *,G and S,G routes.\n|-\n!(64)\n|Source servers in PIM network||1,000||1,023||\n|-\n|}\n\n===OpenFlow===\nPlease state whether OpenFlow has been requested to be supported on this product.\n\nOpenFlow is not requested on this product.\n\n===Default Configuration===\nWhen the device has not been configured by the user the following defaults are configured.\n\n*All ports are members of vlan1\n*All ports are enabled and will layer 2 switch\n*RSTP is enabled on all ports\n*IGMP snooping is enabled\n*ATMF is enabled.\n*Telnet server is disabled\n*SSH server is enabled   (mitigation - Default password change is required on first login)\n*Loop-protection is enabled\n*IPv6 is enabled\n*DHCP and DHCPv6 client is enabled\n*If no DHCP offer is received, default IPv4 link-local address (169.254.42.42/16) is applied\n\n===Features Supported and Tested===\n\n*Go to SID: Releases -> view by version -> ALL, then select your platform(s)\n*Save webpage (Ctrl+S, select HTML only, not saving the whole webpage including pictures etc)\n*Run the script against the html file and it will output the wiki table to stdout: parse_sid_features_to_wiki_table.py /tmp/sid.html > /tmp/wiki.txt\n*Edit \"platform0\" etc in the table header to the correct platform name.\n*You can use the parameter -r if you want to reverse the order of the columns.\n*Review items in SID. If SID changes are required, create a task in Jira under the 'SID' project that details the required changes.\n\n{| class=\"wikitable\" style=\"background-color:white;\"\n! rowspan=\"2\" |No.!! rowspan=\"2\" |Feature Group!! rowspan=\"2\" |Feature!! colspan=\"2\" |PRODUCT\n|-\n!Features Supported!!Features Tested\n|-\n!{{Incr|b}}\n|...||...||Y/N||Y/N\n|-\n|}\n\n==Items in PRD not Supported by TPS==\n\n[[Category:TPS]]"
+},
+"sections": [
+{
+"toclevel": 1,
+"level": "2",
+"line": "Approval",
+"number": "1",
+"index": "1",
+"fromtitle": "IE520_Software_TPS",
+"byteoffset": 663,
+"anchor": "Approval"
+},
+{
+"toclevel": 1,
+"level": "2",
+"line": "Revision History",
+"number": "2",
+"index": "2",
+"fromtitle": "IE520_Software_TPS",
+"byteoffset": 1125,
+"anchor": "Revision_History"
+},
+{
+"toclevel": 1,
+"level": "2",
+"line": "Scope of this Document",
+"number": "3",
+"index": "3",
+"fromtitle": "IE520_Software_TPS",
+"byteoffset": 2319,
+"anchor": "Scope_of_this_Document"
+},
+{
+"toclevel": 1,
+"level": "2",
+"line": "Overview of the IE520 Software",
+"number": "4",
+"index": "4",
+"fromtitle": "IE520_Software_TPS",
+"byteoffset": 2485,
+"anchor": "Overview_of_the_IE520_Software"
+},
+{
+"toclevel": 1,
+"level": "1",
+"line": "References and Definitions",
+"number": "5",
+"index": "5",
+"fromtitle": "IE520_Software_TPS",
+"byteoffset": 3423,
+"anchor": "References_and_Definitions"
+},
+{
+"toclevel": 2,
+"level": "2",
+"line": "References",
+"number": "5.1",
+"index": "6",
+"fromtitle": "IE520_Software_TPS",
+"byteoffset": 3452,
+"anchor": "References"
+},
+{
+"toclevel": 2,
+"level": "2",
+"line": "Definitions",
+"number": "5.2",
+"index": "7",
+"fromtitle": "IE520_Software_TPS",
+"byteoffset": 3816,
+"anchor": "Definitions"
+},
+{
+"toclevel": 1,
+"level": "1",
+"line": "IE520 Software Requirements",
+"number": "6",
+"index": "8",
+"fromtitle": "IE520_Software_TPS",
+"byteoffset": 4345,
+"anchor": "IE520_Software_Requirements"
+},
+{
+"toclevel": 2,
+"level": "2",
+"line": "IE520 Software Definition",
+"number": "6.1",
+"index": "9",
+"fromtitle": "IE520_Software_TPS",
+"byteoffset": 4383,
+"anchor": "IE520_Software_Definition"
+},
+{
+"toclevel": 3,
+"level": "3",
+"line": "IE520 Software Functions and Operation",
+"number": "6.1.1",
+"index": "10",
+"fromtitle": "IE520_Software_TPS",
+"byteoffset": 4421,
+"anchor": "IE520_Software_Functions_and_Operation"
+},
+{
+"toclevel": 3,
+"level": "3",
+"line": "IE520 Software Major Functional Components",
+"number": "6.1.2",
+"index": "11",
+"fromtitle": "IE520_Software_TPS",
+"byteoffset": 4474,
+"anchor": "IE520_Software_Major_Functional_Components"
+},
+{
+"toclevel": 4,
+"level": "4",
+"line": "Switching Core",
+"number": "6.1.2.1",
+"index": "12",
+"fromtitle": "IE520_Software_TPS",
+"byteoffset": 4872,
+"anchor": "Switching_Core"
+},
+{
+"toclevel": 4,
+"level": "4",
+"line": "Processing Core",
+"number": "6.1.2.2",
+"index": "13",
+"fromtitle": "IE520_Software_TPS",
+"byteoffset": 4951,
+"anchor": "Processing_Core"
+},
+{
+"toclevel": 4,
+"level": "4",
+"line": "Memory",
+"number": "6.1.2.3",
+"index": "14",
+"fromtitle": "IE520_Software_TPS",
+"byteoffset": 5046,
+"anchor": "Memory"
+},
+{
+"toclevel": 4,
+"level": "4",
+"line": "Number of MAC Addresses Per Device",
+"number": "6.1.2.4",
+"index": "15",
+"fromtitle": "IE520_Software_TPS",
+"byteoffset": 5174,
+"anchor": "Number_of_MAC_Addresses_Per_Device"
+},
+{
+"toclevel": 4,
+"level": "4",
+"line": "Power Supply Unit",
+"number": "6.1.2.5",
+"index": "16",
+"fromtitle": "IE520_Software_TPS",
+"byteoffset": 5259,
+"anchor": "Power_Supply_Unit"
+},
+{
+"toclevel": 4,
+"level": "4",
+"line": "Embedded Operational Software",
+"number": "6.1.2.6",
+"index": "17",
+"fromtitle": "IE520_Software_TPS",
+"byteoffset": 5624,
+"anchor": "Embedded_Operational_Software"
+},
+{
+"toclevel": 4,
+"level": "4",
+"line": "Network Management Software",
+"number": "6.1.2.7",
+"index": "18",
+"fromtitle": "IE520_Software_TPS",
+"byteoffset": 5827,
+"anchor": "Network_Management_Software"
+},
+{
+"toclevel": 4,
+"level": "4",
+"line": "Graphical User Interface",
+"number": "6.1.2.8",
+"index": "19",
+"fromtitle": "IE520_Software_TPS",
+"byteoffset": 6212,
+"anchor": "Graphical_User_Interface"
+},
+{
+"toclevel": 3,
+"level": "3",
+"line": "New Software Features",
+"number": "6.1.3",
+"index": "20",
+"fromtitle": "IE520_Software_TPS",
+"byteoffset": 6464,
+"anchor": "New_Software_Features"
+},
+{
+"toclevel": 4,
+"level": "4",
+"line": "Board Support",
+"number": "6.1.3.1",
+"index": "21",
+"fromtitle": "IE520_Software_TPS",
+"byteoffset": 6492,
+"anchor": "Board_Support"
+},
+{
+"toclevel": 3,
+"level": "3",
+"line": "Features that aren't going to be implemented",
+"number": "6.1.4",
+"index": "22",
+"fromtitle": "IE520_Software_TPS",
+"byteoffset": 7781,
+"anchor": "Features_that_aren.27t_going_to_be_implemented"
+},
+{
+"toclevel": 4,
+"level": "4",
+"line": "IP address on switchport (no switchport)",
+"number": "6.1.4.1",
+"index": "23",
+"fromtitle": "IE520_Software_TPS",
+"byteoffset": 7833,
+"anchor": "IP_address_on_switchport_.28no_switchport.29"
+},
+{
+"toclevel": 3,
+"level": "3",
+"line": "External Interfaces",
+"number": "6.1.5",
+"index": "24",
+"fromtitle": "IE520_Software_TPS",
+"byteoffset": 8151,
+"anchor": "External_Interfaces"
+},
+{
+"toclevel": 4,
+"level": "4",
+"line": "Network Ports",
+"number": "6.1.5.1",
+"index": "25",
+"fromtitle": "IE520_Software_TPS",
+"byteoffset": 8177,
+"anchor": "Network_Ports"
+},
+{
+"toclevel": 4,
+"level": "4",
+"line": "LED",
+"number": "6.1.5.2",
+"index": "26",
+"fromtitle": "IE520_Software_TPS",
+"byteoffset": 8457,
+"anchor": "LED"
+},
+{
+"toclevel": 4,
+"level": "4",
+"line": "Console",
+"number": "6.1.5.3",
+"index": "27",
+"fromtitle": "IE520_Software_TPS",
+"byteoffset": 10941,
+"anchor": "Console"
+},
+{
+"toclevel": 4,
+"level": "4",
+"line": "Alarm Connections",
+"number": "6.1.5.4",
+"index": "28",
+"fromtitle": "IE520_Software_TPS",
+"byteoffset": 11318,
+"anchor": "Alarm_Connections"
+},
+{
+"toclevel": 4,
+"level": "4",
+"line": "Reset Button",
+"number": "6.1.5.5",
+"index": "29",
+"fromtitle": "IE520_Software_TPS",
+"byteoffset": 11424,
+"anchor": "Reset_Button"
+},
+{
+"toclevel": 3,
+"level": "3",
+"line": "Accessories and Related Products",
+"number": "6.1.6",
+"index": "30",
+"fromtitle": "IE520_Software_TPS",
+"byteoffset": 11698,
+"anchor": "Accessories_and_Related_Products"
+},
+{
+"toclevel": 4,
+"level": "4",
+"line": "Pluggables",
+"number": "6.1.6.1",
+"index": "31",
+"fromtitle": "IE520_Software_TPS",
+"byteoffset": 11737,
+"anchor": "Pluggables"
+},
+{
+"toclevel": 2,
+"level": "2",
+"line": "Characteristics",
+"number": "6.2",
+"index": "32",
+"fromtitle": "IE520_Software_TPS",
+"byteoffset": 13961,
+"anchor": "Characteristics"
+},
+{
+"toclevel": 3,
+"level": "3",
+"line": "Performance",
+"number": "6.2.1",
+"index": "33",
+"fromtitle": "IE520_Software_TPS",
+"byteoffset": 13981,
+"anchor": "Performance"
+},
+{
+"toclevel": 3,
+"level": "3",
+"line": "Interoperability",
+"number": "6.2.2",
+"index": "34",
+"fromtitle": "IE520_Software_TPS",
+"byteoffset": 13999,
+"anchor": "Interoperability"
+},
+{
+"toclevel": 2,
+"level": "2",
+"line": "Target Cost",
+"number": "6.3",
+"index": "35",
+"fromtitle": "IE520_Software_TPS",
+"byteoffset": 14022,
+"anchor": "Target_Cost"
+},
+{
+"toclevel": 2,
+"level": "2",
+"line": "Licensing",
+"number": "6.4",
+"index": "36",
+"fromtitle": "IE520_Software_TPS",
+"byteoffset": 14038,
+"anchor": "Licensing"
+},
+{
+"toclevel": 2,
+"level": "2",
+"line": "Documentation",
+"number": "6.5",
+"index": "37",
+"fromtitle": "IE520_Software_TPS",
+"byteoffset": 14329,
+"anchor": "Documentation"
+},
+{
+"toclevel": 3,
+"level": "3",
+"line": "Specification Documentation",
+"number": "6.5.1",
+"index": "38",
+"fromtitle": "IE520_Software_TPS",
+"byteoffset": 14347,
+"anchor": "Specification_Documentation"
+},
+{
+"toclevel": 3,
+"level": "3",
+"line": "Test Documentation",
+"number": "6.5.2",
+"index": "39",
+"fromtitle": "IE520_Software_TPS",
+"byteoffset": 14381,
+"anchor": "Test_Documentation"
+},
+{
+"toclevel": 3,
+"level": "3",
+"line": "User Documentation",
+"number": "6.5.3",
+"index": "40",
+"fromtitle": "IE520_Software_TPS",
+"byteoffset": 14488,
+"anchor": "User_Documentation"
+},
+{
+"toclevel": 2,
+"level": "2",
+"line": "Training",
+"number": "6.6",
+"index": "41",
+"fromtitle": "IE520_Software_TPS",
+"byteoffset": 14590,
+"anchor": "Training"
+},
+{
+"toclevel": 1,
+"level": "1",
+"line": "Project Testing",
+"number": "7",
+"index": "42",
+"fromtitle": "IE520_Software_TPS",
+"byteoffset": 14603,
+"anchor": "Project_Testing"
+},
+{
+"toclevel": 2,
+"level": "2",
+"line": "General",
+"number": "7.1",
+"index": "43",
+"fromtitle": "IE520_Software_TPS",
+"byteoffset": 14621,
+"anchor": "General"
+},
+{
+"toclevel": 1,
+"level": "1",
+"line": "Notes",
+"number": "8",
+"index": "44",
+"fromtitle": "IE520_Software_TPS",
+"byteoffset": 14930,
+"anchor": "Notes"
+},
+{
+"toclevel": 2,
+"level": "2",
+"line": "Console Port Compatibility",
+"number": "8.1",
+"index": "45",
+"fromtitle": "IE520_Software_TPS",
+"byteoffset": 15109,
+"anchor": "Console_Port_Compatibility"
+},
+{
+"toclevel": 2,
+"level": "2",
+"line": "New Commands",
+"number": "8.2",
+"index": "46",
+"fromtitle": "IE520_Software_TPS",
+"byteoffset": 15446,
+"anchor": "New_Commands"
+},
+{
+"toclevel": 1,
+"level": "1",
+"line": "Export Control Regulations",
+"number": "9",
+"index": "47",
+"fromtitle": "IE520_Software_TPS",
+"byteoffset": 15469,
+"anchor": "Export_Control_Regulations"
+},
+{
+"toclevel": 2,
+"level": "2",
+"line": "Classified ECCN of EAR for Export Regulation Law of U.S. Government",
+"number": "9.1",
+"index": "48",
+"fromtitle": "IE520_Software_TPS",
+"byteoffset": 15498,
+"anchor": "Classified_ECCN_of_EAR_for_Export_Regulation_Law_of_U.S._Government"
+},
+{
+"toclevel": 1,
+"level": "1",
+"line": "Certification requirements",
+"number": "10",
+"index": "49",
+"fromtitle": "IE520_Software_TPS",
+"byteoffset": 15571,
+"anchor": "Certification_requirements"
+},
+{
+"toclevel": 2,
+"level": "2",
+"line": "Radio Equipment Directive (RED)",
+"number": "10.1",
+"index": "50",
+"fromtitle": "IE520_Software_TPS",
+"byteoffset": 15600,
+"anchor": "Radio_Equipment_Directive_.28RED.29"
+},
+{
+"toclevel": 2,
+"level": "2",
+"line": "Cyber Resilience Act (CRA)",
+"number": "10.2",
+"index": "51",
+"fromtitle": "IE520_Software_TPS",
+"byteoffset": 15920,
+"anchor": "Cyber_Resilience_Act_.28CRA.29"
+},
+{
+"toclevel": 2,
+"level": "2",
+"line": "Japan Cyber Star (JC-STAR)",
+"number": "10.3",
+"index": "52",
+"fromtitle": "IE520_Software_TPS",
+"byteoffset": 16657,
+"anchor": "Japan_Cyber_Star_.28JC-STAR.29"
+},
+{
+"toclevel": 2,
+"level": "2",
+"line": "Certificate of Volatility",
+"number": "10.4",
+"index": "53",
+"fromtitle": "IE520_Software_TPS",
+"byteoffset": 17391,
+"anchor": "Certificate_of_Volatility"
+},
+{
+"toclevel": 1,
+"level": "1",
+"line": "Appendices",
+"number": "11",
+"index": "54",
+"fromtitle": "IE520_Software_TPS",
+"byteoffset": 17957,
+"anchor": "Appendices"
+},
+{
+"toclevel": 2,
+"level": "2",
+"line": "TPS Processes",
+"number": "11.1",
+"index": "55",
+"fromtitle": "IE520_Software_TPS",
+"byteoffset": 17970,
+"anchor": "TPS_Processes"
+},
+{
+"toclevel": 3,
+"level": "3",
+"line": "Change Control",
+"number": "11.1.1",
+"index": "56",
+"fromtitle": "IE520_Software_TPS",
+"byteoffset": 17988,
+"anchor": "Change_Control"
+},
+{
+"toclevel": 3,
+"level": "3",
+"line": "Processes",
+"number": "11.1.2",
+"index": "57",
+"fromtitle": "IE520_Software_TPS",
+"byteoffset": 18247,
+"anchor": "Processes"
+},
+{
+"toclevel": 3,
+"level": "3",
+"line": "Uncertain Values",
+"number": "11.1.3",
+"index": "58",
+"fromtitle": "IE520_Software_TPS",
+"byteoffset": 18304,
+"anchor": "Uncertain_Values"
+},
+{
+"toclevel": 2,
+"level": "2",
+"line": "Standard Requirement for Product Maintainability",
+"number": "11.2",
+"index": "59",
+"fromtitle": "IE520_Software_TPS",
+"byteoffset": 18567,
+"anchor": "Standard_Requirement_for_Product_Maintainability"
+},
+{
+"toclevel": 2,
+"level": "2",
+"line": "Supported features (Ref. SID Software Requirements)",
+"number": "11.3",
+"index": "60",
+"fromtitle": "IE520_Software_TPS",
+"byteoffset": 32743,
+"anchor": "Supported_features_.28Ref._SID_Software_Requirements.29"
+},
+{
+"toclevel": 2,
+"level": "2",
+"line": "Supported features (Ref. PRD Software Requirements)",
+"number": "11.4",
+"index": "61",
+"fromtitle": "IE520_Software_TPS",
+"byteoffset": 91926,
+"anchor": "Supported_features_.28Ref._PRD_Software_Requirements.29"
+},
+{
+"toclevel": 3,
+"level": "3",
+"line": "Feature license policy",
+"number": "11.4.1",
+"index": "62",
+"fromtitle": "IE520_Software_TPS",
+"byteoffset": 107163,
+"anchor": "Feature_license_policy"
+},
+{
+"toclevel": 4,
+"level": "4",
+"line": "IE520-28GSX subscription license support",
+"number": "11.4.1.1",
+"index": "63",
+"fromtitle": "IE520_Software_TPS",
+"byteoffset": 112308,
+"anchor": "IE520-28GSX_subscription_license_support"
+},
+{
+"toclevel": 2,
+"level": "2",
+"line": "Ranges and Limits",
+"number": "11.5",
+"index": "64",
+"fromtitle": "IE520_Software_TPS",
+"byteoffset": 112439,
+"anchor": "Ranges_and_Limits"
+},
+{
+"toclevel": 3,
+"level": "3",
+"line": "Hardware Limits",
+"number": "11.5.1",
+"index": "65",
+"fromtitle": "IE520_Software_TPS",
+"byteoffset": 112461,
+"anchor": "Hardware_Limits"
+},
+{
+"toclevel": 4,
+"level": "4",
+"line": "L2 Features",
+"number": "11.5.1.1",
+"index": "66",
+"fromtitle": "IE520_Software_TPS",
+"byteoffset": 112483,
+"anchor": "L2_Features"
+},
+{
+"toclevel": 4,
+"level": "4",
+"line": "L3 Features",
+"number": "11.5.1.2",
+"index": "67",
+"fromtitle": "IE520_Software_TPS",
+"byteoffset": 113155,
+"anchor": "L3_Features"
+},
+{
+"toclevel": 4,
+"level": "4",
+"line": "QoS",
+"number": "11.5.1.3",
+"index": "68",
+"fromtitle": "IE520_Software_TPS",
+"byteoffset": 113872,
+"anchor": "QoS"
+},
+{
+"toclevel": 4,
+"level": "4",
+"line": "System Limits (Ref. x320 PRD and GS980EM PRD Appendix A)",
+"number": "11.5.1.4",
+"index": "69",
+"fromtitle": "IE520_Software_TPS",
+"byteoffset": 114087,
+"anchor": "System_Limits_.28Ref._x320_PRD_and_GS980EM_PRD_Appendix_A.29"
+},
+{
+"toclevel": 3,
+"level": "3",
+"line": "OpenFlow",
+"number": "11.5.2",
+"index": "70",
+"fromtitle": "IE520_Software_TPS",
+"byteoffset": 120734,
+"anchor": "OpenFlow"
+},
+{
+"toclevel": 3,
+"level": "3",
+"line": "Default Configuration",
+"number": "11.5.3",
+"index": "71",
+"fromtitle": "IE520_Software_TPS",
+"byteoffset": 120876,
+"anchor": "Default_Configuration"
+},
+{
+"toclevel": 3,
+"level": "3",
+"line": "Features Supported and Tested",
+"number": "11.5.4",
+"index": "72",
+"fromtitle": "IE520_Software_TPS",
+"byteoffset": 121441,
+"anchor": "Features_Supported_and_Tested"
+},
+{
+"toclevel": 2,
+"level": "2",
+"line": "Items in PRD not Supported by TPS",
+"number": "11.6",
+"index": "73",
+"fromtitle": "IE520_Software_TPS",
+"byteoffset": 122311,
+"anchor": "Items_in_PRD_not_Supported_by_TPS"
+}
+],
+"links": [
+{
+"ns": 0,
+"exists": "",
+"*": "Security Testing"
+},
+{
+"ns": 0,
+"exists": "",
+"*": "X320 Software TPS"
+}
+],
+"categories": [
+{
+"sortkey": "",
+"*": "TPS"
+}
+]
+}
+},
+"Test:3296 Test Strategy - IE520 Software": {
+"parse": {
+"title": "Test:3296 Test Strategy - IE520 Software",
+"wikitext": {
+"*": "<div style=\"padding:10px; page-break-after:always\">\n  <div style=\"text-align:right; float:right\">\n[[Image:Allied Telesis Logo.png]]\n\n'''''Test Strategy for ?'''''<br>\n'''''Project: xxxx'''''\n  </div>\n</div>\n\n\n==Approval==\n\n===Critical Reviewers===\n{| class=\"wikitable\" style=\"background-color:white;\" \n!Name!!Representing!! style=\"width: 200px;\" |Approved<!-- ######## To trigger approval template, remove comment tags <!-- -- > around {{subst:Approved}} ######## -->\n|-\n|Sam Helem ||ATL-NZ Test Consultant|| [{{PageRev||}} Revision 7/05/2026] approved by [[User:Samh|Samh]] on 7/May/26 (NZDT)\n|-\n|Flynn Hansen\n|Security Team\n|[{{PageRev||}} Revision 8/05/2026] approved by [[User:Flynnh|Flynnh]] on 8/May/26 (NZDT)\n|}\n\n===Information Only===\n{| class=\"wikitable\" style=\"background-color:lightgrey;\" \n!Name!!Representing\n|-\n| ||Software\n|-\n| ||CSG\n|-\n| ||Project Management\n|-\n| ||ATKK System Test\n|}\n\n'''Revision History''' \n\n{| class=\"wikitable\"\n|-\n!Revision\n!Author\n!Date\n!Modifications\n|-\n|0.1\n|Akhila Venkatesha\n|01/05/2026\n|Document Created\n\n|}\n\n[[How To Add Diagrams to Wiki Pages|Wiki Diagramming Hints &amp; Support]] <br> \n\n<br>\n\n==Overview==\n===The Platform===\nIE520-28GSX is an industrial grade entry level layer 3 stackable switch. It is designed to provide industrial application support and withstand hash environmental conditions. Virtual chassis stacking provides resiliency upto 4 units.\n\n===Testing Strategy===\nAs IE520 is similar to x320 switchip and Phy chip similar to x230-28GS V2, extensive testing on the existing feature can be minimised. Focus on industrial feature testing can be extended, further detailed in feature testing section below. \n\nAll the testing will be carried out on IE520 stack in the following order to address any memory issues:\n\n#Sanity and exploratory testing as soon as device is available\n#Bootloader and Factory test\n#Testing exisiting features available - ART and manual\n#New features\n#Interoperability with other devices\n\n===Concerns===\nTime constraint and conflict with rest of the projects lined up around the time. \n\n===Security Implications===\nNot listed in the TPS, software TPM is present. \n\n==Test Coverage==\n\n===Significant New Hardware Elements===\nIE520 has similar switchip and memory to x320 platform, with 24 X SFP ports and 4 X SFP+ ports. \n\n*Reset Button\n*Port status LEDs\n*Dual DC power input- PW1 and PW2\n*Terminal block for alarm relay output\n\n===Platform Coverage===\nIE520 will be tested against the following switches:\n\n*IE520\n*IE360 or IE560\n*IE570 if available at the time\n*Any marvel platform\n\n===Feature Coverage===\nAll the existing feature listed in [[IE520 Software TPS]] will be tested on IE520. As mentioned earlier focus can be extended on testing industrial application listed below:\n\n*EtherNet/IP\n*Profinet\n*Modbus\n*PTP\n*BACnet Broadcast Management Device (BBMD) - YTD\n*no switchport capability- not supported, not listed in the TPS, confirmed from software- request to update TPS.\n*Jumbo frame size 9k\n*Memory leakage test\n\n===Reference Platform===\nSwitch chip used in IE520 (PonCat3 98DX3336) which is similar to x320 platforms.The Phy chip used (1548P) is similar to one used in x230-28GS V2.\n===Limits===\nRefer to section \"11.5 Ranges and Limits\" in  [[IE520 Software TPS]] . Limit testing will be covered as part of automated testing and fewer manual testing as required, results will be submitted to ART to updated to the database and LID.\n\n===Licenses===\n''Base and feature license tests will be carried out to verify the listed feature is enabled and configurable. Internal full license is used to carry out all feature testing.''\n\n==Not Tested==\nRefer to \" 11.4 Supported features (Ref. PRD Software Requirements)\" in [[IE520 Software TPS]]\n\n==Risks Table==\n\n{| class=\"wikitable sortable\"\n|-\n!'''Risk'''\n!'''Mitigation'''\n|-\n|Resource availabilty\n|request for early resource allocation\n|-\n|}\n\n==Aspect of Testing==\n\n===Tools===\n\n*Ixia ports -1G and 10G support\n*Power supplies for all available DUT\n\n===Test Cases===\nTest cases will be store in Jira under 5.5.6-2---> Tomahawk---> IE570\n\n*Existing features: previous test cases can be cloned and reused\n\n===ART===\nExisting automated test suites will be used which includes various features and limit testing, limit test results will be handed over to update the database and LID. Tests are run on below setup:\n\n*Simple setups\n\n===Validation===\nBefore delivery to main, validation task will be raised to test project build before delivery.\n\n===Test Pool===\nRequest for resource will be raised, based on the software and hardware availability.\n\n===Global Involvement===\nNA\n\n===Schedule===\nScheduled to release for 5.5.6-1\n\n===References===\n\n*[[IE520 Software TPS]]\n*[https://intranet.atlnz.lc/projects/ATLNZ/Current/3275_IE520/PRD/IE520_prd_1.0.pdf IE520 PR]   [[Category:Test]]   <noinclude>   [[Category:Template]]   </noinclude>[https://intranet.atlnz.lc/projects/ATLNZ/Current/3275_IE520/PRD/IE520_prd_1.0.pdf D]\n*[https://intranet.atlnz.lc/projects/ATLNZ/Current/3275_IE520/Hardware/Specifications/HW-TPS/AT-IE520-28GSX_HWTPS_v0.3.00_20260408-1.pdf IE520 HW_TPS]\n*[[Product Overview]]"
+},
+"sections": [
+{
+"toclevel": 1,
+"level": "2",
+"line": "Approval",
+"number": "1",
+"index": "1",
+"fromtitle": "Test:3296_Test_Strategy_-_IE520_Software",
+"byteoffset": 209,
+"anchor": "Approval"
+},
+{
+"toclevel": 2,
+"level": "3",
+"line": "Critical Reviewers",
+"number": "1.1",
+"index": "2",
+"fromtitle": "Test:3296_Test_Strategy_-_IE520_Software",
+"byteoffset": 223,
+"anchor": "Critical_Reviewers"
+},
+{
+"toclevel": 2,
+"level": "3",
+"line": "Information Only",
+"number": "1.2",
+"index": "3",
+"fromtitle": "Test:3296_Test_Strategy_-_IE520_Software",
+"byteoffset": 720,
+"anchor": "Information_Only"
+},
+{
+"toclevel": 1,
+"level": "2",
+"line": "Overview",
+"number": "2",
+"index": "4",
+"fromtitle": "Test:3296_Test_Strategy_-_IE520_Software",
+"byteoffset": 1140,
+"anchor": "Overview"
+},
+{
+"toclevel": 2,
+"level": "3",
+"line": "The Platform",
+"number": "2.1",
+"index": "5",
+"fromtitle": "Test:3296_Test_Strategy_-_IE520_Software",
+"byteoffset": 1153,
+"anchor": "The_Platform"
+},
+{
+"toclevel": 2,
+"level": "3",
+"line": "Testing Strategy",
+"number": "2.2",
+"index": "6",
+"fromtitle": "Test:3296_Test_Strategy_-_IE520_Software",
+"byteoffset": 1407,
+"anchor": "Testing_Strategy"
+},
+{
+"toclevel": 2,
+"level": "3",
+"line": "Concerns",
+"number": "2.3",
+"index": "7",
+"fromtitle": "Test:3296_Test_Strategy_-_IE520_Software",
+"byteoffset": 1975,
+"anchor": "Concerns"
+},
+{
+"toclevel": 2,
+"level": "3",
+"line": "Security Implications",
+"number": "2.4",
+"index": "8",
+"fromtitle": "Test:3296_Test_Strategy_-_IE520_Software",
+"byteoffset": 2073,
+"anchor": "Security_Implications"
+},
+{
+"toclevel": 1,
+"level": "2",
+"line": "Test Coverage",
+"number": "3",
+"index": "9",
+"fromtitle": "Test:3296_Test_Strategy_-_IE520_Software",
+"byteoffset": 2151,
+"anchor": "Test_Coverage"
+},
+{
+"toclevel": 2,
+"level": "3",
+"line": "Significant New Hardware Elements",
+"number": "3.1",
+"index": "10",
+"fromtitle": "Test:3296_Test_Strategy_-_IE520_Software",
+"byteoffset": 2170,
+"anchor": "Significant_New_Hardware_Elements"
+},
+{
+"toclevel": 2,
+"level": "3",
+"line": "Platform Coverage",
+"number": "3.2",
+"index": "11",
+"fromtitle": "Test:3296_Test_Strategy_-_IE520_Software",
+"byteoffset": 2414,
+"anchor": "Platform_Coverage"
+},
+{
+"toclevel": 2,
+"level": "3",
+"line": "Feature Coverage",
+"number": "3.3",
+"index": "12",
+"fromtitle": "Test:3296_Test_Strategy_-_IE520_Software",
+"byteoffset": 2569,
+"anchor": "Feature_Coverage"
+},
+{
+"toclevel": 2,
+"level": "3",
+"line": "Reference Platform",
+"number": "3.4",
+"index": "13",
+"fromtitle": "Test:3296_Test_Strategy_-_IE520_Software",
+"byteoffset": 3008,
+"anchor": "Reference_Platform"
+},
+{
+"toclevel": 2,
+"level": "3",
+"line": "Limits",
+"number": "3.5",
+"index": "14",
+"fromtitle": "Test:3296_Test_Strategy_-_IE520_Software",
+"byteoffset": 3179,
+"anchor": "Limits"
+},
+{
+"toclevel": 2,
+"level": "3",
+"line": "Licenses",
+"number": "3.6",
+"index": "15",
+"fromtitle": "Test:3296_Test_Strategy_-_IE520_Software",
+"byteoffset": 3430,
+"anchor": "Licenses"
+},
+{
+"toclevel": 1,
+"level": "2",
+"line": "Not Tested",
+"number": "4",
+"index": "16",
+"fromtitle": "Test:3296_Test_Strategy_-_IE520_Software",
+"byteoffset": 3623,
+"anchor": "Not_Tested"
+},
+{
+"toclevel": 1,
+"level": "2",
+"line": "Risks Table",
+"number": "5",
+"index": "17",
+"fromtitle": "Test:3296_Test_Strategy_-_IE520_Software",
+"byteoffset": 3734,
+"anchor": "Risks_Table"
+},
+{
+"toclevel": 1,
+"level": "2",
+"line": "Aspect of Testing",
+"number": "6",
+"index": "18",
+"fromtitle": "Test:3296_Test_Strategy_-_IE520_Software",
+"byteoffset": 3885,
+"anchor": "Aspect_of_Testing"
+},
+{
+"toclevel": 2,
+"level": "3",
+"line": "Tools",
+"number": "6.1",
+"index": "19",
+"fromtitle": "Test:3296_Test_Strategy_-_IE520_Software",
+"byteoffset": 3908,
+"anchor": "Tools"
+},
+{
+"toclevel": 2,
+"level": "3",
+"line": "Test Cases",
+"number": "6.2",
+"index": "20",
+"fromtitle": "Test:3296_Test_Strategy_-_IE520_Software",
+"byteoffset": 3992,
+"anchor": "Test_Cases"
+},
+{
+"toclevel": 2,
+"level": "3",
+"line": "ART",
+"number": "6.3",
+"index": "21",
+"fromtitle": "Test:3296_Test_Strategy_-_IE520_Software",
+"byteoffset": 4146,
+"anchor": "ART"
+},
+{
+"toclevel": 2,
+"level": "3",
+"line": "Validation",
+"number": "6.4",
+"index": "22",
+"fromtitle": "Test:3296_Test_Strategy_-_IE520_Software",
+"byteoffset": 4369,
+"anchor": "Validation"
+},
+{
+"toclevel": 2,
+"level": "3",
+"line": "Test Pool",
+"number": "6.5",
+"index": "23",
+"fromtitle": "Test:3296_Test_Strategy_-_IE520_Software",
+"byteoffset": 4482,
+"anchor": "Test_Pool"
+},
+{
+"toclevel": 2,
+"level": "3",
+"line": "Global Involvement",
+"number": "6.6",
+"index": "24",
+"fromtitle": "Test:3296_Test_Strategy_-_IE520_Software",
+"byteoffset": 4585,
+"anchor": "Global_Involvement"
+},
+{
+"toclevel": 2,
+"level": "3",
+"line": "Schedule",
+"number": "6.7",
+"index": "25",
+"fromtitle": "Test:3296_Test_Strategy_-_IE520_Software",
+"byteoffset": 4614,
+"anchor": "Schedule"
+},
+{
+"toclevel": 2,
+"level": "3",
+"line": "References",
+"number": "6.8",
+"index": "26",
+"fromtitle": "Test:3296_Test_Strategy_-_IE520_Software",
+"byteoffset": 4663,
+"anchor": "References"
+}
+],
+"links": [
+{
+"ns": 0,
+"exists": "",
+"*": "How To Add Diagrams to Wiki Pages"
+},
+{
+"ns": 0,
+"exists": "",
+"*": "IE520 Software TPS"
+},
+{
+"ns": 0,
+"exists": "",
+"*": "Product Overview"
+},
+{
+"ns": 2,
+"exists": "",
+"*": "User:Flynnh"
+},
+{
+"ns": 2,
+"exists": "",
+"*": "User:Samh"
+}
+],
+"categories": [
+{
+"sortkey": "",
+"*": "Test"
+},
+{
+"sortkey": "",
+"*": "Template"
+}
+]
+}
+},
+"IE520 Software - Feature Page": {
+"parse": {
+"title": "IE520 Software - Feature Page",
+"wikitext": {
+"*": "<sup>You may have been redirected here - {{Search_link|IE520 Software|search for IE520 Software instead}}</sup>\n\n{{Dir_link|Software|Features}}\n\nThe wiki documentation for this feature is correct as of AW+ [update release-name]. \n\n= IE520 Software Overview  =\n\n=== What is it? ===\n\n{{TODO|A brief (2 or 3 paragraph) summary on what the feature is and why it's important ([[Feature page template guide#What_is_it.3F|more info]])}}\n\n=== Important concepts ===\n\n{{TODO| A brief bullet-point list of any terms, concepts, abbreviations, sub-features, or areas of functionality that a newbie might need to make sense of ([[Feature page template guide#Important_concepts_and_terminology|more info]])}}\n\n== How it works ==\n\n{{TODO|A brief summary of how the feature operates. This might include important details like the UDP port or ethertype the protocol uses ([[Feature page template guide#How_it_works|more info]])}}\n\n== Specifications ==\n\n{{TODO|Where to find the specification (e.g. RFCs) on how the feature should operate ([[Feature page template guide#Specifications|more info]])}}\n\n= IE520 Software Implementation Overview  =\n\n== Design and Code structure ==\n\n{{TODO|Link to design page(s) describing IE520 Software's code structure, architectural overview, algorithms, etc ([[Feature page template guide#Design_and_Code_structure|more info]])}}\n\n== Interaction with other features  ==\n\n{{TODO|Short notes on how the feature interacts with other over-arching features such as Fast Failover and VRF ([[Feature page template guide#Interaction_with_other_features|more info]])}}\n\n== Development History  ==\n\nThis feature was first implemented for AW+ [update release-name] using [open-source code|third-party code|code ported from mono|code written in-house|etc]. Include links to original wiki project pages if available.<br>\n\n{{TODO|Fill in above gaps, list any AW+ releases where the feature changed significantly, list any outstanding Engineering DB items ([[Feature page template guide#Development_History|more info]])}}\nUse the EngDB template for easy linking, eg:\n{{EngDB|6488}}\n\n=== Important CRs  ===\n\n{{TODO|CRs that have had a big impact on the code or that provide useful design or debugging information ([[Feature page template guide#Important_CRs|more info]])}}\n\nUse the CR template for easy linking, eg:\n{{CR|12345}}\n\n= Debugging and Testing  =\n\n{{TODO|Add a link to a debugging page on how to investigate potential issues with this feature ([[Feature page template guide#Debugging_and_Testing_Section|more info]])}}\n\n= Links and Resources  =\n\n{{TODO|Add links to any other relevant wiki pages or Fount How-to documents ([[Feature page template guide#Links_and_Resources_Section|more info]])}}\n\n== External links  ==\n\n{{TODO|Add links to any open-source mailing-lists, state-machine diagrams, protocol walk-throughs, etc ([[Feature page template guide#External_links|more info]])}}\n\n[[Category:Feature]]"
+},
+"sections": [
+{
+"toclevel": 1,
+"level": "1",
+"line": "IE520 Software Overview",
+"number": "1",
+"index": "1",
+"fromtitle": "IE520_Software_-_Feature_Page",
+"byteoffset": 231,
+"anchor": "IE520_Software_Overview"
+},
+{
+"toclevel": 2,
+"level": "3",
+"line": "What is it?",
+"number": "1.1",
+"index": "2",
+"fromtitle": "IE520_Software_-_Feature_Page",
+"byteoffset": 261,
+"anchor": "What_is_it.3F"
+},
+{
+"toclevel": 2,
+"level": "3",
+"line": "Important concepts",
+"number": "1.2",
+"index": "3",
+"fromtitle": "IE520_Software_-_Feature_Page",
+"byteoffset": 431,
+"anchor": "Important_concepts"
+},
+{
+"toclevel": 2,
+"level": "2",
+"line": "How it works",
+"number": "1.3",
+"index": "4",
+"fromtitle": "IE520_Software_-_Feature_Page",
+"byteoffset": 696,
+"anchor": "How_it_works"
+},
+{
+"toclevel": 2,
+"level": "2",
+"line": "Specifications",
+"number": "1.4",
+"index": "5",
+"fromtitle": "IE520_Software_-_Feature_Page",
+"byteoffset": 914,
+"anchor": "Specifications"
+},
+{
+"toclevel": 1,
+"level": "1",
+"line": "IE520 Software Implementation Overview",
+"number": "2",
+"index": "6",
+"fromtitle": "IE520_Software_-_Feature_Page",
+"byteoffset": 1083,
+"anchor": "IE520_Software_Implementation_Overview"
+},
+{
+"toclevel": 2,
+"level": "2",
+"line": "Design and Code structure",
+"number": "2.1",
+"index": "7",
+"fromtitle": "IE520_Software_-_Feature_Page",
+"byteoffset": 1128,
+"anchor": "Design_and_Code_structure"
+},
+{
+"toclevel": 2,
+"level": "2",
+"line": "Interaction with other features",
+"number": "2.2",
+"index": "8",
+"fromtitle": "IE520_Software_-_Feature_Page",
+"byteoffset": 1348,
+"anchor": "Interaction_with_other_features"
+},
+{
+"toclevel": 2,
+"level": "2",
+"line": "Development History",
+"number": "2.3",
+"index": "9",
+"fromtitle": "IE520_Software_-_Feature_Page",
+"byteoffset": 1578,
+"anchor": "Development_History"
+},
+{
+"toclevel": 3,
+"level": "3",
+"line": "Important CRs",
+"number": "2.3.1",
+"index": "10",
+"fromtitle": "IE520_Software_-_Feature_Page",
+"byteoffset": 2085,
+"anchor": "Important_CRs"
+},
+{
+"toclevel": 1,
+"level": "1",
+"line": "Debugging and Testing",
+"number": "3",
+"index": "11",
+"fromtitle": "IE520_Software_-_Feature_Page",
+"byteoffset": 2331,
+"anchor": "Debugging_and_Testing"
+},
+{
+"toclevel": 1,
+"level": "1",
+"line": "Links and Resources",
+"number": "4",
+"index": "12",
+"fromtitle": "IE520_Software_-_Feature_Page",
+"byteoffset": 2531,
+"anchor": "Links_and_Resources"
+},
+{
+"toclevel": 2,
+"level": "2",
+"line": "External links",
+"number": "4.1",
+"index": "13",
+"fromtitle": "IE520_Software_-_Feature_Page",
+"byteoffset": 2708,
+"anchor": "External_links"
+}
+],
+"links": [
+{
+"ns": 0,
+"exists": "",
+"*": "Feature page template guide"
+},
+{
+"ns": 0,
+"exists": "",
+"*": "Features"
+},
+{
+"ns": 0,
+"exists": "",
+"*": "Software"
+}
+],
+"categories": [
+{
+"sortkey": "",
+"*": "Feature"
+}
+]
+}
+},
+"Template:FeatureDocumentation/Preload": {
+"parse": {
+"title": "Template:FeatureDocumentation/Preload",
+"wikitext": {
+"*": "<sup>You may have been redirected here - {{Search_link|$1|search for $1 instead}}</sup>\n\n{{Dir_link|Software|Features}}\n\nThe wiki documentation for this feature is correct as of AW+ [update release-name]. \n\n= $1 Overview  =\n\n=== What is it? ===\n\n{{TODO|A brief (2 or 3 paragraph) summary on what the feature is and why it's important ([[Feature page template guide#What_is_it.3F|more info]])}}\n\n=== Important concepts ===\n\n{{TODO| A brief bullet-point list of any terms, concepts, abbreviations, sub-features, or areas of functionality that a newbie might need to make sense of ([[Feature page template guide#Important_concepts_and_terminology|more info]])}}\n\n== How it works ==\n\n{{TODO|A brief summary of how the feature operates. This might include important details like the UDP port or ethertype the protocol uses ([[Feature page template guide#How_it_works|more info]])}}\n\n== Specifications ==\n\n{{TODO|Where to find the specification (e.g. RFCs) on how the feature should operate ([[Feature page template guide#Specifications|more info]])}}\n\n= $1 Implementation Overview  =\n\n== Design and Code structure ==\n\n{{TODO|Link to design page(s) describing $1's code structure, architectural overview, algorithms, etc ([[Feature page template guide#Design_and_Code_structure|more info]])}}\n\n== Interaction with other features  ==\n\n{{TODO|Short notes on how the feature interacts with other over-arching features such as Fast Failover and VRF ([[Feature page template guide#Interaction_with_other_features|more info]])}}\n\n== Development History  ==\n\nThis feature was first implemented for AW+ [update release-name] using [open-source code|third-party code|code ported from mono|code written in-house|etc]. Include links to original wiki project pages if available.<br>\n\n{{TODO|Fill in above gaps, list any AW+ releases where the feature changed significantly, list any outstanding Engineering DB items ([[Feature page template guide#Development_History|more info]])}}\nUse the EngDB template for easy linking, eg:\n{{EngDB|6488}}\n\n=== Important CRs  ===\n\n{{TODO|CRs that have had a big impact on the code or that provide useful design or debugging information ([[Feature page template guide#Important_CRs|more info]])}}\n\nUse the CR template for easy linking, eg:\n{{CR|12345}}\n\n= Debugging and Testing  =\n\n{{TODO|Add a link to a debugging page on how to investigate potential issues with this feature ([[Feature page template guide#Debugging_and_Testing_Section|more info]])}}\n\n= Links and Resources  =\n\n{{TODO|Add links to any other relevant wiki pages or Fount How-to documents ([[Feature page template guide#Links_and_Resources_Section|more info]])}}\n\n== External links  ==\n\n{{TODO|Add links to any open-source mailing-lists, state-machine diagrams, protocol walk-throughs, etc ([[Feature page template guide#External_links|more info]])}}\n\n<includeonly>[[Category:Feature]]</includeonly>"
+},
+"sections": [
+{
+"toclevel": 1,
+"level": "1",
+"line": "$1 Overview",
+"number": "1",
+"index": "1",
+"fromtitle": "Template:FeatureDocumentation/Preload",
+"byteoffset": 207,
+"anchor": ".241_Overview"
+},
+{
+"toclevel": 2,
+"level": "3",
+"line": "What is it?",
+"number": "1.1",
+"index": "2",
+"fromtitle": "Template:FeatureDocumentation/Preload",
+"byteoffset": 225,
+"anchor": "What_is_it.3F"
+},
+{
+"toclevel": 2,
+"level": "3",
+"line": "Important concepts",
+"number": "1.2",
+"index": "3",
+"fromtitle": "Template:FeatureDocumentation/Preload",
+"byteoffset": 395,
+"anchor": "Important_concepts"
+},
+{
+"toclevel": 2,
+"level": "2",
+"line": "How it works",
+"number": "1.3",
+"index": "4",
+"fromtitle": "Template:FeatureDocumentation/Preload",
+"byteoffset": 660,
+"anchor": "How_it_works"
+},
+{
+"toclevel": 2,
+"level": "2",
+"line": "Specifications",
+"number": "1.4",
+"index": "5",
+"fromtitle": "Template:FeatureDocumentation/Preload",
+"byteoffset": 878,
+"anchor": "Specifications"
+},
+{
+"toclevel": 1,
+"level": "1",
+"line": "$1 Implementation Overview",
+"number": "2",
+"index": "6",
+"fromtitle": "Template:FeatureDocumentation/Preload",
+"byteoffset": 1047,
+"anchor": ".241_Implementation_Overview"
+},
+{
+"toclevel": 2,
+"level": "2",
+"line": "Design and Code structure",
+"number": "2.1",
+"index": "7",
+"fromtitle": "Template:FeatureDocumentation/Preload",
+"byteoffset": 1080,
+"anchor": "Design_and_Code_structure"
+},
+{
+"toclevel": 2,
+"level": "2",
+"line": "Interaction with other features",
+"number": "2.2",
+"index": "8",
+"fromtitle": "Template:FeatureDocumentation/Preload",
+"byteoffset": 1288,
+"anchor": "Interaction_with_other_features"
+},
+{
+"toclevel": 2,
+"level": "2",
+"line": "Development History",
+"number": "2.3",
+"index": "9",
+"fromtitle": "Template:FeatureDocumentation/Preload",
+"byteoffset": 1518,
+"anchor": "Development_History"
+},
+{
+"toclevel": 3,
+"level": "3",
+"line": "Important CRs",
+"number": "2.3.1",
+"index": "10",
+"fromtitle": "Template:FeatureDocumentation/Preload",
+"byteoffset": 2025,
+"anchor": "Important_CRs"
+},
+{
+"toclevel": 1,
+"level": "1",
+"line": "Debugging and Testing",
+"number": "3",
+"index": "11",
+"fromtitle": "Template:FeatureDocumentation/Preload",
+"byteoffset": 2271,
+"anchor": "Debugging_and_Testing"
+},
+{
+"toclevel": 1,
+"level": "1",
+"line": "Links and Resources",
+"number": "4",
+"index": "12",
+"fromtitle": "Template:FeatureDocumentation/Preload",
+"byteoffset": 2471,
+"anchor": "Links_and_Resources"
+},
+{
+"toclevel": 2,
+"level": "2",
+"line": "External links",
+"number": "4.1",
+"index": "13",
+"fromtitle": "Template:FeatureDocumentation/Preload",
+"byteoffset": 2648,
+"anchor": "External_links"
+}
+],
+"links": [
+{
+"ns": 0,
+"exists": "",
+"*": "Feature page template guide"
+},
+{
+"ns": 0,
+"exists": "",
+"*": "Features"
+},
+{
+"ns": 0,
+"exists": "",
+"*": "Software"
+}
+],
+"categories": []
+}
+}
+}

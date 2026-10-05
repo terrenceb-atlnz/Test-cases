@@ -1,0 +1,190 @@
+---
+verified: 2026-10-05
+---
+# PLAN — Zephyr Templating Tool
+
+> ## Status (read first)
+>
+> **DRAFT, 2026-10-05.** Terrence's design is [`docs/zephyr.txt`](../../docs/zephyr.txt) — this plan
+> carries it out and records the decisions made since; where the two differ, the decision log (§3)
+> is newer. **Built: Phase 0a + 0b + 2 (2026-10-05).** `ask-ck/tools/zt_snapshot.py` reads the template
+> set from Zephyr (GET only); `POST /api/zephyr-tool/templates/refresh` runs it and imports the result
+> into ck.db's `zt_template_*` tables; `GET /api/zephyr-tool/templates` returns the tree. Applied to
+> production and refreshed there on Terrence's "apply now and refresh" (14 plans / 15 cycles / 396
+> cases / 416 links, captured 2026-10-05T01:14:27Z). Phase 2: `ask-ck/tools/zt_wiki.py` reads a
+> project page and its TPS / Test Strategy / Feature Page (GET only; §4a) — a standalone tool, wired
+> to the server with Phase 3. **Nothing has been written to Zephyr or the wiki.** Next: Phase 1 (clone experiment) needs a sandbox — §8. Open questions: §8.
+
+## 1. What the tool does (from `docs/zephyr.txt`)
+
+A user pastes a project's wiki page URL (e.g. `Project:3296_IE520_Software`). The tool:
+
+1. reads the three templated pages that page links to — the **Test Strategy**, the **Feature
+   Page** (sometimes undeveloped) and the **TPS** — and fills **What Version** (AW+ version) and
+   **What Product** (the DUT);
+2. starts from **every** template plan, cycle and case selected, and has the LLM trim them,
+   erring on the side of keeping a test, by answering:
+   1. which test plans can be cut (Test Strategy);
+   2. within kept plans, which cycles are not relevant (unsupported feature, incapable device);
+   3. within kept cycles, which cases are not relevant (feature absent from the TPS or device);
+   4. which remaining cases are not **Mandatory (M)** or **Supported "YES"** on first release per
+      the TPS (§11.3 / §11.4);
+   5. what any document names as a requirement that has **no** template (a gap report);
+   6. **AI Notes** backing each deselection (features absent, stack member count, …);
+3. shows one page: URL + **Organize with LLM**; Version + Product; then two scrollable columns —
+   a read-only **Results Analysis**, and the Plan → Cycle → Case tree with checkboxes the user can
+   override (unticking a parent unticks its children); **Confirm** un-greys **API Upload**;
+4. **API Upload** clones the selected templates into the project's AW+ version location in Zephyr;
+5. *later ("more to follow")*: links the result into the wiki page's Test Results section (the
+   red-circled area of the project page template).
+
+It replaces the four placeholder pages the 2026-07 facelift scaffolded
+(`nav.js` `panel-zt-info|plan|link|tbd`) with **one** page.
+
+## 2. What exists today
+
+| piece | state |
+|---|---|
+| UI | four "under construction" panels; `routers/zephyr_tool.py` is a `/status` stub; `ask-ck/functions/zephyr-tool/` holds a README only |
+| Zephyr access | `upload_refined.py` (the Generator's push): Bearer PAT from `JIRA_KEY` (env, else `secrets.md`), the public `/rest/atm/1.0` API and the UI's internal `/rest/tests/1.0` (trace links); shelled out to by `push_to_zephyr`, audited to `ask-ck/db/zephyr-push-audit.jsonl`, the server never holds the token |
+| `ck.db` | all 45,427 Zephyr **cases** (`zephyr_cases`, with folder) — **no plans, no cycles** |
+| wiki | `https://wiki.atlnz.lc/awpwiki/api.php` answers **without login** from this host (checked 2026-10-05: `action=parse&prop=links` on the IE520 project page lists `IE520 Software TPS`, `Test:3296 Test Strategy - IE520 Software`, `IE520 Software - Feature Page`) |
+
+## 3. Decisions (Terrence, 2026-10-05)
+
+- **D1 — the templates are authored in Zephyr by Terrence**: blank template plans and cycles, linked
+  to the cases refined in Ask-CK. Plans in `/Platform Testing/Test Plan TEMPLATES`, cycles in
+  `/Platform Testing/Test Cycle TEMPLATES`. Populated for now; *"they will likely be updated later."*
+- **D2 — everything is CLONED, cases included.** A clone of a plan, cycle or case gets its own key,
+  and its Traceability tab links the original. Cases must be clones *"so the test cases retain their
+  previous executions."*
+- **D3 — the template set is snapshotted through the API** (the UI exports cases only, not plans or
+  cycles) **into a `ck.db` table** (*"ck.db table is a better idea"*). ck.db is written only by the
+  server, so the snapshot tool prints JSON and a server-side import writes the table.
+- **Deferred:** template item assignees (178 items carry one; a clone would inherit it) — *"we can
+  worry about assignments later."*
+- **D4 — a `-` in the TPS feature tables means "not supported or N/A"** (Terrence, 2026-10-05). §11.3's
+  ranking is `M` or `-`, so only `M` counts as supported. *Correction found while building Phase 2:* in
+  §11.4 the `-` is in the **Priority** column, not Supported, which is only `YES`/`NO`; there, the
+  Supported column decides. One row has Priority `-` but Supported `YES` (Switching / Port Security /
+  Dynamic Port Security): **the Supported column decides** (Terrence, 2026-10-05).
+- **D5 — the target folder is created by the USER before an upload**; the tool finds it, never
+  creates it. It is looked up from the version on the project page and the middle level the Test
+  Strategy names (§6.2 "Test Cases": *"stored in Jira under 5.5.6-2 ---> Tomahawk ---> IE570"*).
+  IE520 itself sits in an old location (the project slipped several releases) — not a case the tool
+  has to handle.
+- **D6 — an unwritten Feature Page is reported as "not written"**, not fed to the model (Terrence:
+  *"i like your solution"*).
+- **D7 — the wiki write-back is one edit** (confirmed by Terrence): the project page's red-circled
+  Test Results box is `{{Test Status v2|<version>|<project>}}`, which transcludes
+  `Test:<version>/<project>/Status`; that page ends in `{{ATMSummary|<plan keys>|both|detailed}}`,
+  and the wiki draws the results from that list of Zephyr plan keys. Writing back = putting the
+  cloned plan keys into that list.
+
+## 4. The template set (snapshot 2026-10-05, `zt_snapshot.py`)
+
+**14 plans → 15 cycles → 396 cases**, each plan linking one cycle except Bootloader (two):
+
+| plan | cycle(s) | cases |
+|---|---|---|
+| P3248 Port | C8451 | 7 |
+| P3249 Sanity Checks | C8452 | 25 |
+| P3250 Switching | C8453 | 75 |
+| P3251 QoS | C8454 | 22 |
+| P3252 Management | C8455 | 71 |
+| P3253 IPv4 | C8456 | 44 |
+| P3254 IPv6 | C8457 | 35 |
+| P3255 Factory Tests | C8458 | 10 |
+| P3256 Bootloader Tests | C8459 (Manual) / C8465 (Automated) | 17 / **0** |
+| P3257 Authentication and Security | C8460 | 42 |
+| P3258 Advanced Management | C8464 | 19 |
+| P3259 Stack Tests | C8461 | 14 |
+| P3260 Industrial Features | C8463 | 12 |
+| P3261 Data Center Features | C8462 | 8 |
+
+Observations: 5 cases sit in more than one cycle (a clone must not duplicate them, or must — Phase
+1 decides); the cases come from several folders, not only `New Platform Template` (e.g.
+`/Environmental Monitoring` 18, `/Modbus/Proj 2166 Modbus Support` 6, 3 with no folder — Terrence:
+several cases outside the template folder still need creating or updating; *"for now, it'll do"*); 357 cases
+are at version 1.0 and 39 at 2.0 (the refined ones); 178 items have an assignee (deferred); 17 case
+names contain a double space (cosmetic — the whitespace check may be narrowed to plans and cycles).
+Plans and cycles are re-snapshotted whenever the templates change; discovery is by folder, so new
+families need no code change.
+
+## 4a. The wiki pages (read 2026-10-05, IE520, `api.php` without login)
+
+| page | found by | what the tool takes |
+|---|---|---|
+| project page (`Project:3296 IE520 Software`) | the URL the user pastes | **version** from `[[5.5.6-2 Release\|…]]` / `{{Test Status v2\|5.5.6-2\|3296}}` / `[[Category:5.5.6-2]]`; **product** from the remaining category (`IE520`); project number; the three links below |
+| **TPS** `IE520 Software TPS` (73 sections, ~122 k chars) | the project page's rendered links (`prop=links`) — the `{{#switch: hw\|gui\|…}}` picks TPS or TFS, so the rendered link, not the wikitext, is read | §11.3 *Supported features (Ref. SID)*: 738 rows, ranking `M` 605 / `-` 133 · §11.4 *Supported features (Ref. PRD)*: 260 rows, Supported `YES` 232 / `NO` 28, Priority `1`/`2`/`3`/`-` (D4) · §6.1.4 features not implemented · §11.6 items in PRD not supported |
+| **Test Strategy** `Test:3296 Test Strategy - IE520 Software` | rendered link, `Test:` namespace | §3.3 Feature Coverage, §4 Not Tested (IE520's just points at TPS §11.4), §6.2 Test Cases (the target path, D5) |
+| **Feature Page** `IE520 Software - Feature Page` | rendered link | written / not written per section — a section still equal to `Template:FeatureDocumentation/Preload` (all `{{TODO\|…}}`) is not written (D6); IE520's is wholly unwritten |
+
+Sections are found by **title**, not number (a TPS revision can renumber them). IE520's Strategy
+shows why the reader reports, never decides: its §6.2 says `5.5.6-2 ---> Tomahawk ---> IE570` (a
+typo for IE520) and its Schedule says 5.5.6-1.
+
+## 5. Phases
+
+| phase | what | touches | state |
+|---|---|---|---|
+| **0a** | read-only snapshot tool: plans, cycles, cases by folder, plus `problems` | Zephyr GETs | **DONE** 2026-10-05 |
+| **0b** | `ck.db` tables + server import (runs the tool, imports its JSON in one transaction) + a read endpoint for the tree | server code, `ck.db` schema → **production restart** | **DONE** 2026-10-05 (applied; the reload wedged and the unit was restarted — ~4½ min down) |
+| **1** | map the CLONE API and its side effects, in a sandbox: clone one plan, one cycle, one case; record exactly which links appear on the clone and on the original; design the cheapest **clone → prune → verify** sequence (or a clone that never creates the stray link) | Zephyr **writes** — each one asked first | needs a sandbox (§8) |
+| **2** | wiki reader: project page → its three links by the templated names → page text (wikitext via `api.php`), TPS §11.3/11.4 tables, version + product, the Strategy's target path, Feature Page written / not written (§4a) | wiki GETs | **DONE** 2026-10-05 — `ask-ck/tools/zt_wiki.py`, not yet wired to the server |
+| **3** | analysis: Q1–Q5 + AI Notes over the snapshot tree | the per-seat LLM | not started |
+| **4** | the single page (§1.3) | front end | not started |
+| **5** | API Upload: dry-run first, an audit record written before the first write (the `push_to_zephyr` pattern), clone → prune → verify | Zephyr writes | not started |
+| later | wiki write-back: put the cloned plan keys into `{{ATMSummary|…}}` on `Test:<version>/<project>/Status` (D7) | one wiki write | not built |
+
+**The analysis guardrail (Phase 3):** the model may only PROPOSE deselections, each with a reason
+that cites a source document; every template item it does not mention stays selected. So a model
+that drops items from its answer cannot silently remove tests — it can only fail to remove them,
+which is the cautious direction the design asks for.
+
+**Scale of an upload (for Phase 1 to size):** up to 14 plan + 15 cycle + 396 case clones per
+project, and per `docs/zephyr.txt` a prune and a re-check of each — over a thousand calls before
+any batching. Phase 1 looks for bulk endpoints (the internal API has `…/bulk/…` routes, e.g. the
+trace-link create `upload_refined.py` already uses).
+
+## 6. The clone side effect (from `docs/zephyr.txt`, to be measured in Phase 1)
+
+After a clone, the NEW object keeps the original's associations, and the ORIGINAL gains an
+association to the new one. The originals here are the templates, so each project clone would add a
+link on the template; over many projects the templates collect links to every project cloned from
+them. The new objects need their inherited associations pruned and the prune re-verified. Preferred:
+a clone that never creates the association; acceptable: clone → cull → check. Phase 1 records the
+exact before/after on both sides before anything is designed around it.
+
+## 7. Invariants this tool touches
+
+- `ck.db` stays the server's only data source: the template tree is read from the `ck.db` table,
+  never from a file at runtime; the table is written only by the server's import.
+- **New live external dependencies:** the wiki (read) and Zephyr (read, and write on upload). The
+  Generator's `push_to_zephyr` already writes to Zephyr as a deliberate, audited exception; whether
+  this tool is treated the same way is Q6.
+- The server never holds the Jira token: like `push_to_zephyr`, it runs a command-line tool that
+  reads `JIRA_KEY` itself.
+
+## 8. Open questions
+
+1. ~~Go-ahead for Phase 0b~~ — given 2026-10-05.
+2. ~~Target location~~ — answered: the user creates it; the tool finds it from the version and the
+   Strategy's §6.2 path (D5). *Still to settle in Phase 5:* the exact Zephyr folder match (does the
+   last level name the project, e.g. `Project 3296: IE520`?) and what the page shows when it is absent.
+3. **Sandbox for Phase 1:** which Zephyr folder may test clones be written to, and who removes them?
+4. **Credentials:** the shared `JIRA_KEY` in `secrets.md` (every clone attributed to its owner), or
+   each user's own token?
+5. **Invariant exception:** live wiki reads and Zephyr writes as a deliberate exception, like
+   `push_to_zephyr`?
+6. **Q4:** cases that are not Mandatory / "Supported: YES" — untick them, or only flag them?
+   *(Half answered: §11.3 is the SID feature list ranked `M`/`-`, §11.4 the PRD list marked
+   `YES`/`NO` with a Priority `1`/`2`/`3`/`-`; `-` = not supported or N/A — D4, §4a.)*
+7. **Q5:** is the gap report (requirements with no template) report-only in version 1?
+8. **Cases in two cycles (5):** clone once and reference from both cycles, or clone per cycle?
+9. **C8465 Bootloader Tests (Automated) is empty** — intended (to be filled), or should the tool
+   skip empty cycles?
+10. *(small, for the next server-code batch)* `/api/zephyr-tool/status` prints the import time in
+    UTC without saying so ("imported 2026-10-05T01:14" was 14:14 NZDT) — label it, or show local time.
+11. ~~§11.4 Priority `-` with Supported `YES`~~ — answered: **the Supported column decides**
+    (Terrence, 2026-10-05; the reader's rule).

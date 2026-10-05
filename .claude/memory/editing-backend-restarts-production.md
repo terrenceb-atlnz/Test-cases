@@ -3,7 +3,7 @@ name: editing-backend-restarts-production
 description: ask-ck.service runs uvicorn --reload against the working tree, so ANY save to CK_server/*.py bounces the live server — and a reload can wedge on the agent long-polls
 metadata:
   type: project
-  verified: 2026-10-02
+  verified: 2026-10-05
 ---
 
 The hosted server (`systemd --user` unit `ask-ck.service`, LAN on :8000) runs:
@@ -94,3 +94,14 @@ One reload for the whole batch: `Waiting for connections to close` → shutdown 
 up ~27 s after the save, with four tabs long-polling — no wedge — and the other seat's lock
 heartbeat answered 200 afterwards (the in-memory lock survived its re-heartbeat). Then the gate in
 the live tree, commit, and worktree teardown as above.
+
+**2026-10-05 — the wedge happened again, on an applied batch; restart sooner.** Zephyr-tool Phase 0b
+(`db.py` + a router) applied with one `git apply` at 14:09:37: `StatReload` fired, the old worker
+logged `Waiting for connections to close` and never finished (~216 agent long-polls per 10 min were
+arriving), `/health` timed out while the unit stayed "active". Noticed only at ~2½ min because the
+watch loop waited 90 s; `systemctl --user restart ask-ck.service` at 14:13:57 → healthy in ~6 s.
+Outage ~4½ min. The other seat's case-lock heartbeat answered 200 afterwards. **How to apply:** after
+applying a backend change, if `/health` is not back within ~45 s and the journal's last line is
+`Waiting for connections to close`, restart the unit at once — do not keep waiting. (2026-10-02's
+apply did not wedge under similar load, so it is intermittent, not certain.)
+
