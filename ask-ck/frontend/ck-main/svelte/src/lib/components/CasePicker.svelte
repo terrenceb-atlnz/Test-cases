@@ -10,8 +10,11 @@
 
   /** @type {Array<{ label: string, cases: Array<{ id: string, label: string }> }>} Optional —
       when non-empty, renders as <optgroup>s (folder-based categories) instead of the flat
-      openPartialCases/completeCases lists. PyTestPage.svelte doesn't pass these, so it keeps
-      the flat rendering unchanged. */
+      openPartialCases/completeCases lists. GeneratorPage.svelte passes both the flat lists
+      AND groups (progressHint below reads the flat list's {status, progress} even in grouped
+      mode); PyTestPage.svelte's /pt_cases is grouped-only, so it passes groups alone and
+      leaves the flat arrays at their [] default — the displayed counts below account for
+      that (see openCount/completeCount). */
   export let openPartialGroups = [];
 
   /** @type {Array<{ label: string, cases: Array<{ id: string, label: string }> }>} */
@@ -34,6 +37,16 @@
   let selectedCompleteCase = completeCases.some((c) => c.id === selectedCaseId) ? selectedCaseId : '';
 
   $: canLoad = !!(selectedOpenCase || selectedCompleteCase);
+
+  // The displayed count must reflect whichever mode is actually rendering — grouped or
+  // flat — not just the flat array, which a grouped-only caller (PyTestPage.svelte) never
+  // populates at all.
+  $: openCount = openPartialGroups.length
+    ? openPartialGroups.reduce((n, g) => n + g.cases.length, 0)
+    : openPartialCases.length;
+  $: completeCount = completeGroups.length
+    ? completeGroups.reduce((n, g) => n + g.cases.length, 0)
+    : completeCases.length;
 
   function handleOpenChange() {
     if (selectedOpenCase) selectedCompleteCase = '';
@@ -69,7 +82,7 @@
   <p class="cases-intro">Select a test case to work on, then Load it. Export or clear its session from here too.</p>
 
   <div class="case-picker">
-    <label class="case-picker-label" for="open-partial-select">Open / Partial ({openPartialCases.length})</label>
+    <label class="case-picker-label" for="open-partial-select">Open / Partial ({openCount})</label>
     <div class="case-select-wrapper">
       <select
         id="open-partial-select"
@@ -97,7 +110,7 @@
   </div>
 
   <div class="case-picker">
-    <label class="case-picker-label" for="complete-select">Complete ({completeCases.length})</label>
+    <label class="case-picker-label" for="complete-select">Complete ({completeCount})</label>
     <div class="case-select-wrapper">
       <select
         id="complete-select"

@@ -5,6 +5,7 @@
   import ConfirmModal from '../ConfirmModal.svelte';
   import StatusModal from '../StatusModal.svelte';
   import LlmButton from '../LlmButton.svelte';
+  import ErrorBanner from '../ErrorBanner.svelte';
   import { scrollToBottom } from '../../utils/scroll.js';
 
   /** @type {string} Case key — only used for the push-to-Zephyr confirmation copy. */
@@ -197,7 +198,7 @@
           </div>
         {/each}
       </div>
-      {#if saveError}<p class="confirm-error">Save failed: {saveError}</p>{/if}
+      <ErrorBanner message={saveError && `Save failed: ${saveError}`} />
       <div class="objectives-window-actions">
         <Button variant="primary" loading={isSaving} on:click={saveChanges}>Save Changes</Button>
         <Button variant="outline" on:click={cancelEdit}>Cancel</Button>
@@ -348,11 +349,6 @@
     font-size: 0.9rem;
   }
 
-  .confirm-error {
-    margin: -8px 0 0;
-    color: var(--color-error);
-    font-size: 0.88rem;
-  }
 
   .objectives-window-actions {
     display: flex;

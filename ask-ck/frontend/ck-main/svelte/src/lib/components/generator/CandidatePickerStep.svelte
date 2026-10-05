@@ -5,6 +5,7 @@
   import Table from '../Table.svelte';
   import SearchBox from '../SearchBox.svelte';
   import LlmButton from '../LlmButton.svelte';
+  import ErrorBanner from '../ErrorBanner.svelte';
   import { scrollToCasesIntro, scrollToBottom } from '../../utils/scroll.js';
 
   /** @type {Array<{ key: string, label: string, width?: number }>} */
@@ -150,9 +151,7 @@
   <Button variant="outline" on:click={clearSelected}>Clear Selected</Button>
   <Button variant="outline" on:click={clearAll}>Clear All</Button>
 </div>
-{#if confirmError}
-  <p class="confirm-error">Confirm failed: {confirmError}</p>
-{/if}
+<ErrorBanner message={confirmError && `Confirm failed: ${confirmError}`} />
 <div class="testlink-final-actions">
   <Button variant="primary" loading={isConfirming} on:click={handleConfirm}>Review &amp; Confirm</Button>
 </div>
@@ -171,11 +170,6 @@
     margin-bottom: 20px;
   }
 
-  .confirm-error {
-    margin: -12px 0 20px;
-    color: var(--color-error);
-    font-size: 0.88rem;
-  }
 
   .testlink-table-label {
     margin: 0 0 8px;
