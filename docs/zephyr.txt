@@ -1,0 +1,41 @@
+Zephyr Templating Tool Design
+
+Build the back-end:
+First things first, we need to build and populate the templating that we will be connecting to actual information later in the project. We first need to define the shape of the API package we will need to push into Zephyr in order to clone a pre-made Test Plan, retain its associated Test Cycles, and have those populated with cloned Test Cases. 
+
+Issues I already know about:
+After we clone anything, a plan / cycle / case, it retains its old associations in the new location, and it ADDS the new association in the old location. This means that the old clone will retain all associations of where it was cloned *to*. That's not such an issue, the issue lie in the New Plan/Cycles/Cases, those need the associations pruned, and then we need to re-verify the prune was done. It would be easiest if we had a way to clone the existing template and then prune the association when it was created, or somehow create it without the association. Unsure if that is possible, am happy to settle for the clone/cull/check version of calls, but its a lot of API traffic. Open to suggestions once we have the shape of the API.
+
+
+Function:
+This tool will be a way for users to input the Wiki URL for their Project Page, check to see whether we have all the required tests templated, have the tool populate an AW+ version Project location, and link the cloned test plans to the Project Page Template (red circle in screenshot).
+example project: (https://wiki.atlnz.lc/awpwiki/index.php/Project:3296_IE520_Software).
+example AW+ project location: (https://jira.atlnz.lc/secure/Tests.jspa#/v2/testCycles?projectId=15310) usually that sends you to the root, so i've attached the screenshot as well for each layer of potential API interaction. <screenshot 2,3,4>
+
+From that page, i need the AI to get information from the following links on that page: <screenshot>
+The red circle link is a template where we will put the end results of the tool, more to follow.
+The Black circled links are always in the same place, because this page is a template. Sometimes the Software Feature page is not developed, and there may not be useful data there. These are where we are going to aggregate our information from.
+
+The three links are as follows, in this example:
+https://wiki.atlnz.lc/awpwiki/index.php/Test:3296_Test_Strategy_-_IE520_Software
+https://wiki.atlnz.lc/awpwiki/index.php/IE520_Software_-_Feature_Page
+https://wiki.atlnz.lc/awpwiki/index.php/IE520_Software_TPS
+
+These are also all made from templates, including the naming conventions of the links. This should be repeatable for any project link sent to the AI via this tool. The default behavior is going to be "Add all plans, cycles, and cases that are currently populated in the database." From the information we gather at those locations, we are going to try and strip-down the templates to only the relevant tests, erring on the side of caution. That will take the form of answering these questions, based on the data we have:
+
+1. What test plans can we cut out? (refer to test strategy for details)
+2. Within the retained plans, what test cycles aren't relevant? (unsupported features, device incapable of performing that test, etc)
+3. Within the retained cycles, what test cases aren't relevant? (the TPS doesnt have that feature listed, the device doesnt have that feature, etc)
+4. Of the remaining test cases, which ones are not "Mandatory (M) Ranking" or "Supported "YES"" on first release of the platform as per the TPS? (sections 11.3 Supported features, 11.4 Supported features delineate this).
+5. Is there anything that has been identified as a requirement to test in any document that does NOT have a template assigned to it? (new features are typically things that are added and may not have a template yet, but good to identify any gaps at this point)
+
+The outputs from these questions should be annotated in a column with a "Results Analysis" field. This should also have an "AI Notes" section 6 in that field that adds some supporting details, like what features arent included on the device, how many stack members it supports, and other good notes to backup why things are deselected in the next column.
+In the next column there should be a field that shows the Plan/Cycle/Cases templates in a file-system hierarchy, with results checked/unchecked as appropriate, overwriteable by the user.
+
+
+UI:
+One page, not three as scaffolded previously. Should be a URL input field, and an "Organize with LLM" button that does what is described above. On the Next line, should be a "What Version" Field that populates the AW+ Version (after analysis) and a "What Product" field that populates the DuT.
+Below that should be two columned scrollable fields, one read-only as a Results Analysis, and one as a file-structure with selectable boxes for the user to visually see what is connected between Test Plans, Cycles, and Cases. Deselecting a higher object should deselect the ones below it. 
+
+There should be a Confirm button at the bottom that un-greys an API Upload button, for the AI to send the API to clone the templates into the Project in Zephyr. 
+

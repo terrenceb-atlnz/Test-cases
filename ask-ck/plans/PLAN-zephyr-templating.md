@@ -55,9 +55,11 @@ It replaces the four placeholder pages the 2026-07 facelift scaffolded
 - **D1 — the templates are authored in Zephyr by Terrence**: blank template plans and cycles, linked
   to the cases refined in Ask-CK. Plans in `/Platform Testing/Test Plan TEMPLATES`, cycles in
   `/Platform Testing/Test Cycle TEMPLATES`. Populated for now; *"they will likely be updated later."*
-- **D2 — everything is CLONED, cases included.** A clone of a plan, cycle or case gets its own key,
-  and its Traceability tab links the original. Cases must be clones *"so the test cases retain their
-  previous executions."*
+- **D2 — plans and cycles are CLONED; cases are SHARED** (corrected 2026-10-05, Terrence: *"D2 yes
+  you can"*). A clone of a plan or cycle gets its own key and its Traceability tab links the original;
+  a cloned cycle holds the **same case keys** as its template (measured, §6), so each case gathers
+  executions from every project — that is what *"so the test cases retain their previous
+  executions"* means. (Recorded first as "cases included", which the measurement contradicted.)
 - **D3 — the template set is snapshotted through the API** (the UI exports cases only, not plans or
   cycles) **into a `ck.db` table** (*"ck.db table is a better idea"*). ck.db is written only by the
   server, so the snapshot tool prints JSON and a server-side import writes the table.
@@ -102,8 +104,7 @@ It replaces the four placeholder pages the 2026-07 facelift scaffolded
 | P3260 Industrial Features | C8463 | 12 |
 | P3261 Data Center Features | C8462 | 8 |
 
-Observations: 5 cases sit in more than one cycle (a clone must not duplicate them, or must — Phase
-1 decides); the cases come from several folders, not only `New Platform Template` (e.g.
+Observations: 5 cases sit in more than one cycle (harmless now cases are shared — D2); the cases come from several folders, not only `New Platform Template` (e.g.
 `/Environmental Monitoring` 18, `/Modbus/Proj 2166 Modbus Support` 6, 3 with no folder — Terrence:
 several cases outside the template folder still need creating or updating; *"for now, it'll do"*); 357 cases
 are at version 1.0 and 39 at 2.0 (the refined ones); 178 items have an assignee (deferred); 17 case
@@ -119,6 +120,28 @@ families need no code change.
 | **TPS** `IE520 Software TPS` (73 sections, ~122 k chars) | the project page's rendered links (`prop=links`) — the `{{#switch: hw\|gui\|…}}` picks TPS or TFS, so the rendered link, not the wikitext, is read | §11.3 *Supported features (Ref. SID)*: 738 rows, ranking `M` 605 / `-` 133 · §11.4 *Supported features (Ref. PRD)*: 260 rows, Supported `YES` 232 / `NO` 28, Priority `1`/`2`/`3`/`-` (D4) · §6.1.4 features not implemented · §11.6 items in PRD not supported |
 | **Test Strategy** `Test:3296 Test Strategy - IE520 Software` | rendered link, `Test:` namespace | §3.3 Feature Coverage, §4 Not Tested (IE520's just points at TPS §11.4), §6.2 Test Cases (the target path, D5) |
 | **Feature Page** `IE520 Software - Feature Page` | rendered link | written / not written per section — a section still equal to `Template:FeatureDocumentation/Preload` (all `{{TODO\|…}}`) is not written (D6); IE520's is wholly unwritten |
+
+**Two TPS layouts (found 2026-10-05 on IE570).** The older one (IE570, `Project:3001 IE570 Platform
+Support`) has no SID section: under §11.3 *Supported features (Ref. PRD …)* sit "PRD Software
+Requirements - Part 1/2" (SID-shaped, 26 + 504 rows, ranking `M`/`D`/`O` **plus a "1st Release"
+column** Yes/No/Maybe) and "Part 3" (PRD-shaped, 296 rows, Yes/No/Maybe/N/A), then a licence table;
+and §11.4.4 *Features Supported and Tested* is filled (524 rows, all `Y` — IE520's is the empty
+stub). So the reader recognises each table by its **columns** — SID-style (Ranking + Feature Group),
+PRD-style (Item + Specification + Supported), tested (Feature Group + "Features Supported") — under
+every "Supported features…" / "Features Supported and Tested" section and its subsections, and tags
+each row with its section. Reading rules: Yes/Y supported; No/N/N-A/`-` not (D4); where a row has a
+Supported or "1st Release" column, that column decides (§8.11's ruling, extended to "1st Release");
+anything else — "Maybe" (6 IE570 rows), a bare `D`/`O` ranking — is **left undecided** (`None`) and
+counted in `problems`, never guessed.
+
+- **D8 — an undecided ("Maybe") feature keeps its tests selected, with an AI Note citing the TPS
+  comment** (Terrence, 2026-10-05 — the design's "err on the side of keeping a test"). The TPS does
+  not define "Maybe"; its comments show it means *not committed, depends on something outside the
+  project*: IE570's 6 rows are 3 features — PROFInet IO ("Dependent on IE360, IE560 support"),
+  MACsec VLAN tag in clear ("Dependent on {{MRSt|1513}}"), gNMI ("Not in AW+, But is possible
+  gNXI"). A Phase 3 rule; the reader already passes them on as `supported: None`.
+- The same feature can appear in more than one PRD part (MACsec is in all three) — Phase 3 treats
+  repeats as one feature.
 
 Sections are found by **title**, not number (a TPS revision can renumber them). IE520's Strategy
 shows why the reader reports, never decides: its §6.2 says `5.5.6-2 ---> Tomahawk ---> IE570` (a
@@ -142,9 +165,8 @@ that cites a source document; every template item it does not mention stays sele
 that drops items from its answer cannot silently remove tests — it can only fail to remove them,
 which is the cautious direction the design asks for.
 
-**Scale of an upload (for Phase 1 to size):** up to 14 plan + 15 cycle + 396 case clones per
-project, and per `docs/zephyr.txt` a prune and a re-check of each — over a thousand calls before
-any batching. Phase 1 looks for bulk endpoints (the internal API has `…/bulk/…` routes, e.g. the
+**Scale of an upload (sized by Phase 1):** up to 14 plan + 15 cycle clones per project (cases are
+shared, D2), and per family the two unlinks of §6 plus a re-read of both ends. Phase 1 looks for bulk endpoints (the internal API has `…/bulk/…` routes, e.g. the
 trace-link create `upload_refined.py` already uses).
 
 ## 6. The clone side effect (from `docs/zephyr.txt`, to be measured in Phase 1)
@@ -155,6 +177,43 @@ link on the template; over many projects the templates collect links to every pr
 them. The new objects need their inherited associations pruned and the prune re-verified. Preferred:
 a clone that never creates the association; acceptable: clone → cull → check. Phase 1 records the
 exact before/after on both sides before anything is designed around it.
+
+**Measured 2026-10-05** — Terrence cloned the Port pair by hand into IE570's folders
+(`/5.5.6-2/Tomahawk/Project 3001: IE570`, plans and cycles) and the before/after was read through the
+public API:
+
+| step | new object | its links | side effect on the template |
+|---|---|---|---|
+| clone plan P3248 | **P3263** "Port (cloned)" | the **template** cycle C8451 (a plan clone does NOT clone its cycles) | none visible on P3248 |
+| clone cycle C8451 | **C8466** "Port (cloned)" | joins **every plan the original was in**: P3263 *and the template plan P3248* | **P3248 now links C8466** — an IE570 cycle inside the template |
+
+- The cycle clone holds the **same 7 case keys** as C8451 — cases are shared, not copied, and the
+  assignees came with it (`nings`, `JIRAUSER17403`). IE570's own 25 cycles are clones of earlier
+  cycles the same way (Terrence), which is how a case keeps its executions across projects.
+- Names get ` (cloned)`; owner/creator = the cloner; status Draft / Not Executed.
+- A link CREATED by a clone does not bump the template's `updatedOn`; a link DELETED does (below). The
+  Traceability "cloned from" link is not in the public API's plan or cycle record.
+- **A plan↔cycle link is ONE trace-link record**, seen from both ends under the same id:
+  `GET /rest/tests/1.0/{testplan|testrun}/{numericId}?fields=id,key,traceLinks` (numeric id from
+  `GET /rest/tests/1.0/{testplan|testrun}/{KEY}?fields=id,key`). The UI bundle also exposes
+  `/testplan/bulk/clone` and `/testrun/bulk/clone` (Phase 5).
+- **The prune for one family** is two unlinks: P3263 drops C8451, P3248 drops C8466. **Done
+  2026-10-05** on Terrence's go-ahead: `DELETE /rest/tests/1.0/tracelink/169716` (P3248↔C8466) and
+  `…/169714` (P3263↔C8451), each re-verified just before and both ends read after — 200, exactly those
+  links gone; P3248↔C8451 (169684) and P3263↔C8466 (169718) kept. The templates' name, folder,
+  status, cases and assignees are unchanged, **but their `updatedOn`/`updatedBy` moved** (P3248
+  02:19:51Z, C8451 02:21:34Z, the token's account) — an upload will touch every template it clones
+  from this way. `zt_snapshot`'s "cycle linked by a template plan but lives outside the template
+  folder" check is what catches a missed prune on the template side.
+- **Rename = a partial PUT:** `PUT /rest/tests/1.0/testrun|testplan/{numericId}` with
+  `{"id": …, "name": "…", "projectId": 15310}` (+ header `jira-project-id: 15310`) changes the name and
+  `updatedOn` only — fields not sent are kept, links untouched. Captured from Terrence's UI rename of
+  C8466 (the body inferred from its 60-byte length, then verified by the before/after) and used for
+  P3263. **Naming (Terrence):** `IE570: Port (Ask-CK)` — `<product>: <template name> (Ask-CK)`.
+- **IE570 result, 2026-10-05:** P3263 "IE570: Port (Ask-CK)" → C8466 "IE570: Port (Ask-CK)" (7 shared
+  cases) in `/5.5.6-2/Tomahawk/Project 3001: IE570`; templates P3248 → C8451 as before. Writes logged
+  in the session: 2 trace-link DELETEs, 1 plan rename (Claude); the clones and the cycle rename
+  (Terrence, in the UI).
 
 ## 7. Invariants this tool touches
 
@@ -181,7 +240,7 @@ exact before/after on both sides before anything is designed around it.
    *(Half answered: §11.3 is the SID feature list ranked `M`/`-`, §11.4 the PRD list marked
    `YES`/`NO` with a Priority `1`/`2`/`3`/`-`; `-` = not supported or N/A — D4, §4a.)*
 7. **Q5:** is the gap report (requirements with no template) report-only in version 1?
-8. **Cases in two cycles (5):** clone once and reference from both cycles, or clone per cycle?
+8. ~~Cases in two cycles (5)~~ — moot: cases are shared, not cloned (D2).
 9. **C8465 Bootloader Tests (Automated) is empty** — intended (to be filled), or should the tool
    skip empty cycles?
 10. *(small, for the next server-code batch)* `/api/zephyr-tool/status` prints the import time in

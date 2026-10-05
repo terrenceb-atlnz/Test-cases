@@ -1,8 +1,10 @@
 """ask-ck/tools/zt_wiki.py — a project's wiki pages, read-only, for the Zephyr Templating Tool.
 
-The fixture is the real `api.php?action=parse` answer for the IE520 set (2026-10-05): the project
-page `Project:3296 IE520 Software`, its TPS, Test Strategy and (unwritten) Feature Page, and the
-Feature Page preload template. Everything is offline: `read_project` takes the `get` it reads
+The fixtures are the real `api.php?action=parse` answers (2026-10-05) for two projects whose TPSs
+use the two layouts: IE520 (`Project:3296 IE520 Software` — SID table at §11.3, PRD at §11.4, an
+unwritten Feature Page) and IE570 (`Project:3001 IE570 Platform Support` — the older layout: both
+table shapes as "PRD Software Requirements - Part 1-3" under §11.3, a filled §11.4.4 "Features
+Supported and Tested"), each with its TPS, Test Strategy, Feature Page and the Feature Page preload. Everything is offline: `read_project` takes the `get` it reads
 through, and these tests hand it the fixture.
 """
 from __future__ import annotations
@@ -25,7 +27,9 @@ zw = importlib.util.module_from_spec(spec)
 sys.modules["zt_wiki"] = zw
 spec.loader.exec_module(zw)  # type: ignore[union-attr]
 
-PAGES = json.loads((Path(__file__).resolve().parent / "fixtures" / "zt_wiki_ie520.json").read_text(encoding="utf-8"))
+FIX = Path(__file__).resolve().parent / "fixtures"
+PAGES = json.loads((FIX / "zt_wiki_ie520.json").read_text(encoding="utf-8"))
+IE570 = json.loads((FIX / "zt_wiki_ie570.json").read_text(encoding="utf-8"))
 PROJECT = "Project:3296 IE520 Software"
 TPS, STRATEGY = "IE520 Software TPS", "Test:3296 Test Strategy - IE520 Software"
 FEATURE = "IE520 Software - Feature Page"
@@ -63,10 +67,10 @@ def test_tps_11_3_is_738_sid_rows_ranked_M_or_dash_and_dash_is_not_supported():
     sid = zw.read_project(_wiki()[0], PROJECT)["tps"]["sid_features"]
     assert len(sid) == 738
     assert collections.Counter(x["ranking"] for x in sid) == {"M": 605, "-": 133}
-    assert sum(x["supported"] for x in sid) == 605                       # D4: a `-` is not supported
-    assert sid[0] == {"group": "Application Programmable Interface (API)",
+    assert collections.Counter(x["supported"] for x in sid) == {True: 605, False: 133}   # D4: `-` = not
+    assert sid[0] == {"section": "11.3", "group": "Application Programmable Interface (API)",
                       "feature": "ACL/QoS statistics (Hit Counter) support on AW+",
-                      "ranking": "M", "supported": True, "comment": ""}
+                      "ranking": "M", "release": "", "supported": True, "comment": ""}
 
 
 def test_tps_11_4_is_260_prd_rows_with_rowspans_carried_and_red_markup_read():
@@ -81,25 +85,27 @@ def test_tps_11_4_is_260_prd_rows_with_rowspans_carried_and_red_markup_read():
 
 
 def test_sections_are_numbered_and_titled_as_the_wiki_numbers_them():
-    for title, d in PAGES.items():
-        api = [(s["number"], zw._clean(s["line"])) for s in d["parse"]["sections"]]
-        assert [(s["number"], s["title"]) for s in zw.sections(d["parse"]["wikitext"]["*"])] == api, title
+    for pages in (PAGES, IE570):
+        for title, d in pages.items():
+            api = [(s["number"], zw._clean(s["line"])) for s in d["parse"]["sections"]]
+            assert [(s["number"], s["title"]) for s in zw.sections(d["parse"]["wikitext"]["*"])] == api, title
     tps = zw.read_project(_wiki()[0], PROJECT)["tps"]
-    assert (tps["sid_section"], tps["prd_section"]) == ("11.3", "11.4")
+    assert tps["feature_sections"] == {"sid": ["11.3"], "prd": ["11.4"], "tested": []}
 
 
 def test_tables_are_found_by_title_not_number():
     def renumber(p):                        # a TPS revision inserts a section before the appendices
         p["wikitext"]["*"] = p["wikitext"]["*"].replace("\n=Appendices=", "\n=New Section=\nx\n=Appendices=", 1)
     tps = zw.read_project(_wiki(_edit(TPS, renumber))[0], PROJECT)["tps"]
-    assert (tps["sid_section"], tps["prd_section"]) == ("12.3", "12.4")
+    assert tps["feature_sections"] == {"sid": ["12.3"], "prd": ["12.4"], "tested": []}
     assert len(tps["sid_features"]) == 738 and len(tps["prd_features"]) == 260
 
 
 def test_the_strategy_target_path_is_read_and_its_disagreement_reported():
     r = zw.read_project(_wiki()[0], PROJECT)
     assert r["strategy"]["target_path"]["parts"] == ["5.5.6-2", "Tomahawk", "IE570"]
-    assert r["problems"] == ["the Test Strategy's target path ends 'IE570', not the product 'IE520'"]
+    assert r["problems"] == ["the TPS's \"Features Supported and Tested\" table is absent or not filled in",
+                             "the Test Strategy's target path ends 'IE570', not the product 'IE520'"]
     assert any(s["title"] == "Feature Coverage" and "EtherNet/IP" in s["body"] for s in r["strategy"]["sections"])
 
 
@@ -169,6 +175,47 @@ def test_wikitable_expands_rowspan_and_colspan_and_keeps_pipes_inside_links():
     labels, rows = zw.wikitable(body)
     assert labels == ["A", "B / b1", "B / b2"]
     assert rows == [["x", "label", "{{T|1}}"], ["x", "y", "z"]]
+
+
+def test_wikitables_reads_every_table_and_a_cell_opened_by_a_leading_double_pipe():
+    body = "{|\n!A!!B\n|-\n|one\n||\ntwo\n|}\ntext\n{|\n!C\n|-\n|three\n|}"
+    assert zw.wikitables(body) == [(["A", "B"], [["one", "two"]]), (["C"], [["three"]])]
+
+
+@pytest.mark.parametrize("cell, want", [("YES", True), ("Yes", True), ("Y", True), ("NO", False), ("No", False),
+                                        ("N/A", False), ("-", False), ("Maybe", None), ("", None), ("D", None)])
+def test_a_yes_no_cell_is_read_in_any_case_and_anything_else_is_left_undecided(cell, want):
+    assert zw.verdict(cell) is want
+
+
+IE570_PROJECT = "Project:3001 IE570 Platform Support"
+
+
+def test_the_older_ie570_tps_layout_reads_by_columns_not_section_numbers():
+    tps = zw.read_project(_wiki(IE570)[0], IE570_PROJECT)["tps"]
+    assert tps["feature_sections"] == {"sid": ["11.3.1", "11.3.2"], "prd": ["11.3.3"], "tested": ["11.4.4"]}
+    assert (len(tps["sid_features"]), len(tps["prd_features"]), len(tps["tested_features"])) == (530, 296, 524)
+    assert not any(r["feature"] == "BGP 64" for r in tps["sid_features"] + tps["tested_features"])   # §11.3.4 licence table
+    assert collections.Counter(x["supported_raw"] for x in tps["prd_features"]) == {"Yes": 250, "No": 44, "Maybe": 1, "N/A": 1}
+    assert collections.Counter(x["supported"] for x in tps["prd_features"]) == {True: 250, False: 45, None: 1}
+
+
+def test_a_1st_release_column_decides_over_the_ranking():
+    sid = zw.read_project(_wiki(IE570)[0], IE570_PROJECT)["tps"]["sid_features"]
+    hsr = next(r for r in sid if "Seamless Redundancy (HSR)" in r["feature"])
+    assert (hsr["section"], hsr["ranking"], hsr["release"], hsr["supported"]) == ("11.3.1", "M", "No", False)
+    assert collections.Counter(x["supported"] for x in sid) == {True: 510, False: 15, None: 5}
+
+
+def test_ie570_reports_its_undecided_rows_and_its_version_disagreements():
+    r = zw.read_project(_wiki(IE570)[0], IE570_PROJECT)
+    assert (r["project"]["version"], r["project"]["product"], r["project"]["number"]) == ("5.5.6", "IE570", "3001")
+    assert r["strategy"]["target_path"]["parts"] == ["5.5.6-2", "Tomahawk", "IE570"]
+    assert "6 TPS feature row(s) are neither yes nor no ('Maybe') — left undecided" in r["problems"]
+    assert any("more than one version" in p for p in r["problems"])
+    assert any("target path starts '5.5.6-2', the project page says '5.5.6'" in p for p in r["problems"])
+    assert r["feature_page"]["status"] == "partly written"
+    assert r["feature_page"]["written"] == ["AI Information on Secure Boot"]
 
 
 def test_it_is_read_only_and_never_touches_ck_db():

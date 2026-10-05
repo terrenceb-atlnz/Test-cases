@@ -6,10 +6,12 @@ Zephyr Templating Tool, Phase 2 (PLAN-zephyr-templating.md §4a). The user paste
 
   project page   version (`[[5.5.6-2 Release|…]]`, `{{Test Status v2|5.5.6-2|3296}}`, the version
                  category), product (the remaining category), project number, the three links
-  TPS            every section, plus the two feature tables as rows: §11.3 *Supported features
-                 (Ref. SID …)* ranked `M`/`-` and §11.4 *Supported features (Ref. PRD …)* marked
-                 `YES`/`NO`/`-`. Only `M` / `YES` count as supported — a `-` means "not supported or
-                 N/A" (Terrence, 2026-10-05, D4)
+  TPS            every section, plus its feature tables as rows, recognised by their COLUMNS so
+                 both TPS layouts read (`tps_features`): SID-style (Ranking / Feature Group /
+                 Feature), PRD-style (Item / Specification / Supported) and "Features Supported and
+                 Tested". Yes/Y = supported, No/N/N-A/`-` = not (D4: a `-` is "not supported or
+                 N/A"), anything else (e.g. "Maybe") undecided; where a row has a Supported or
+                 "1st Release" column, that column decides (Terrence, 2026-10-05)
   Test Strategy  every section, plus the target path its "Test Cases" section names
                  ("stored in Jira under 5.5.6-2 ---> Tomahawk ---> IE520", D5)
   Feature Page   written / not written, section by section: a section still equal to the page's
@@ -44,8 +46,8 @@ from jira_testlink_access import SSL_CTX  # noqa: E402
 WIKI = "https://wiki.atlnz.lc/awpwiki"
 API = WIKI + "/api.php"
 FEATURE_PRELOAD = "Template:FeatureDocumentation/Preload"
-SID_TABLE = "Supported features (Ref. SID"      # TPS §11.3, title prefix
-PRD_TABLE = "Supported features (Ref. PRD"      # TPS §11.4, title prefix
+SUPPORTED_FEATURES = "Supported features"      # TPS §11.3 / §11.4 titles start so, either layout
+TESTED_FEATURES = "Features Supported and Tested"
 NS_MAIN, NS_TEST = 0, 102
 _VERSION = re.compile(r"^\d+\.\d+\.\d+(?:-\d+)?$")
 
@@ -170,14 +172,27 @@ def _cell(raw: str, header: bool) -> dict:
 
 
 def wikitable(body: str) -> Tuple[List[str], List[List[str]]]:
-    """The first `{| … |}` table in `body` as (column labels, rows of cell text), with rowspan and
-    colspan expanded so every row has one cell per column. Header rows are the leading rows made
-    only of `!` cells; a column's label joins its distinct header texts with " / "."""
-    start = body.find("{|")
-    if start < 0:
-        return [], []
-    end = body.find("\n|}", start)
-    lines = body[start:end if end > 0 else len(body)].split("\n")[1:]
+    """The first `{| … |}` table in `body` — see `wikitables`; ([], []) when there is none."""
+    tables = wikitables(body)
+    return tables[0] if tables else ([], [])
+
+
+def wikitables(body: str) -> List[Tuple[List[str], List[List[str]]]]:
+    """Every top-level `{| … |}` table in `body`, each as (column labels, rows of cell text), with
+    rowspan and colspan expanded so every row has one cell per column. Header rows are the leading
+    rows made only of `!` cells; a column's label joins its distinct header texts with " / "."""
+    out, pos = [], 0
+    while True:
+        start = body.find("{|", pos)
+        if start < 0:
+            return out
+        end = body.find("\n|}", start)
+        end = end if end > 0 else len(body)
+        out.append(_table(body[start:end].split("\n")[1:]))
+        pos = end + 3
+
+
+def _table(lines: List[str]) -> Tuple[List[str], List[List[str]]]:
     rows: List[List[dict]] = [[]]
     for line in lines:
         s = line.strip()
@@ -185,10 +200,12 @@ def wikitable(body: str) -> Tuple[List[str], List[List[str]]]:
             rows.append([])
         elif s.startswith("|+"):
             continue
-        elif s.startswith("!"):
-            rows[-1] += [_cell(c, True) for h in _split(s[1:], "!!") for c in _split(h, "||")]
+        elif s.startswith("!"):                            # `!!` / `||` at the line start opens a cell too
+            rest = s[2:] if s.startswith("!!") else s[1:]
+            rows[-1] += [_cell(c, True) for h in _split(rest, "!!") for c in _split(h, "||")]
         elif s.startswith("|"):
-            rows[-1] += [_cell(c, False) for c in _split(s[1:], "||")]
+            rest = s[2:] if s.startswith("||") else s[1:]
+            rows[-1] += [_cell(c, False) for c in _split(rest, "||")]
         elif rows[-1]:
             rows[-1][-1]["text"] += "\n" + line
     rows = [r for r in rows if r]
@@ -242,34 +259,99 @@ def _joined(row: List[str], cols: List[int]) -> str:
 
 # --------------------------------------------------------------------------- the pages
 
-def sid_features(sec: Optional[dict]) -> List[dict]:
-    """TPS §11.3 rows: {group, feature, ranking, supported, comment}; supported = ranking `M`."""
-    if not sec:
-        return []
-    labels, rows = wikitable(sec["body"])
-    rank, group, feat, comment = (_column(labels, k) for k in ("Ranking", "Feature Group", "Feature", "Comment"))
-    feat = [i for i in feat if i not in group]
+def verdict(value: str) -> Optional[bool]:
+    """A TPS yes/no cell: True for Yes/Y, False for No/N/N-A/`-` (D4: "not supported or N/A"), None
+    for anything else (e.g. "Maybe") — left undecided for the analysis, never guessed."""
+    v = value.strip().upper()
+    if v in ("YES", "Y"):
+        return True
+    if v in ("NO", "N", "N/A", "NA", "-"):
+        return False
+    return None
+
+
+def table_kind(labels: List[str]) -> Optional[str]:
+    """Which feature table a header row is — by its COLUMNS, so either TPS layout reads:
+    "sid" (Ranking, Feature Group, Feature), "prd" (Item, Specification, Supported),
+    "tested" (Feature Group, Feature, Features Supported); None for any other table."""
+    has = lambda k: bool(_column(labels, k))  # noqa: E731
+    if has("Ranking") and has("Feature Group"):
+        return "sid"
+    if has("Item") and has("Specification") and has("Supported"):
+        return "prd"
+    if has("Feature Group") and any("features supported" in l.lower() for l in labels):
+        return "tested"
+    return None
+
+
+def feature_rows(kind: str, labels: List[str], rows: List[List[str]], section: str) -> List[dict]:
+    """One table's rows in the shape of its kind, each tagged with the TPS section it came from.
+
+    sid     {section, group, feature, ranking, release, supported, comment} — `release` is the newer
+            layout's "1st Release" column; when present it decides `supported` (the Supported column
+            decides, Terrence 2026-10-05), else the ranking does: `M` yes, `-` no, D / O undecided
+    prd     {section, item, specification, priority, supported_raw, supported, note}
+    tested  {section, group, feature, supported_raw, supported, tested}; a template stub row
+            (feature `...`) is dropped"""
     out = []
-    for r in rows:
-        ranking = _joined(r, rank)
-        out.append({"group": _joined(r, group), "feature": _joined(r, feat), "ranking": ranking,
-                    "supported": ranking.upper() == "M", "comment": _joined(r, comment)})
+    if kind == "sid":
+        rank, group, feat, rel, comment = (_column(labels, k) for k in
+                                           ("Ranking", "Feature Group", "Feature", "1st Release", "Comment"))
+        feat = [i for i in feat if i not in group]
+        for r in rows:
+            ranking, release = _joined(r, rank), _joined(r, rel)
+            sup = verdict(release) if rel else (True if ranking.upper() == "M" else verdict(ranking))
+            out.append({"section": section, "group": _joined(r, group), "feature": _joined(r, feat),
+                        "ranking": ranking, "release": release, "supported": sup, "comment": _joined(r, comment)})
+    elif kind == "prd":
+        item, spec, prio, sup, note = (_column(labels, k) for k in ("Item", "Specification", "Priority", "Supported", "Note"))
+        for r in rows:
+            raw = _joined(r, sup)
+            out.append({"section": section, "item": _joined(r, item), "specification": _joined(r, spec),
+                        "priority": _joined(r, prio), "supported_raw": raw, "supported": verdict(raw),
+                        "note": _joined(r, note)})
+    elif kind == "tested":
+        group, feat = _column(labels, "Feature Group"), _column(labels, "Feature")
+        feat = [i for i in feat if i not in group]
+        sup = [i for i, l in enumerate(labels) if "features supported" in l.lower()]
+        tested = [i for i, l in enumerate(labels) if "features tested" in l.lower()]
+        for r in rows:
+            f = _joined(r, feat)
+            if f in ("", "...", "…"):
+                continue
+            raw = _joined(r, sup)
+            out.append({"section": section, "group": _joined(r, group), "feature": f,
+                        "supported_raw": raw, "supported": verdict(raw), "tested": _joined(r, tested)})
     return out
 
 
-def prd_features(sec: Optional[dict]) -> List[dict]:
-    """TPS §11.4 rows: {item, specification, priority, supported_raw, supported, note};
-    supported = `YES`."""
-    if not sec:
-        return []
-    labels, rows = wikitable(sec["body"])
-    item, spec, prio, sup, note = (_column(labels, k) for k in ("Item", "Specification", "Priority", "Supported", "Note"))
-    out = []
-    for r in rows:
-        raw = _joined(r, sup)
-        out.append({"item": _joined(r, item), "specification": _joined(r, spec), "priority": _joined(r, prio),
-                    "supported_raw": raw, "supported": raw.upper() == "YES", "note": _joined(r, note)})
-    return out
+def _subtree(secs: List[dict], sec: dict) -> List[dict]:
+    """`sec` and every section nested under it."""
+    i = secs.index(sec)
+    j = i + 1
+    while j < len(secs) and secs[j]["level"] > sec["level"]:
+        j += 1
+    return secs[i:j]
+
+
+def tps_features(secs: List[dict]) -> Dict[str, List[dict]]:
+    """{"sid": rows, "prd": rows, "tested": rows} from every "Supported features…" section and the
+    "Features Supported and Tested" section, subsections included, recognising each table by its
+    columns. IE520's TPS has SID at §11.3 and PRD at §11.4; IE570's older one has both shapes as
+    "PRD Software Requirements - Part 1-3" under §11.3 and a filled §11.4.4."""
+    found: Dict[str, List[dict]] = {"sid": [], "prd": [], "tested": []}
+    roots = [s for s in secs if s["title"].lower().startswith((SUPPORTED_FEATURES.lower(), TESTED_FEATURES.lower()))]
+    seen = set()
+    for root in roots:
+        for s in _subtree(secs, root):
+            if s["number"] in seen:
+                continue
+            seen.add(s["number"])
+            for labels, rows in wikitables(s["body"]):
+                kind = table_kind(labels)
+                if kind:
+                    found[kind] += feature_rows(kind, labels, rows, s["number"])
+    return found
 
 
 def target_path(sec: Optional[dict]) -> Optional[dict]:
@@ -372,12 +454,21 @@ def read_project(get: Get, url_or_title: str) -> dict:
     tps = None
     if got.get("tps"):
         secs = sections(got["tps"]["wikitext"]["*"])
-        sid, prd = _find(secs, SID_TABLE), _find(secs, PRD_TABLE)
-        for sec, name in ((sid, SID_TABLE), (prd, PRD_TABLE)):
-            if not sec:
-                problems.append(f"the TPS has no section {name + '…)'!r}")
-        tps = {"sections": secs, "sid_features": sid_features(sid), "prd_features": prd_features(prd),
-               "sid_section": sid and sid["number"], "prd_section": prd and prd["number"]}
+        feats = tps_features(secs)
+        if not feats["sid"] and not feats["prd"]:
+            problems.append("the TPS has no feature table (no \"Supported features\" section with a "
+                            "Ranking / Feature Group or Item / Specification / Supported table)")
+        if not feats["tested"]:
+            problems.append("the TPS's \"Features Supported and Tested\" table is absent or not filled in")
+        undecided = [r for k in ("sid", "prd", "tested") for r in feats[k] if r["supported"] is None]
+        if undecided:
+            vals = sorted({r.get("release") or r.get("supported_raw") or r.get("ranking") or "" for r in undecided})
+            problems.append(f"{len(undecided)} TPS feature row(s) are neither yes nor no ({', '.join(map(repr, vals))}) "
+                            f"— left undecided")
+        tps = {"sections": secs, "sid_features": feats["sid"], "prd_features": feats["prd"],
+               "tested_features": feats["tested"],
+               "feature_sections": {k: sorted({r["section"] for r in v}, key=lambda n: [int(x) for x in n.split(".")])
+                                    for k, v in feats.items()}}
 
     strategy = None
     if got.get("strategy"):
@@ -423,8 +514,9 @@ def main(argv: Optional[List[str]] = None) -> int:
     else:
         sys.stdout.write(text)
     p, t = r["project"], r["tps"] or {}
-    print(f"{p['title']}: version {p['version']}, product {p['product']}; TPS §11.3 "
-          f"{len(t.get('sid_features') or [])} rows, §11.4 {len(t.get('prd_features') or [])} rows; "
+    print(f"{p['title']}: version {p['version']}, product {p['product']}; TPS features: SID-style "
+          f"{len(t.get('sid_features') or [])}, PRD-style {len(t.get('prd_features') or [])}, tested "
+          f"{len(t.get('tested_features') or [])} rows; "
           f"Feature Page {r['feature_page']['status']}; {len(r['problems'])} problem(s)", file=sys.stderr)
     return 0
 
