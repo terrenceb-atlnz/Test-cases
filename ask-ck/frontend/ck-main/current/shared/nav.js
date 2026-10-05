@@ -5,6 +5,7 @@ import { rememberPanel } from './session-restore.js';
 import { renderLlmDebugFooter } from './llm-debug.js';
 import { loadStepCandidates, renderObjectiveResult, renderReviewSummary, renderStepsResult, synthesize } from '../generator/generator.js';
 import { ptSession, renderPtFragPanel, renderPtGenPanel, renderPtRunPanel, renderPtSearchPanel, renderPtSeqPanel, renderPtTestboxPanel, renderPtValidatePanel } from '../pytest-creator/pytest.js';
+import { renderZtPanel } from '../zephyr-tool/zephyr-tool.js';
 
 export function initSidebarAccordion() {
   const labels = Array.from(document.querySelectorAll('.sidebar .sidebar-section-label'));
@@ -109,6 +110,7 @@ export function goToPanel(panelId) {
     'panel-pt-run': renderPtRunPanel,
     'panel-pt-validate': renderPtValidatePanel,
     'panel-pt-testbox': renderPtTestboxPanel,
+    'panel-zt': renderZtPanel,
   };
   if (ptRenderers[panelId]) ptRenderers[panelId]();
 }
@@ -156,10 +158,7 @@ export function updatePageHeader() {
     'step-5': { desc: 'Synthesize test steps from the finalized objective, then export.' },
     'panel-main': { title: 'Ask CK', desc: 'Home — welcome and step-by-step guides for each tool.' },
     'panel-llm-config': { title: 'LLM Provider Login', desc: 'Log in to an LLM provider via a local subscription CLI.' },
-    'panel-zt-info': { title: 'Zephyr Templating Tool', desc: 'Step 1: Info — under construction.' },
-    'panel-zt-plan': { title: 'Zephyr Templating Tool', desc: 'Step 2: Test Plan / Cycle / Cases — under construction.' },
-    'panel-zt-link': { title: 'Zephyr Templating Tool', desc: 'Step 3: Link Test Scripts — under construction.' },
-    'panel-zt-tbd': { title: 'Zephyr Templating Tool', desc: 'Step 4: TBD — under construction.' },
+    'panel-zt': { title: 'Zephyr Templating Tool', desc: 'Trim the template test plans, cycles and cases to one project.' },
     'panel-tc-tbd': { title: 'Test Composer', desc: 'Step 1: TBD — under construction.' },
     'panel-pt-cases': { title: 'PyTest Creator', desc: 'Select an Open/Partial case to turn into a framework test script.' },
     'panel-pt-seq': { title: 'PyTest Creator', desc: 'Step 2: identify the prescriptive test-step sequence, then confirm.' },

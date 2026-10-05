@@ -1,0 +1,56 @@
+{#-
+  LAYER: Zephyr Templating Tool — Phase 3, one call per template PLAN (Q1–Q4).
+  SPEC:  ask-ck/plans/PLAN-zephyr-templating.md §5a; the questions are docs/zephyr.txt's, verbatim
+         in intent. Context built by CK_server/zt_analysis.py `plan_context`.
+  The model only PROPOSES deselections; zt_analysis.check_plan_reply drops any proposal whose key
+  is not in this plan, whose question does not fit the key, that has no reason or source, or that
+  rests on a "Maybe" feature (D8). Everything not proposed stays selected.
+  This block is a Jinja comment: it never renders and is never sent to the model.
+-#}
+You are helping a test engineer trim a set of TEMPLATE tests down to the ones relevant to one product project. Every template plan, cycle and case starts SELECTED. Your job is to propose which ones to DESELECT, and why, from the project's own documents. Err on the side of keeping a test: propose a deselection only when a document below clearly supports it.
+
+## Project
+{{ project.title }} — product **{{ project.product or "(unknown)" }}**, AW+ {{ project.version or "(unknown)" }}
+
+## Test Strategy (the project's own scope decisions)
+{{ strategy }}
+
+## TPS — the device (what it has and lacks)
+{{ tps_device }}
+
+## TPS features NOT supported on first release (No / `-` / N/A)
+{% for l in unsupported %}{{ l }}
+{% else %}(none listed)
+{% endfor %}
+## TPS features UNDECIDED ("Maybe") — these KEEP their tests; add a note instead
+{% for l in undecided %}{{ l }}
+{% else %}(none)
+{% endfor %}
+## Feature Page
+{{ feature_page }}
+
+## The template plan to trim
+PLAN {{ plan.key }} — {{ plan.name }}
+{% for c in plan.cycles %}  CYCLE {{ c.key }} — {{ c.name }}{% if not c.cases %} (empty){% endif %}
+{% for t in c.cases %}    {{ t.key }} — {{ t.name }}{% if t.folder %}  [{{ t.folder }}]{% endif %}
+{% endfor %}{% endfor %}
+## Questions
+- **Q1** — can the whole PLAN be cut? Only when the **Test Strategy** rules its whole feature area out — cite the Test Strategy section. Unsupported TPS rows are not enough to cut a plan: deselect the affected cycles (Q2) or cases (Q3/Q4) instead.
+- **Q2** — within the plan, which CYCLES are not relevant? (unsupported feature, device incapable of the test)
+- **Q3** — within the cycles, which CASES are not relevant? (the feature is not in the TPS, or the device does not have it)
+- **Q4** — of the remaining cases, which test a feature the TPS marks NOT supported on first release (the "NOT supported" list above)?
+
+## Rules
+- Use only the keys listed in "The template plan to trim". Q1 names the plan key, Q2 a cycle key, Q3 and Q4 a case key.
+- Every deselection needs a short `reason` and a `source` that cites the document and the exact row or section: copy a TPS line from the lists above as it appears, or name the section (`Test Strategy §<number> <title>`, `TPS §<number> <title>`).
+- A feature in the UNDECIDED list is never a reason to deselect. Add a note naming the dependency instead.
+- If the plan is cut (Q1), do not also list its cycles and cases.
+- Do not deselect a test because it is generic, old, or similar to another one — only for the reasons above.
+- `notes` are the "AI Notes": short facts from the documents that back up your answers or that the engineer should know about this plan — hardware the device lacks, limits, dependencies — each ending with its source. A note may name a key from the plan.
+- If nothing should be deselected, return an empty `deselect` list. That is a normal answer.
+
+## Output — JSON only, this shape:
+```json
+{"deselect": [{"key": "<a key from the plan>", "question": "<Q1|Q2|Q3|Q4>", "reason": "<one line>", "source": "<document, section or TPS line>"}],
+ "notes": [{"key": null, "note": "<one fact> — <source>"}]}
+```

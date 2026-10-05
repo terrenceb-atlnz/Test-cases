@@ -7,13 +7,16 @@ verified: 2026-10-05
 >
 > **DRAFT, 2026-10-05.** Terrence's design is [`docs/zephyr.txt`](../../docs/zephyr.txt) — this plan
 > carries it out and records the decisions made since; where the two differ, the decision log (§3)
-> is newer. **Built: Phase 0a + 0b + 2 (2026-10-05).** `ask-ck/tools/zt_snapshot.py` reads the template
+> is newer. **Built: Phases 0a, 0b, 1 (by hand), 2, 3, 4 and the Upload dry run (2026-10-05).** `ask-ck/tools/zt_snapshot.py` reads the template
 > set from Zephyr (GET only); `POST /api/zephyr-tool/templates/refresh` runs it and imports the result
 > into ck.db's `zt_template_*` tables; `GET /api/zephyr-tool/templates` returns the tree. Applied to
 > production and refreshed there on Terrence's "apply now and refresh" (14 plans / 15 cycles / 396
 > cases / 416 links, captured 2026-10-05T01:14:27Z). Phase 2: `ask-ck/tools/zt_wiki.py` reads a
 > project page and its TPS / Test Strategy / Feature Page (GET only; §4a) — a standalone tool, wired
-> to the server with Phase 3. **Nothing has been written to Zephyr or the wiki.** Next: Phase 1 (clone experiment) needs a sandbox — §8. Open questions: §8.
+> to the server with Phase 3. Phases 3–4 (§5a): `POST /api/zephyr-tool/analyse` + the one-page
+> **Organize Templates** panel; API Upload is a dry-run call list (D9). The tool itself writes
+> nothing to Zephyr or the wiki; the only Zephyr writes so far are the IE570 Port pair (§6). Next:
+> the real upload, once the clone/move/remove-case requests are captured (D9). Open questions: §8.
 
 ## 1. What the tool does (from `docs/zephyr.txt`)
 
@@ -82,6 +85,17 @@ It replaces the four placeholder pages the 2026-07 facelift scaffolded
   `Test:<version>/<project>/Status`; that page ends in `{{ATMSummary|<plan keys>|both|detailed}}`,
   and the wiki draws the results from that list of Zephyr plan keys. Writing back = putting the
   cloned plan keys into that list.
+- **D9 — API Upload is a DRY-RUN list in the first page build** (Terrence, 2026-10-05): after Confirm it
+  shows the exact calls it would make — clone, move, unlink, rename, verify — per plan and cycle, and
+  writes nothing. The clone and move call bodies were never captured (only unlink and rename, §6);
+  real writes follow once Terrence captures one plan clone and one cycle clone in the Network tab.
+- **D10 — Q4 UNTICKS with an AI Note** citing the TPS row (e.g. "TPS §11.4 Continuous POE (HANP):
+  NO"); the user can re-tick. "Maybe" stays ticked (D8).
+- **D11 — Q5, the gap report, is in the first build, report-only** — a read-only "Gaps" list that
+  changes no ticks.
+- **D12 — the live wiki read is an accepted exception** to "the server reads corpora only from ck.db"
+  (§8.5): the wiki is per-project INPUT, not a corpus; the server runs `zt_wiki.py` as a read-only
+  subprocess, as the template refresh runs `zt_snapshot.py`.
 
 ## 4. The template set (snapshot 2026-10-05, `zt_snapshot.py`)
 
@@ -155,9 +169,10 @@ typo for IE520) and its Schedule says 5.5.6-1.
 | **0b** | `ck.db` tables + server import (runs the tool, imports its JSON in one transaction) + a read endpoint for the tree | server code, `ck.db` schema → **production restart** | **DONE** 2026-10-05 (applied; the reload wedged and the unit was restarted — ~4½ min down) |
 | **1** | map the CLONE API and its side effects, in a sandbox: clone one plan, one cycle, one case; record exactly which links appear on the clone and on the original; design the cheapest **clone → prune → verify** sequence (or a clone that never creates the stray link) | Zephyr **writes** — each one asked first | needs a sandbox (§8) |
 | **2** | wiki reader: project page → its three links by the templated names → page text (wikitext via `api.php`), TPS §11.3/11.4 tables, version + product, the Strategy's target path, Feature Page written / not written (§4a) | wiki GETs | **DONE** 2026-10-05 — `ask-ck/tools/zt_wiki.py`, not yet wired to the server |
-| **3** | analysis: Q1–Q5 + AI Notes over the snapshot tree | the per-seat LLM | not started |
-| **4** | the single page (§1.3) | front end | not started |
-| **5** | API Upload: dry-run first, an audit record written before the first write (the `push_to_zephyr` pattern), clone → prune → verify | Zephyr writes | not started |
+| **1** *(done by hand)* | the clone side effects measured on IE570 (§6) — Terrence cloned, Claude unlinked and renamed | Zephyr writes, each asked | **DONE** 2026-10-05 |
+| **3** | analysis: Q1–Q5 + AI Notes over the snapshot tree (§5a) | the per-seat LLM | **BUILT** 2026-10-05 (`zt_analysis.py`, 2 prompts, `/analyse`) |
+| **4** | the single page (§5a) | front end | **BUILT** 2026-10-05 (`current/zephyr-tool/`, both index pages) |
+| **5** | API Upload: **dry-run list first (D9)**; then an audit record written before the first write (the `push_to_zephyr` pattern), clone → move → unlink → rename → verify | Zephyr writes | dry run **BUILT** (`zt_upload.py`, `/upload/preview`); writes wait for the captured clone/move/remove-case calls |
 | later | wiki write-back: put the cloned plan keys into `{{ATMSummary|…}}` on `Test:<version>/<project>/Status` (D7) | one wiki write | not built |
 
 **The analysis guardrail (Phase 3):** the model may only PROPOSE deselections, each with a reason
@@ -168,6 +183,46 @@ which is the cautious direction the design asks for.
 **Scale of an upload (sized by Phase 1):** up to 14 plan + 15 cycle clones per project (cases are
 shared, D2), and per family the two unlinks of §6 plus a re-read of both ends. Phase 1 looks for bulk endpoints (the internal API has `…/bulk/…` routes, e.g. the
 trace-link create `upload_refined.py` already uses).
+
+## 5a. Phases 3–4 design (2026-10-05)
+
+**One request, then polling** (the browser connection ceiling): `POST /api/zephyr-tool/analyse {url}`
+starts a job and returns its id; `GET /analyse/{id}` reports it; `POST /analyse/{id}/cancel` stops
+work not yet started. The job:
+
+1. **reads the wiki** — runs `zt_wiki.py <url>` (D12) → version, product, pages, TPS feature rows,
+   Strategy, Feature Page, `problems`;
+2. **one model call per template plan (Q1–Q4)**, a few at a time — the plan's cycles and cases, the
+   Strategy text, the TPS device sections, and only the TPS rows that are **not supported** (No /
+   `-` / N/A) or **undecided** ("Maybe"); the model PROPOSES deselections, each with a question
+   (Q1 plan, Q2 cycle, Q3/Q4 case), a reason and a cited source, plus AI Notes;
+3. **one model call for Q5 + project AI Notes** — the supported TPS rows against the template
+   names → `gaps` (report-only, D11) and notes such as stack size and absent hardware.
+
+**The guardrail, enforced by the server:** a proposal must name a key in that plan's tree and carry
+a reason and a source, or it is dropped (and counted); everything not proposed stays ticked; a
+"Maybe" feature is never a deselection (D8); a failed plan call leaves that plan fully ticked and
+says so.
+
+**The page** (`docs/zephyr.txt` UI): one panel replacing the four placeholders — URL + **Organize with
+LLM**; **What Version** / **What Product** (filled from the read, editable; the version comes from
+the Strategy's target path when it has one, since that is where the tests go — the project page's
+own version is shown beside it when they differ); two scrolling columns — **Results Analysis**
+(read-only: Q1–Q5 and 6. AI Notes, plus the read's problems) and the **Plan → Cycle → Case tree**
+(checkboxes; unticking a parent unticks its children; ticking a child re-ticks its parents; each
+AI-unticked row shows its reason); **Confirm** un-greys **API Upload**, which shows the dry-run list
+(D9) from `POST /upload/preview` — `zt_upload.py --dry-run` (GET only: finds the target folders under
+`/<version>/<middle>/` by the project number or product, reads the template ids).
+
+**First real runs (2026-10-05, IE570, org vLLM `vllm-fast`, scratch server).** Run 1: 149 s, 12 of
+14 plans answered, 9 untick proposals, 7 gaps; two plan replies (Switching 75 cases, Authentication
+42) held no usable JSON; the model cut the whole Advanced Management plan (Q1) from four TPS rows;
+and it cited Strategy sections as "TPS §3.3". Three fixes: every digest heading names its document
+(`### Test Strategy §3.3 …`); a Q1 survives only with a Test Strategy source (docs/zephyr.txt: "refer
+to test strategy for details"); a reply with no usable JSON is asked once more. Run 2: 152 s, **14 of
+14 answered**, 20 untick proposals (Q2 ×1, Q3 ×4, Q4 ×15), each citing a real TPS row or section, 10
+gaps, no mis-cited section. Open (§8.12): with Q1 barred, the model unticked Advanced Management's
+ONLY cycle (Q2) on the same TPS rows — the plan is emptied anyway.
 
 ## 6. The clone side effect (from `docs/zephyr.txt`, to be measured in Phase 1)
 
@@ -234,16 +289,18 @@ public API:
 3. **Sandbox for Phase 1:** which Zephyr folder may test clones be written to, and who removes them?
 4. **Credentials:** the shared `JIRA_KEY` in `secrets.md` (every clone attributed to its owner), or
    each user's own token?
-5. **Invariant exception:** live wiki reads and Zephyr writes as a deliberate exception, like
-   `push_to_zephyr`?
-6. **Q4:** cases that are not Mandatory / "Supported: YES" — untick them, or only flag them?
-   *(Half answered: §11.3 is the SID feature list ranked `M`/`-`, §11.4 the PRD list marked
+5. ~~Invariant exception~~ — the live wiki READ is accepted (D12); Zephyr writes are decided with
+   Phase 5's real upload.
+6. ~~Q4~~ — answered: untick with an AI Note (D10). *(Background: §11.3 is the SID feature list ranked `M`/`-`, §11.4 the PRD list marked
    `YES`/`NO` with a Priority `1`/`2`/`3`/`-`; `-` = not supported or N/A — D4, §4a.)*
-7. **Q5:** is the gap report (requirements with no template) report-only in version 1?
+7. ~~Q5~~ — answered: in the first build, report-only (D11).
 8. ~~Cases in two cycles (5)~~ — moot: cases are shared, not cloned (D2).
 9. **C8465 Bootloader Tests (Automated) is empty** — intended (to be filled), or should the tool
    skip empty cycles?
-10. *(small, for the next server-code batch)* `/api/zephyr-tool/status` prints the import time in
-    UTC without saying so ("imported 2026-10-05T01:14" was 14:14 NZDT) — label it, or show local time.
+10. ~~UTC label~~ — the status line and the page now say "UTC" (2026-10-05).
 11. ~~§11.4 Priority `-` with Supported `YES`~~ — answered: **the Supported column decides**
     (Terrence, 2026-10-05; the reader's rule).
+12. **A one-cycle plan emptied by Q2.** With a plan cut (Q1) restricted to the Test Strategy's word,
+    the model unticked Advanced Management's only cycle (Q2) on four TPS rows (AMF-Controller,
+    OpenFlow, gNMI, Wireless Manager) — the same outcome. Accept (the user re-ticks), or also hold a
+    cycle that is its plan's only one to the Q1 rule?

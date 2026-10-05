@@ -15,6 +15,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/static/styles.css?v=36">
+<link rel="stylesheet" href="/static/zephyr-tool/zephyr-tool.css?v=1">
 </head>
 <body>
 <div class="layout">
@@ -62,21 +63,9 @@
     <!-- Zephyr Templating Tool -->
     <div class="sidebar-section-label">Zephyr Templating Tool</div>
     <div class="sidebar-steps">
-      <div data-action="goToPanel" data-args='["panel-zt-info"]' role="button" tabindex="0" class="sidebar-nav-item" data-panel="panel-zt-info">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
-        1. Info
-      </div>
-      <div data-action="goToPanel" data-args='["panel-zt-plan"]' role="button" tabindex="0" class="sidebar-nav-item" data-panel="panel-zt-plan">
+      <div data-action="goToPanel" data-args='["panel-zt"]' role="button" tabindex="0" class="sidebar-nav-item" data-panel="panel-zt">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>
-        2. Test Plan / Cycle / Cases
-      </div>
-      <div data-action="goToPanel" data-args='["panel-zt-link"]' role="button" tabindex="0" class="sidebar-nav-item" data-panel="panel-zt-link">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
-        3. Link Test Scripts
-      </div>
-      <div data-action="goToPanel" data-args='["panel-zt-tbd"]' role="button" tabindex="0" class="sidebar-nav-item" data-panel="panel-zt-tbd">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
-        4. TBD
+        Organize Templates
       </div>
     </div>
 
@@ -252,7 +241,7 @@
 
         <details class="splash-section">
           <summary>Zephyr Templating Tool</summary>
-          <div class="splash-body"><span class="tbd">TBD — scaffolded, not yet implemented.</span></div>
+          <div class="splash-body">Paste a project's wiki page; the model trims the template test plans, cycles and cases to the ones the project needs, citing the TPS and Test Strategy for each. You review the ticks; API Upload currently shows the Zephyr calls it would make (dry run) and writes nothing.</div>
         </details>
       </div>
     </div>
@@ -543,53 +532,38 @@
       </div>
     </div>
 
-    <!-- Zephyr Templating Tool (stubs) -->
-    <div id="panel-zt-info" class="card tool-panel hidden">
+    <!-- Zephyr Templating Tool — one page (PLAN-zephyr-templating.md §5a; docs/zephyr.txt "UI") -->
+    <div id="panel-zt" class="card tool-panel hidden">
       <div class="section">
-        <div class="section-heading">Zephyr Templating Tool — Info</div>
-        <div class="section-description">Collect release/version metadata and templating inputs that drive Zephyr plan, cycle, and case creation.</div>
-        <div class="placeholder-panel">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
-          <div class="placeholder-title">Under construction</div>
-          <div class="placeholder-text">This step will gather the template info needed to create Zephyr artefacts.</div>
-          <div class="placeholder-status" id="zt-info-status"></div>
+        <div class="section-heading">Zephyr Templating Tool</div>
+        <div class="section-description">Paste a project's wiki page. The model reads its Test Strategy, TPS and Feature Page and proposes which template plans, cycles and cases to leave out — every proposal cites its source, and anything it does not mention stays ticked. Review the ticks, Confirm, then API Upload shows exactly what it would send to Zephyr.</div>
+        <div class="zt-line">
+          <input id="zt-url" class="form-input" type="url" placeholder="https://wiki.atlnz.lc/awpwiki/index.php/Project:3296_IE520_Software" aria-label="Project wiki page URL">
+          <button id="zt-analyse" class="btn btn-primary" data-action="ztAnalyse">Organize with LLM</button>
+          <button id="zt-cancel" class="btn btn-secondary hidden" data-action="ztCancel">Stop</button>
         </div>
-      </div>
-    </div>
-
-    <div id="panel-zt-plan" class="card tool-panel hidden">
-      <div class="section">
-        <div class="section-heading">Zephyr Templating Tool — Test Plan / Cycle / Cases</div>
-        <div class="section-description">Create templated Zephyr test plans, cycles, and cases from the Info step.</div>
-        <div class="placeholder-panel">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>
-          <div class="placeholder-title">Under construction</div>
-          <div class="placeholder-text">Plan / cycle / case templating will be implemented here.</div>
+        <div class="zt-line">
+          <div class="zt-field"><label for="zt-version">What Version (AW+)</label><input id="zt-version" class="form-input" placeholder="filled in by the analysis"><span id="zt-version-note" class="zt-small"></span></div>
+          <div class="zt-field"><label for="zt-product">What Product (DUT)</label><input id="zt-product" class="form-input" placeholder="filled in by the analysis"></div>
         </div>
-      </div>
-    </div>
-
-    <div id="panel-zt-link" class="card tool-panel hidden">
-      <div class="section">
-        <div class="section-heading">Zephyr Templating Tool — Link Test Scripts</div>
-        <div class="section-description">Link generated Zephyr cases to their test scripts.</div>
-        <div class="placeholder-panel">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
-          <div class="placeholder-title">Under construction</div>
-          <div class="placeholder-text">Test-script linking will be implemented here.</div>
+        <div id="zt-status" class="zt-status" role="status"></div>
+        <div class="zt-cols">
+          <div class="zt-col">
+            <div class="zt-col-head">Results Analysis</div>
+            <div id="zt-analysis" class="zt-scroll"></div>
+          </div>
+          <div class="zt-col">
+            <div class="zt-col-head"><span>Test Plans / Cycles / Cases</span><span id="zt-tree-count" class="zt-small"></span></div>
+            <div id="zt-tree" class="zt-scroll"></div>
+          </div>
         </div>
-      </div>
-    </div>
-
-    <div id="panel-zt-tbd" class="card tool-panel hidden">
-      <div class="section">
-        <div class="section-heading">Zephyr Templating Tool — TBD</div>
-        <div class="section-description">Reserved for a future step.</div>
-        <div class="placeholder-panel">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
-          <div class="placeholder-title">Under construction</div>
-          <div class="placeholder-text">Scope to be defined.</div>
+        <div class="zt-line zt-small"><span id="zt-templates-info"></span>
+          <button id="zt-refresh" class="btn btn-secondary btn-compact-small" data-action="ztRefreshTemplates" title="Re-read the template plans, cycles and cases from Zephyr (read only)">Refresh templates</button></div>
+        <div class="zt-actions">
+          <button id="zt-confirm" class="btn btn-secondary" data-action="ztConfirm">Confirm</button>
+          <button id="zt-upload" class="btn btn-primary" data-action="ztUpload" disabled title="Dry run: lists the calls, writes nothing">API Upload</button>
         </div>
+        <div id="zt-upload-result"></div>
       </div>
     </div>
 
@@ -1081,6 +1055,6 @@ Interface port1.0.1
   </main>
 </div>
 
-<script type="module" src="/static/shared/main.js?v=39"></script>
+<script type="module" src="/static/shared/main.js?v=40"></script>
 </body>
 </html>

@@ -202,7 +202,7 @@ skeleton; lint enforces conformance) → *Run* (over SSH on a stored testbox) �
 Physical steps are **in scope**: they generate an operator prompt plus a wait-for-state-change
 poll, and manual checks generate a `yesNo()`.
 
-**Test Composer** — scaffolded, not yet implemented. **Zephyr Templating Tool** — in progress: the template snapshot exists; the rest is planned in `ask-ck/plans/PLAN-zephyr-templating.md`.
+**Test Composer** — scaffolded, not yet implemented. **Zephyr Templating Tool** — one page (**Organize Templates**): paste a project's wiki page, the model trims the template plans/cycles/cases citing the TPS and Test Strategy, you review the ticks; API Upload is a dry run for now (`ask-ck/plans/PLAN-zephyr-templating.md`).
 
 Stored testboxes live in the gitignored `secrets.testboxes.json`. Before touching lab
 hardware, read [`TESTBOX-ACCESS.md`](TESTBOX-ACCESS.md) in full.
@@ -230,7 +230,7 @@ Test-cases/
     │   ├── generator/              # PROGRESS.md, OBJECTIVE_DRAFTING_PROCESS.md, refined-cases/
     │   ├── pytest-creator/         # Specs (TOPOLOGY-PROFILES, TEMPLATE-SPEC, …) and generated/
     │   ├── test-composer/          # ART execution-chain doc + bench scripts
-    │   └── zephyr-tool/            # Stub
+    │   └── zephyr-tool/            # README (the tool's data lives in ck.db; its page is current/zephyr-tool/)
     ├── tools/                      # Every script not called by a page button: gate, guards, checkers, corpus loaders
     ├── plans/                      # Active plans (PLAN-*.md) + DECISIONS-FOR-REVIEW.md
     ├── agent/                      # The seat agent, served at /setup/

@@ -17,6 +17,7 @@ import '../generator/generator.js';
 import '../generator/chosen.js';
 import '../generator/db-search.js';
 import '../llm-config/agent.js';
+import '../zephyr-tool/zephyr-tool.js';
 import './version.js';    // side-effect: stale-tab guard (polls /api/version)
 
 // Fetch a stub tool router's /status message into a placeholder status element.
@@ -45,7 +46,6 @@ S.currentStep = 0;              // Generator defaults to step 0 when first opene
 goToPanel('panel-main');     // Landing view = Main splash / Help home
 updateLLMStatus();
 loadWorkspaceLLMConfig();       // cold-load: reflect the persisted login (incl. Local LLM key state)
-loadToolStatus('zephyr-tool', 'zt-info-status');
 loadToolStatus('test-composer', 'tc-status');
 
 // Restore where the user was before a refresh, then fall back to the old

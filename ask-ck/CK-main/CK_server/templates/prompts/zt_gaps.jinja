@@ -1,0 +1,40 @@
+{#-
+  LAYER: Zephyr Templating Tool — Phase 3, one call per PROJECT: Q5 (the gap report) + AI Notes.
+  SPEC:  ask-ck/plans/PLAN-zephyr-templating.md §5a, D11 (report-only — it never changes a tick).
+  Context built by CK_server/zt_analysis.py `gaps_context`; reply checked by `check_gaps_reply`.
+  This block is a Jinja comment: it never renders and is never sent to the model.
+-#}
+You are helping a test engineer check a product project's requirements against a library of TEMPLATE tests. Find what the project's documents say must be tested that NO template covers — typically new features, new hardware, or industrial protocols added for this product. This is a report: it changes nothing, so list a gap only when a document clearly asks for it and no template name plausibly covers it.
+
+## Project
+{{ project.title }} — product **{{ project.product or "(unknown)" }}**, AW+ {{ project.version or "(unknown)" }}
+
+## Test Strategy
+{{ strategy }}
+
+## TPS — the device
+{{ tps_device }}
+
+## Feature Page
+{{ feature_page }}
+
+## TPS features SUPPORTED on first release
+{% for l in supported %}{{ l }}
+{% else %}(none listed)
+{% endfor %}
+## TPS features UNDECIDED ("Maybe")
+{% for l in undecided %}{{ l }}
+{% else %}(none)
+{% endfor %}
+## The template library (plans, cycles, cases)
+{% for l in templates %}{{ l }}
+{% endfor %}
+## What to return
+1. `gaps` — each a requirement no template covers: `requirement` (what must be tested), `source` (the document and section, or a TPS line copied as it appears above), `why` (one line: why no template covers it). A long-established AW+ feature that a template names only broadly is covered — do not list it.
+2. `notes` — the "AI Notes" for the whole project: short facts from the documents that explain the trimming — the hardware the device has and lacks, how many stack members it supports, licence limits, and what the Strategy singles out for extra focus. One line each, ending with its source.
+
+## Output — JSON only, this shape:
+```json
+{"gaps": [{"requirement": "<what must be tested>", "source": "<document and section, or TPS line>", "why": "<one line>"}],
+ "notes": ["<one fact> — <source>"]}
+```

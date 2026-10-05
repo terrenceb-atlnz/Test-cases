@@ -45,7 +45,7 @@ This version replaces the original single-file static `index.html` approach.
 - Enforces the repeatable process state machine.
 - Direct LLM calls using templated prompts.
 - Post-processing of LLM output using templates/parsers for guaranteed repeatable structure.
-- REST API consumed by the frontend: `/api/wizard` (Generator), `/api/pytest-create` (PyTest Creator), `/api/zephyr-tool` (Zephyr Templating Tool — so far only its template snapshot, see below) and the stub router `/api/test-composer`.
+- REST API consumed by the frontend: `/api/wizard` (Generator), `/api/pytest-create` (PyTest Creator), `/api/zephyr-tool` (Zephyr Templating Tool — template snapshot, analysis, upload dry run; see below) and the stub router `/api/test-composer`.
 - Serves the process documentation as interactive web pages.
 
 **Frontend**: Static web UI (vanilla JS + HTML, served by the backend) — `frontend/ck-main/current/index.html`.
@@ -54,7 +54,7 @@ own CSS at `/restyle/static`); a Classic/ATUI switch beside the theme toggle mov
 always opens Classic (`archive/plans/PLAN-atui-restyle.md`).
 - **Ask CK multi-tool sidebar** (always-expanded sections, top→bottom):
   - **LLM** — live status + **Configure** entry (opens the LLM Provider Login as a main-area panel)
-  - **Zephyr Templating Tool** — 1. Info / 2. Test Plan / Cycle / Cases / 3. Link Test Scripts / 4. TBD (placeholder panels)
+  - **Zephyr Templating Tool** — one page, **Organize Templates** (`panel-zt`, `zephyr-tool/zephyr-tool.js`): project URL → analysis → tick tree → Confirm → API Upload (dry run)
   - **Test Composer** — 1. TBD (placeholder panel)
   - **PyTest Creator** — full 7-step flow (2026-07-23): **1. Cases** (Open/Partial + Complete dropdowns, split by PyTest work state; partials auto-sorted to top; independent of the Generator) / **2. Sequence** / **3. Script Search** / **4. Fragments** / **5. Generate** / **6. Run** / **7. Validate**. (Former **4. Fit Decision** removed; internal `stepN` keys unchanged.) See the detailed **PyTest Creator** section below.
   - **Objective/Test Case Generator** — **1. Cases**, **2. TestLink**, **3. Zephyr**, **4. ATPyLib (scored)**, **5. Objectives (LLM)**, **6. Test Steps (LLM)**
@@ -135,7 +135,7 @@ ask-ck/                              (layout of 2026-09-11 — PLAN-restructure-
 │       │   │   ├── config.py        ← session clear, CLI status, LLM config, health
 │       │   │   ├── synthesis.py     ← objectives + steps
 │       │   │   └── export.py        ← drop-in refined-cases bundle + push_to_zephyr
-│       │   ├── zephyr_tool.py       ← Zephyr Templating Tool: template snapshot (/api/zephyr-tool)
+│       │   ├── zephyr_tool.py       ← Zephyr Templating Tool: snapshot, analysis job, upload dry run (/api/zephyr-tool)
 │       │   ├── test_composer.py     ← Test Composer stub (/api/test-composer)
 │       │   ├── pytest_create.py     ← PyTest Creator (/api/pytest-create) — fully implemented
 │       │   ├── agent_bridge.py      ← the seat-agent broker (/api/agent) + /setup/ (seat setup)
@@ -490,8 +490,21 @@ Every LLM panel (Generator: objectives, steps, the 3 *Suggest* panels; PyTest Cr
   is refused (422) and a failed tool run (502/504) imports nothing, so the previous snapshot stays.
   `GET /api/zephyr-tool/templates` returns the plan → cycle → case tree (`db.load_zt_templates`;
   `{"snapshot": null}` before the first import); `GET /api/zephyr-tool/status` summarises it for the
-  Info panel. A RENEWABLE reference table like `cli_commands`, but server-written, so a refresh
+  page. A RENEWABLE reference table like `cli_commands`, but server-written, so a refresh
   needs no stop → load → start.
+- **Zephyr Templating Tool — analysis + page (Phases 3–4, 2026-10-05; PLAN §5a).** `POST
+  /api/zephyr-tool/analyse {url}` starts a job (one request, then polling `GET /analyse/{id}`;
+  `POST /analyse/{id}/cancel` skips calls not yet started). The job runs `ask-ck/tools/zt_wiki.py`
+  on the project page — a LIVE read-only wiki read, the accepted exception D12 — then asks the
+  seat's LLM (`effective_llm_config`, captured at the POST) `zt_analyse_plan.jinja` once per
+  template plan (Q1–Q4, 4 at a time) and `zt_gaps.jinja` once (Q5 gaps + AI Notes). `zt_analysis.py`
+  builds the contexts and is the guardrail: a proposed deselection survives only with a key in that
+  plan's tree, a question that fits the key, a reason and a source, and never on a "Maybe" row; a
+  failed call leaves its plan fully ticked and says so. Jobs live in memory (the last 20) — a
+  restart forgets them. `POST /api/zephyr-tool/upload/preview` runs `ask-ck/tools/zt_upload.py
+  --dry-run` (GET-only: finds the project folders, reads the template ids) and returns the ordered
+  call list — clone, move, unlink, rename, verify — each marked known or not yet captured. **It
+  writes nothing (D9); the tool refuses `--apply`.**
 
 ## Typical Workflow (Repeatable Process — Generator)
 

@@ -1,0 +1,40 @@
+/* Zephyr Templating Tool page (zephyr-tool.js). Loaded by BOTH index.html files (current and
+   restyle), so it uses only the tokens both stylesheets define. */
+#panel-zt .zt-line { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin: 8px 0; }
+#panel-zt .zt-line .form-input { flex: 1 1 260px; min-width: 0; }
+#panel-zt .zt-field { display: flex; flex-direction: column; gap: 4px; flex: 1 1 220px; min-width: 0; }
+#panel-zt .zt-field label { font-size: 12px; color: var(--text-secondary); }
+#panel-zt .zt-small { font-size: 12px; color: var(--text-tertiary); }
+#panel-zt .zt-status { min-height: 18px; font-size: 13px; color: var(--text-secondary); margin: 4px 0 8px; }
+#panel-zt .zt-status.is-bad { color: var(--status-critical); }
+#panel-zt .zt-cols { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; margin-top: 8px; }
+@media (max-width: 900px) { #panel-zt .zt-cols { grid-template-columns: minmax(0, 1fr); } }
+#panel-zt .zt-col { border: 1px solid var(--border-default); border-radius: 6px; background: var(--bg-secondary);
+  display: flex; flex-direction: column; min-height: 0; }
+#panel-zt .zt-col-head { padding: 8px 10px; border-bottom: 1px solid var(--border-subtle); font-weight: 600;
+  color: var(--text-primary); display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+#panel-zt .zt-scroll { overflow: auto; max-height: 62vh; padding: 8px 10px; font-size: 13px; color: var(--text-secondary); }
+#panel-zt .zt-block { margin-bottom: 12px; }
+#panel-zt .zt-block ul { margin: 4px 0 0 1.1rem; padding: 0; }
+#panel-zt .zt-block li { margin: 3px 0; }
+#panel-zt .zt-h { font-weight: 600; color: var(--text-primary); }
+#panel-zt .zt-count { font-weight: 400; font-size: 11px; color: var(--text-tertiary); margin-left: 4px; }
+#panel-zt .zt-key { font-family: var(--font-mono); font-size: 12px; color: var(--accent-primary); }
+#panel-zt .zt-source { color: var(--text-tertiary); }
+#panel-zt .zt-problem { color: var(--status-critical); }
+#panel-zt .zt-state { font-weight: 600; margin-bottom: 8px; color: var(--text-primary); }
+#panel-zt .zt-state-error { color: var(--status-critical); }
+#panel-zt .zt-empty { color: var(--text-tertiary); padding: 8px 0; }
+#panel-zt .zt-row { padding: 2px 0 2px calc(var(--zt-depth) * 20px); }
+#panel-zt .zt-row label { cursor: pointer; display: inline-flex; gap: 6px; align-items: baseline; }
+#panel-zt .zt-row.zt-plan { font-weight: 600; color: var(--text-primary); margin-top: 6px; }
+#panel-zt .zt-row.zt-cycle { color: var(--text-primary); }
+#panel-zt .zt-row.is-off label { opacity: 0.55; }
+#panel-zt .zt-why { margin: 2px 0 4px 22px; font-size: 12px; color: var(--status-high);
+  background: var(--status-high-muted); border-radius: 4px; padding: 2px 6px; }
+#panel-zt .zt-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 12px; }
+#panel-zt .zt-calls { width: 100%; font-size: 12px; margin-top: 8px; }
+#panel-zt .zt-calls td { vertical-align: top; padding: 3px 6px; border-top: 1px solid var(--border-subtle); }
+#panel-zt .zt-calls code { font-size: 11px; word-break: break-all; }
+#panel-zt .zt-calls tr.zt-unknown td { color: var(--text-tertiary); }
+#panel-zt #zt-upload-result { margin-top: 12px; }

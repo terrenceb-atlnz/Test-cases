@@ -12,6 +12,7 @@ export const PAGE_OF = {
   'pytest.js': 'pytest-creator',
   'llm.js': 'llm-config', 'agent.js': 'llm-config',
   'admin.js': 'admin',
+  'zephyr-tool.js': 'zephyr-tool',
   'main.js': 'shared', 'actions.js': 'shared', 'nav.js': 'shared', 'state.js': 'shared', 'session.js': 'shared',
   'session-restore.js': 'shared', 'cases.js': 'shared', 'dom-helpers.js': 'shared', 'llm-debug.js': 'shared',
   'llm-progress.js': 'shared', 'locks.js': 'shared', 'provenance.js': 'shared', 'theme.js': 'shared', 'version.js': 'shared',
