@@ -21,6 +21,29 @@ current working thread see
 > `ask-ck/ck-facelift/`, `pytest-create/` and `CK-main/` plan paths moved to `ask-ck/plans/` on 2026-09-11 and, once complete, to `archive/plans/`.
 > `js-tests/` → `tests/js/`, `e2e/` → `tests/e2e/`, `static/js/` → `ask-ck/frontend/ck-main/current/<page>/` (2026-09-11).
 
+## 2026-10-06 — Zephyr Templating Tool: the template snapshot, the project wiki reader, and the one page
+
+**What.** The four "under construction" Zephyr Templating Tool panels became one page, **Organize
+Templates**: paste a project's wiki page, the org LLM proposes which template plans / cycles / cases
+the project can drop — each with a cited TPS or Test Strategy source — and the user reviews a tick
+tree; API Upload shows the exact Zephyr calls it would make. New: ck.db `zt_template_*` (the
+templates, refreshed from Zephyr), `ask-ck/tools/zt_snapshot.py`, `zt_wiki.py`, `zt_upload.py`,
+`CK_server/zt_analysis.py`, two prompts, `/api/zephyr-tool/{templates,templates/refresh,analyse,
+upload/preview}`. Plan: `ask-ck/plans/PLAN-zephyr-templating.md`.
+
+**Why it is shaped this way.**
+- *The model only proposes; the server decides what survives.* Everything starts ticked; a proposal
+  is kept only with a key in that plan, a fitting question, a reason and a source. A bad answer can
+  therefore only fail to untick — the "err on the side of caution" Terrence's design asks for.
+- *Cases are shared, not cloned.* Measured by hand on IE570: a cloned cycle holds the same case keys,
+  which is how each case keeps its executions across projects. Cloning adds stray plan↔cycle links
+  on BOTH sides (the template gains the clone), so every upload must unlink and re-check.
+- *Upload is a dry run.* Only the unlink and rename requests have been captured; clone/move are not,
+  and Terrence chose a call list over guessing a write.
+- *The wiki is read live* (an accepted exception to "corpora only from ck.db", D12) — it is
+  per-project input, not a corpus; the server runs the reader as a subprocess, and the Jira token
+  stays with the command-line tools, never the server.
+
 ## 2026-10-02 — not-applicable cases are skipped before they run, by the generator
 
 A case that finds out inside `main()` that it does not apply reports UNSUPPORTED, and the framework

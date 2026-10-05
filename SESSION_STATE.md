@@ -4937,3 +4937,16 @@ the decisions and what remains: PROGRESS 2026-10-02 and `ask-ck/plans/PLAN-unsup
 
 Gate: EXIT=0 — both guards OK, pytest 1932 / 1 skipped, vitest 377 in 34 files, ck.db untouched.
 
+## Session Close / Handoff (2026-10-06) — the Zephyr Templating Tool, snapshot to page
+
+Continued from the 2026-10-02 wrap (same session, compacted). Terrence asked whether the Zephyr
+Templating Tool was scoped; it was not, so it was planned from his `docs/zephyr.txt` and built in
+phases, each on his go-ahead: the template snapshot into ck.db (applied 2026-10-05 — that reload
+wedged, ~4½ min down, unit restarted), the wiki reader (both TPS layouts), the clone side effects
+measured by hand on IE570 (Terrence cloned; Claude unlinked and renamed — the only Zephyr writes),
+and the one page with the LLM analysis and an upload dry run. Two real IE570 runs on the scratch
+server drove three fixes before the merge. Merged and applied 2026-10-06 06:07 (~27 s, no wedge).
+Commits `df5b704`, `f5dfac1`, `fc308f8`; docs in the wrap commit. Detail, decisions and what remains:
+PROGRESS 2026-10-05 → 06 and `ask-ck/plans/PLAN-zephyr-templating.md`.
+
+Gate: EXIT=0 — both guards OK, pytest 2018 / 1 skipped, vitest 384 in 35 files, ck.db untouched.

@@ -105,3 +105,9 @@ applying a backend change, if `/health` is not back within ~45 s and the journal
 `Waiting for connections to close`, restart the unit at once — do not keep waiting. (2026-10-02's
 apply did not wedge under similar load, so it is intermittent, not certain.)
 
+**2026-10-06 — the worktree-branch route, no wedge.** The Zephyr page (a router + new modules + both
+index pages) was built and committed on a scratchpad worktree branch, and Claude ran `git merge
+--ff-only` in the live tree on Terrence's "merge now": `Waiting for connections to close` at
+06:07:40, new worker up 06:08:07 (~27 s), four agents long-polling; 10.33.12.16's lock heartbeat
+answered 200 at 06:09:40. Same intermittency — watch 45 s, restart if it hangs.
+

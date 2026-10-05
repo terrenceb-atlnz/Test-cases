@@ -5,11 +5,68 @@ verified: 2026-09-28
 
 **Purpose**: This file exists so future sessions can quickly understand exactly where we are, what has been built, what the priorities are, and how to continue seamlessly.
 
-**Last Updated**: 2026-10-02 (by Claude; not-applicable cases are skipped before they run — the generator teaches it)
+**Last Updated**: 2026-10-06 (by Claude; the Zephyr Templating Tool's one page — analysis, tick tree, upload dry run)
 
 > **Reading note (2026-09-23 doc sweep).** Entries are frozen as written. Where an entry's
 > claim has since stopped being true, a ⚠ line under its heading says what changed.
 > Newest first. Paths in older entries predate these moves (the same as in CHANGELOG): `tool/` → `ask-ck/tools/`, `ask-ck/var/` → `ask-ck/db/`, `objective-drafting/` → `ask-ck/functions/generator/`, `pytest-create/` → `ask-ck/functions/pytest-creator/`, `js-tests/` → `tests/js/`, `ask-ck/ck-facelift/` → `ask-ck/plans/`, root reports → `docs/`, and completed plans `ask-ck/plans/` → `archive/plans/` (2026-09-11, 2026-09-23). Also retired 2026-09-23: the demo notes → `archive/plans/demo-2026-09-11/`, and `HANDOFF-generate-token-efficiency.md` + `Fragments_prompt.md` → `archive/records/`.
+
+## Latest session (2026-10-05 → 06) — the Zephyr Templating Tool: snapshot, wiki reader, clone measured, the page
+
+Terrence's design is `docs/zephyr.txt`; the plan, every decision (D1–D12) and the open questions are
+`ask-ck/plans/PLAN-zephyr-templating.md` (**Phases 0a, 0b, 1-by-hand, 2, 3, 4 built; API Upload is a
+dry run**). Three commits: `df5b704`, `f5dfac1`, `fc308f8`.
+
+**What exists now.**
+- *Templates* — Terrence authored 14 template plans → 15 cycles → 396 cases in Zephyr
+  (`/Platform Testing/Test Plan|Cycle TEMPLATES`). `ask-ck/tools/zt_snapshot.py` reads them (GET
+  only); `POST /api/zephyr-tool/templates/refresh` imports them into ck.db `zt_template_*` (done on
+  production 2026-10-05 01:14 UTC).
+- *Wiki reader* — `ask-ck/tools/zt_wiki.py`: project page → version, product, TPS / Test Strategy /
+  Feature Page; feature tables recognised by their COLUMNS so both TPS layouts read (IE520: SID §11.3
+  + PRD §11.4; IE570: PRD Parts 1–3 under §11.3 + a filled §11.4.4). Yes/No in any case; a Supported or
+  "1st Release" column decides; `-` = not supported (D4); "Maybe" undecided and KEEPS its tests (D8).
+- *The page* — sidebar **Zephyr Templating Tool → Organize Templates** (`panel-zt`, both index pages):
+  URL → Organize with LLM → What Version / What Product → Results Analysis (Q1–Q4, 5. Gaps, 6. AI
+  Notes) beside the tick tree → Confirm → API Upload. `POST /api/zephyr-tool/analyse` + polling; one
+  model call per template plan (`zt_analyse_plan.jinja`) and one for gaps + notes (`zt_gaps.jinja`);
+  `CK_server/zt_analysis.py` is the guardrail (key in the plan's tree, fitting question, reason AND
+  source, never on "Maybe", a whole-plan cut only on the Test Strategy's word).
+- *API Upload* — `POST /upload/preview` → `zt_upload.py --dry-run`: finds the project folders, lists
+  clone → move → unlink → rename → verify in order, marking which requests are known. **Writes
+  nothing (D9).**
+
+**Measured on Zephyr (Phase 1, by hand, IE570).** Terrence cloned the Port pair into
+`/5.5.6-2/Tomahawk/Project 3001: IE570`. A plan clone keeps pointing at the TEMPLATE cycle; a cycle
+clone joins EVERY plan its original was in (including the template plan); cases are SHARED, not
+copied (D2 corrected). Claude then deleted the two stray links (`DELETE …/tracelink/169716`,
+`…/169714`) and renamed the plan; Terrence renamed the cycle in the UI and pasted the request (a
+partial PUT). Result: P3263 → C8466 "IE570: Port (Ask-CK)"; templates P3248 → C8451 as before, but
+their `updatedOn` moved — an unlink touches both ends.
+
+**Real analysis runs (IE570, org vLLM, scratch server).** Run 1: 12/14 plans answered (2 malformed
+replies), a whole plan cut from TPS rows, Strategy sections cited as the TPS's. Fixed (document-named
+headings, Q1 needs a Strategy source, one retry on unusable JSON); run 2: **14/14, 20 cited untick
+proposals, 10 gaps, 152 s.**
+
+**Applied** — `fc308f8` fast-forwarded into the live tree 2026-10-06 06:07; the reload took ~27 s,
+no wedge; 10.33.12.16's lock on T33234 heartbeated 200 afterwards. (Phase 0b's apply on 2026-10-05 DID
+wedge — ~4½ min down, unit restarted; the restart memory now says restart within ~45 s.)
+
+**Pending / next.**
+- **Real API Upload** needs three requests captured in the Network tab (Terrence): a plan clone, a
+  cycle clone, a move to a folder — and taking a case out of a cycle (D9).
+- **§8.12** (new): with Q1 restricted, the model unticked Advanced Management's ONLY cycle (Q2) on the
+  same TPS rows — accept, or hold a plan's only cycle to the Q1 rule?
+- Open from the plan: §8.4 credentials (shared `JIRA_KEY` vs per-user), §8.9 the empty C8465 cycle,
+  assignees inherited by clones (deferred), the wiki write-back (D7: one `{{ATMSummary|…}}` edit).
+- Nobody has used the page in a browser yet — a manual check (below) is the next step for Terrence.
+
+**Manual check for Terrence:** open Ask CK → Zephyr Templating Tool → Organize Templates; paste
+`https://wiki.atlnz.lc/awpwiki/index.php/Project:3001_IE570_Platform_Support`; Organize with LLM
+(~2½ min); Version should read 5.5.6-2 "from the Test Strategy target path — the project page says
+5.5.6", Product IE570; untick a plan → its cycles and cases untick; tick one case → its cycle and
+plan re-tick; Confirm → API Upload → the dry-run table lists the IE570 folders and about ten calls per one-cycle plan.
 
 ## Latest session (2026-10-02) — not-applicable cases are skipped BEFORE they run; the generator teaches it
 

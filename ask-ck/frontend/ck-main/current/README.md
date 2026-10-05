@@ -1,10 +1,10 @@
 ---
-verified: 2026-09-23
+verified: 2026-10-06
 ---
 # `ask-ck/frontend/ck-main/current/` — the current Ask CK front-end
 
 **Layout (2026-09-11):** `index.html`, `styles.css` and the assets sit here; the ES modules are
-sorted into **page directories** — `generator/`, `pytest-creator/`, `llm-config/`, `admin/` — plus
+sorted into **page directories** — `generator/`, `pytest-creator/`, `llm-config/`, `admin/`, `zephyr-tool/` — plus
 `shared/` for modules more than one page imports. The server mounts this directory at `/static`.
 The Svelte rewrite lives beside it at `../svelte/`. The **ATUI restyle** lives beside it at
 `../restyle/` (since 2026-09-30, `archive/plans/PLAN-atui-restyle.md`): its own `index.html` +
@@ -49,6 +49,7 @@ graph evaluates.
 | `shared/` | `locks.js` | Per-case lock UX (auth plan Phase 1): heartbeat + release-on-close when this tab holds the lock; read-only banner + "Take over" when another does |
 | `shared/` | `provenance.js` | The "LLM Provenance" block: renders the exact prompt a panel would send via the endpoint's `dry_run`, for copying into another LLM — no tokens spent |
 | `shared/` | `version.js` | Stale-tab guard: records the build id at load and asks the user to refresh when it moves — never reloads on its own |
+| `zephyr-tool/` | `zephyr-tool.js` + `zephyr-tool.css` | Zephyr Templating Tool's one page, **Organize Templates** (`panel-zt`): starts `/api/zephyr-tool/analyse` and polls it, the path-keyed tick tree (untick a parent → its children; tick a child → its parents), Results Analysis, Confirm → API Upload (dry run). Its stylesheet is linked from BOTH index pages, so it uses only tokens both define |
 | `shared/` | `ui.js` | The ATUI restyle's one switch (convention 5): `copy`, `icon`, `glyphHtml` / `setGlyphText`, `sevMark` — the old literal on Classic, ATUI wording / Carbon icons when `<html data-ui="atui">` |
 
 ## Conventions

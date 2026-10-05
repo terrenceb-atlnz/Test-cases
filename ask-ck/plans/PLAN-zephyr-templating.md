@@ -1,11 +1,12 @@
 ---
-verified: 2026-10-05
+verified: 2026-10-06
 ---
 # PLAN — Zephyr Templating Tool
 
 > ## Status (read first)
 >
-> **DRAFT, 2026-10-05.** Terrence's design is [`docs/zephyr.txt`](../../docs/zephyr.txt) — this plan
+> **ACTIVE — built through Phase 4 and applied to production 2026-10-06 06:07 (`fc308f8`); Phase 5's real
+> upload is the open work.** Terrence's design is [`docs/zephyr.txt`](../../docs/zephyr.txt) — this plan
 > carries it out and records the decisions made since; where the two differ, the decision log (§3)
 > is newer. **Built: Phases 0a, 0b, 1 (by hand), 2, 3, 4 and the Upload dry run (2026-10-05).** `ask-ck/tools/zt_snapshot.py` reads the template
 > set from Zephyr (GET only); `POST /api/zephyr-tool/templates/refresh` runs it and imports the result
