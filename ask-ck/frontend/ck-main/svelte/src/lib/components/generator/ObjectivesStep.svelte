@@ -5,6 +5,7 @@
   import Table from '../Table.svelte';
   import ConfirmModal from '../ConfirmModal.svelte';
   import LlmButton from '../LlmButton.svelte';
+  import ErrorBanner from '../ErrorBanner.svelte';
   import { scrollToCasesIntro, scrollToBottom } from '../../utils/scroll.js';
 
   /** @type {Array<{ key: string, label: string, width?: number }>} */
@@ -160,7 +161,7 @@
     {#if isEditing}
       <textarea class="objectives-textarea" bind:value={draft} rows={draftRows}></textarea>
       <p class="objectives-edit-note">One objective per line. Keep declarative language.</p>
-      {#if saveError}<p class="confirm-error">Save failed: {saveError}</p>{/if}
+      <ErrorBanner message={saveError && `Save failed: ${saveError}`} />
       <div class="objectives-window-actions">
         <Button variant="primary" loading={isSaving} on:click={saveDraft}>Save Draft</Button>
         <Button variant="outline" on:click={cancelEdit}>Cancel</Button>
@@ -173,7 +174,7 @@
     {/if}
   </div>
   {#if !isEditing}
-    {#if confirmError}<p class="confirm-error">Confirm failed: {confirmError}</p>{/if}
+    <ErrorBanner message={confirmError && `Confirm failed: ${confirmError}`} />
     <Button variant="primary" disabled={!canReviewObjectives} loading={isConfirming} on:click={handleConfirm}>Review &amp; Confirm</Button>
   {/if}
 {/if}
@@ -231,11 +232,6 @@
     font-size: 0.85rem;
   }
 
-  .confirm-error {
-    margin: -8px 0 0;
-    color: var(--color-error);
-    font-size: 0.88rem;
-  }
 
   .objectives-textarea {
     width: 100%;

@@ -1,4 +1,5 @@
 // COPIED OVER FROM current/generator/db-search.js (TestLink search/suggest)
+// @ts-nocheck
 const WIZARD_API = '/api/wizard';
 
 // The real app fetches a step's candidates lazily, the first time it's opened — not at

@@ -1,12 +1,14 @@
 // COPIED OVER FROM current/generator/db-search.js (ATPyLib search/suggest) — mirrors
 // testlinkService.js/zephyrService.js exactly; search_atp needs no case_key (unlike
 // search_zephyr), matching search_testlink.
+
+// @ts-nocheck
 const WIZARD_API = '/api/wizard';
 
 export async function fetchStepCandidates(key) {
   const res = await fetch(`${WIZARD_API}/step_candidates/${encodeURIComponent(key)}/3`);
   const data = await res.json();
-  return data.candidates || [];
+  return spliceTitleFromDescription(data.candidates) || [];
 }
 
 // COPIED OVER FROM current/generator/chosen.js's toEntry (the justification fallback chain)
@@ -18,6 +20,17 @@ function toSelection(row, order) {
     justification: row.description || row.justification || row.reason || row.snippet || '',
     order,
   };
+}
+
+// NEW FUNCTION: Helps to remove the title from the description if the description starts with the title
+function spliceTitleFromDescription(candidates) {
+  return candidates.map((candidate) => {
+    const { id, title, score, justification, description, source } = candidate;
+    if (title && description && description.startsWith(title)) {
+      return { ...candidate, description: description.slice(title.length).trim() };
+    }
+    return candidate;
+  });
 }
 
 export async function confirmStep(key, chosen) {
@@ -38,7 +51,7 @@ export async function searchAtpylib(query) {
   const params = new URLSearchParams({ q: query || '' });
   const res = await fetch(`${WIZARD_API}/search_atp?${params}`);
   const data = await res.json();
-  return data.results || [];
+  return spliceTitleFromDescription(data.results) || [];
 }
 
 export async function suggestAtpylib(key, headers) {
@@ -52,5 +65,5 @@ export async function suggestAtpylib(key, headers) {
     throw new Error(t.slice(0, 200) || `HTTP ${res.status}`);
   }
   const data = await res.json();
-  return data.suggestions || [];
+  return spliceTitleFromDescription(data.suggestions) || [];
 }

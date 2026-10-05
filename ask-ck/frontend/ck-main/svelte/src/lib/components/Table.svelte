@@ -1,7 +1,10 @@
 <script>
 // @ts-nocheck
 
-  /** @type {Array<{ key: string, label: string, width?: number, pillClass?: (value: any) => string }>} */
+  /** @type {Array<{ key: string, label: string, width?: number, pillClass?: (value: any) => string,
+      button?: { label: string, onClick: (row: any) => void } }>} A `button` column renders one
+      action button per row instead of a plain value (e.g. "view source") — stops propagation so
+      it doesn't also toggle the row's selection. */
   export let columns = [];
 
   /** @type {Array<Record<string, any> & { id: string | number }>} */
@@ -61,7 +64,13 @@
         {/if}
         {#each columns as col}
           <div class="data-table-cell" style="flex: {col.width ?? 1}">
-            {#if col.pillClass}
+            {#if col.button}
+              <button
+                type="button"
+                class="table-action-btn"
+                on:click|stopPropagation={() => col.button.onClick(row)}
+              >{col.button.label}</button>
+            {:else if col.pillClass}
               <span class="pill {col.pillClass(row[col.key])}">{row[col.key] ?? ''}</span>
             {:else}
               {row[col.key] ?? ''}
@@ -128,7 +137,7 @@
     /* white-space: nowrap; */
     overflow: hidden;
     text-overflow: ellipsis;
-    margin-right: 24px;
+    margin-left: 24px;
   }
 
   .data-table-checkbox-cell {
@@ -166,5 +175,20 @@
   .pill-muted {
     background: color-mix(in srgb, var(--color-text-muted) 18%, transparent);
     color: var(--color-text-muted);
+  }
+
+  .table-action-btn {
+    padding: 3px 10px;
+    border-radius: 6px;
+    border: 1px solid var(--color-border-surface);
+    background: var(--color-bg-surface);
+    color: var(--color-text);
+    font-size: 0.78rem;
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+  }
+
+  .table-action-btn:hover {
+    background: color-mix(in srgb, var(--color-accent) 10%, transparent);
   }
 </style>

@@ -43,6 +43,8 @@
       ? 'var(--color-arrow-step-complete-border)'
       : status === 'review'
       ? 'var(--color-arrow-step-review-border)'
+      : active
+      ? 'var(--color-accent)'
       : 'var(--color-arrow-step-border)';
 </script>
 

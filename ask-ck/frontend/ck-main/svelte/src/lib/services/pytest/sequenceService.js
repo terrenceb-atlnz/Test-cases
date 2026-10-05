@@ -1,16 +1,44 @@
-import { mockDelay } from '../mockDelay.js';
+// COPIED OVER FROM current/pytest-creator/pytest.js (ptExtractSequence/ptSaveSequence) —
+// unlike the Generator's synthesize_objectives, extract_sequence takes NO body (reads the
+// authoritative stored session) and returns {sequence, notes, coverage} directly, not a
+// wrapped {session}. The caller re-fetches the session separately (casesService.getSession)
+// to pick up confirmed/provenance state.
+const PT_API = '/api/pytest-create';
 
-// Mock sequenced test steps — replace with real LLM extraction output
-const mockSequencedTestSteps = [
-  { id: 'seq-1', from: 1, action: 'Configure the AMF cluster with the required member priorities.', verify: 'Cluster configuration is applied without errors.' },
-  { id: 'seq-2', from: 2, action: 'Trigger a forced reboot of the current master member.', verify: 'Reboot command is accepted and the member goes offline.' },
-  { id: 'seq-3', from: 3, action: 'Wait for master re-election to complete.', verify: 'Elapsed time is recorded and falls within the expected window.' },
-  { id: 'seq-4', from: 4, action: 'Query the identity of the new master.', verify: 'New master matches the expected priority-based candidate.' },
-  { id: 'seq-5', from: 5, action: 'Query cluster state from all AMF members.', verify: 'All members report a consistent cluster state.' }
-];
+export async function extractSequence(key, headers) {
+  const res = await fetch(`${PT_API}/extract_sequence/${encodeURIComponent(key)}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...headers },
+  });
+  if (!res.ok) {
+    const t = await res.text();
+    throw new Error(t.slice(0, 200) || `HTTP ${res.status}`);
+  }
+  return await res.json();   // {sequence, notes, coverage}
+}
 
-export async function extractSequence() {
-  // TODO: replace with a real LLM extraction call
-  await mockDelay();
-  return mockSequencedTestSteps.map((s) => ({ ...s }));
+export async function saveSequence(key, sequence) {
+  const res = await fetch(`${PT_API}/save_sequence/${encodeURIComponent(key)}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ sequence }),
+  });
+  if (!res.ok) {
+    const t = await res.text();
+    throw new Error(t.slice(0, 200) || `HTTP ${res.status}`);
+  }
+  return await res.json();   // {sequence, coverage}
+}
+
+export async function confirmStep(key, step) {
+  const res = await fetch(`${PT_API}/confirm_step/${encodeURIComponent(key)}/${step}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: '{}',
+  });
+  if (!res.ok) {
+    const t = await res.text();
+    throw new Error(t.slice(0, 300) || `HTTP ${res.status}`);
+  }
+  return await res.json();   // {session}
 }

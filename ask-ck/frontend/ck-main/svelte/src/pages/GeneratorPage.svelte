@@ -1,13 +1,14 @@
 <script>
 // @ts-nocheck
 
-  import { tick, onMount } from 'svelte';
+  import { tick, onMount, onDestroy } from 'svelte';
   import ToolHeader from '../lib/components/ToolHeader.svelte';
   import Stepper from '../lib/components/Stepper.svelte';
   import CasePicker from '../lib/components/CasePicker.svelte';
   import CandidatePickerStep from '../lib/components/generator/CandidatePickerStep.svelte';
   import ObjectivesStep from '../lib/components/generator/ObjectivesStep.svelte';
   import TestStepsStep from '../lib/components/generator/TestStepsStep.svelte';
+  import Button from '../lib/components/Button.svelte';
 
   import * as casesService from '../lib/services/generator/casesService.js';
   import { restoreChosen } from '../lib/services/generator/chosenService.js';
@@ -16,6 +17,7 @@
   import * as atpylibService from '../lib/services/generator/atpylibService.js';
   import * as objectivesService from '../lib/services/generator/objectivesService.js';
   import * as testStepsService from '../lib/services/generator/testStepsService.js';
+  import * as lockService from '../lib/services/lockService.js';
 
   import briefcaseIcon from '../assets/icons/briefcase.svg';
   import testTubeIcon from '../assets/icons/test-tube-diagonal.svg';
@@ -68,6 +70,8 @@
   let session = null;
   let readOnly = false;
   let lockMessage = '';
+  let lockInfo = null;
+  let stopLockLifecycle = null;
 
   // Lazy per-step candidate fetch (GET step_candidates/{key}/{step}) the first time a step
   // opens for this case — mirrors current/generator/generator.js's `_stepFetched` memo. Only
@@ -124,6 +128,13 @@
     // Zephyr/ATPyLib picks, objectives, test steps) still holding the old case's data. Rather than
     // manually resetting each of those, remount the whole page fresh with the new case id.
     if (maxStepReached > 0) {
+      // Deliberately abandoning this case for another — release its lock explicitly rather
+      // than letting it idle out, same as current/'s onCaseLoaded ("switching cases: drop
+      // the lock we held on the previous case so others aren't kept waiting for it to idle
+      // out"). stopLockLifecycle() only clears the heartbeat timer/pagehide listener, so
+      // this must come first or the heartbeat could race the release.
+      if (stopLockLifecycle) { stopLockLifecycle(); stopLockLifecycle = null; }
+      if (session?.key && !readOnly) lockService.releaseLock('wizard', session.key);
       onCreateAnother && onCreateAnother(caseId);
       return;
     }
@@ -142,8 +153,14 @@
     }
     session = result.session;
     readOnly = !!result.read_only;
-    lockMessage = result.message || '';
+    lockInfo = result.lock || null;
+    lockMessage = readOnly ? lockService.formatLockMessage('wizard', caseId, lockInfo) : '';
     if (result.case_title) title = result.case_title;
+
+    // Only a real editor heartbeats/arms release — a read-only viewer holds no lock to keep
+    // alive, and heartbeating someone ELSE's lock would be meaningless (require_can_write
+    // only ever checks who actually owns it).
+    if (!readOnly) stopLockLifecycle = lockService.startLockLifecycle('wizard', session.key);
 
     // Populate every chosen table immediately, from the saved selections alone — landing
     // straight on, say, step 4 must not leave step1-3's chosen tables (and therefore the
@@ -174,6 +191,30 @@
       loadAndConfirm(initialCaseId);
     }
   });
+
+  // Defensive only — the one real teardown path (a deliberate case switch) already stops
+  // the lifecycle explicitly above. This page is kept alive once visited (App.svelte), so
+  // onDestroy otherwise only fires on that same remount or a hard refresh, where pagehide
+  // itself (armed independently inside startLockLifecycle) handles the actual release.
+  onDestroy(() => {
+    if (stopLockLifecycle) stopLockLifecycle();
+  });
+
+  async function handleTakeOver() {
+    if (!session?.key) return;
+    const state = await lockService.acquireLock('wizard', session.key);
+    if (state && state.by_me) {
+      // Re-enter through the normal case-switch path (same case id) — a full remount is
+      // the simplest way to get a fresh, editable session + lifecycle after stealing an
+      // idle lock, and it's exactly the machinery already used for switching to a
+      // different case.
+      onCreateAnother && onCreateAnother(session.key);
+    } else {
+      // Someone re-acquired or heartbeated first — refresh what the banner shows.
+      lockInfo = state;
+      lockMessage = lockService.formatLockMessage('wizard', session.key, lockInfo);
+    }
+  }
 
   function exportSession() {
     casesService.exportSession();
@@ -218,13 +259,25 @@
 <Stepper {steps} {currentStep} {maxStepReached} {stepperCompleted} onStepClick={goToStep} />
 
 {#if readOnly}
-  <p class="read-only-banner">{lockMessage}</p>
+  <p class="read-only-banner">
+    {lockMessage}
+    {#if lockInfo?.stealable}
+      <Button variant="outline" on:click={handleTakeOver}>Take over</Button>
+    {/if}
+  </p>
 {/if}
 
 <div class="tool-page">
   {#if currentStep === 0}
     <CasePicker {openPartialCases} {completeCases} {openPartialGroups} {completeGroups} selectedCaseId={session?.key} onLoad={loadAndConfirm} onExport={exportSession} />
-  {:else if currentStep === 1}
+  {:else}
+  <!-- Only steps 1-5 become read-only when another tab/user holds the lock — Cases stays
+       usable so a viewer can still switch to a different, unlocked case (matches current/'s
+       own locks.js: "the case picker ... stay usable so you can still switch cases"). A
+       native <fieldset disabled> propagates to every real button/input/textarea/select
+       nested inside, including ones inside child components — no per-control wiring needed. -->
+  <fieldset class="tool-fieldset" disabled={readOnly}>
+  {#if currentStep === 1}
     <CandidatePickerStep
       columns={testLinkColumns}
       introText="Review primary decision and TestLink candidates. Search or ask the LLM to suggest, then confirm selections."
@@ -324,6 +377,8 @@
   {:else}
     <p>Hello world</p>
   {/if}
+  </fieldset>
+  {/if}
 </div>
 
 <style>
@@ -335,6 +390,16 @@
     line-height: 1.5;
     background: color-mix(in srgb, var(--color-warning) 12%, transparent);
     color: var(--color-warning);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .tool-fieldset {
+    border: none;
+    margin: 0;
+    padding: 0;
+    min-width: 0;
   }
 </style>
 

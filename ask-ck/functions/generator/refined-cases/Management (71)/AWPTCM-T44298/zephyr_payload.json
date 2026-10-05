@@ -1,0 +1,50 @@
+{
+  "AWPTCM-T44298": {
+    "objective": "<ul>\n<li>Device configured with an IPv6 address on the NTP server interface, with NTP enabled and operating in server mode over IPv6</li>\n<li>NTP server responds to NTPv4 client requests received over IPv6 transport</li>\n<li>Server advertises correct stratum, reference ID, and reference timestamp in NTP response packets sent over IPv6</li>\n<li>Time synchronisation information provided by the IPv6 NTP server is accurate and consistent with the server's system clock</li>\n<li>NTP server continues to operate correctly over IPv4 simultaneously when dual-stack is configured</li>\n<li>NTP server does not respond to malformed or unsupported NTP packet types received over IPv6</li>\n<li>NTP server rejects or ignores requests from IPv6 clients not permitted by configured access restrictions</li>\n<li>NTP associations and statistics for IPv6 clients are correctly displayed in show/status commands</li>\n<li>NTP server operation over IPv6 persists correctly across a device reboot or NTP service restart</li>\n<li>Relevant log entries or system messages are generated reflecting NTP server state changes and IPv6 client associations</li>\n</ul>",
+    "testScript": {
+      "type": "steps",
+      "steps": [
+        {
+          "description": "Note: Related ART Tests linked in Traceability.",
+          "expectedResult": ""
+        },
+        {
+          "description": "From an IPv6-connected NTPv4 client, send time synchronisation requests to the DUT's NTP service. Confirm the server processes the requests and returns responses over the IPv6 transport.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Capture or inspect the NTP response packets returned to the IPv6 client and examine the stratum, reference identifier, and reference timestamp fields carried in those responses.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Compare the time value and reference timestamp conveyed to the IPv6 client against the DUT's own system clock at the time of the exchange, repeating the comparison after some elapsed interval to confirm ongoing consistency.",
+          "expectedResult": ""
+        },
+        {
+          "description": "With the NTP server interface configured as dual-stack, have an IPv4 client and an IPv6 client query the server concurrently. Confirm both address families are served without one affecting the other.",
+          "expectedResult": ""
+        },
+        {
+          "description": "From an IPv6 client, send malformed NTP packets and packets of unsupported or unexpected NTP message types to the server. Confirm the server's handling of these inputs, including whether any response is produced.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Configure an access restriction on the DUT that excludes a specific IPv6 client or address range from NTP service, then have that client attempt to query the server while a permitted IPv6 client queries it as well.",
+          "expectedResult": ""
+        },
+        {
+          "description": "With one or more IPv6 clients actively associated with the server, inspect the DUT's NTP association and statistics information to confirm the IPv6 client entries are represented.",
+          "expectedResult": ""
+        },
+        {
+          "description": "With an active IPv6 NTP server configuration and at least one IPv6 client association established, restart the NTP service (or reboot the device) and confirm the server resumes serving IPv6 clients and associations are re-established afterwards.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Trigger NTP server state changes over IPv6, such as enabling/disabling the service, applying or removing an access restriction, and establishing a new client association, then inspect the DUT's logs or system messages for entries corresponding to each change.",
+          "expectedResult": ""
+        }
+      ]
+    }
+  }
+}

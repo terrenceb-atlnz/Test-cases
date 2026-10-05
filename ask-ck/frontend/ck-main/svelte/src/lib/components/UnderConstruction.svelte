@@ -30,7 +30,7 @@
     align-items: center;
     justify-content: center;
     gap: 18px;
-    width: 300px;
+    width: 100%;
     height: 300px;
     margin: 60px auto;
     border: 5px dashed var(--color-border-surface);
