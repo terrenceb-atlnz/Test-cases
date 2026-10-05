@@ -1,0 +1,224 @@
+{
+  "key": "AWPTCM-T44298",
+  "primary": {
+    "m": "AWP-11529",
+    "c": "med",
+    "w": "NTP over IPv6 as server"
+  },
+  "step1": {
+    "confirmed": true,
+    "confirmed_at": "2026-10-01 03:23:53.247704+00:00",
+    "none_selected": false,
+    "selections": [
+      {
+        "id_or_key": "AWP-11529",
+        "title": "NTP over IPv6 - Operating as an NTP server.",
+        "justification": "Step: Ensure DUT clock synronized via NTP\nExpected: NTP Status is synconised\n\nStep: Start NTP client devices.\nNote their NTP association and status\nExpected: NTP Clients show a valid and association with the DUT as master.",
+        "order": 0
+      }
+    ],
+    "backfilled": false
+  },
+  "step2": {
+    "confirmed": true,
+    "confirmed_at": "2026-10-01 03:24:09.401772+00:00",
+    "none_selected": false,
+    "selections": [
+      {
+        "id_or_key": "AWPTCM-T10517",
+        "title": "NTP over IPv6 - Operating as an NTP server.",
+        "justification": "Objective: NTP will respond to any NTP packets (unless the ingress packets are blocked by other processes - i.e. clasifiers)\nNTP will respond appropriatly regardless what transport protocol the packets arrive on.\n\nPrecondition: DUT configured with several IPv6 and IPv4 interfaces.\nOher devices configured to use the DUT as an NTP server via IPv6 and/or IPv4.\nDUT configured to us 1 or more external NTP servers via IPv6.\n\nStatus: Approved | Has objective: True | Num steps: 3 | Labels: Operational\n\nSteps:\n1. Ensure DUT clock synronized via NTP\n2. Start NTP client devices.\nNote their NTP association and status\n3. check show command",
+        "order": 0
+      },
+      {
+        "id_or_key": "AWPTCM-T33633",
+        "title": "NTP on VRF - Check that NTP client/server associations work when configured over a VRF",
+        "justification": "Objective: client server - both ends configured with NTP over a VRF vlan\n\nPrecondition: Wire as follows: [Client]----[DUT]----[NTP server] Configure appropriate IP addressing and routing on each of the devices above Ensure that the L3 interfaces on DUT are in a named VRF Configure NTP server as a server by using the \"ntp master\" command. Use the \"ntp server [IP address of DUT]\" command on \"Client\"\n\nStatus: Approved | Has objective: True | Num steps: 1\n\nSteps:\n1. use the command \"ntp server vrf [VRF name] [IP address of NTP server]\" on the DUT",
+        "order": 1
+      }
+    ],
+    "backfilled": false
+  },
+  "step3": {
+    "confirmed": true,
+    "confirmed_at": "2026-10-01 03:24:24.968173+00:00",
+    "none_selected": false,
+    "selections": [],
+    "backfilled": false
+  },
+  "step4": {
+    "objective": "<ul>\n<li>Device configured with an IPv6 address on the NTP server interface, with NTP enabled and operating in server mode over IPv6</li>\n<li>NTP server responds to NTPv4 client requests received over IPv6 transport</li>\n<li>Server advertises correct stratum, reference ID, and reference timestamp in NTP response packets sent over IPv6</li>\n<li>Time synchronisation information provided by the IPv6 NTP server is accurate and consistent with the server's system clock</li>\n<li>NTP server continues to operate correctly over IPv4 simultaneously when dual-stack is configured</li>\n<li>NTP server does not respond to malformed or unsupported NTP packet types received over IPv6</li>\n<li>NTP server rejects or ignores requests from IPv6 clients not permitted by configured access restrictions</li>\n<li>NTP associations and statistics for IPv6 clients are correctly displayed in show/status commands</li>\n<li>NTP server operation over IPv6 persists correctly across a device reboot or NTP service restart</li>\n<li>Relevant log entries or system messages are generated reflecting NTP server state changes and IPv6 client associations</li>\n</ul>",
+    "provenance": {
+      "objective_prompt": "You are an expert test-case objective writer. Strict principles:\n- Objectives are declarative lists of artefacts \u2014 \"what should be true\" (end states), not \"verify\" or instructions.\n- Cover positive (happy/default), negative (unsupported/error), special conditions, and reporting/observability.\n- Platform-agnostic language. Bullet count is not fixed \u2014 use as many as needed for clear coverage, no more.\n- Use the selections below as evidence.\n\n## Case\nAWPTCM-T44298 \u2014 NTP over IPv6 as server (primary AWP-11529)\n\n## TestLink selections\n- AWP-11529: NTP over IPv6 - Operating as an NTP server.\n\n## Zephyr exemplars\n- AWPTCM-T10517: NTP over IPv6 - Operating as an NTP server.\n- AWPTCM-T33633: NTP on VRF - Check that NTP client/server associations work when configured over a VRF\n\n## ATPyLib coverage (selected ART)\n\nProduce ONLY the HTML <ul> of artefact bullets for the objective. No other text.",
+      "objective_response": "<ul>\n<li>Device configured with an IPv6 address on the NTP server interface, with NTP enabled and operating in server mode over IPv6</li>\n<li>NTP server responds to NTPv4 client requests received over IPv6 transport</li>\n<li>Server advertises correct stratum, reference ID, and reference timestamp in NTP response packets sent over IPv6</li>\n<li>Time synchronisation information provided by the IPv6 NTP server is accurate and consistent with the server's system clock</li>\n<li>NTP server continues to operate correctly over IPv4 simultaneously when dual-stack is configured</li>\n<li>NTP server does not respond to malformed or unsupported NTP packet types received over IPv6</li>\n<li>NTP server rejects or ignores requests from IPv6 clients not permitted by configured access restrictions</li>\n<li>NTP associations and statistics for IPv6 clients are correctly displayed in show/status commands</li>\n<li>NTP server operation over IPv6 persists correctly across a device reboot or NTP service restart</li>\n<li>Relevant log entries or system messages are generated reflecting NTP server state changes and IPv6 client associations</li>\n</ul>",
+      "provider": "claude",
+      "auth_method": "claude_agent",
+      "model": "sonnet",
+      "error": false,
+      "phase": "objectives"
+    },
+    "confirmed": true,
+    "confirmed_at": "2026-10-01T03:24:54.055717+00:00",
+    "testScript": {
+      "type": "steps",
+      "steps": [
+        {
+          "description": "Note: Related ART Tests linked in Traceability.",
+          "expectedResult": ""
+        },
+        {
+          "description": "From an IPv6-connected NTPv4 client, send time synchronisation requests to the DUT's NTP service. Confirm the server processes the requests and returns responses over the IPv6 transport.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Capture or inspect the NTP response packets returned to the IPv6 client and examine the stratum, reference identifier, and reference timestamp fields carried in those responses.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Compare the time value and reference timestamp conveyed to the IPv6 client against the DUT's own system clock at the time of the exchange, repeating the comparison after some elapsed interval to confirm ongoing consistency.",
+          "expectedResult": ""
+        },
+        {
+          "description": "With the NTP server interface configured as dual-stack, have an IPv4 client and an IPv6 client query the server concurrently. Confirm both address families are served without one affecting the other.",
+          "expectedResult": ""
+        },
+        {
+          "description": "From an IPv6 client, send malformed NTP packets and packets of unsupported or unexpected NTP message types to the server. Confirm the server's handling of these inputs, including whether any response is produced.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Configure an access restriction on the DUT that excludes a specific IPv6 client or address range from NTP service, then have that client attempt to query the server while a permitted IPv6 client queries it as well.",
+          "expectedResult": ""
+        },
+        {
+          "description": "With one or more IPv6 clients actively associated with the server, inspect the DUT's NTP association and statistics information to confirm the IPv6 client entries are represented.",
+          "expectedResult": ""
+        },
+        {
+          "description": "With an active IPv6 NTP server configuration and at least one IPv6 client association established, restart the NTP service (or reboot the device) and confirm the server resumes serving IPv6 clients and associations are re-established afterwards.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Trigger NTP server state changes over IPv6, such as enabling/disabling the service, applying or removing an access restriction, and establishing a new client association, then inspect the DUT's logs or system messages for entries corresponding to each change.",
+          "expectedResult": ""
+        }
+      ]
+    }
+  },
+  "step5": {
+    "testScript": {
+      "type": "steps",
+      "steps": [
+        {
+          "description": "Note: Related ART Tests linked in Traceability.",
+          "expectedResult": ""
+        },
+        {
+          "description": "From an IPv6-connected NTPv4 client, send time synchronisation requests to the DUT's NTP service. Confirm the server processes the requests and returns responses over the IPv6 transport.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Capture or inspect the NTP response packets returned to the IPv6 client and examine the stratum, reference identifier, and reference timestamp fields carried in those responses.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Compare the time value and reference timestamp conveyed to the IPv6 client against the DUT's own system clock at the time of the exchange, repeating the comparison after some elapsed interval to confirm ongoing consistency.",
+          "expectedResult": ""
+        },
+        {
+          "description": "With the NTP server interface configured as dual-stack, have an IPv4 client and an IPv6 client query the server concurrently. Confirm both address families are served without one affecting the other.",
+          "expectedResult": ""
+        },
+        {
+          "description": "From an IPv6 client, send malformed NTP packets and packets of unsupported or unexpected NTP message types to the server. Confirm the server's handling of these inputs, including whether any response is produced.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Configure an access restriction on the DUT that excludes a specific IPv6 client or address range from NTP service, then have that client attempt to query the server while a permitted IPv6 client queries it as well.",
+          "expectedResult": ""
+        },
+        {
+          "description": "With one or more IPv6 clients actively associated with the server, inspect the DUT's NTP association and statistics information to confirm the IPv6 client entries are represented.",
+          "expectedResult": ""
+        },
+        {
+          "description": "With an active IPv6 NTP server configuration and at least one IPv6 client association established, restart the NTP service (or reboot the device) and confirm the server resumes serving IPv6 clients and associations are re-established afterwards.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Trigger NTP server state changes over IPv6, such as enabling/disabling the service, applying or removing an access restriction, and establishing a new client association, then inspect the DUT's logs or system messages for entries corresponding to each change.",
+          "expectedResult": ""
+        }
+      ]
+    },
+    "provenance": {
+      "steps_prompt": "You are drafting Zephyr-ready verification steps for a manual test case.\nThe objective below is finalized (user-reviewed). Derive the steps from it.\n\nAn objective bullet states an END STATE \u2014 what should be true. A step is a PROCEDURE \u2014 what\nsomeone does, and under what conditions. A step must add test-design information the bullet\ndoes not already carry: the setup, the data, the variation, the thing being exercised.\nRe-wording a bullet adds nothing and is not a step \u2014 whatever verb it opens with. \"Verify \u2026\"\nis a perfectly good way to begin a real step and many steps here should use it; the fault is\nrestatement, never the word.\n\n## Case\nAWPTCM-T44298 \u2014 NTP over IPv6 as server\n\n## Finalized objective (authoritative)\n<ul>\n<li>Device configured with an IPv6 address on the NTP server interface, with NTP enabled and operating in server mode over IPv6</li>\n<li>NTP server responds to NTPv4 client requests received over IPv6 transport</li>\n<li>Server advertises correct stratum, reference ID, and reference timestamp in NTP response packets sent over IPv6</li>\n<li>Time synchronisation information provided by the IPv6 NTP server is accurate and consistent with the server's system clock</li>\n<li>NTP server continues to operate correctly over IPv4 simultaneously when dual-stack is configured</li>\n<li>NTP server does not respond to malformed or unsupported NTP packet types received over IPv6</li>\n<li>NTP server rejects or ignores requests from IPv6 clients not permitted by configured access restrictions</li>\n<li>NTP associations and statistics for IPv6 clients are correctly displayed in show/status commands</li>\n<li>NTP server operation over IPv6 persists correctly across a device reboot or NTP service restart</li>\n<li>Relevant log entries or system messages are generated reflecting NTP server state changes and IPv6 client associations</li>\n</ul>\n\n## TestLink selections (evidence \u2014 reuse their concrete values where they fit)\n- AWP-11529: NTP over IPv6 - Operating as an NTP server.\n\n## Zephyr exemplars (evidence \u2014 match their level of detail)\n- AWPTCM-T10517: NTP over IPv6 - Operating as an NTP server.\n- AWPTCM-T33633: NTP on VRF - Check that NTP client/server associations work when configured over a VRF\n\n## Rules\n- The FIRST step is injected server-side as a traceability note \u2014 DO NOT generate it.\n- Generate ONLY the subsequent verification steps exercising the objective's artefacts.\n- Cover each major objective bullet: positive, negative, special conditions, reporting.\n- Keep each step high-level enough to be reusable across platforms, but specific enough to\n  be testable. Naming exact values, counts and timings is the PyTest script's job, not this\n  one \u2014 a manual step that dictates them narrows the tester to one way of exercising the\n  feature instead of leaving them to produce evidence that it works.\n- LEAVE `expectedResult` EMPTY on every step. This is deliberate, not an omission. The\n  tester reads the objective and the step and reasons out what should happen; stating the\n  outcome narrows them to producing exactly that result instead of evidence that the\n  feature works. The objective already carries the expected outcomes.\n- Say WHAT is being exercised, not which command to type. Proving the step was taken \u2014\n  capturing `show` output as evidence \u2014 is the generated PyTest script's job, and naming\n  commands or device registers here invents mechanisms that may not exist and narrows the\n  tester besides.\n- Where a step depends on topology, say which roles it needs (e.g. two links between the DUT\n  and a partner), never a device model or a port number.\n- Platform-agnostic language: no product names, no hardcoded port strings.\n\n## Output format \u2014 this example IS the specification; match its level of detail\n[\n  {\n    \"description\": \"Verify LLDP operation with the DUT and its link partner both running default timers. Confirm neighbours are discovered on the test link and that each side reports the other's chassis and port identity.\",\n    \"expectedResult\": \"\"\n  },\n  {\n    \"description\": \"Vary the transmit interval and hold multiplier across their supported range, including the minimum and maximum. Confirm advertisements are sent at the configured rate and that the neighbour's advertised lifetime tracks the configured values.\",\n    \"expectedResult\": \"\"\n  },\n  {\n    \"description\": \"Set the transmit interval below the supported minimum and above the supported maximum. Confirm the DUT rejects both and retains its previous configuration.\",\n    \"expectedResult\": \"\"\n  },\n  {\n    \"description\": \"Disable LLDP transmit on the DUT while leaving receive enabled, then re-enable it. Confirm the neighbour ages out and is rediscovered, and that the port reports the change.\",\n    \"expectedResult\": \"\"\n  }\n]\n\nOutput the JSON array ONLY. No prose, no markdown fence.",
+      "steps_response": "[\n  {\n    \"description\": \"From an IPv6-connected NTPv4 client, send time synchronisation requests to the DUT's NTP service. Confirm the server processes the requests and returns responses over the IPv6 transport.\",\n    \"expectedResult\": \"\"\n  },\n  {\n    \"description\": \"Capture or inspect the NTP response packets returned to the IPv6 client and examine the stratum, reference identifier, and reference timestamp fields carried in those responses.\",\n    \"expectedResult\": \"\"\n  },\n  {\n    \"description\": \"Compare the time value and reference timestamp conveyed to the IPv6 client against the DUT's own system clock at the time of the exchange, repeating the comparison after some elapsed interval to confirm ongoing consistency.\",\n    \"expectedResult\": \"\"\n  },\n  {\n    \"description\": \"With the NTP server interface configured as dual-stack, have an IPv4 client and an IPv6 client query the server concurrently. Confirm both address families are served without one affecting the other.\",\n    \"expectedResult\": \"\"\n  },\n  {\n    \"description\": \"From an IPv6 client, send malformed NTP packets and packets of unsupported or unexpected NTP message types to the server. Confirm the server's handling of these inputs, including whether any response is produced.\",\n    \"expectedResult\": \"\"\n  },\n  {\n    \"description\": \"Configure an access restriction on the DUT that excludes a specific IPv6 client or address range from NTP service, then have that client attempt to query the server while a permitted IPv6 client queries it as well.\",\n    \"expectedResult\": \"\"\n  },\n  {\n    \"description\": \"With one or more IPv6 clients actively associated with the server, inspect the DUT's NTP association and statistics information to confirm the IPv6 client entries are represented.\",\n    \"expectedResult\": \"\"\n  },\n  {\n    \"description\": \"With an active IPv6 NTP server configuration and at least one IPv6 client association established, restart the NTP service (or reboot the device) and confirm the server resumes serving IPv6 clients and associations are re-established afterwards.\",\n    \"expectedResult\": \"\"\n  },\n  {\n    \"description\": \"Trigger NTP server state changes over IPv6, such as enabling/disabling the service, applying or removing an access restriction, and establishing a new client association, then inspect the DUT's logs or system messages for entries corresponding to each change.\",\n    \"expectedResult\": \"\"\n  }\n]",
+      "objective_used": "<ul>\n<li>Device configured with an IPv6 address on the NTP server interface, with NTP enabled and operating in server mode over IPv6</li>\n<li>NTP server responds to NTPv4 client requests received over IPv6 transport</li>\n<li>Server advertises correct stratum, reference ID, and reference timestamp in NTP response packets sent over IPv6</li>\n<li>Time synchronisation information provided by the IPv6 NTP server is accurate and consistent with the server's system clock</li>\n<li>NTP server continues to operate correctly over IPv4 simultaneously when dual-stack is configured</li>\n<li>NTP server does not respond to malformed or unsupported NTP packet types received over IPv6</li>\n<li>NTP server rejects or ignores requests from IPv6 clients not permitted by configured access restrictions</li>\n<li>NTP associations and statistics for IPv6 clients are correctly displayed in show/status commands</li>\n<li>NTP server operation over IPv6 persists correctly across a device reboot or NTP service restart</li>\n<li>Relevant log entries or system messages are generated reflecting NTP server state changes and IPv6 client associations</li>\n</ul>",
+      "provider": "claude",
+      "auth_method": "claude_agent",
+      "model": "sonnet",
+      "error": false,
+      "phase": "steps",
+      "steps_quality": {
+        "verification_steps": 9,
+        "steps_source": "json"
+      }
+    }
+  },
+  "gaps": "No ATPyLib (ART) automated tests have been identified as covering this case, leaving the NTP-over-IPv6 server role entirely without automation coverage. The manual intent captured in AWPTCM-T44298 and its related artefacts (AWPTCM-T10517, AWPTCM-T33633) spans DUT clock synchronisation status verification, multi-client NTP association behaviour, and NTP operation over a VRF context, none of which are exercised by automation at present. Key gaps include observability of NTP synchronisation state transitions, correctness of client association reporting across multiple simultaneous clients, and the interaction between IPv6 NTP server behaviour and VRF-scoped configurations. Given the medium weighting of this decision, this represents a moderate but unaddressed risk area requiring either new automated test development or continued reliance on manual execution.",
+  "art_string": "",
+  "full_session": {
+    "llm_objectives": {
+      "objective_prompt": "You are an expert test-case objective writer. Strict principles:\n- Objectives are declarative lists of artefacts \u2014 \"what should be true\" (end states), not \"verify\" or instructions.\n- Cover positive (happy/default), negative (unsupported/error), special conditions, and reporting/observability.\n- Platform-agnostic language. Bullet count is not fixed \u2014 use as many as needed for clear coverage, no more.\n- Use the selections below as evidence.\n\n## Case\nAWPTCM-T44298 \u2014 NTP over IPv6 as server (primary AWP-11529)\n\n## TestLink selections\n- AWP-11529: NTP over IPv6 - Operating as an NTP server.\n\n## Zephyr exemplars\n- AWPTCM-T10517: NTP over IPv6 - Operating as an NTP server.\n- AWPTCM-T33633: NTP on VRF - Check that NTP client/server associations work when configured over a VRF\n\n## ATPyLib coverage (selected ART)\n\nProduce ONLY the HTML <ul> of artefact bullets for the objective. No other text.",
+      "objective_response": "<ul>\n<li>Device configured with an IPv6 address on the NTP server interface, with NTP enabled and operating in server mode over IPv6</li>\n<li>NTP server responds to NTPv4 client requests received over IPv6 transport</li>\n<li>Server advertises correct stratum, reference ID, and reference timestamp in NTP response packets sent over IPv6</li>\n<li>Time synchronisation information provided by the IPv6 NTP server is accurate and consistent with the server's system clock</li>\n<li>NTP server continues to operate correctly over IPv4 simultaneously when dual-stack is configured</li>\n<li>NTP server does not respond to malformed or unsupported NTP packet types received over IPv6</li>\n<li>NTP server rejects or ignores requests from IPv6 clients not permitted by configured access restrictions</li>\n<li>NTP associations and statistics for IPv6 clients are correctly displayed in show/status commands</li>\n<li>NTP server operation over IPv6 persists correctly across a device reboot or NTP service restart</li>\n<li>Relevant log entries or system messages are generated reflecting NTP server state changes and IPv6 client associations</li>\n</ul>",
+      "provider": "claude",
+      "auth_method": "claude_agent",
+      "model": "sonnet",
+      "error": false,
+      "phase": "objectives"
+    },
+    "llm": {
+      "objective_prompt": "You are an expert test-case objective writer. Strict principles:\n- Objectives are declarative lists of artefacts \u2014 \"what should be true\" (end states), not \"verify\" or instructions.\n- Cover positive (happy/default), negative (unsupported/error), special conditions, and reporting/observability.\n- Platform-agnostic language. Bullet count is not fixed \u2014 use as many as needed for clear coverage, no more.\n- Use the selections below as evidence.\n\n## Case\nAWPTCM-T44298 \u2014 NTP over IPv6 as server (primary AWP-11529)\n\n## TestLink selections\n- AWP-11529: NTP over IPv6 - Operating as an NTP server.\n\n## Zephyr exemplars\n- AWPTCM-T10517: NTP over IPv6 - Operating as an NTP server.\n- AWPTCM-T33633: NTP on VRF - Check that NTP client/server associations work when configured over a VRF\n\n## ATPyLib coverage (selected ART)\n\nProduce ONLY the HTML <ul> of artefact bullets for the objective. No other text.",
+      "objective_response": "<ul>\n<li>Device configured with an IPv6 address on the NTP server interface, with NTP enabled and operating in server mode over IPv6</li>\n<li>NTP server responds to NTPv4 client requests received over IPv6 transport</li>\n<li>Server advertises correct stratum, reference ID, and reference timestamp in NTP response packets sent over IPv6</li>\n<li>Time synchronisation information provided by the IPv6 NTP server is accurate and consistent with the server's system clock</li>\n<li>NTP server continues to operate correctly over IPv4 simultaneously when dual-stack is configured</li>\n<li>NTP server does not respond to malformed or unsupported NTP packet types received over IPv6</li>\n<li>NTP server rejects or ignores requests from IPv6 clients not permitted by configured access restrictions</li>\n<li>NTP associations and statistics for IPv6 clients are correctly displayed in show/status commands</li>\n<li>NTP server operation over IPv6 persists correctly across a device reboot or NTP service restart</li>\n<li>Relevant log entries or system messages are generated reflecting NTP server state changes and IPv6 client associations</li>\n</ul>",
+      "provider": "claude",
+      "auth_method": "claude_agent",
+      "model": "sonnet",
+      "error": false,
+      "phase": "steps",
+      "steps_prompt": "You are drafting Zephyr-ready verification steps for a manual test case.\nThe objective below is finalized (user-reviewed). Derive the steps from it.\n\nAn objective bullet states an END STATE \u2014 what should be true. A step is a PROCEDURE \u2014 what\nsomeone does, and under what conditions. A step must add test-design information the bullet\ndoes not already carry: the setup, the data, the variation, the thing being exercised.\nRe-wording a bullet adds nothing and is not a step \u2014 whatever verb it opens with. \"Verify \u2026\"\nis a perfectly good way to begin a real step and many steps here should use it; the fault is\nrestatement, never the word.\n\n## Case\nAWPTCM-T44298 \u2014 NTP over IPv6 as server\n\n## Finalized objective (authoritative)\n<ul>\n<li>Device configured with an IPv6 address on the NTP server interface, with NTP enabled and operating in server mode over IPv6</li>\n<li>NTP server responds to NTPv4 client requests received over IPv6 transport</li>\n<li>Server advertises correct stratum, reference ID, and reference timestamp in NTP response packets sent over IPv6</li>\n<li>Time synchronisation information provided by the IPv6 NTP server is accurate and consistent with the server's system clock</li>\n<li>NTP server continues to operate correctly over IPv4 simultaneously when dual-stack is configured</li>\n<li>NTP server does not respond to malformed or unsupported NTP packet types received over IPv6</li>\n<li>NTP server rejects or ignores requests from IPv6 clients not permitted by configured access restrictions</li>\n<li>NTP associations and statistics for IPv6 clients are correctly displayed in show/status commands</li>\n<li>NTP server operation over IPv6 persists correctly across a device reboot or NTP service restart</li>\n<li>Relevant log entries or system messages are generated reflecting NTP server state changes and IPv6 client associations</li>\n</ul>\n\n## TestLink selections (evidence \u2014 reuse their concrete values where they fit)\n- AWP-11529: NTP over IPv6 - Operating as an NTP server.\n\n## Zephyr exemplars (evidence \u2014 match their level of detail)\n- AWPTCM-T10517: NTP over IPv6 - Operating as an NTP server.\n- AWPTCM-T33633: NTP on VRF - Check that NTP client/server associations work when configured over a VRF\n\n## Rules\n- The FIRST step is injected server-side as a traceability note \u2014 DO NOT generate it.\n- Generate ONLY the subsequent verification steps exercising the objective's artefacts.\n- Cover each major objective bullet: positive, negative, special conditions, reporting.\n- Keep each step high-level enough to be reusable across platforms, but specific enough to\n  be testable. Naming exact values, counts and timings is the PyTest script's job, not this\n  one \u2014 a manual step that dictates them narrows the tester to one way of exercising the\n  feature instead of leaving them to produce evidence that it works.\n- LEAVE `expectedResult` EMPTY on every step. This is deliberate, not an omission. The\n  tester reads the objective and the step and reasons out what should happen; stating the\n  outcome narrows them to producing exactly that result instead of evidence that the\n  feature works. The objective already carries the expected outcomes.\n- Say WHAT is being exercised, not which command to type. Proving the step was taken \u2014\n  capturing `show` output as evidence \u2014 is the generated PyTest script's job, and naming\n  commands or device registers here invents mechanisms that may not exist and narrows the\n  tester besides.\n- Where a step depends on topology, say which roles it needs (e.g. two links between the DUT\n  and a partner), never a device model or a port number.\n- Platform-agnostic language: no product names, no hardcoded port strings.\n\n## Output format \u2014 this example IS the specification; match its level of detail\n[\n  {\n    \"description\": \"Verify LLDP operation with the DUT and its link partner both running default timers. Confirm neighbours are discovered on the test link and that each side reports the other's chassis and port identity.\",\n    \"expectedResult\": \"\"\n  },\n  {\n    \"description\": \"Vary the transmit interval and hold multiplier across their supported range, including the minimum and maximum. Confirm advertisements are sent at the configured rate and that the neighbour's advertised lifetime tracks the configured values.\",\n    \"expectedResult\": \"\"\n  },\n  {\n    \"description\": \"Set the transmit interval below the supported minimum and above the supported maximum. Confirm the DUT rejects both and retains its previous configuration.\",\n    \"expectedResult\": \"\"\n  },\n  {\n    \"description\": \"Disable LLDP transmit on the DUT while leaving receive enabled, then re-enable it. Confirm the neighbour ages out and is rediscovered, and that the port reports the change.\",\n    \"expectedResult\": \"\"\n  }\n]\n\nOutput the JSON array ONLY. No prose, no markdown fence.",
+      "steps_response": "[\n  {\n    \"description\": \"From an IPv6-connected NTPv4 client, send time synchronisation requests to the DUT's NTP service. Confirm the server processes the requests and returns responses over the IPv6 transport.\",\n    \"expectedResult\": \"\"\n  },\n  {\n    \"description\": \"Capture or inspect the NTP response packets returned to the IPv6 client and examine the stratum, reference identifier, and reference timestamp fields carried in those responses.\",\n    \"expectedResult\": \"\"\n  },\n  {\n    \"description\": \"Compare the time value and reference timestamp conveyed to the IPv6 client against the DUT's own system clock at the time of the exchange, repeating the comparison after some elapsed interval to confirm ongoing consistency.\",\n    \"expectedResult\": \"\"\n  },\n  {\n    \"description\": \"With the NTP server interface configured as dual-stack, have an IPv4 client and an IPv6 client query the server concurrently. Confirm both address families are served without one affecting the other.\",\n    \"expectedResult\": \"\"\n  },\n  {\n    \"description\": \"From an IPv6 client, send malformed NTP packets and packets of unsupported or unexpected NTP message types to the server. Confirm the server's handling of these inputs, including whether any response is produced.\",\n    \"expectedResult\": \"\"\n  },\n  {\n    \"description\": \"Configure an access restriction on the DUT that excludes a specific IPv6 client or address range from NTP service, then have that client attempt to query the server while a permitted IPv6 client queries it as well.\",\n    \"expectedResult\": \"\"\n  },\n  {\n    \"description\": \"With one or more IPv6 clients actively associated with the server, inspect the DUT's NTP association and statistics information to confirm the IPv6 client entries are represented.\",\n    \"expectedResult\": \"\"\n  },\n  {\n    \"description\": \"With an active IPv6 NTP server configuration and at least one IPv6 client association established, restart the NTP service (or reboot the device) and confirm the server resumes serving IPv6 clients and associations are re-established afterwards.\",\n    \"expectedResult\": \"\"\n  },\n  {\n    \"description\": \"Trigger NTP server state changes over IPv6, such as enabling/disabling the service, applying or removing an access restriction, and establishing a new client association, then inspect the DUT's logs or system messages for entries corresponding to each change.\",\n    \"expectedResult\": \"\"\n  }\n]",
+      "objective_used": "<ul>\n<li>Device configured with an IPv6 address on the NTP server interface, with NTP enabled and operating in server mode over IPv6</li>\n<li>NTP server responds to NTPv4 client requests received over IPv6 transport</li>\n<li>Server advertises correct stratum, reference ID, and reference timestamp in NTP response packets sent over IPv6</li>\n<li>Time synchronisation information provided by the IPv6 NTP server is accurate and consistent with the server's system clock</li>\n<li>NTP server continues to operate correctly over IPv4 simultaneously when dual-stack is configured</li>\n<li>NTP server does not respond to malformed or unsupported NTP packet types received over IPv6</li>\n<li>NTP server rejects or ignores requests from IPv6 clients not permitted by configured access restrictions</li>\n<li>NTP associations and statistics for IPv6 clients are correctly displayed in show/status commands</li>\n<li>NTP server operation over IPv6 persists correctly across a device reboot or NTP service restart</li>\n<li>Relevant log entries or system messages are generated reflecting NTP server state changes and IPv6 client associations</li>\n</ul>",
+      "steps_quality": {
+        "verification_steps": 9,
+        "steps_source": "json"
+      }
+    },
+    "llm_steps": {
+      "steps_prompt": "You are drafting Zephyr-ready verification steps for a manual test case.\nThe objective below is finalized (user-reviewed). Derive the steps from it.\n\nAn objective bullet states an END STATE \u2014 what should be true. A step is a PROCEDURE \u2014 what\nsomeone does, and under what conditions. A step must add test-design information the bullet\ndoes not already carry: the setup, the data, the variation, the thing being exercised.\nRe-wording a bullet adds nothing and is not a step \u2014 whatever verb it opens with. \"Verify \u2026\"\nis a perfectly good way to begin a real step and many steps here should use it; the fault is\nrestatement, never the word.\n\n## Case\nAWPTCM-T44298 \u2014 NTP over IPv6 as server\n\n## Finalized objective (authoritative)\n<ul>\n<li>Device configured with an IPv6 address on the NTP server interface, with NTP enabled and operating in server mode over IPv6</li>\n<li>NTP server responds to NTPv4 client requests received over IPv6 transport</li>\n<li>Server advertises correct stratum, reference ID, and reference timestamp in NTP response packets sent over IPv6</li>\n<li>Time synchronisation information provided by the IPv6 NTP server is accurate and consistent with the server's system clock</li>\n<li>NTP server continues to operate correctly over IPv4 simultaneously when dual-stack is configured</li>\n<li>NTP server does not respond to malformed or unsupported NTP packet types received over IPv6</li>\n<li>NTP server rejects or ignores requests from IPv6 clients not permitted by configured access restrictions</li>\n<li>NTP associations and statistics for IPv6 clients are correctly displayed in show/status commands</li>\n<li>NTP server operation over IPv6 persists correctly across a device reboot or NTP service restart</li>\n<li>Relevant log entries or system messages are generated reflecting NTP server state changes and IPv6 client associations</li>\n</ul>\n\n## TestLink selections (evidence \u2014 reuse their concrete values where they fit)\n- AWP-11529: NTP over IPv6 - Operating as an NTP server.\n\n## Zephyr exemplars (evidence \u2014 match their level of detail)\n- AWPTCM-T10517: NTP over IPv6 - Operating as an NTP server.\n- AWPTCM-T33633: NTP on VRF - Check that NTP client/server associations work when configured over a VRF\n\n## Rules\n- The FIRST step is injected server-side as a traceability note \u2014 DO NOT generate it.\n- Generate ONLY the subsequent verification steps exercising the objective's artefacts.\n- Cover each major objective bullet: positive, negative, special conditions, reporting.\n- Keep each step high-level enough to be reusable across platforms, but specific enough to\n  be testable. Naming exact values, counts and timings is the PyTest script's job, not this\n  one \u2014 a manual step that dictates them narrows the tester to one way of exercising the\n  feature instead of leaving them to produce evidence that it works.\n- LEAVE `expectedResult` EMPTY on every step. This is deliberate, not an omission. The\n  tester reads the objective and the step and reasons out what should happen; stating the\n  outcome narrows them to producing exactly that result instead of evidence that the\n  feature works. The objective already carries the expected outcomes.\n- Say WHAT is being exercised, not which command to type. Proving the step was taken \u2014\n  capturing `show` output as evidence \u2014 is the generated PyTest script's job, and naming\n  commands or device registers here invents mechanisms that may not exist and narrows the\n  tester besides.\n- Where a step depends on topology, say which roles it needs (e.g. two links between the DUT\n  and a partner), never a device model or a port number.\n- Platform-agnostic language: no product names, no hardcoded port strings.\n\n## Output format \u2014 this example IS the specification; match its level of detail\n[\n  {\n    \"description\": \"Verify LLDP operation with the DUT and its link partner both running default timers. Confirm neighbours are discovered on the test link and that each side reports the other's chassis and port identity.\",\n    \"expectedResult\": \"\"\n  },\n  {\n    \"description\": \"Vary the transmit interval and hold multiplier across their supported range, including the minimum and maximum. Confirm advertisements are sent at the configured rate and that the neighbour's advertised lifetime tracks the configured values.\",\n    \"expectedResult\": \"\"\n  },\n  {\n    \"description\": \"Set the transmit interval below the supported minimum and above the supported maximum. Confirm the DUT rejects both and retains its previous configuration.\",\n    \"expectedResult\": \"\"\n  },\n  {\n    \"description\": \"Disable LLDP transmit on the DUT while leaving receive enabled, then re-enable it. Confirm the neighbour ages out and is rediscovered, and that the port reports the change.\",\n    \"expectedResult\": \"\"\n  }\n]\n\nOutput the JSON array ONLY. No prose, no markdown fence.",
+      "steps_response": "[\n  {\n    \"description\": \"From an IPv6-connected NTPv4 client, send time synchronisation requests to the DUT's NTP service. Confirm the server processes the requests and returns responses over the IPv6 transport.\",\n    \"expectedResult\": \"\"\n  },\n  {\n    \"description\": \"Capture or inspect the NTP response packets returned to the IPv6 client and examine the stratum, reference identifier, and reference timestamp fields carried in those responses.\",\n    \"expectedResult\": \"\"\n  },\n  {\n    \"description\": \"Compare the time value and reference timestamp conveyed to the IPv6 client against the DUT's own system clock at the time of the exchange, repeating the comparison after some elapsed interval to confirm ongoing consistency.\",\n    \"expectedResult\": \"\"\n  },\n  {\n    \"description\": \"With the NTP server interface configured as dual-stack, have an IPv4 client and an IPv6 client query the server concurrently. Confirm both address families are served without one affecting the other.\",\n    \"expectedResult\": \"\"\n  },\n  {\n    \"description\": \"From an IPv6 client, send malformed NTP packets and packets of unsupported or unexpected NTP message types to the server. Confirm the server's handling of these inputs, including whether any response is produced.\",\n    \"expectedResult\": \"\"\n  },\n  {\n    \"description\": \"Configure an access restriction on the DUT that excludes a specific IPv6 client or address range from NTP service, then have that client attempt to query the server while a permitted IPv6 client queries it as well.\",\n    \"expectedResult\": \"\"\n  },\n  {\n    \"description\": \"With one or more IPv6 clients actively associated with the server, inspect the DUT's NTP association and statistics information to confirm the IPv6 client entries are represented.\",\n    \"expectedResult\": \"\"\n  },\n  {\n    \"description\": \"With an active IPv6 NTP server configuration and at least one IPv6 client association established, restart the NTP service (or reboot the device) and confirm the server resumes serving IPv6 clients and associations are re-established afterwards.\",\n    \"expectedResult\": \"\"\n  },\n  {\n    \"description\": \"Trigger NTP server state changes over IPv6, such as enabling/disabling the service, applying or removing an access restriction, and establishing a new client association, then inspect the DUT's logs or system messages for entries corresponding to each change.\",\n    \"expectedResult\": \"\"\n  }\n]",
+      "objective_used": "<ul>\n<li>Device configured with an IPv6 address on the NTP server interface, with NTP enabled and operating in server mode over IPv6</li>\n<li>NTP server responds to NTPv4 client requests received over IPv6 transport</li>\n<li>Server advertises correct stratum, reference ID, and reference timestamp in NTP response packets sent over IPv6</li>\n<li>Time synchronisation information provided by the IPv6 NTP server is accurate and consistent with the server's system clock</li>\n<li>NTP server continues to operate correctly over IPv4 simultaneously when dual-stack is configured</li>\n<li>NTP server does not respond to malformed or unsupported NTP packet types received over IPv6</li>\n<li>NTP server rejects or ignores requests from IPv6 clients not permitted by configured access restrictions</li>\n<li>NTP associations and statistics for IPv6 clients are correctly displayed in show/status commands</li>\n<li>NTP server operation over IPv6 persists correctly across a device reboot or NTP service restart</li>\n<li>Relevant log entries or system messages are generated reflecting NTP server state changes and IPv6 client associations</li>\n</ul>",
+      "provider": "claude",
+      "auth_method": "claude_agent",
+      "model": "sonnet",
+      "error": false,
+      "phase": "steps",
+      "steps_quality": {
+        "verification_steps": 9,
+        "steps_source": "json"
+      }
+    }
+  },
+  "updated_at": "2026-10-01 03:25:47.275452+00:00",
+  "rev": 8,
+  "llm_config": {
+    "provider": "openai",
+    "auth_method": "local_llm",
+    "api_key": null,
+    "token": null,
+    "base_url": null,
+    "model": null,
+    "unit_model": null,
+    "match_model": null
+  }
+}

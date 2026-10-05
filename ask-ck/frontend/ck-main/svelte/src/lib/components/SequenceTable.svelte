@@ -152,6 +152,7 @@
 
 <div class="sequence-table-actions">
   <Button variant="outline" on:click={addStep}>+ Add Step</Button>
+  <slot name="extra-actions" />
 </div>
 
 <style>
@@ -323,6 +324,8 @@
 
   .sequence-table-actions {
     display: flex;
+    align-items: center;
+    gap: 12px;
     margin-top: 16px;
   }
 </style>
