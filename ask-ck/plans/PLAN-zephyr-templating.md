@@ -1,5 +1,5 @@
 ---
-verified: 2026-10-06
+verified: 2026-10-07
 ---
 # PLAN — Zephyr Templating Tool
 
@@ -16,8 +16,10 @@ verified: 2026-10-06
 > project page and its TPS / Test Strategy / Feature Page (GET only; §4a) — a standalone tool, wired
 > to the server with Phase 3. Phases 3–4 (§5a): `POST /api/zephyr-tool/analyse` + the one-page
 > **Organize Templates** panel; API Upload is a dry-run call list (D9). The tool itself writes
-> nothing to Zephyr or the wiki; the only Zephyr writes so far are the IE570 Port pair (§6). Next:
-> the real upload, once the clone/move/remove-case requests are captured (D9). Open questions: §8.
+> nothing to Zephyr or the wiki; the only Zephyr writes so far are the IE570 Port pair (§6) and the
+> IE570 Factory Tests pair (§6a). **2026-10-07: every upload request is captured** (clone, move,
+> remove-case — §6a) and the dry run now lists each with its real method, URL and body, all known.
+> Next: the real upload's writes (not started — needs Terrence's go-ahead). Open questions: §8.
 
 ## 1. What the tool does (from `docs/zephyr.txt`)
 
@@ -90,6 +92,7 @@ It replaces the four placeholder pages the 2026-07 facelift scaffolded
   shows the exact calls it would make — clone, move, unlink, rename, verify — per plan and cycle, and
   writes nothing. The clone and move call bodies were never captured (only unlink and rename, §6);
   real writes follow once Terrence captures one plan clone and one cycle clone in the Network tab.
+  *Captured 2026-10-07* — clone, move and remove-case (§6a); the dry run lists them all as known.
 - **D10 — Q4 UNTICKS with an AI Note** citing the TPS row (e.g. "TPS §11.4 Continuous POE (HANP):
   NO"); the user can re-tick. "Maybe" stays ticked (D8).
 - **D11 — Q5, the gap report, is in the first build, report-only** — a read-only "Gaps" list that
@@ -173,7 +176,7 @@ typo for IE520) and its Schedule says 5.5.6-1.
 | **1** *(done by hand)* | the clone side effects measured on IE570 (§6) — Terrence cloned, Claude unlinked and renamed | Zephyr writes, each asked | **DONE** 2026-10-05 |
 | **3** | analysis: Q1–Q5 + AI Notes over the snapshot tree (§5a) | the per-seat LLM | **BUILT** 2026-10-05 (`zt_analysis.py`, 2 prompts, `/analyse`) |
 | **4** | the single page (§5a) | front end | **BUILT** 2026-10-05 (`current/zephyr-tool/`, both index pages) |
-| **5** | API Upload: **dry-run list first (D9)**; then an audit record written before the first write (the `push_to_zephyr` pattern), clone → move → unlink → rename → verify | Zephyr writes | dry run **BUILT** (`zt_upload.py`, `/upload/preview`); writes wait for the captured clone/move/remove-case calls |
+| **5** | API Upload: **dry-run list first (D9)**; then an audit record written before the first write (the `push_to_zephyr` pattern), clone → move → unlink → rename → verify | Zephyr writes | dry run **BUILT** (`zt_upload.py`, `/upload/preview`); every request **CAPTURED** 2026-10-07 (§6a) and in the dry run; the writes are not built |
 | later | wiki write-back: put the cloned plan keys into `{{ATMSummary|…}}` on `Test:<version>/<project>/Status` (D7) | one wiki write | not built |
 
 **The analysis guardrail (Phase 3):** the model may only PROPOSE deselections, each with a reason
@@ -183,7 +186,9 @@ which is the cautious direction the design asks for.
 
 **Scale of an upload (sized by Phase 1):** up to 14 plan + 15 cycle clones per project (cases are
 shared, D2), and per family the two unlinks of §6 plus a re-read of both ends. Phase 1 looks for bulk endpoints (the internal API has `…/bulk/…` routes, e.g. the
-trace-link create `upload_refined.py` already uses).
+trace-link create `upload_refined.py` already uses). *Found 2026-10-07 (§6a):* both clones take a
+`sourceIdList` and both moves take a list, so one request can clone or move many; only one-item
+lists have been seen working.
 
 ## 5a. Phases 3–4 design (2026-10-05)
 
@@ -271,6 +276,53 @@ public API:
   in the session: 2 trace-link DELETEs, 1 plan rename (Claude); the clones and the cycle rename
   (Terrence, in the UI).
 
+## 6a. The upload requests (captured 2026-10-07, Factory Tests → IE570)
+
+Terrence did each step in the UI with the Firefox Network tab open; Claude read both ends back
+through the API after each (GET only). Pair: template P3255 (id 11608) → C8458 (id 54224, 10 cases);
+targets `/5.5.6-2/Tomahawk/Project 3001: IE570` — plan folder **26670**, cycle folder **26674**
+(the TEMPLATES folders are 27278 / 27280). Every request carries `jira-project-id: 15310` and
+`Content-Type: application/json`, as the rename does (§6).
+
+| step (UI) | request | body | reply |
+|---|---|---|---|
+| clone plan (Clone) | `POST /rest/tests/1.0/testplan/bulk/clone` | `{"projectId":15310,"sourceIdList":[11608]}` | 200 `[11632]` — the new plan's id |
+| clone cycle (Clone → "Clone all test cases that match the criteria", all filters "All") | `POST /rest/tests/1.0/testrun/bulk/clone` | `{"projectId":15310,"sourceIdList":[54224],"tql":"testRun.projectId IN (15310)"}` | 200 `[54276]` |
+| move plan (drag into the folder) | `PUT /rest/tests/1.0/testplan` | `[{"folderId":26670,"id":11632}]` | 200, no body |
+| move cycle (drag into the folder) | `PUT /rest/tests/1.0/testrun/bulk/update` | `[{"folderId":26674,"id":54276}]` | 200, no body (`text/html`) |
+| take a case out (cycle page: tick → Delete → **Save**; Delete alone sends nothing) | `PUT /rest/tests/1.0/testrunitem/bulk/save` | `{"testRunId":54276,"addedTestRunItems":[],"updatedTestRunItems":[],"updatedTestRunItemsIndexes":[{"id":997176,"index":0},…{"id":997192,"index":8}],"deletedTestRunItems":[{"id":997174}],"autoReorder":false}` | 200, no body |
+
+Body lengths matched each request's Content-Length, so nothing was left out. The Save also sends
+`PUT …/testrun/{id}` `{"id":…,"projectId":15310}` (no field changed) and a `POST
+…/testcase/bulk/get` (a READ of the remaining cases); neither is part of the removal.
+
+**What the captures showed.**
+- *New objects land in the template's folder*, named `<name> (cloned)`; the move is a separate
+  request, and plans and cycles move through different URLs. A folder is addressed by its numeric
+  id, read from `GET …/project/15310/foldertree/{testplan|testrun}`.
+- *A cycle holds its own ITEMS; each item points at a shared case.* The clone's items are new
+  (997174…; the template's are 996076…), so removing one never touches the template. A removal
+  names the ITEM id — read from `GET /rest/tests/1.0/testrun/{id}/testrunitems` (item id, index,
+  case key). The UI also re-sends the order of the kept items; whether that part is required is
+  untested, so the dry run sends it as the UI does.
+- *A cycle clone joins EVERY plan its template cycle is in — archived ones too.* An earlier,
+  deleted clone, **P3264** (created 20:59:37Z by Terrence, `archived: true`, still in the template
+  folder), was linked to C8458 — and the new C8468 joined it as well. The UI's Delete only archives
+  a plan, and an archived plan keeps its links. The public API answers 404 for an archived plan and
+  the plan-side reads of P3255 / P3265 never show it: **only the cycle side
+  (`GET …/testrun/{id}?fields=id,traceLinks`) does.** Those reads are slow — 26–32 s, and once over
+  60 s (C8458) — so the upload's verify reads the cycle side with a long timeout.
+- The clone leaves `updatedOn`/`updatedBy` empty; the first move stamps them.
+
+**Writes this session.** Terrence (UI): the two clones, the two moves, T48185 out of C8468.
+Claude (API, each on Terrence's go-ahead, each link re-read just before): `DELETE …/tracelink/169908`
+(P3265↔C8458), `…/169910` (P3255↔C8468), `…/169912` (P3264↔C8468), `…/169906` (P3264↔C8458); the
+renames of P3265 and C8468 (`PUT …/{id}`, §6). All 200.
+
+**Result, read from both ends:** P3265 "IE570: Factory Tests (Ask-CK)" → C8468 "IE570: Factory
+Tests (Ask-CK)" (9 cases, T48185 out) in the IE570 folders, link 169914 only; template P3255 →
+C8458 (10 cases), link 169696 only, `updatedOn` 21:28Z (the unlinks); P3264 archived with no links.
+
 ## 7. Invariants this tool touches
 
 - `ck.db` stays the server's only data source: the template tree is read from the `ck.db` table,
@@ -305,3 +357,11 @@ public API:
     the model unticked Advanced Management's only cycle (Q2) on four TPS rows (AMF-Controller,
     OpenFlow, gNMI, Wireless Manager) — the same outcome. Accept (the user re-ticks), or also hold a
     cycle that is its plan's only one to the Q1 rule?
+13. **Skip unticked cases AT the cycle clone?** (2026-10-07) The cycle-clone dialog's criteria are
+    sent as the body's `tql`. If TQL can exclude cases by key, a clone could leave unticked cases
+    out and the remove-case save (§6a) would not be needed. Untested — testing it is another real
+    clone.
+14. **Archived clones on other templates.** C8458 carried a link to the archived P3264 (§6a); any
+    template cycle with such a link pulls every future clone of it into that archived plan, and the
+    plan-side reads `zt_snapshot` relies on would not show it. Whether any other template cycle has
+    one has not been checked (GET only, ~30 s per cycle from the cycle side).

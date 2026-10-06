@@ -3,7 +3,8 @@
 Offline: `preview` takes the `get` it reads through. The folder names are IE570's real ones
 (`/5.5.6-2/Tomahawk/Project 3001: IE570`, 2026-10-05) and the call order is the one measured by
 hand on IE570: clone the plan first, so each cycle clone joins the new plan as well as the template
-plan; then the two kinds of unlink; then the renames the UI capture proved.
+plan; then the two kinds of unlink; then the renames the UI capture proved. The clone, move and
+remove-case bodies are the ones captured from the UI on 2026-10-07 (Factory Tests → IE570, §6a).
 """
 from __future__ import annotations
 
@@ -32,12 +33,14 @@ SEL = {"version": "5.5.6-2", "middle": "Tomahawk", "product": "IE570", "number":
 
 def _tree(paths):
     root = {"children": []}
+    n = 26600
     for p in paths:
         node = root
         for part in p.strip("/").split("/"):
             kid = next((c for c in node["children"] if c["name"] == part), None)
             if kid is None:
-                kid = {"name": part, "children": []}
+                n += 1
+                kid = {"name": part, "id": n, "children": []}
                 node["children"].append(kid)
             node = kid
     return root
@@ -67,7 +70,7 @@ def test_the_call_list_follows_the_measured_order():
     d = zu.preview(_get()[0], SEL)
     ops = [c["op"] for c in d["calls"]]
     assert ops == ["clone plan", "move plan", "clone cycle", "move cycle", "unlink", "unlink", "unlink",
-                   "remove case", "rename", "rename", "verify"]
+                   "remove case", "rename", "rename", "verify", "verify"]
     assert "AWPTCM-C8465" not in " ".join(c["about"] for c in d["calls"] if c["op"] == "clone cycle")   # unticked: not cloned
     assert any("AWPTCM-C8465" in c["path"] for c in d["calls"] if c["op"] == "unlink")              # …but unlinked
     renames = [c["body"]["name"] for c in d["calls"] if c["op"] == "rename"]
@@ -75,12 +78,44 @@ def test_the_call_list_follows_the_measured_order():
     assert d["targets"]["testplan"]["path"] == "/5.5.6-2/Tomahawk/Project 3001: IE570" and d["problems"] == []
 
 
-def test_only_unlink_rename_and_verify_are_known_calls():
+def test_every_call_is_known_and_carries_the_captured_request():
     d = zu.preview(_get()[0], SEL)
-    known = {c["op"] for c in d["calls"] if c["known"]}
-    assert known == {"unlink", "rename", "verify"}
-    assert all(c["body"] == zu.NOT_CAPTURED for c in d["calls"] if c["op"] in ("clone plan", "clone cycle"))
-    assert d["counts"] == {"plans": 1, "cycles": 1, "calls": 11, "writes_known": 5, "writes_not_captured": 5}
+    assert all(c["known"] for c in d["calls"])
+    by = {c["op"]: c for c in d["calls"]}
+    assert (by["clone plan"]["method"], by["clone plan"]["path"]) == ("POST", "/rest/tests/1.0/testplan/bulk/clone")
+    assert by["clone plan"]["body"] == {"projectId": 15310, "sourceIdList": [4256]}           # the template's id
+    assert by["clone cycle"]["body"] == {"projectId": 15310, "sourceIdList": [9459],
+                                         "tql": "testRun.projectId IN (15310)"}
+    plan_dir, cycle_dir = d["targets"]["testplan"]["id"], d["targets"]["testrun"]["id"]
+    assert isinstance(plan_dir, int) and isinstance(cycle_dir, int)
+    assert (by["move plan"]["method"], by["move plan"]["path"]) == ("PUT", "/rest/tests/1.0/testplan")
+    assert by["move plan"]["body"][0]["folderId"] == plan_dir                                 # a folder ID, not a path
+    assert (by["move cycle"]["method"], by["move cycle"]["path"]) == ("PUT", "/rest/tests/1.0/testrun/bulk/update")
+    assert by["move cycle"]["body"][0]["folderId"] == cycle_dir
+    rm = by["remove case"]
+    assert (rm["method"], rm["path"]) == ("PUT", "/rest/tests/1.0/testrunitem/bulk/save")
+    assert rm["body"]["deletedTestRunItems"] == [{"id": "<item id of AWPTCM-T1>"}]            # ITEM ids, not case ids
+    assert d["counts"] == {"plans": 1, "cycles": 1, "calls": 12, "writes_known": 10, "writes_not_captured": 0}
+
+
+def test_cases_leave_a_cycle_in_one_save_and_an_untouched_cycle_sends_none():
+    sel = json.loads(json.dumps(SEL))
+    sel["plans"][0]["cycles"][0]["excluded"] = ["AWPTCM-T1", "AWPTCM-T2"]
+    rm = [c for c in zu.preview(_get()[0], sel)["calls"] if c["op"] == "remove case"]
+    assert len(rm) == 1 and len(rm[0]["body"]["deletedTestRunItems"]) == 2
+    sel["plans"][0]["cycles"][0]["excluded"] = []
+    assert not [c for c in zu.preview(_get()[0], sel)["calls"] if c["op"] == "remove case"]
+
+
+def test_the_new_cycle_is_unlinked_from_every_plan_but_its_own_and_checked_from_its_side():
+    """A cycle clone joins every plan its template is in, archived clones included, and an archived
+    plan shows only from the cycle side (§6a: P3264 on 2026-10-07)."""
+    d = zu.preview(_get()[0], SEL)
+    unlink = [c for c in d["calls"] if c["op"] == "unlink" and "new cycle from AWPTCM-C8459" in c["path"]]
+    assert len(unlink) == 1 and "not to <new plan from AWPTCM-P3256>" in unlink[0]["path"]
+    assert "archived" in unlink[0]["about"]
+    verify = [c["path"] for c in d["calls"] if c["op"] == "verify"]
+    assert any(p.startswith("/rest/tests/1.0/testrun/<id of new cycle from AWPTCM-C8459>") for p in verify)
 
 
 def test_a_missing_project_folder_is_a_problem_not_a_guess():

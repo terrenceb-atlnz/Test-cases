@@ -1,26 +1,29 @@
 #!/usr/bin/env python3
-"""Zephyr Templating Tool — API Upload, DRY RUN ONLY (PLAN-zephyr-templating.md D9, §6).
+"""Zephyr Templating Tool — API Upload, DRY RUN ONLY (PLAN-zephyr-templating.md D9, §6, §6a).
 
 Reads a selection (JSON on stdin) and prints, as JSON, the exact list of Zephyr calls a real upload
 would make, in order, for every selected template plan and cycle:
 
   1 clone the plan          (lands beside the template; its cycle links come with it — §6)
   2 move it to the project's plan folder
-  3 clone each selected cycle (each clone joins the template plan AND the new plan — §6)
+  3 clone each selected cycle (each clone joins EVERY plan the template cycle is in: the template
+                               plan, the new plan, and any archived clone of the template — §6a)
   4 move each clone to the project's cycle folder
   5 unlink every template cycle from the new plan
-  6 unlink every new cycle from the template plan
-  7 take unticked cases out of the new cycles
+  6 unlink every new cycle from every plan but the new one
+  7 take unticked cases out of the new cycles (one bulk save per cycle, by ITEM id — §6a)
   8 rename the new plan and cycles  `<product>: <template name> (Ask-CK)`
-  9 read both ends of every link back
+  9 read both ends of every link back — the plan side AND the cycle side (an archived plan is
+    visible only from the cycle side)
 
-Each call says whether its request is KNOWN (captured and used on IE570, 2026-10-05: the unlink
-`DELETE …/tracelink/{id}` and the rename `PUT …/{id}`) or NOT CAPTURED yet (clone, move, remove-case
-— D9 waits for Terrence to capture them). Ids that only exist after a clone are shown as such.
+Every request is KNOWN: unlink and rename were used on IE570 2026-10-05; clone, move and
+remove-case were captured from the UI on 2026-10-07 (Factory Tests → IE570). All are sent with the
+`jira-project-id` header. Ids that only exist after a clone are shown as such.
 
 READ ONLY: the reads are GETs — the project's folder trees (to find the target folders under
-`/<version>/<middle>/` by the project number or product) and the templates' numeric ids. `--apply`
-is refused: the real upload is not built. Auth: JIRA_KEY like zt_snapshot.py; never printed.
+`/<version>/<middle>/` by the project number or product, and their ids) and the templates' numeric
+ids. `--apply` is refused: the real upload is not built. Auth: JIRA_KEY like zt_snapshot.py; never
+printed.
 
 Usage:  python3 ask-ck/tools/zt_upload.py --dry-run < selection.json
 """
@@ -37,19 +40,19 @@ import zt_snapshot as zs  # noqa: E402
 from jira_testlink_access import JIRA_PROJECT_ID  # noqa: E402
 
 API = "/rest/tests/1.0"
-NOT_CAPTURED = "NOT CAPTURED — Terrence to capture this request in the Network tab (D9)"
 
 
 def _walk(node: dict, path: str = ""):
     for c in node.get("children") or []:
         p = path + "/" + c["name"]
-        yield p
+        yield p, c.get("id")
         yield from _walk(c, p)
 
 
-def folder_paths(get: Callable[[str], object], kind: str) -> List[str]:
-    """Every folder path of `kind` ("testplan" | "testrun") in the project."""
-    return list(_walk(get(f"{API}/project/{JIRA_PROJECT_ID}/foldertree/{kind}") or {}))
+def folder_ids(get: Callable[[str], object], kind: str) -> Dict[str, Optional[int]]:
+    """Every folder path of `kind` ("testplan" | "testrun") in the project → its numeric id."""
+    return dict(_walk(get(f"{API}/project/{JIRA_PROJECT_ID}/foldertree/{kind}") or {}))
+
 
 
 def find_target(paths: List[str], version: str, middle: Optional[str], product: Optional[str],
@@ -76,6 +79,8 @@ def plan_calls(sel: dict, ids: Dict[str, Optional[int]], targets: Dict[str, dict
     product = sel.get("product")
     plan_dir = targets["testplan"].get("path") or "<plan folder not found>"
     cycle_dir = targets["testrun"].get("path") or "<cycle folder not found>"
+    plan_dir_id = targets["testplan"].get("id") or f"<id of {plan_dir}>"
+    cycle_dir_id = targets["testrun"].get("id") or f"<id of {cycle_dir}>"
 
     def add(op, method, path, body, known, about):
         calls.append({"n": len(calls) + 1, "op": op, "method": method, "path": path, "body": body,
@@ -87,23 +92,39 @@ def plan_calls(sel: dict, ids: Dict[str, Optional[int]], targets: Dict[str, dict
     for p in sel.get("plans") or []:
         P, newP = p["key"], f"<new plan from {p['key']}>"
         kept = [c for c in p.get("cycles") or [] if c.get("selected", True)]
-        add("clone plan", "POST", f"{API}/testplan/bulk/clone", NOT_CAPTURED, False,
-            f"{P} {p.get('name', '')} → {newP} (keeps links to {len(p.get('cycles') or [])} template cycle(s))")
-        add("move plan", "?", "?", NOT_CAPTURED, False, f"{newP} → {plan_dir}")
+        add("clone plan", "POST", f"{API}/testplan/bulk/clone",
+            {"projectId": JIRA_PROJECT_ID, "sourceIdList": [tid(P)]}, True,
+            f"{P} {p.get('name', '')} → {newP}; the reply is [<its id>]; it lands in the template folder, "
+            f"linked to all {len(p.get('cycles') or [])} template cycle(s)")
+        add("move plan", "PUT", f"{API}/testplan", [{"folderId": plan_dir_id, "id": f"<id of {newP}>"}], True,
+            f"{newP} → {plan_dir}")
         for c in kept:
-            add("clone cycle", "POST", f"{API}/testrun/bulk/clone", NOT_CAPTURED, False,
-                f"{c['key']} {c.get('name', '')} → <new cycle from {c['key']}> (joins {P} and {newP})")
-            add("move cycle", "POST", f"{API}/testrun/bulk/update", NOT_CAPTURED, False,
+            add("clone cycle", "POST", f"{API}/testrun/bulk/clone",
+                {"projectId": JIRA_PROJECT_ID, "sourceIdList": [tid(c["key"])],
+                 "tql": f"testRun.projectId IN ({JIRA_PROJECT_ID})"}, True,
+                f"{c['key']} {c.get('name', '')} → <new cycle from {c['key']}>; the reply is [<its id>]; "
+                f"same cases, its own items; joins every plan {c['key']} is in ({P}, {newP}, any archived clone)")
+            add("move cycle", "PUT", f"{API}/testrun/bulk/update",
+                [{"folderId": cycle_dir_id, "id": f"<id of new cycle from {c['key']}>"}], True,
                 f"<new cycle from {c['key']}> → {cycle_dir}")
         for c in p.get("cycles") or []:
             add("unlink", "DELETE", f"{API}/tracelink/<id of {newP} ↔ {c['key']}>", None, True,
                 f"template cycle {c['key']} off the new plan (link id read after the clone)")
         for c in kept:
-            add("unlink", "DELETE", f"{API}/tracelink/<id of {P} ↔ new cycle from {c['key']}>", None, True,
-                f"the new cycle off template plan {P} (template untouched otherwise; its updatedOn moves — §6)")
+            add("unlink", "DELETE", f"{API}/tracelink/<id of each link on new cycle from {c['key']} not to {newP}>",
+                None, True,
+                f"the new cycle off template plan {P} and off any archived clone of it — read from the "
+                f"CYCLE side, where archived plans show (§6a); the template's updatedOn moves (§6)")
         for c in kept:
-            for t in c.get("excluded") or []:
-                add("remove case", "?", "?", NOT_CAPTURED, False, f"{t} out of <new cycle from {c['key']}>")
+            out = c.get("excluded") or []
+            if out:
+                add("remove case", "PUT", f"{API}/testrunitem/bulk/save",
+                    {"testRunId": f"<id of new cycle from {c['key']}>", "addedTestRunItems": [],
+                     "updatedTestRunItems": [],
+                     "updatedTestRunItemsIndexes": "<[{id, index}] of every item kept, re-indexed from 0>",
+                     "deletedTestRunItems": [{"id": f"<item id of {t}>"} for t in out], "autoReorder": False},
+                    True, f"{', '.join(out)} out of <new cycle from {c['key']}> — ITEM ids, read from "
+                          f"GET {API}/testrun/<id>/testrunitems after the clone (the template keeps its own items)")
         add("rename", "PUT", f"{API}/testplan/<id of {newP}>",
             {"id": f"<id of {newP}>", "name": new_name(product, p.get("name", "")), "projectId": JIRA_PROJECT_ID},
             True, f"{newP} (template {P} is id {tid(P)})")
@@ -113,6 +134,9 @@ def plan_calls(sel: dict, ids: Dict[str, Optional[int]], targets: Dict[str, dict
                  "projectId": JIRA_PROJECT_ID}, True, f"new cycle from {c['key']} (template id {tid(c['key'])})")
         add("verify", "GET", f"{API}/testplan/<id of {newP}>?fields=id,key,traceLinks", None, True,
             f"{newP} links only its new cycles; {P} links only its template cycles")
+        for c in kept:
+            add("verify", "GET", f"{API}/testrun/<id of new cycle from {c['key']}>?fields=id,traceLinks", None, True,
+                f"the new cycle links only {newP} — the cycle side shows archived plans too; slow (~30 s)")
     return calls
 
 
@@ -123,8 +147,10 @@ def preview(get: Callable[[str], object], sel: dict) -> dict:
         problems.append("no AW+ version — the target folder cannot be found")
     targets = {}
     for kind in ("testplan", "testrun"):
-        t = find_target(folder_paths(get, kind), version or "?", middle, sel.get("product"), sel.get("number")) \
+        tree = folder_ids(get, kind) if version else {}
+        t = find_target(list(tree), version or "?", middle, sel.get("product"), sel.get("number")) \
             if version else {"base": None, "base_exists": False, "path": None, "candidates": [], "children": []}
+        t["id"] = tree.get(t["path"]) if t["path"] else None
         what = "plan" if kind == "testplan" else "cycle"
         if version and not t["base_exists"]:
             problems.append(f"the {what} folder {t['base']} does not exist in Zephyr")
@@ -143,7 +169,7 @@ def preview(get: Callable[[str], object], sel: dict) -> dict:
                 problems.append(f"could not read {key}'s id ({e})")
     calls = plan_calls(sel, ids, targets)
     known = sum(1 for c in calls if c["known"] and c["op"] != "verify")
-    return {"dry_run": True, "targets": {k: {x: v[x] for x in ("base", "path", "candidates")} for k, v in targets.items()},
+    return {"dry_run": True, "targets": {k: {x: v[x] for x in ("base", "path", "id", "candidates")} for k, v in targets.items()},
             "calls": calls,
             "counts": {"plans": len(sel.get("plans") or []),
                        "cycles": sum(1 for p in sel.get("plans") or [] for c in p.get("cycles") or [] if c.get("selected", True)),
@@ -158,7 +184,7 @@ def main(argv: Optional[List[str]] = None) -> int:
     ap.add_argument("--apply", action="store_true", help="refused: the real upload is not built (D9)")
     a = ap.parse_args(argv)
     if a.apply or not a.dry_run:
-        print("ERROR: only --dry-run exists; the real upload waits for the captured clone/move calls (D9)",
+        print("ERROR: only --dry-run exists; the real upload is not built yet (D9)",
               file=sys.stderr)
         return 2
     token = zs.jira_token()
