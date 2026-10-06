@@ -5,11 +5,57 @@ verified: 2026-09-28
 
 **Purpose**: This file exists so future sessions can quickly understand exactly where we are, what has been built, what the priorities are, and how to continue seamlessly.
 
-**Last Updated**: 2026-10-06 (by Claude; the Zephyr Templating Tool's one page — analysis, tick tree, upload dry run)
+**Last Updated**: 2026-10-07 (by Claude; the Zephyr upload requests captured — Factory Tests → IE570)
 
 > **Reading note (2026-09-23 doc sweep).** Entries are frozen as written. Where an entry's
 > claim has since stopped being true, a ⚠ line under its heading says what changed.
 > Newest first. Paths in older entries predate these moves (the same as in CHANGELOG): `tool/` → `ask-ck/tools/`, `ask-ck/var/` → `ask-ck/db/`, `objective-drafting/` → `ask-ck/functions/generator/`, `pytest-create/` → `ask-ck/functions/pytest-creator/`, `js-tests/` → `tests/js/`, `ask-ck/ck-facelift/` → `ask-ck/plans/`, root reports → `docs/`, and completed plans `ask-ck/plans/` → `archive/plans/` (2026-09-11, 2026-09-23). Also retired 2026-09-23: the demo notes → `archive/plans/demo-2026-09-11/`, and `HANDOFF-generate-token-efficiency.md` + `Fragments_prompt.md` → `archive/records/`.
+
+## Latest session (2026-10-07) — the Zephyr upload requests captured; the dry run lists them all
+
+Orientation, then Terrence: *"next we will do the captures for the zephyr tool."* Detail, bodies and
+the write log: `ask-ck/plans/PLAN-zephyr-templating.md` **§6a**. Uncommitted work was the tool, its
+tests and the plan; committed in this wrap.
+
+**How.** Terrence's choices: template pair **Factory Tests** (P3255 → C8458, 10 cases) cloned into
+IE570; one case taken out of the new cycle and left out; Claude tidies up after confirmation. Terrence did
+each step in the UI with the Firefox Network tab open; Claude read both ends back (GET only).
+
+**The five requests** (all with `jira-project-id: 15310`): plan clone `POST …/testplan/bulk/clone`
+`{projectId, sourceIdList}` → `[newId]`; cycle clone `POST …/testrun/bulk/clone` (+ `tql`) →
+`[newId]`; plan move `PUT …/testplan` `[{folderId, id}]`; cycle move `PUT …/testrun/bulk/update`
+(same body; the dry run had guessed POST); case removal `PUT …/testrunitem/bulk/save` naming the
+cycle's **item** ids (the UI's Delete sends nothing until Save).
+
+**Found.**
+- A cycle clone joins **every** plan its template cycle is in — including **P3264**, an archived
+  earlier clone (the UI's Delete archives; links stay). Archived plans are 404 on the public API
+  and invisible from the plan side; only the **cycle side** shows them, and those reads take
+  26–32 s (once >60 s).
+- Cycles own their items (new ids on a clone), cases are shared — the template kept its 10.
+
+**Zephyr writes** — Terrence (UI): 2 clones, 2 moves, T48185 out of C8468. Claude (API, each on
+Terrence's go-ahead, each link re-read first): 4 trace-link DELETEs (169908, 169910, 169912, 169906), 2
+renames. Result: **P3265 → C8468 "IE570: Factory Tests (Ask-CK)"** (9 cases) in the IE570
+folders; template P3255 → C8458 clean; P3264 archived, no links.
+
+**Shipped (this wrap's commit).** `zt_upload.py`: every call carries its captured method, URL and
+body and is known; moves use folder IDs from the folder tree; the new cycle is unlinked from every
+plan but its own; one remove-case save per cycle; verify reads the cycle side too. Tests rewritten
+around the captured requests (7 pass; 3 mutations each caught). The live page uses the tool on the
+next click — no restart (the tool is outside `CK-main/`). Its summary line now says "0 not captured
+yet". Plan §6a, status, D9, phase row; SERVER-README's upload paragraph.
+
+**Pending / next.**
+- **The real upload's writes** — not started; needs Terrence's go-ahead (audit record first, the
+  `push_to_zephyr` pattern, per §5).
+- **§8.13** — can the cycle clone's `tql` skip unticked cases (no remove-case step)? Untested; needs
+  another real clone.
+- **§8.14** — do other template cycles link archived clones? Not checked (GET only, ~30 s per cycle).
+- Terrence pasted Jira session cookies into the chat once; suggested logging out/in to revoke them.
+- Hygiene seen at orientation, untouched: `check_memory_links.py` reports STRANDED memories under
+  the `-home-terrenceb` and `…Documents-banilla` slugs and an empty `…WoW-Vanilla` dir — personal,
+  outside the three repos; Terrence's call.
 
 ## Latest session (2026-10-05 → 06) — the Zephyr Templating Tool: snapshot, wiki reader, clone measured, the page
 

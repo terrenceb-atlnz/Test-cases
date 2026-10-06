@@ -4950,3 +4950,15 @@ Commits `df5b704`, `f5dfac1`, `fc308f8`; docs in the wrap commit. Detail, decisi
 PROGRESS 2026-10-05 → 06 and `ask-ck/plans/PLAN-zephyr-templating.md`.
 
 Gate: EXIT=0 — both guards OK, pytest 2018 / 1 skipped, vitest 384 in 35 files, ck.db untouched.
+
+## Session Close / Handoff (2026-10-07) — the Zephyr upload requests captured
+
+Orientation, then Terrence asked to do the Zephyr Templating Tool's captures. Terrence cloned the
+Factory Tests template pair into IE570, moved both clones and took one case out, each in the UI
+with the Network tab open; Claude read both ends back after every step and, on Terrence's go-ahead,
+unlinked and renamed through the API — including two links to an archived earlier clone (P3264)
+that only the cycle side showed. `zt_upload.py`'s dry run now lists all the real requests; the
+real upload's writes are not started. Detail: PROGRESS 2026-10-07 and the plan's §6a.
+
+Gate: EXIT=0 — both guards OK, pytest 2020 / 1 skipped, vitest 384 in 35 files, ck.db untouched.
+

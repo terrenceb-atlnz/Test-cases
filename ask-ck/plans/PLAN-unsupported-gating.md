@@ -5,7 +5,7 @@ verified: 2026-10-02
 
 > ## Status (read first)
 >
-> **BUILT AND APPLIED — 2026-10-02, uncommitted.** Applied to the live tree at 09:47 on Terrence's
+> **BUILT AND APPLIED — 2026-10-02, uncommitted** *(committed the same day as `38b5eab` — noted 2026-10-07)*. Applied to the live tree at 09:47 on Terrence's
 > "apply now" (one reload, ~27 s, no wedge; the other seat's T33234 lock heartbeat answered 200
 > afterwards). Live-tree gate: EXIT 0 — both guards OK, pytest **1932 passed / 1 skipped**, vitest
 > **377 in 34 files**, `ck.db` signature unchanged. W1–W6 were built and gated first in a scratchpad

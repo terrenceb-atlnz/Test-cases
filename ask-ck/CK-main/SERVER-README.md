@@ -502,9 +502,10 @@ Every LLM panel (Generator: objectives, steps, the 3 *Suggest* panels; PyTest Cr
   plan's tree, a question that fits the key, a reason and a source, and never on a "Maybe" row; a
   failed call leaves its plan fully ticked and says so. Jobs live in memory (the last 20) — a
   restart forgets them. `POST /api/zephyr-tool/upload/preview` runs `ask-ck/tools/zt_upload.py
-  --dry-run` (GET-only: finds the project folders, reads the template ids) and returns the ordered
-  call list — clone, move, unlink, rename, verify — each marked known or not yet captured. **It
-  writes nothing (D9); the tool refuses `--apply`.**
+  --dry-run` (GET-only: finds the project folders and their ids, reads the template ids) and returns
+  the ordered call list — clone, move, unlink, remove-case, rename, verify — each with its method,
+  URL and body. Every request is known: unlink and rename used on IE570 2026-10-05, the rest
+  captured from the UI 2026-10-07 (PLAN §6a). **It writes nothing (D9); the tool refuses `--apply`.**
 
 ## Typical Workflow (Repeatable Process — Generator)
 

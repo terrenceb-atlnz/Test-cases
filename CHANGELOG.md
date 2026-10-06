@@ -21,6 +21,23 @@ current working thread see
 > `ask-ck/ck-facelift/`, `pytest-create/` and `CK-main/` plan paths moved to `ask-ck/plans/` on 2026-09-11 and, once complete, to `archive/plans/`.
 > `js-tests/` → `tests/js/`, `e2e/` → `tests/e2e/`, `static/js/` → `ask-ck/frontend/ck-main/current/<page>/` (2026-09-11).
 
+## 2026-10-07 — Zephyr upload: every request captured; the dry run lists the real calls
+
+**What.** The upload requests the 2026-10-06 dry run marked "not captured" — plan and cycle clone,
+plan and cycle move, taking a case out of a cycle — were captured from the Zephyr UI (Factory Tests
+→ IE570) and `ask-ck/tools/zt_upload.py` now lists every call with its real method, URL and body.
+Still a dry run: it writes nothing and refuses `--apply`. Record: `PLAN-zephyr-templating.md` §6a.
+
+**Why it is shaped this way.**
+- *Moves name a folder ID, not a path* — that is what the UI sends; the tool reads the id from the
+  same folder tree it already searches for the project folder.
+- *A case leaves a cycle by its ITEM id, one save per cycle.* A cycle owns its items (a clone gets
+  new ones) while the cases are shared — so removing one from a clone cannot touch the template.
+- *The new cycle is unlinked from every plan but its own, and checked from the cycle side.* A cycle
+  clone joins every plan its template is in, including an archived earlier clone (the UI's Delete
+  only archives, and the links stay). Archived plans do not show from the plan side or the public
+  API — only from the cycle, so a plan-side check alone would pass with a stray link left behind.
+
 ## 2026-10-06 — Zephyr Templating Tool: the template snapshot, the project wiki reader, and the one page
 
 **What.** The four "under construction" Zephyr Templating Tool panels became one page, **Organize
