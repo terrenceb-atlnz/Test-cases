@@ -40,3 +40,6 @@
 #panel-zt #zt-upload-result { margin-top: 12px; }
 #panel-zt .zt-run .form-input { max-width: 14em; }
 #panel-zt .zt-steps { font-size: 0.85em; margin: 0.5em 0 0 1.2em; }
+#panel-zt .zt-fold { width: 1.4em; padding: 0; border: 0; background: none; color: var(--text-secondary); cursor: pointer; font-size: 0.9em; }
+#panel-zt .zt-fold:hover { color: var(--text-primary); }
+#panel-zt .zt-fold-pad { display: inline-block; width: 1.4em; }

@@ -8,7 +8,7 @@ import { describe, it, expect } from 'vitest';
 
 import '../../ask-ck/frontend/ck-main/current/shared/actions.js';
 import { treeRows, applyProposals, setTick, uploadSelection, renderTree, renderAnalysis, renderUpload,
-  confirmMatches, renderRun } from '../../ask-ck/frontend/ck-main/current/zephyr-tool/zephyr-tool.js';
+  confirmMatches, renderRun, isOpen } from '../../ask-ck/frontend/ck-main/current/zephyr-tool/zephyr-tool.js';
 
 const TREE = { plans: [
   { key: 'P1', name: 'Port', cycles: [{ key: 'C1', name: 'Port', cases: [{ key: 'T1', name: 'speed' }, { key: 'T2', name: 'duplex' }] }] },
@@ -54,6 +54,39 @@ describe('the upload body', () => {
       { key: 'P2', name: 'Boot', cycles: [
         { key: 'C2', name: 'Manual', selected: true, excluded: ['T1'] },
         { key: 'C3', name: 'Automated', selected: false, excluded: [] }] }] });
+  });
+});
+
+describe('folding the tree', () => {
+  // Terrence 2026-10-07: "default-collapsed, unless a change has been made within them by the LLM analysis".
+  const keys = (html) => [...html.matchAll(/class="zt-key">([^<]+)</g)].map(m => m[1]);
+
+  it('starts with only the plans showing when the analysis changed nothing', () => {
+    const html = renderTree(TREE, new Set(treeRows(TREE).map(r => r.id)), new Map());
+    expect(keys(html)).toEqual(['P1', 'P2']);
+    expect(html).toContain('2 case(s)');
+  });
+
+  it('opens the plan and cycle the analysis unticked something in — and only those', () => {
+    const job = { plans: { P2: { deselect: [{ key: 'T3', question: 'Q3', reason: 'r', source: 's' }] } } };
+    const { ticked, ai } = applyProposals(TREE, job);
+    const html = renderTree(TREE, ticked, ai);
+    expect(keys(html)).toEqual(['P1', 'P2', 'C2', 'T3', 'T1', 'C3']);
+    expect(html).toContain('1 unticked');
+  });
+
+  it('keeps a plan cut by the analysis itself collapsed — its reason is on its own row', () => {
+    const job = { plans: { P1: { deselect: [{ key: 'P1', question: 'Q1', reason: 'not in scope', source: 'Strategy' }] } } };
+    const { ticked, ai } = applyProposals(TREE, job);
+    expect(isOpen('P1', ai, new Map())).toBe(false);
+    expect(renderTree(TREE, ticked, ai)).toContain('not in scope');
+  });
+
+  it("the user's own fold wins either way", () => {
+    const job = { plans: { P2: { deselect: [{ key: 'T3', question: 'Q3', reason: 'r', source: 's' }] } } };
+    const { ticked, ai } = applyProposals(TREE, job);
+    const folds = new Map([['P2', false], ['P1', true]]);
+    expect(keys(renderTree(TREE, ticked, ai, folds))).toEqual(['P1', 'C1', 'P2']);
   });
 });
 

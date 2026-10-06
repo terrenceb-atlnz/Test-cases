@@ -26,6 +26,7 @@ export const zt = {
   ticked: new Set(),   // row ids that are ticked
   ai: new Map(),       // row id → {question, reason, source} for rows the analysis unticked
   manual: [],          // [id, on] the user's own ticks, in order — replayed over each poll
+  folds: new Map(),    // row id → open? — the user's own folds; unset rows follow isOpen()'s default
   confirmed: false,
   previewed: null,     // the selection API Upload listed — the one Write to Zephyr sends
   run: null,           // the latest GET /upload/run/{id}
@@ -119,15 +120,35 @@ export function uploadSelection(tree, ticked, project) {
 
 // ------------------------------------------------------------------ rendering (pure)
 
-export function renderTree(tree, ticked, ai) {
+/** Is a plan or cycle row open? The user's own fold wins; otherwise it opens only when the
+ *  analysis unticked something INSIDE it (Terrence 2026-10-07: default-collapsed, "unless a change
+ *  has been made within them by the LLM analysis"). */
+export function isOpen(id, ai, folds) {
+  if (folds && folds.has(id)) return folds.get(id);
+  for (const k of ai.keys()) if (k.startsWith(id + '/')) return true;
+  return false;
+}
+
+export function renderTree(tree, ticked, ai, folds = new Map()) {
   const rows = treeRows(tree);
   if (!rows.length) return '<div class="zt-empty">No templates imported yet — use Refresh templates.</div>';
-  return rows.map(r => {
+  const shown = rows.filter(r => !ancestors(r.id).some(a => !isOpen(a, ai, folds)));
+  return shown.map(r => {
     const on = ticked.has(r.id);
     const why = ai.get(r.id);
-    const count = r.kind === 'plan' ? ` <span class="zt-count">${(r.item.cycles || []).length} cycle(s)</span>`
-      : r.kind === 'cycle' ? ` <span class="zt-count">${(r.item.cases || []).length} case(s)</span>` : '';
+    let count = '';
+    if (r.kind !== 'case') {
+      const below = rows.filter(x => x.kind === 'case' && x.id.startsWith(r.id + '/'));
+      const off = below.filter(x => !ticked.has(x.id)).length;
+      const what = r.kind === 'plan' ? `${(r.item.cycles || []).length} cycle(s), ` : '';
+      count = ` <span class="zt-count">${what}${below.length} case(s)${off ? `, ${off} unticked` : ''}</span>`;
+    }
+    const open = r.kind !== 'case' && isOpen(r.id, ai, folds);
+    const fold = r.kind === 'case' ? '<span class="zt-fold-pad"></span>'
+      : `<button type="button" class="zt-fold" data-action="ztFold" data-id="${escapeHtml(r.id)}" aria-expanded="${open}"`
+        + ` aria-label="${open ? 'Collapse' : 'Expand'} ${escapeHtml(r.key)}">${open ? '▾' : '▸'}</button>`;
     return `<div class="zt-row zt-${r.kind}${on ? '' : ' is-off'}" style="--zt-depth:${r.depth}">`
+      + fold
       + `<label><input type="checkbox" data-action="ztToggle" data-id="${escapeHtml(r.id)}"${on ? ' checked' : ''}>`
       + ` <span class="zt-key">${escapeHtml(r.key)}</span> ${escapeHtml(r.name || '')}${count}</label>`
       + (why ? `<div class="zt-why"><b>${escapeHtml(why.question)}</b> ${escapeHtml(why.reason)}`
@@ -314,7 +335,7 @@ function paint() {
   const a = el('zt-analysis');
   if (a) a.innerHTML = renderAnalysis(zt.job, zt.tree);
   const t = el('zt-tree');
-  if (t) t.innerHTML = renderTree(zt.tree, zt.ticked, zt.ai);
+  if (t) t.innerHTML = renderTree(zt.tree, zt.ticked, zt.ai, zt.folds);
   const n = el('zt-tree-count');
   if (n) {
     const rows = treeRows(zt.tree);
@@ -330,6 +351,7 @@ async function loadTree() {
   zt.ticked = new Set(treeRows(zt.tree).map(r => r.id));
   zt.ai = new Map();
   zt.manual = [];
+  zt.folds = new Map();
   const info = el('zt-templates-info');
   if (info) {
     const c = (zt.tree && zt.tree.counts) || {};
@@ -392,6 +414,7 @@ async function ztAnalyse() {
   if (!setButtonBusy(btn, true, { label: 'Organizing…' })) return;
   stopPolling();
   zt.manual = [];
+  zt.folds = new Map();
   ['zt-version', 'zt-product'].forEach(i => { const x = el(i); if (x) delete x.dataset.touched; });
   el('zt-upload-result') && (el('zt-upload-result').innerHTML = '');
   setStatus('');
@@ -427,6 +450,13 @@ function rebuildTicks() {
   zt.ticked = f.ticked;
   zt.ai = f.ai;
   for (const [id, on] of zt.manual) setTick(zt.ticked, zt.tree, id, on);
+}
+
+/** Open or close one plan or cycle (the arrow beside it). */
+function ztFold() {
+  const id = this.dataset.id;
+  zt.folds.set(id, !isOpen(id, zt.ai, zt.folds));
+  paint();
 }
 
 function ztToggle() {
@@ -539,4 +569,4 @@ document.addEventListener('input', (e) => {
   }
 });
 
-registerActions({ ztAnalyse, ztCancel, ztToggle, ztConfirm, ztUpload, ztRun, ztRefreshTemplates });
+registerActions({ ztAnalyse, ztCancel, ztToggle, ztFold, ztConfirm, ztUpload, ztRun, ztRefreshTemplates });
