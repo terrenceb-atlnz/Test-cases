@@ -19,7 +19,11 @@ verified: 2026-10-07
 > nothing to Zephyr or the wiki; the only Zephyr writes so far are the IE570 Port pair (§6) and the
 > IE570 Factory Tests pair (§6a). **2026-10-07: every upload request is captured** (clone, move,
 > remove-case — §6a) and the dry run now lists each with its real method, URL and body, all known.
-> Next: the real upload's writes (not started — needs Terrence's go-ahead). Open questions: §8.
+>
+> **2026-10-07 (later):** §8.13 answered — a cycle clone honours a `tql` that excludes cases (§6a);
+> §8.14 answered — all 15 template cycles are clean from the cycle side. D13–D15 decided. **The
+> real upload's design is §5b — reviewed and accepted; being built off the live tree (P7).**
+> Open questions: §8.
 
 ## 1. What the tool does (from `docs/zephyr.txt`)
 
@@ -100,6 +104,14 @@ It replaces the four placeholder pages the 2026-07 facelift scaffolded
 - **D12 — the live wiki read is an accepted exception** to "the server reads corpora only from ck.db"
   (§8.5): the wiki is per-project INPUT, not a corpus; the server runs `zt_wiki.py` as a read-only
   subprocess, as the template refresh runs `zt_snapshot.py`.
+- **D13 — the real upload writes with the shared `JIRA_KEY`** (Terrence, 2026-10-07; §8.4): the
+  `secrets.md` token `push_to_zephyr` uses. Zephyr attributes every write to that token's owner; the
+  audit line records which seat pressed the button.
+- **D14 — a failed write STOPS the upload and reports** (Terrence, 2026-10-07): no further writes,
+  no automatic rollback (plans can only be archived); the page and the audit show exactly what was
+  created and what was not.
+- **D15 — a family whose `<product>: <name> (Ask-CK)` plan already exists in the target folder is
+  SKIPPED** (Terrence, 2026-10-07), the rest uploads, and the skip is reported.
 
 ## 4. The template set (snapshot 2026-10-05, `zt_snapshot.py`)
 
@@ -230,6 +242,53 @@ to test strategy for details"); a reply with no usable JSON is asked once more. 
 gaps, no mis-cited section. Open (§8.12): with Q1 barred, the model unticked Advanced Management's
 ONLY cycle (Q2) on the same TPS rows — the plan is emptied anyway.
 
+## 5b. Phase 5 design — the real upload (2026-10-07, REVIEWED — building)
+
+Decisions D13–D15 (§3); the requests are §6a's, all known. **P1–P7 were proposed by Claude and
+accepted by Terrence 2026-10-07, with P6 extended (the version) and P7's first target chosen.**
+
+- **P1 — unticked cases are left out AT the cycle clone, not removed after.** The clone's `tql`
+  becomes `testRun.projectId IN (15310) AND testCase.key NOT IN (<unticked keys>)` (tested,
+  §6a/§8.13); the post-clone item list is checked against the ticked cases. The remove-case save
+  stays in the tool as a known fallback, unused.
+- **P2 — the order, per template plan family** (one family at a time, one request per object):
+  1. pre-flight, all reads, before ANY write: target folder ids, template ids, D15's duplicate
+     check (a plan named `<product>: <plan name> (Ask-CK)` in the target plan folder → skip the
+     family);
+  2. audit line `start` (seat, version, product, targets, the selection);
+  3. clone the plan → its id; move it to the project plan folder;
+  4. per ticked cycle: clone with the P1 `tql` → its id; check its cases; move it;
+  5. read the new plan's links → unlink every template cycle;
+  6. read each new cycle's links FROM THE CYCLE SIDE → unlink every plan but the new one;
+  7. rename the plan and its cycles `<product>: <name> (Ask-CK)`;
+  8. verify: the new plan links only its new cycles; each new cycle links only the new plan (cycle
+     side); the template plan links only its own cycles;
+  9. audit line per write (method, path, status) and `end` (created keys, skipped, outcome).
+- **P3 — an audit line before every write** at `ask-ck/db/zt-upload-audit.jsonl` (gitignored like
+  `zephyr-push-audit.jsonl`); a write whose audit line cannot be written is not sent
+  (`upload_refined.py`'s rule).
+- **P4 — `zt_upload.py --apply`** does the writes (the token stays with the tool, never the
+  server), printing one JSON progress line per step; `--dry-run` stays as it is.
+- **P5 — a job, not one request** (the browser connection ceiling): `POST
+  /api/zephyr-tool/upload/run {selection, confirm}` starts it, the page polls `GET
+  /upload/run/{id}`. Size: ~10 writes and two ~30 s cycle-side reads per family — about 1–1½ min
+  each, so ~15–20 min for all 14. One upload at a time.
+- **P6 — a typed confirmation of the product AND the version** (Terrence: *"ensure the Version is
+  correct as well. The project may have been delayed since the initial project was created, and as
+  such, may have an old version attached to it."*): `confirm` must carry both, matching the
+  selection (`IE570`, `5.5.6-2`), like `push_to_zephyr`'s per-case key — no URL edit turns a
+  preview into writes. Before Confirm the page lists **every Zephyr folder naming the project in
+  any version** (plan and cycle trees) beside the version the wiki gave — e.g. IE520's folders are
+  under `/5.5.6-1/…`; IE570 has `/5.5.6-2/Tomahawk/Project 3001: IE570` and `/5.5.6-2/Test
+  services/IE570 MISC` (read 2026-10-07). The tool never picks a version: the user corrects What
+  Version.
+- **P7 — built off the live tree** (a scratchpad worktree): gate, scratch-server smoke with the
+  dry run; the router change restarts production, so it is applied only on Terrence's "apply".
+  **First real run (Terrence, 2026-10-07): ONE family into the IE570 project folder**, the family
+  chosen at the time (D15 skips Port and Factory Tests).
+
+Out of scope here: the wiki write-back (D7), template assignees (deferred).
+
 ## 6. The clone side effect (from `docs/zephyr.txt`, to be measured in Phase 1)
 
 After a clone, the NEW object keeps the original's associations, and the ORIGINAL gains an
@@ -314,6 +373,20 @@ Body lengths matched each request's Content-Length, so nothing was left out. The
   60 s (C8458) — so the upload's verify reads the cycle side with a long timeout.
 - The clone leaves `updatedOn`/`updatedBy` empty; the first move stamps them.
 
+**Later the same day (§8.13, §8.14; Claude, on Terrence's go-ahead).**
+- *A clone's `tql` can leave cases out.* `POST …/testrun/bulk/clone` with
+  `"tql":"testRun.projectId IN (15310) AND testCase.key NOT IN ('AWPTCM-T48185')"` on C8458 made
+  **C8469 with the 9 other cases**. The syntax (`IN`, `NOT IN`, `AND` over `testCase.*` fields) is
+  the one the UI's clone dialog builds (labels, components, priorities); the case search
+  (`GET …/testcase/search?query=…`) accepts the same clauses, so a filter can be checked read-only.
+- *A cycle can be DELETED; a plan only archived.* The UI's own code has `/testrun/bulk/delete` and
+  `/testplan/bulk/archive` (no plan delete). `POST /rest/tests/1.0/testrun/bulk/delete` with body
+  `[54278]` → 200, and C8469 then reads 404. Taken from the page code, used once — not captured.
+  Writes: the clone, `DELETE …/tracelink/169918` (P3255↔C8469), the delete. P3255 → C8458 (10
+  cases) unchanged.
+- *All 15 template cycles are clean* read from the cycle side (each links only its own template
+  plan; 27–37 s per read).
+
 **Writes this session.** Terrence (UI): the two clones, the two moves, T48185 out of C8468.
 Claude (API, each on Terrence's go-ahead, each link re-read just before): `DELETE …/tracelink/169908`
 (P3265↔C8458), `…/169910` (P3255↔C8468), `…/169912` (P3264↔C8468), `…/169906` (P3264↔C8458); the
@@ -340,8 +413,8 @@ C8458 (10 cases), link 169696 only, `updatedOn` 21:28Z (the unlinks); P3264 arch
    Strategy's §6.2 path (D5). *Still to settle in Phase 5:* the exact Zephyr folder match (does the
    last level name the project, e.g. `Project 3296: IE520`?) and what the page shows when it is absent.
 3. **Sandbox for Phase 1:** which Zephyr folder may test clones be written to, and who removes them?
-4. **Credentials:** the shared `JIRA_KEY` in `secrets.md` (every clone attributed to its owner), or
-   each user's own token?
+4. ~~Credentials~~ — answered: the shared `JIRA_KEY` (D13). *Was:* the shared `JIRA_KEY` in
+   `secrets.md` (every clone attributed to its owner), or each user's own token?
 5. ~~Invariant exception~~ — the live wiki READ is accepted (D12); Zephyr writes are decided with
    Phase 5's real upload.
 6. ~~Q4~~ — answered: untick with an AI Note (D10). *(Background: §11.3 is the SID feature list ranked `M`/`-`, §11.4 the PRD list marked
@@ -357,11 +430,13 @@ C8458 (10 cases), link 169696 only, `updatedOn` 21:28Z (the unlinks); P3264 arch
     the model unticked Advanced Management's only cycle (Q2) on four TPS rows (AMF-Controller,
     OpenFlow, gNMI, Wireless Manager) — the same outcome. Accept (the user re-ticks), or also hold a
     cycle that is its plan's only one to the Q1 rule?
-13. **Skip unticked cases AT the cycle clone?** (2026-10-07) The cycle-clone dialog's criteria are
+13. ~~Skip unticked cases AT the cycle clone?~~ — **answered 2026-10-07: yes** (§6a; P1 proposes
+    it). *Was:* (2026-10-07) The cycle-clone dialog's criteria are
     sent as the body's `tql`. If TQL can exclude cases by key, a clone could leave unticked cases
     out and the remove-case save (§6a) would not be needed. Untested — testing it is another real
     clone.
-14. **Archived clones on other templates.** C8458 carried a link to the archived P3264 (§6a); any
+14. ~~Archived clones on other templates~~ — **answered 2026-10-07: none**; all 15 template cycles
+    link only their own plan (§6a). *Was:* C8458 carried a link to the archived P3264 (§6a); any
     template cycle with such a link pulls every future clone of it into that archived plan, and the
     plan-side reads `zt_snapshot` relies on would not show it. Whether any other template cycle has
     one has not been checked (GET only, ~30 s per cycle from the cycle side).
