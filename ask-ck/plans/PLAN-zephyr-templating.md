@@ -283,7 +283,13 @@ accepted by Terrence 2026-10-07, with P6 extended (the version) and P7's first t
   any version** (plan and cycle trees) beside the version the wiki gave — e.g. IE520's folders are
   under `/5.5.6-1/…`; IE570 has `/5.5.6-2/Tomahawk/Project 3001: IE570` and `/5.5.6-2/Test
   services/IE570 MISC` (read 2026-10-07). The tool never picks a version: the user corrects What
-  Version.
+  Version. **Changed the same day (Terrence, on the scratch server):** *"Can we use the fillable fields
+  here instead, and just have a "confirm" modal popup?"* — no typing on the page: Write to Zephyr
+  opens a modal showing the product and version FROM What Product / What Version, the target
+  folder, the counts, and first any folders under another version; Cancel means correct the fields.
+  The server still refuses unless `confirm_product` / `confirm_version` equal the selection's, so no
+  URL edit turns a preview into writes. The fields were also made compact (a flex rule meant for
+  the URL row had set their HEIGHT to 260 px).
 - **P7 — built off the live tree** (a scratchpad worktree): gate, scratch-server smoke with the
   dry run; the router change restarts production, so it is applied only on Terrence's "apply".
   **First real run (Terrence, 2026-10-07): ONE family into the IE570 project folder**, the family

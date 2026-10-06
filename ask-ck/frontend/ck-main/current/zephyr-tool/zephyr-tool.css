@@ -2,7 +2,8 @@
    restyle), so it uses only the tokens both stylesheets define. */
 #panel-zt .zt-line { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin: 8px 0; }
 #panel-zt .zt-line .form-input { flex: 1 1 260px; min-width: 0; }
-#panel-zt .zt-field { display: flex; flex-direction: column; gap: 4px; flex: 1 1 220px; min-width: 0; }
+#panel-zt .zt-field { display: flex; flex-direction: column; gap: 4px; flex: 0 0 auto; min-width: 0; }
+#panel-zt .zt-field .form-input { flex: none; width: 14em; }   /* not the URL row's flex-basis: in a column it set the HEIGHT */
 #panel-zt .zt-field label { font-size: 12px; color: var(--text-secondary); }
 #panel-zt .zt-small { font-size: 12px; color: var(--text-tertiary); }
 #panel-zt .zt-status { min-height: 18px; font-size: 13px; color: var(--text-secondary); margin: 4px 0 8px; }
@@ -38,8 +39,14 @@
 #panel-zt .zt-calls code { font-size: 11px; word-break: break-all; }
 #panel-zt .zt-calls tr.zt-unknown td { color: var(--text-tertiary); }
 #panel-zt #zt-upload-result { margin-top: 12px; }
-#panel-zt .zt-run .form-input { max-width: 14em; }
 #panel-zt .zt-steps { font-size: 0.85em; margin: 0.5em 0 0 1.2em; }
 #panel-zt .zt-fold { width: 1.4em; padding: 0; border: 0; background: none; color: var(--text-secondary); cursor: pointer; font-size: 0.9em; }
 #panel-zt .zt-fold:hover { color: var(--text-primary); }
 #panel-zt .zt-fold-pad { display: inline-block; width: 1.4em; }
+.zt-confirm { max-width: 460px; }
+.zt-confirm .update-body > div { margin-bottom: 8px; }
+.zt-confirm .zt-confirm-what { font-size: 16px; color: var(--text-primary); }
+.zt-confirm .zt-problem ul { margin: 4px 0 0 1.2em; }
+.zt-confirm-actions { display: flex; gap: 8px; justify-content: flex-end; }
+.zt-confirm .zt-problem { color: var(--status-critical); }
+.zt-confirm .zt-small { font-size: 12px; color: var(--text-tertiary); }

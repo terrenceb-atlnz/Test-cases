@@ -8,7 +8,7 @@ import { describe, it, expect } from 'vitest';
 
 import '../../ask-ck/frontend/ck-main/current/shared/actions.js';
 import { treeRows, applyProposals, setTick, uploadSelection, renderTree, renderAnalysis, renderUpload,
-  confirmMatches, renderRun, isOpen } from '../../ask-ck/frontend/ck-main/current/zephyr-tool/zephyr-tool.js';
+  renderConfirm, renderRun, isOpen } from '../../ask-ck/frontend/ck-main/current/zephyr-tool/zephyr-tool.js';
 
 const TREE = { plans: [
   { key: 'P1', name: 'Port', cycles: [{ key: 'C1', name: 'Port', cases: [{ key: 'T1', name: 'speed' }, { key: 'T2', name: 'duplex' }] }] },
@@ -136,19 +136,24 @@ describe('rendering', () => {
     expect(html).toContain('P9</span> → IE570: Port (Ask-CK) exists');
   });
 
-  it('offers Write to Zephyr only when nothing stands in the way, starting disabled', () => {
-    expect(renderUpload(PREVIEW, SEL)).toMatch(/id="zt-run"[^>]*disabled/);
+  it('offers Write to Zephyr only when nothing stands in the way — no typing on the page', () => {
+    expect(renderUpload(PREVIEW, SEL)).toContain('id="zt-run"');
+    expect(renderUpload(PREVIEW, SEL)).not.toContain('<input');
     expect(renderUpload(Object.assign({}, PREVIEW, { problems: ['no folder'] }), SEL)).not.toContain('zt-run');
     expect(renderUpload(Object.assign({}, PREVIEW, { calls: [] }), SEL)).not.toContain('zt-run');
   });
 
-  it('needs the product AND the version typed exactly', () => {
-    expect(confirmMatches(SEL, 'IE570', '5.5.6-2')).toBe(true);
-    expect(confirmMatches(SEL, ' IE570 ', '5.5.6-2 ')).toBe(true);
-    expect(confirmMatches(SEL, 'IE570', '5.5.6-1')).toBe(false);
-    expect(confirmMatches(SEL, 'ie570', '5.5.6-2')).toBe(false);
-    expect(confirmMatches(null, 'IE570', '5.5.6-2')).toBe(false);
-    expect(confirmMatches({ product: '', version: '' }, '', '')).toBe(false);
+  it('confirms in a modal showing the product and version from the fields, and other versions first', () => {
+    const html = renderConfirm(PREVIEW, SEL);
+    expect(html).toContain('<b>IE570</b> · AW+ <b>5.5.6-2</b>');
+    expect(html).toContain('also has folders under another version — is 5.5.6-2 still right?');
+    expect(html).toContain('cycles: /5.5.6-1/Tomahawk/Project 3001: IE570');
+    expect(html).toContain('Into /5.5.6-2/Tomahawk/Project 3001: IE570');
+    expect(html).toContain('1 skipped, already there');
+    expect(html).toContain('data-zt-confirm="no"');
+    expect(html).toContain('data-zt-confirm="yes"');
+    const same = Object.assign({}, PREVIEW, { project_folders: PREVIEW.project_folders.slice(0, 1) });
+    expect(renderConfirm(same, SEL)).not.toContain('another version');
   });
 
   it('shows a stopped upload as stopped, with what was created and nothing undone', () => {
