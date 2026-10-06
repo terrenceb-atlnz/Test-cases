@@ -40,8 +40,9 @@ from pydantic import BaseModel
 from starlette.concurrency import run_in_threadpool
 
 import db
+import llm_inflight
 import zt_analysis as za
-from llm import extract_json_result, run_prompt
+from llm import current_llm_call_id, current_session_id, extract_json_result, run_prompt
 from llm_config import effective_llm_config
 from paths import ASKCK_ROOT
 
@@ -169,6 +170,27 @@ def _ask(template: str, context: dict, llm_config: dict):
     return None, f"the model's reply held no usable JSON ({status}), twice"
 
 
+def _as_call(call_id: str, fn, *args):
+    """Run one model call under its own in-flight id, so Stop can cancel it mid-flight
+    (`llm_inflight`: kills the CLI, closes the vLLM stream, abandons the agent job). The job's
+    calls start after the request that began it has ended, so they carry no browser call id."""
+    token = current_llm_call_id.set(call_id)
+    try:
+        return fn(*args)
+    finally:
+        current_llm_call_id.reset(token)
+
+
+async def _call(job: Dict[str, Any], name: str, template: str, context: dict):
+    """One model call of the job, cancellable by `POST /analyse/{id}/cancel`."""
+    cid = f"zt-{job['id']}-{name}"
+    job["_calls"].add(cid)
+    try:
+        return await run_in_threadpool(_as_call, cid, _ask, template, context, job["_llm"])
+    finally:
+        job["_calls"].discard(cid)
+
+
 async def _analyse_plan(job: Dict[str, Any], plan: dict, sem: asyncio.Semaphore) -> None:
     slot = job["plans"][plan["key"]]
     async with sem:
@@ -177,10 +199,12 @@ async def _analyse_plan(job: Dict[str, Any], plan: dict, sem: asyncio.Semaphore)
             return
         slot["state"] = "running"
         try:
-            reply, err = await run_in_threadpool(_ask, "zt_analyse_plan.jinja",
-                                                 za.plan_context(job["_wiki"], plan), job["_llm"])
+            reply, err = await _call(job, plan["key"], "zt_analyse_plan.jinja", za.plan_context(job["_wiki"], plan))
         except Exception as e:                                  # noqa: BLE001 — shown on the page
             reply, err = None, f"{type(e).__name__}: {e}"
+        if err and job["_cancel"]:
+            slot["state"] = "stopped"                          # stopped by the user: stays fully ticked
+            return
         if err:
             slot.update(state="error", error=err)              # the plan stays fully ticked
             return
@@ -195,10 +219,12 @@ async def _analyse_gaps(job: Dict[str, Any], tree: dict, sem: asyncio.Semaphore)
             return
         slot["state"] = "running"
         try:
-            reply, err = await run_in_threadpool(_ask, "zt_gaps.jinja", za.gaps_context(job["_wiki"], tree),
-                                                 job["_llm"])
+            reply, err = await _call(job, "gaps", "zt_gaps.jinja", za.gaps_context(job["_wiki"], tree))
         except Exception as e:                                  # noqa: BLE001
             reply, err = None, f"{type(e).__name__}: {e}"
+        if err and job["_cancel"]:
+            slot["state"] = "stopped"
+            return
         if err:
             slot.update(state="error", error=err)
             return
@@ -244,7 +270,8 @@ async def analyse(req: AnalyseRequest):
         "plans": {p["key"]: {"state": "queued", "deselect": [], "notes": [], "dropped": [], "error": None}
                   for p in tree.get("plans") or []},
         "gaps": {"state": "queued", "gaps": [], "notes": [], "dropped": [], "error": None},
-        "_cancel": False, "_llm": effective_llm_config(None), "_wiki": None,
+        "_cancel": False, "_llm": effective_llm_config(None), "_wiki": None, "_calls": set(),
+        "_session": current_session_id.get(""),                  # the tab that may Stop it
     }
     with _jobs_lock:
         _jobs[job["id"]] = job
@@ -264,12 +291,18 @@ async def analyse_status(job_id: str):
 
 @router.post("/analyse/{job_id}/cancel")
 async def analyse_cancel(job_id: str):
-    """Stops calls not yet started; a call already with the model finishes and is kept."""
+    """Stops the analysis: calls not yet started never start, and calls already with the model
+    are cancelled mid-flight (`llm_inflight`, the same real cancel as every other Stop button).
+    A stopped plan stays fully ticked; answers already in are kept. Only the browser session that
+    started the analysis may stop it (Terrence, 2026-10-07: "for this user alone")."""
     job = _jobs.get(job_id)
     if job is None:
         raise HTTPException(status_code=404, detail="no such analysis")
+    if current_session_id.get("") != job.get("_session", ""):
+        raise HTTPException(status_code=403, detail="only the page that started this analysis can stop it")
     job["_cancel"] = True
-    return {"id": job_id, "cancelling": job["state"] in ("reading", "analysing")}
+    stopped = [cid for cid in list(job.get("_calls") or ()) if llm_inflight.cancel(cid)]
+    return {"id": job_id, "cancelling": job["state"] in ("reading", "analysing"), "calls_stopped": len(stopped)}
 
 
 # --------------------------------------------------------------------------- API Upload, dry run (D9)

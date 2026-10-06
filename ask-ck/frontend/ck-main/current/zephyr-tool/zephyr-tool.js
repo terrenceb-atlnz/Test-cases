@@ -148,7 +148,7 @@ export function renderAnalysis(job, tree) {
   const out = [];
   const plans = job.plans || {};
   const slots = Object.values(plans);
-  const done = slots.filter(s => ['done', 'error', 'skipped'].includes(s.state)).length;
+  const done = slots.filter(s => ['done', 'error', 'skipped', 'stopped'].includes(s.state)).length;
   const stateText = {
     reading: 'Reading the wiki pages…',
     analysing: `Asking the model: ${done} of ${slots.length} plans answered${job.gaps && job.gaps.state === 'done' ? ', gaps done' : ''}…`,
@@ -186,6 +186,7 @@ export function renderAnalysis(job, tree) {
   const probs = (job.wiki_problems || []).slice();
   for (const [pk, s] of Object.entries(plans)) {
     if (s.state === 'error') probs.push(`${pk}: the model call failed, so the whole plan stays ticked — ${s.error}`);
+    if (s.state === 'stopped' || s.state === 'skipped') probs.push(`${pk}: stopped before it answered, so the whole plan stays ticked`);
     if ((s.dropped || []).length) probs.push(`${pk}: ${s.dropped.length} proposal(s) refused by the guardrail (${s.dropped.map(d => d.why).join('; ')})`);
   }
   if ((g.dropped || []).length) probs.push(`gaps: ${g.dropped.length} item(s) refused (${g.dropped.map(d => d.why).join('; ')})`);
@@ -350,7 +351,7 @@ export async function renderZtPanel() {
 function stopPolling() {
   if (zt.poll) { clearInterval(zt.poll); zt.poll = null; }
   const c = el('zt-cancel');
-  if (c) c.classList.add('hidden');
+  if (c) { c.classList.add('hidden'); c.disabled = false; c.textContent = 'Stop'; }
 }
 
 function fillProject(p) {
@@ -409,7 +410,15 @@ async function ztAnalyse() {
 }
 
 async function ztCancel(id) {
-  try { await api('/analyse/' + encodeURIComponent(id) + '/cancel', { method: 'POST' }); } catch (e) { setStatus(e.message, true); }
+  const c = el('zt-cancel');
+  if (c) { c.disabled = true; c.textContent = 'Stopping…'; }
+  try {
+    await api('/analyse/' + encodeURIComponent(id) + '/cancel', { method: 'POST' });
+    setStatus('Stopping — the calls with the model are being cancelled.');
+  } catch (e) {
+    setStatus(e.message, true);
+    if (c) { c.disabled = false; c.textContent = 'Stop'; }
+  }
 }
 
 /** The analysis's ticks, then the user's own changes on top (a poll must not undo a click). */

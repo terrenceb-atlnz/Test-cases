@@ -324,3 +324,61 @@ def test_the_upload_preview_runs_the_tool_in_dry_run_and_never_anything_else(cli
 
 def test_the_status_line_says_its_time_is_utc(client, templates):
     assert " UTC: 1 plans" in client.get("/api/zephyr-tool/status").json()["message"]
+
+
+def _model_that_waits_to_be_stopped(monkeypatch, zephyr_tool, calls):
+    """A model call that registers with llm_inflight exactly as the real path does and waits
+    until it is cancelled (or 5 s), then answers the way a cancelled call answers."""
+    import llm
+    import llm_inflight
+
+    def run_prompt(template, context, llm_config=None, **kw):
+        cid = llm.current_llm_call_id.get("")
+        stop = threading.Event()
+        llm_inflight.register(cid, template=template)
+        llm_inflight.set_cancel(cid, stop.set)
+        calls.append(cid)
+        try:
+            stopped = stop.wait(5)
+            return {"content": "ERROR: cancelled by user", "error": True, "cancelled": stopped}
+        finally:
+            llm_inflight.finish(cid)
+    monkeypatch.setattr(zephyr_tool, "run_prompt", run_prompt)
+
+
+def test_stop_cancels_the_calls_already_with_the_model(client, templates, monkeypatch):
+    """Terrence 2026-10-07: Stop must stop calls mid-flight, the same real cancel every other
+    Stop button uses — not wait minutes for them to come back."""
+    from routers import zephyr_tool
+    monkeypatch.setattr(zephyr_tool, "_run_tool", lambda *a, **k: IE520)
+    calls = []
+    _model_that_waits_to_be_stopped(monkeypatch, zephyr_tool, calls)
+    tab = {"X-CK-Session": "tab-A"}
+    jid = client.post("/api/zephyr-tool/analyse", json={"url": "x"}, headers=tab).json()["id"]
+    end = time.time() + 5
+    while len(calls) < 2 and time.time() < end:                    # the plan call and the gaps call
+        time.sleep(0.02)
+    t0 = time.time()
+    r = client.post(f"/api/zephyr-tool/analyse/{jid}/cancel", headers=tab).json()
+    d = _wait(client, jid)
+    assert r["calls_stopped"] == 2 and time.time() - t0 < 3
+    assert d["state"] == "cancelled" and all(c.startswith(f"zt-{jid}-") for c in calls)
+    assert d["plans"]["AWPTCM-P3248"]["state"] == "stopped" and d["gaps"]["state"] == "stopped"
+    assert d["plans"]["AWPTCM-P3248"]["deselect"] == [] and d["plans"]["AWPTCM-P3248"]["error"] is None
+
+
+def test_only_the_page_that_started_an_analysis_can_stop_it(client, templates, monkeypatch):
+    """"for this user alone" — another seat's Stop is refused and stops nothing."""
+    from routers import zephyr_tool
+    monkeypatch.setattr(zephyr_tool, "_run_tool", lambda *a, **k: IE520)
+    calls = []
+    _model_that_waits_to_be_stopped(monkeypatch, zephyr_tool, calls)
+    jid = client.post("/api/zephyr-tool/analyse", json={"url": "x"}, headers={"X-CK-Session": "tab-A"}).json()["id"]
+    end = time.time() + 5
+    while len(calls) < 2 and time.time() < end:
+        time.sleep(0.02)
+    r = client.post(f"/api/zephyr-tool/analyse/{jid}/cancel", headers={"X-CK-Session": "tab-B"})
+    assert r.status_code == 403
+    assert client.get(f"/api/zephyr-tool/analyse/{jid}").json()["state"] == "analysing"
+    assert client.post(f"/api/zephyr-tool/analyse/{jid}/cancel", headers={"X-CK-Session": "tab-A"}).status_code == 200
+    assert _wait(client, jid)["state"] == "cancelled"
