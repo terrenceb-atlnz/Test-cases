@@ -92,6 +92,12 @@ def project_folders(trees: Dict[str, Dict[str, Optional[int]]], product: Optiona
             for kind, tree in trees.items() for p in tree if _names_project(p, product, number)]
 
 
+def _clean(v) -> Optional[str]:
+    """A field's value, or None when blank / `N/A` / `None` / `-` (the page sends null for those)."""
+    t = str(v).strip() if v is not None else ""
+    return None if t.lower() in ("", "n/a", "na", "none", "-") else t
+
+
 def new_name(product: Optional[str], template_name: str) -> str:
     return f"{product or '<product>'}: {template_name.strip()} (Ask-CK)"
 
@@ -180,8 +186,8 @@ def plan_calls(sel: dict, ids: Dict[str, Optional[int]], targets: Dict[str, dict
 def preview(get: Get, sel: dict) -> dict:
     """Everything the upload reads before its first write, and the call list. GET only."""
     problems: List[str] = []
-    version, middle = sel.get("version"), sel.get("middle")
-    product, number = sel.get("product"), sel.get("number")
+    version, middle = _clean(sel.get("version")), _clean(sel.get("middle"))
+    product, number = _clean(sel.get("product")), _clean(sel.get("number"))
     if not version:
         problems.append("no AW+ version — the target folder cannot be found")
     if not product:
@@ -197,8 +203,12 @@ def preview(get: Get, sel: dict) -> dict:
         if version and not t["base_exists"]:
             problems.append(f"the {what} folder {t['base']} does not exist in Zephyr")
         elif version and not t["path"]:
-            problems.append(f"no single project {what} folder under {t['base']} names project "
-                            f"{number} or {product}: {t['candidates'] or 'none'} — create it first (D5)")
+            named = " or ".join(x for x in (f"Project {number}" if number else None, product) if x)
+            found = (f"{len(t['candidates'])} do: {', '.join(t['candidates'])} — make What Project Number or "
+                     f"What Product pick one") if t["candidates"] else "none does"
+            problems.append(f"no {what} folder for this project directly under {t['base']}: a folder there must "
+                            f"name {named or 'the project'}, and {found}. Check What Version / What Team "
+                            f"Subfolder, or create the folder first (D5)")
         targets[kind] = t
     existing: List[str] = []
     if targets["testplan"]["path"]:

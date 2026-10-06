@@ -258,7 +258,7 @@ def test_a_family_already_in_the_project_folder_is_skipped():
 
 def test_a_missing_project_folder_is_a_problem_not_a_guess():
     d = zu.preview(_sel_get(["/5.5.6-2", "/5.5.6-2/Tomahawk", "/Platform Testing", "/Platform Testing/TEMPLATES"]), SEL)
-    assert any("create it first" in p for p in d["problems"])
+    assert any("create the folder first" in p for p in d["problems"])
     assert d["targets"]["testplan"]["path"] is None
     assert any("<plan folder not found>" in c["about"] for c in d["calls"] if c["op"] == "move plan")
 
@@ -357,7 +357,7 @@ def test_the_typed_product_and_version_must_match_the_selection():
 def test_a_selection_with_problems_writes_nothing():
     z = FakeZephyr(["/5.5.6-2", "/5.5.6-2/Tomahawk", "/Platform Testing", "/Platform Testing/TEMPLATES"])
     res, _, _ = _run(z)
-    assert res["outcome"] == "refused" and "create it first" in res["error"] and z.writes == []
+    assert res["outcome"] == "refused" and "create the folder first" in res["error"] and z.writes == []
 
 
 def test_a_skipped_family_is_reported_and_the_rest_uploads():
@@ -383,3 +383,21 @@ def test_the_audit_log_is_not_committed():
     assert rel == "ask-ck/db/zt-upload-audit.jsonl"
     ignore = (ROOT / ".gitignore").read_text(encoding="utf-8")
     assert "ask-ck/db/*" in ignore and f"!{rel}" not in ignore
+
+
+def test_without_the_team_subfolder_the_problem_says_what_to_check_in_plain_words():
+    """2026-10-07 on the scratch server: a reload lost the analysis, the page sent no middle level
+    and no number, and the problem read "names project None or IE570: none"."""
+    sel = dict(SEL, middle=None, number="N/A")
+    d = zu.preview(_sel_get(), sel)
+    assert d["problems"] and not any("None" in p or "N/A" in p for p in d["problems"])
+    assert all("must name IE570," in p for p in d["problems"])               # N/A is no number
+    assert all("What Team Subfolder" in p and "directly under /5.5.6-2" in p for p in d["problems"])
+    assert d["calls"] and d["targets"]["testplan"]["path"] is None
+
+
+def test_blank_or_na_fields_are_not_set():
+    assert [zu._clean(v) for v in ("", "  ", "N/A", "na", "None", "-", None)] == [None] * 7
+    assert zu._clean(" Tomahawk ") == "Tomahawk" and zu._clean("3001") == "3001"
+    d = zu.preview(_sel_get(), dict(SEL, number="None"))                 # the product still finds it
+    assert d["targets"]["testplan"]["path"] == "/5.5.6-2/Tomahawk/Project 3001: IE570" and d["problems"] == []

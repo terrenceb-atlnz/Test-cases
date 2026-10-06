@@ -86,7 +86,12 @@ It replaces the four placeholder pages the 2026-07 facelift scaffolded
   creates it. It is looked up from the version on the project page and the middle level the Test
   Strategy names (§6.2 "Test Cases": *"stored in Jira under 5.5.6-2 ---> Tomahawk ---> IE570"*).
   IE520 itself sits in an old location (the project slipped several releases) — not a case the tool
-  has to handle.
+  has to handle. **Extended 2026-10-07 (Terrence):** the team subfolder and the project number are page
+  fields too — **What Team Subfolder** (`Tomahawk`, from the Strategy's path) and **What Project
+  Number** (`3001`, from the project page) — filled by the analysis and editable; blank, `N/A`,
+  `None` or `-` mean "not set". They used to live only in the analysis job, so a reload or a
+  stopped analysis silently dropped them and the lookup searched `/5.5.6-2` directly ("names
+  project None or IE570: none" — that message is now plain words naming the fields to check).
 - **D6 — an unwritten Feature Page is reported as "not written"**, not fed to the model (Terrence:
   *"i like your solution"*).
 - **D7 — the wiki write-back is one edit** (confirmed by Terrence): the project page's red-circled

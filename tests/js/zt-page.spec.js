@@ -8,7 +8,7 @@ import { describe, it, expect } from 'vitest';
 
 import '../../ask-ck/frontend/ck-main/current/shared/actions.js';
 import { treeRows, applyProposals, setTick, uploadSelection, renderTree, renderAnalysis, renderUpload,
-  renderConfirm, renderRun, isOpen } from '../../ask-ck/frontend/ck-main/current/zephyr-tool/zephyr-tool.js';
+  renderConfirm, renderRun, isOpen, cleanField } from '../../ask-ck/frontend/ck-main/current/zephyr-tool/zephyr-tool.js';
 
 const TREE = { plans: [
   { key: 'P1', name: 'Port', cycles: [{ key: 'C1', name: 'Port', cases: [{ key: 'T1', name: 'speed' }, { key: 'T2', name: 'duplex' }] }] },
@@ -166,3 +166,12 @@ describe('rendering', () => {
     expect(renderRun({ state: 'refused', steps: [], result: { error: 'typed version differs' } })).toContain('nothing was written');
   });
 });
+
+describe('the project fields', () => {
+  it('treats blank, N/A, None and - as not set, and trims the rest', () => {
+    for (const v of ['', '  ', 'N/A', 'n/a', 'NA', 'None', 'none', '-', null, undefined]) expect(cleanField(v)).toBe(null);
+    expect(cleanField(' Tomahawk ')).toBe('Tomahawk');
+    expect(cleanField('3001')).toBe('3001');
+  });
+});
+

@@ -13,6 +13,7 @@ import { escapeHtml, setButtonBusy, flashButtonDone } from '../shared/dom-helper
 
 const ZT_API = '/api/zephyr-tool';
 const POLL_MS = 2000;
+const ZT_FIELDS = ['zt-version', 'zt-product', 'zt-middle', 'zt-number'];
 const QUESTION_TITLES = {
   Q1: '1. Test plans cut (Test Strategy)',
   Q2: '2. Cycles not relevant',
@@ -321,13 +322,19 @@ async function api(path, opts = {}) {
   return d;
 }
 
+/** A field's value, or null when it is blank, `N/A`, `NA`, `None` or `-` (Terrence 2026-10-07:
+ *  a project may have no team subfolder or no number). */
+export function cleanField(v) {
+  const t = String(v == null ? '' : v).trim();
+  return ['', 'n/a', 'na', 'none', '-'].includes(t.toLowerCase()) ? null : t;
+}
+
+/** What the upload targets — all four from the fields, which the analysis fills and the user may
+ *  correct (Terrence 2026-10-07: the team subfolder and project number are fields too, so a page
+ *  reload or a stopped analysis no longer loses them). */
 function project() {
-  return {
-    version: (el('zt-version') || {}).value || '',
-    product: (el('zt-product') || {}).value || '',
-    middle: (zt.job && zt.job.project && zt.job.project.middle) || null,
-    number: (zt.job && zt.job.project && zt.job.project.number) || null,
-  };
+  const v = id => cleanField((el(id) || {}).value);
+  return { version: v('zt-version') || '', product: v('zt-product') || '', middle: v('zt-middle'), number: v('zt-number') };
 }
 
 function setConfirmed(on) {
@@ -394,6 +401,9 @@ function fillProject(p) {
   const v = el('zt-version'), pr = el('zt-product'), note = el('zt-version-note');
   if (v && !v.dataset.touched) v.value = p.version || '';
   if (pr && !pr.dataset.touched) pr.value = p.product || '';
+  const mid = el('zt-middle'), num = el('zt-number');
+  if (mid && !mid.dataset.touched) mid.value = p.middle || '';
+  if (num && !num.dataset.touched) num.value = p.number || '';
   if (note) {
     note.textContent = p.version
       ? `from the ${p.version_source}${p.project_version ? ` — the project page says ${p.project_version}` : ''}` : '';
@@ -428,7 +438,7 @@ async function ztAnalyse() {
   stopPolling();
   zt.manual = [];
   zt.folds = new Map();
-  ['zt-version', 'zt-product'].forEach(i => { const x = el(i); if (x) delete x.dataset.touched; });
+  ZT_FIELDS.forEach(i => { const x = el(i); if (x) delete x.dataset.touched; });
   el('zt-upload-result') && (el('zt-upload-result').innerHTML = '');
   setStatus('');
   try {
@@ -589,7 +599,7 @@ async function ztRefreshTemplates() {
 
 document.addEventListener('input', (e) => {
   const t = e.target;
-  if (t instanceof HTMLElement && (t.id === 'zt-version' || t.id === 'zt-product')) {
+  if (t instanceof HTMLElement && ZT_FIELDS.includes(t.id)) {
     t.dataset.touched = '1';
     setConfirmed(false);
   }
