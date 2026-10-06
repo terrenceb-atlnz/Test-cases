@@ -29,7 +29,7 @@
 
   const manualColumns = [
     { key: 'stepNumber', label: '#', width: 1 },
-    { key: 'description', label: 'Description', width: 9 }
+    { key: 'description', label: 'Description', width: 36 }
   ];
 
   $: manualRows = refinedSteps.map((s, i) => ({ id: `refined-${i}`, stepNumber: i + 1, description: s.description }));
@@ -155,7 +155,7 @@
 
   .step-table-label {
     margin: 0 0 8px;
-    font-size: 0.75rem;
+    font-size: 0.8rem;
     font-weight: 700;
     letter-spacing: 0.06em;
     text-transform: uppercase;

@@ -20,11 +20,12 @@
     text-align: left;
     display: flex;
     align-items: center;
+    padding: 8px 32px 8px;
   }
 
   .page-header h1 {
     margin: 0 0 8px;
-    font-size: 1.5rem;
+    font-size: 1.6rem;
     font-weight: 700;
     color: var(--color-text-heading);
   }
@@ -39,10 +40,11 @@
   }
 
   .page-header-rule {
-    width: 100%;
+    /* width: 100%; */
     border: none;
-    border-top: 1px solid var(--color-border-surface);
-    margin: 16px 0 16px;
+    border-bottom: 1px solid var(--color-border-surface);
+    margin-left: 80px;
+    margin-right: 80px;
   }
 
   .tool-header {

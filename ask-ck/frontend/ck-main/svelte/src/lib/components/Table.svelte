@@ -1,6 +1,8 @@
 <script>
 // @ts-nocheck
 
+  import Button from './Button.svelte';
+
   /** @type {Array<{ key: string, label: string, width?: number, pillClass?: (value: any) => string,
       button?: { label: string, onClick: (row: any) => void } }>} A `button` column renders one
       action button per row instead of a plain value (e.g. "view source") — stops propagation so
@@ -65,13 +67,11 @@
         {#each columns as col}
           <div class="data-table-cell" style="flex: {col.width ?? 1}">
             {#if col.button}
-              <button
-                type="button"
-                class="table-action-btn"
-                on:click|stopPropagation={() => col.button.onClick(row)}
-              >{col.button.label}</button>
+              <Button variant="outline" on:click={(e) => { e.stopPropagation(); col.button.onClick(row); }}>{col.button.label}</Button>
             {:else if col.pillClass}
               <span class="pill {col.pillClass(row[col.key])}">{row[col.key] ?? ''}</span>
+            {:else if col.code}
+              <code>{row[col.key] ?? ''}</code>
             {:else}
               {row[col.key] ?? ''}
             {/if}
@@ -85,11 +85,13 @@
 <style>
   .data-table {
     width: 100%;
-    max-height: 600px;
+    max-height: 500px;
     border: 1px solid var(--color-border-surface);
     border-radius: 10px;
     background: var(--color-table-header-bg);
-    overflow: scroll;
+    overflow: auto;
+    overscroll-behavior: contain;
+    border-collapse: collapse;
   }
 
   .data-table-row {
@@ -118,7 +120,8 @@
     border-bottom: 2px solid var(--color-border-surface);
     position: sticky;
     top: 0;
-    z-index: 1;
+    z-index: 6;
+    box-shadow: 0 -2px 0 var(--color-table-header-bg);   /* cover anything left above it */
   }
 
   .data-table-header-cell {
@@ -127,12 +130,14 @@
     letter-spacing: 0.06em;
     text-transform: uppercase;
     color: var(--color-text);
+    z-index: 6;
+
   }
 
   .data-table-cell {
     flex: 1;
     min-width: 0;
-    font-size: 0.8rem;
+    font-size: 0.875rem;
     color: var(--color-text-muted);
     /* white-space: nowrap; */
     overflow: hidden;
@@ -163,7 +168,7 @@
     display: inline-block;
     padding: 2px 10px;
     border-radius: 999px;
-    font-size: 0.8rem;
+    font-size: 0.9rem;
     font-weight: 600;
   }
 
