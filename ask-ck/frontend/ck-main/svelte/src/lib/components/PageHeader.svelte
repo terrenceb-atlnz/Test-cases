@@ -12,11 +12,13 @@
 <style>
   .page-header {
     text-align: left;
+    padding: 8px 32px 0px;
+    margin-left: 16px;
   }
 
   .page-header h1 {
     margin: 0 0 8px;
-    font-size: 1.5rem;
+    font-size: 1.8rem;
     font-weight: 700;
     color: var(--color-text-heading);
   }
@@ -30,9 +32,9 @@
   }
 
   .page-header-rule {
-    width: 100%;
+    /* width: 100%; */
     border: none;
     border-top: 1px solid var(--color-border-surface);
-    margin: 16px 0 16px;
+    margin: 16px 48px 16px;
   }
 </style>

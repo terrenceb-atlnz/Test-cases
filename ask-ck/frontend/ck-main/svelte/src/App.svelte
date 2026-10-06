@@ -176,7 +176,7 @@
   };
 </script>
 
-<div class="app-shell" style:--sidebar-width={sidebarCollapsed ? '82px' : '260px'}>
+<div class="app-shell" style:--sidebar-width={sidebarCollapsed ? '80px' : '260px'}>
   <Sidebar items={navigation} activePage={activePage} collapsed={sidebarCollapsed} onSelect={selectPage} onToggle={toggleSidebar} />
   <Topbar />
 

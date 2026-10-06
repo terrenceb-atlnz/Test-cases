@@ -227,8 +227,14 @@
   {:else if currentStep === 3}
     <FragmentsStep
       {sequencedTestSteps}
-      onGatherFragments={fragmentsService.gatherFragments}
-      onConfirm={() => { currentStep = 4; scrollToTop(); }}
+      onGatherFragments={() => fragmentsService.gatherFragments(session.key)}
+      onSaveFragments={(keep) => fragmentsService.saveFragments(session.key, keep)}
+      onConfirm={ async () => { 
+        const result = await sequenceService.confirmStep(session.key, 5);
+        currentStep = 4; 
+        session = result.session;
+        scrollToTop(); 
+      }}
     />
   {:else if currentStep === 4}
     <GenerateStep

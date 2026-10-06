@@ -61,8 +61,8 @@
 
 <style>
   .sidebar-section-label {
-    padding: 14px 14px 8px;
-    font-size: 0.72rem;
+    padding: 14px 10px 6px;
+    font-size: 0.8rem;
     font-weight: 700;
     letter-spacing: 0.12em;
     text-transform: uppercase;
@@ -72,19 +72,18 @@
   .nav-item {
     display: flex;
     align-items: center;
-    font-size: 0.9rem;
+    font-size: 1rem;
     gap: 12px;
     width: 100%;
     background: transparent;
     color: #dfeef8;
     border: none;
-    padding: 12px 14px;
+    padding: 8px 20px 8px;
     border-radius: 8px;
     text-align: left;
     cursor: pointer;
     transition: background 0.2s ease, color 0.2s ease;
     font-weight: 600;
-
   }
 
   .nav-item:hover {
@@ -97,7 +96,7 @@
   }
 
   .nav-icon-svg {
-    width: 1.5em;
+    width: 1.6em;
     height: auto;
     display: block;
     filter: var(--icon-filter-nav);
@@ -120,7 +119,7 @@
     align-items: center;
     justify-content: center;
     padding: 0;
-    margin: 4px 8px 10px auto;
+    margin: 4px 12px 10px auto;
   }
 
   .collapse-toggle img {

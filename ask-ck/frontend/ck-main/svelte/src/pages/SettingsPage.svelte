@@ -129,7 +129,7 @@ import UnderConstruction from '../lib/components/UnderConstruction.svelte';
         {#if tab.icon}
           <img src={tab.icon} alt="" aria-hidden="true" />
         {/if}
-        <span>{tab.label}</span>
+        <span class="settings-tab-label">{tab.label}</span>
       </button>
     {/each}
   </div>
@@ -318,6 +318,7 @@ import UnderConstruction from '../lib/components/UnderConstruction.svelte';
     display: flex;
     gap: 24px;
     align-items: flex-start;
+    padding: 0 48px 28px;
   }
 
   .settings-tabs {
@@ -325,6 +326,7 @@ import UnderConstruction from '../lib/components/UnderConstruction.svelte';
     flex-direction: column;
     gap: 4px;
     width: 180px;
+    padding: 8px 0 8px;
     flex-shrink: 0;
   }
 
@@ -344,6 +346,10 @@ import UnderConstruction from '../lib/components/UnderConstruction.svelte';
     text-align: left;
     cursor: pointer;
     transition: background-color 0.2s ease, color 0.2s ease;
+  }
+
+  .settings-tab-label {
+    font-size: 1rem;
   }
 
   .settings-tab img {
@@ -663,7 +669,7 @@ import UnderConstruction from '../lib/components/UnderConstruction.svelte';
 
   .provider-status {
     padding: 6px 16px;
-    border-radius: 999px;
+    border-radius: 10px;
     font: inherit;
     font-weight: 600;
     font-size: 0.85rem;
