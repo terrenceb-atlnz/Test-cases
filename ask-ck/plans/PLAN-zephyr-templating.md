@@ -24,8 +24,10 @@ verified: 2026-10-07
 > §8.14 answered — all 15 template cycles are clean from the cycle side. D13–D15 decided. **The
 > real upload's design is §5b — reviewed and accepted; BUILT 2026-10-07 on branch `zt-upload` in a
 > scratchpad worktree (P7): gate green there, 13 mutations each red, scratch-server smoke on IE570
-> (dry run + a refused confirmation; no write). Not yet applied to production, and no real upload
-> has been run by the tool.** Open questions: §8.
+> (dry run + a refused confirmation; no write).** **APPLIED 2026-10-07 12:19** (`git merge --ff-only`,
+> `bc9d7bc`…`781f97d`, one reload, no wedge), after the **first real upload by the tool** on the scratch
+> server: Industrial Features P3260 → **P3266**, C8463 → **C8470** in the IE570 folders, read back from
+> both ends (§5b, *First real run*). Open questions: §8.
 
 ## 1. What the tool does (from `docs/zephyr.txt`)
 
@@ -195,7 +197,7 @@ typo for IE520) and its Schedule says 5.5.6-1.
 | **1** *(done by hand)* | the clone side effects measured on IE570 (§6) — Terrence cloned, Claude unlinked and renamed | Zephyr writes, each asked | **DONE** 2026-10-05 |
 | **3** | analysis: Q1–Q5 + AI Notes over the snapshot tree (§5a) | the per-seat LLM | **BUILT** 2026-10-05 (`zt_analysis.py`, 2 prompts, `/analyse`) |
 | **4** | the single page (§5a) | front end | **BUILT** 2026-10-05 (`current/zephyr-tool/`, both index pages) |
-| **5** | API Upload: **dry-run list first (D9)**; then an audit record written before the first write (the `push_to_zephyr` pattern), clone → move → unlink → rename → verify | Zephyr writes | dry run **BUILT** (`zt_upload.py`, `/upload/preview`); every request **CAPTURED** 2026-10-07 (§6a); the writes **BUILT** 2026-10-07 (`--apply`, `/upload/run`, §5b) — not yet applied or run |
+| **5** | API Upload: **dry-run list first (D9)**; then an audit record written before the first write (the `push_to_zephyr` pattern), clone → move → unlink → rename → verify | Zephyr writes | dry run **BUILT** (`zt_upload.py`, `/upload/preview`); every request **CAPTURED** 2026-10-07 (§6a); the writes **BUILT** 2026-10-07 (`--apply`, `/upload/run`, §5b); first real run P3260 → P3266 and **APPLIED** 2026-10-07 12:19 |
 | later | wiki write-back: put the cloned plan keys into `{{ATMSummary|…}}` on `Test:<version>/<project>/Status` (D7) | one wiki write | not built |
 
 **The analysis guardrail (Phase 3):** the model may only PROPOSE deselections, each with a reason
@@ -249,7 +251,7 @@ to test strategy for details"); a reply with no usable JSON is asked once more. 
 gaps, no mis-cited section. Open (§8.12): with Q1 barred, the model unticked Advanced Management's
 ONLY cycle (Q2) on the same TPS rows — the plan is emptied anyway.
 
-## 5b. Phase 5 design — the real upload (2026-10-07, REVIEWED — BUILT on branch `zt-upload`, not applied)
+## 5b. Phase 5 design — the real upload (2026-10-07, REVIEWED — BUILT on branch `zt-upload`; APPLIED 2026-10-07 12:19)
 
 Decisions D13–D15 (§3); the requests are §6a's, all known. **P1–P7 were proposed by Claude and
 accepted by Terrence 2026-10-07, with P6 extended (the version) and P7's first target chosen.**
@@ -299,6 +301,23 @@ accepted by Terrence 2026-10-07, with P6 extended (the version) and P7's first t
   dry run; the router change restarts production, so it is applied only on Terrence's "apply".
   **First real run (Terrence, 2026-10-07): ONE family into the IE570 project folder**, the family
   chosen at the time (D15 skips Port and Factory Tests).
+
+**First real run (2026-10-07, scratch server, 23:16:47–23:17:23Z).** Terrence ran it from the page
+with What Version `5.5.6-2`, Team Subfolder `Tomahawk`, Project Number `3001`, Product `IE570`, one
+family ticked: **Industrial Features** (P3260 → C8463, 12 cases, none unticked, so the `tql` excluded
+nothing). Outcome `done`, ~36 s, 10 writes, all 200, each audited first: plan clone + move, cycle
+clone + move, `DELETE …/tracelink/169950` (plan side — P3266 ↔ the template cycle C8463), `…/169952`
+(cycle side, after the ~30 s read — C8470 ↔ its template's plan P3260, the §6 side effect; inferred
+from the order, since C8463 links only P3260, §8.14), two renames. **Read back by Claude (GET only):**
+P3266 "IE570: Industrial Features (Ask-CK)" in folder 26670, not archived, links only C8470 (169954);
+C8470 the same name in 26674, links only P3266 from the cycle side; its 12 cases equal C8463's;
+template P3260 ↔ C8463 only (169702), both still in the TEMPLATES folders.
+
+**Added during the run (Terrence, on the scratch server):** Stop cancels the analysis's LLM calls
+mid-flight, only from the page that started it (403 otherwise); the tree is collapsed except where
+the analysis changed something; the Upload confirmation is a modal over the page fields (P6);
+**What Team Subfolder** and **What Project Number** are page fields (D5 — blank / `N/A` / `None` /
+`-` mean "none"), so a reload or a stopped analysis no longer loses them.
 
 Out of scope here: the wiki write-back (D7), template assignees (deferred).
 
@@ -423,7 +442,9 @@ C8458 (10 cases), link 169696 only, `updatedOn` 21:28Z (the unlinks); P3264 arch
 
 1. ~~Go-ahead for Phase 0b~~ — given 2026-10-05.
 2. ~~Target location~~ — answered: the user creates it; the tool finds it from the version and the
-   Strategy's §6.2 path (D5). *Still to settle in Phase 5:* the exact Zephyr folder match (does the
+   Strategy's §6.2 path (D5). **Settled 2026-10-07 (`zt_upload.find_target`):** a direct child of
+   `/<version>/<team subfolder>` (or `/<version>`) whose name carries `Project <number>` or the
+   product, exactly one; none or several → a plain-words problem and no write. *Was — still to settle in Phase 5:* the exact Zephyr folder match (does the
    last level name the project, e.g. `Project 3296: IE520`?) and what the page shows when it is absent.
 3. **Sandbox for Phase 1:** which Zephyr folder may test clones be written to, and who removes them?
 4. ~~Credentials~~ — answered: the shared `JIRA_KEY` (D13). *Was:* the shared `JIRA_KEY` in

@@ -111,3 +111,14 @@ index pages) was built and committed on a scratchpad worktree branch, and Claude
 06:07:40, new worker up 06:08:07 (~27 s), four agents long-polling; 10.33.12.16's lock heartbeat
 answered 200 at 06:09:40. Same intermittency — watch 45 s, restart if it hangs.
 
+**2026-10-07 — again the worktree-branch route, no wedge.** The Zephyr real upload (`zephyr_tool.py`
++ JS + both index pages) merged with `git merge --ff-only` on Terrence's "apply": `StatReload` at
+12:19:10, new worker 12:19:36 (~26 s), `/api/version` 200 about 9 s after the watch began.
+
+**⚠ Correction (2026-10-07): a lock heartbeat answering 200 after a restart does NOT mean the lock
+survived.** The 2026-10-02, -05 and -06 notes above read it that way. `locks.heartbeat()` refreshes a
+lock only if one exists and returns 200 either way, and the page fires it without reading the reply
+(`shared/locks.js` `heartbeatNow`), so a restart empties the registry and every seat's lock stays
+gone until that page re-acquires (a reload). See [[auth-and-case-locking-plan]]. **How to apply:**
+before a restart, check the journal for `/heartbeat` lines — those seats lose their case locks.
+

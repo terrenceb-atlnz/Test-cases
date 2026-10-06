@@ -45,7 +45,7 @@ This version replaces the original single-file static `index.html` approach.
 - Enforces the repeatable process state machine.
 - Direct LLM calls using templated prompts.
 - Post-processing of LLM output using templates/parsers for guaranteed repeatable structure.
-- REST API consumed by the frontend: `/api/wizard` (Generator), `/api/pytest-create` (PyTest Creator), `/api/zephyr-tool` (Zephyr Templating Tool — template snapshot, analysis, upload dry run; see below) and the stub router `/api/test-composer`.
+- REST API consumed by the frontend: `/api/wizard` (Generator), `/api/pytest-create` (PyTest Creator), `/api/zephyr-tool` (Zephyr Templating Tool — template snapshot, analysis, upload dry run and real upload; see below) and the stub router `/api/test-composer`.
 - Serves the process documentation as interactive web pages.
 
 **Frontend**: Static web UI (vanilla JS + HTML, served by the backend) — `frontend/ck-main/current/index.html`.
@@ -135,7 +135,7 @@ ask-ck/                              (layout of 2026-09-11 — PLAN-restructure-
 │       │   │   ├── config.py        ← session clear, CLI status, LLM config, health
 │       │   │   ├── synthesis.py     ← objectives + steps
 │       │   │   └── export.py        ← drop-in refined-cases bundle + push_to_zephyr
-│       │   ├── zephyr_tool.py       ← Zephyr Templating Tool: snapshot, analysis job, upload dry run (/api/zephyr-tool)
+│       │   ├── zephyr_tool.py       ← Zephyr Templating Tool: snapshot, analysis job, upload preview + run (/api/zephyr-tool)
 │       │   ├── test_composer.py     ← Test Composer stub (/api/test-composer)
 │       │   ├── pytest_create.py     ← PyTest Creator (/api/pytest-create) — fully implemented
 │       │   ├── agent_bridge.py      ← the seat-agent broker (/api/agent) + /setup/ (seat setup)
@@ -494,7 +494,9 @@ Every LLM panel (Generator: objectives, steps, the 3 *Suggest* panels; PyTest Cr
   needs no stop → load → start.
 - **Zephyr Templating Tool — analysis + page (Phases 3–4, 2026-10-05; PLAN §5a).** `POST
   /api/zephyr-tool/analyse {url}` starts a job (one request, then polling `GET /analyse/{id}`;
-  `POST /analyse/{id}/cancel` skips calls not yet started). The job runs `ask-ck/tools/zt_wiki.py`
+  `POST /analyse/{id}/cancel` skips calls not yet started and, since 2026-10-07, cancels the ones
+  already with the model through `llm_inflight` — only from the page (`X-CK-Session`) that started
+  the job, 403 otherwise; a plan whose call was cut short reads "stopped"). The job runs `ask-ck/tools/zt_wiki.py`
   on the project page — a LIVE read-only wiki read, the accepted exception D12 — then asks the
   seat's LLM (`effective_llm_config`, captured at the POST) `zt_analyse_plan.jinja` once per
   template plan (Q1–Q4, 4 at a time) and `zt_gaps.jinja` once (Q5 gaps + AI Notes). `zt_analysis.py`
@@ -509,8 +511,9 @@ Every LLM panel (Generator: objectives, steps, the 3 *Suggest* panels; PyTest Cr
   their `<product>: <name> (Ask-CK)` plan already exists (D15). It writes nothing.
 - **Zephyr Templating Tool — the real upload (Phase 5, 2026-10-07; PLAN §5b).** `POST
   /api/zephyr-tool/upload/run {selection…, confirm_product, confirm_version}` refuses (422) unless
-  the typed product AND version equal the selection's (P6 — a delayed project may carry an old
-  version), and one upload runs at a time (409). It runs `zt_upload.py --apply` as a job; the page
+  the confirmed product AND version equal the selection's (P6 — a delayed project may carry an old
+  version; the page sends them from a confirmation modal showing What Product / What Version and any
+  folder for the project under another version), and one upload runs at a time (409). It runs `zt_upload.py --apply` as a job; the page
   polls `GET /upload/run/{id}` for the tool's progress lines. The tool reads everything first,
   writes an audit line to `ask-ck/db/zt-upload-audit.jsonl` before every write (no line, no write),
   checks each cloned cycle's cases against the ticks, unlinks from both sides, renames, verifies

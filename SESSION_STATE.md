@@ -4962,3 +4962,15 @@ real upload's writes are not started. Detail: PROGRESS 2026-10-07 and the plan's
 
 Gate: EXIT=0 — both guards OK, pytest 2020 / 1 skipped, vitest 384 in 35 files, ck.db untouched.
 
+## Session Close / Handoff (2026-10-07, later) — the Zephyr real upload, run once and applied
+
+Continued after the 2026-10-07 wrap (same session, compacted). Terrence asked for all three
+open items: §8.13 (a cycle clone's `tql` can leave cases out — tested on one real clone, then
+deleted), §8.14 (all 15 template cycles clean), and the real upload — designed (§5b, P1–P7 accepted,
+D13–D15 decided), built on a worktree branch, extended from his scratch-server use (Stop mid-flight,
+folding tree, confirmation modal, Team Subfolder / Project Number fields), and run once by him:
+Industrial Features → P3266 / C8470 on IE570, read back clean from both ends. Applied on his "apply"
+(`git merge --ff-only`, `bc9d7bc`…`781f97d`, one reload ~26 s, no wedge). Detail: PROGRESS
+2026-10-07 (later) and the plan's §5b.
+
+Gate: EXIT=0 — both guards OK, pytest 2046 / 1 skipped, vitest 392 in 35 files, ck.db untouched.

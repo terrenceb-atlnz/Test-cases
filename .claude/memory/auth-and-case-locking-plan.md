@@ -4,7 +4,7 @@ description: "Ask-CK's intended end-state is real multi-user (Terrence, 2026-07-
 metadata: 
   node_type: memory
   type: project
-  verified: 2026-09-28
+  verified: 2026-10-07
   modified: 2026-08-17T00:00:00.000Z
   originSessionId: 7daaa873-01d4-42ab-836d-65d158c2ca74
 ---
@@ -61,6 +61,12 @@ Phases 2–3 are unbuilt — so it is an unauthenticated LAN service. The plan's
 **Terrence accepted this on 2026-09-23:** *"Its fine as-is. im the only one using it. we will
 incorporate LDAP or something later."* So don't raise it again as an open risk. When auth comes
 back, the likely route is LDAP (or similar), which fits the SSO/proxy preference above.
+
+**A restart empties the registry, and nothing puts the locks back (read 2026-10-07).** The page's
+heartbeat is fire-and-forget (`shared/locks.js` `heartbeatNow` ignores the reply) and the server's
+`heartbeat()` is a no-op that still answers 200 when it holds no lock — so after any reload every
+open case is unlocked until its page is reloaded, while that page still believes it holds the lock.
+Every backend apply is such a restart ([[editing-backend-restarts-production]]).
 
 **How to apply:** Phase 1 is done — do not re-implement it, and **do not add a `case_locks` table**;
 that option was considered and deliberately rejected ([[db-is-permanent-source]]). Before starting

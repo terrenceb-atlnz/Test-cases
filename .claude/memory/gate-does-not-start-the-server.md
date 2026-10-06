@@ -3,7 +3,7 @@ name: gate-does-not-start-the-server
 description: The gate (guards + pytest + Vitest) never starts the server, so a broken launch path, static mount or shell tool stays green — after any layout/anchor change, smoke-test on the SCRATCH server (ask-ck/tools/run_scratch_server.sh --bg, port 8123, throwaway DB copy) and probe /health, /, the modules and the routers; never the real one
 metadata:
   type: feedback
-  verified: 2026-10-06
+  verified: 2026-10-07
 ---
 
 **What happened (2026-09-11, the restructure):** nine batches of moves, gate green after every
@@ -39,6 +39,11 @@ break reaches the hosted server untested.
   loses in-memory state** (an analysis job vanished mid-run 2026-10-05). Edit only between runs.
 - The scratch script's banner says `Stop: ./ask-ck/CK-main/run.sh --stop` — ignore it; stop by PGID
   as above (it was 3 processes on 2026-10-06: reloader, worker, a respawned worker).
+- **Running a seat's agent setup line from the scratch page re-points that seat's agent** (2026-10-07):
+  the served `setup.sh` writes the page's origin into `CK_AGENT_ORIGIN`, and the agent then accepts
+  only that origin — so after testing `claude_agent` calls on :8123, the production page's calls fail
+  ("NetworkError") until the seat re-runs production's line (`curl -fsSL <prod origin>/setup/setup.sh
+  | bash`). Say so when the scratch work ends.
 - The stray-script hook matches the word `install` like `cp`/`mv`: a command that runs
   `npm install` and also names a `.py` file is refused. Split such commands.
 

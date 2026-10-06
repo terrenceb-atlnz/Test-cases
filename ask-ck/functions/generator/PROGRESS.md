@@ -5,11 +5,61 @@ verified: 2026-09-28
 
 **Purpose**: This file exists so future sessions can quickly understand exactly where we are, what has been built, what the priorities are, and how to continue seamlessly.
 
-**Last Updated**: 2026-10-07 (by Claude; the Zephyr upload requests captured — Factory Tests → IE570)
+**Last Updated**: 2026-10-07, later (by Claude; the Zephyr real upload built, run once on IE570, applied)
 
 > **Reading note (2026-09-23 doc sweep).** Entries are frozen as written. Where an entry's
 > claim has since stopped being true, a ⚠ line under its heading says what changed.
 > Newest first. Paths in older entries predate these moves (the same as in CHANGELOG): `tool/` → `ask-ck/tools/`, `ask-ck/var/` → `ask-ck/db/`, `objective-drafting/` → `ask-ck/functions/generator/`, `pytest-create/` → `ask-ck/functions/pytest-creator/`, `js-tests/` → `tests/js/`, `ask-ck/ck-facelift/` → `ask-ck/plans/`, root reports → `docs/`, and completed plans `ask-ck/plans/` → `archive/plans/` (2026-09-11, 2026-09-23). Also retired 2026-09-23: the demo notes → `archive/plans/demo-2026-09-11/`, and `HANDOFF-generate-token-efficiency.md` + `Fragments_prompt.md` → `archive/records/`.
+
+## Latest session (2026-10-07, later) — the Zephyr real upload: built, run once on IE570, applied
+
+Same session as the entry below, after its wrap. Terrence: *"Please do all three open items"* — the
+real upload's writes, §8.13, §8.14. Detail and decisions: `ask-ck/plans/PLAN-zephyr-templating.md`
+§3 (D13–D15), §5b (P1–P7 and *First real run*), §6a.
+
+**Answered first (`937f258`).** §8.13: a cycle clone honours a `tql` with `testCase.key NOT IN (…)`
+— tested with one real clone (C8458 without T48185), then unlinked and deleted via the API
+(`POST …/testrun/bulk/delete`; plans can only be archived). §8.14: all 15 template cycles link only
+their own plan (cycle-side reads, 27–37 s each). Terrence decided D13 (the shared `JIRA_KEY`), D14
+(stop and report on a failure, undo nothing), D15 (skip a family whose `(Ask-CK)` plan exists),
+accepted P1–P7, extended P6 to the **version** (a delayed project may carry an old one).
+
+**Built on branch `zt-upload` (scratchpad worktree), five commits `bc9d7bc`…`781f97d`:**
+- `zt_upload.py --apply` — the §5b order per family, an audit line before every write
+  (`ask-ck/db/zt-upload-audit.jsonl`), the cloned cycle's cases checked against the ticks, unlink
+  from both sides, rename, verify both sides; `POST /upload/run` + `GET /upload/run/{id}` as a job,
+  422 unless the confirmed product+version equal the selection's, 409 while one runs.
+- Stop cancels the analysis's calls already with the model (`llm_inflight`), only from the page that
+  started it (403 otherwise) — Terrence: reuse the other Stop buttons, *"for this user alone"*.
+- The tree folds, collapsed unless the analysis changed something inside.
+- The confirmation is a modal over the page fields (no typing); the fields are compact (a URL-row
+  flex rule had made them 260 px tall).
+- **What Team Subfolder** and **What Project Number** are page fields (blank / `N/A` / `None` / `-` =
+  none); the "no folder" problem is now plain words. Prompted by red lines Terrence could not read
+  after a reload had lost both values.
+- Tests: `test_zt_upload.py` (24), `test_zt_upload_run.py` (new, 7), `test_zt_analysis.py` (+2),
+  `zt-page.spec.js`; every behaviour mutation-checked — one ("N/A taken literally") survived at first
+  and the test was tightened until it went red.
+
+**The first real upload (Terrence, on the scratch server, one family):** Industrial Features P3260 →
+**P3266**, C8463 → **C8470** "IE570: Industrial Features (Ask-CK)" in `/5.5.6-2/Tomahawk/Project
+3001: IE570`; `done` in ~36 s, 10 writes all 200. Read back by Claude from both ends: one link each
+way (169954), 12 cases equal to the template's, template pair untouched.
+
+**Applied** on Terrence's "apply" — `git merge --ff-only` at 12:19:10, new worker 12:19:36, no wedge.
+Gate on main after: both guards OK, pytest 2046 / 1 skipped, vitest 392 in 35 files. Worktree
+removed, scratch server stopped. The scratch server's setup line had re-pointed LavenderTown's
+agent to :8123; Terrence was given production's line to re-run (not confirmed working at wrap).
+
+**Pending / next.**
+- The other families into IE570 (Port and Factory Tests will be skipped, D15) — Terrence's call.
+- Open questions still in the plan: §8.3, §8.9 (empty C8465), §8.12 (one-cycle plan emptied by Q2);
+  the wiki write-back (D7) is not built.
+- The restart dropped 10.33.12.16's in-memory locks on T33234/T33235 (idle tab); a heartbeat does
+  not re-acquire, so that page needs a reload to hold them again.
+- Carried: the Jira cookies pasted earlier (log out/in to revoke); the stray personal memory slugs
+  (`-home-terrenceb`, `…Documents-banilla`, empty `…WoW-Vanilla`) — Terrence's call.
+- The merged `zt-upload` branch still exists locally (not deleted — not asked).
 
 ## Latest session (2026-10-07) — the Zephyr upload requests captured; the dry run lists them all
 

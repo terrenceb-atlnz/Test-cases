@@ -21,6 +21,28 @@ current working thread see
 > `ask-ck/ck-facelift/`, `pytest-create/` and `CK-main/` plan paths moved to `ask-ck/plans/` on 2026-09-11 and, once complete, to `archive/plans/`.
 > `js-tests/` → `tests/js/`, `e2e/` → `tests/e2e/`, `static/js/` → `ask-ck/frontend/ck-main/current/<page>/` (2026-09-11).
 
+## 2026-10-07 (later) — Zephyr upload: the real writes; Stop mid-flight; the page's fields
+
+**What.** API Upload now writes: `POST /api/zephyr-tool/upload/run` runs `ask-ck/tools/zt_upload.py
+--apply` as a job, cloning each ticked template family into the project's folders, leaving unticked
+cases out at the cycle clone, cutting the clone's stray links from both sides, renaming `<product>:
+<name> (Ask-CK)` and verifying. First run: Industrial Features → P3266 / C8470 on IE570. Also: the
+analysis's Stop cancels calls already running; the tree folds; the confirmation is a modal; What
+Team Subfolder and What Project Number are fields. Record: `PLAN-zephyr-templating.md` §5b.
+
+**Why it is shaped this way.**
+- *Unticked cases are left out by the clone's `tql`, not removed afterwards* — tested (§8.13); one
+  request instead of a clone plus a save, and the remove-case body stays only as a fallback.
+- *An audit line before every write, and no undo on failure* (P3, D14) — a half-made family is
+  visible in Zephyr and in the log; an automatic undo would be a second unverified set of writes.
+- *The product AND the version are confirmed, and the server re-checks them* (P6) — a delayed
+  project can carry an old version, and the page lists any folder for it under another version
+  before the modal; no URL edit turns a preview into writes.
+- *Every link is checked from the cycle side too* — archived plans only show there (§6a).
+- *Team Subfolder and Project Number are fields, not hidden analysis output* — a reload or a stopped
+  analysis lost them and the folder search failed with a message nobody could read.
+- *Only the page that started an analysis can stop it* — Terrence: *"for this user alone"*.
+
 ## 2026-10-07 — Zephyr upload: every request captured; the dry run lists the real calls
 
 **What.** The upload requests the 2026-10-06 dry run marked "not captured" — plan and cycle clone,
