@@ -7,8 +7,8 @@
 import { describe, it, expect } from 'vitest';
 
 import '../../ask-ck/frontend/ck-main/current/shared/actions.js';
-import { treeRows, applyProposals, setTick, uploadSelection, renderTree, renderAnalysis, renderUpload }
-  from '../../ask-ck/frontend/ck-main/current/zephyr-tool/zephyr-tool.js';
+import { treeRows, applyProposals, setTick, uploadSelection, renderTree, renderAnalysis, renderUpload,
+  confirmMatches, renderRun } from '../../ask-ck/frontend/ck-main/current/zephyr-tool/zephyr-tool.js';
 
 const TREE = { plans: [
   { key: 'P1', name: 'Port', cycles: [{ key: 'C1', name: 'Port', cases: [{ key: 'T1', name: 'speed' }, { key: 'T2', name: 'duplex' }] }] },
@@ -83,13 +83,48 @@ describe('rendering', () => {
     expect(html).toContain('refused by the guardrail (duplicate)');
   });
 
-  it('marks the not-yet-captured calls in the dry run', () => {
-    const html = renderUpload({ targets: { testplan: { path: '/5.5.6-2/Tomahawk/Project 3001: IE570' }, testrun: { path: null } },
-      counts: { calls: 2, writes_not_captured: 1 }, problems: [],
-      calls: [{ n: 1, op: 'clone plan', method: 'POST', path: '/x', known: false, about: 'a' },
-              { n: 2, op: 'rename', method: 'PUT', path: '/y', known: true, about: 'b' }] });
-    expect(html).toContain('dry run (nothing was written)');
+  const SEL = { version: '5.5.6-2', product: 'IE570', plans: [] };
+  const PREVIEW = {
+    targets: { testplan: { path: '/5.5.6-2/Tomahawk/Project 3001: IE570' }, testrun: { path: null } },
+    counts: { plans: 1, cycles: 1, calls: 2, skipped: 1 }, problems: [],
+    project_folders: [{ kind: 'testplan', path: '/5.5.6-2/Tomahawk/Project 3001: IE570', version: '5.5.6-2' },
+                      { kind: 'testrun', path: '/5.5.6-1/Tomahawk/Project 3001: IE570', version: '5.5.6-1' }],
+    duplicates: [{ key: 'P9', name: 'IE570: Port (Ask-CK)' }],
+    calls: [{ n: 1, op: 'clone plan', method: 'POST', path: '/x', known: true, about: 'a <b>' },
+            { n: 2, op: 'rename', method: 'PUT', path: '/y', known: true, about: 'b' }] };
+
+  it('lists the calls, the folders in every version, and what is skipped — nothing written yet', () => {
+    const html = renderUpload(PREVIEW, SEL);
+    expect(html).toContain('nothing is written yet');
     expect(html).toContain('Cycle folder: not found');
-    expect((html.match(/zt-unknown/g) || []).length).toBe(1);
+    expect(html).toContain('a &lt;b&gt;');
+    expect(html).toContain('/5.5.6-1/Tomahawk/Project 3001: IE570 — a different version from What Version (5.5.6-2)');
+    expect(html).toContain('Check What Version');
+    expect(html).toContain('P9</span> → IE570: Port (Ask-CK) exists');
+  });
+
+  it('offers Write to Zephyr only when nothing stands in the way, starting disabled', () => {
+    expect(renderUpload(PREVIEW, SEL)).toMatch(/id="zt-run"[^>]*disabled/);
+    expect(renderUpload(Object.assign({}, PREVIEW, { problems: ['no folder'] }), SEL)).not.toContain('zt-run');
+    expect(renderUpload(Object.assign({}, PREVIEW, { calls: [] }), SEL)).not.toContain('zt-run');
+  });
+
+  it('needs the product AND the version typed exactly', () => {
+    expect(confirmMatches(SEL, 'IE570', '5.5.6-2')).toBe(true);
+    expect(confirmMatches(SEL, ' IE570 ', '5.5.6-2 ')).toBe(true);
+    expect(confirmMatches(SEL, 'IE570', '5.5.6-1')).toBe(false);
+    expect(confirmMatches(SEL, 'ie570', '5.5.6-2')).toBe(false);
+    expect(confirmMatches(null, 'IE570', '5.5.6-2')).toBe(false);
+    expect(confirmMatches({ product: '', version: '' }, '', '')).toBe(false);
+  });
+
+  it('shows a stopped upload as stopped, with what was created and nothing undone', () => {
+    const html = renderRun({ state: 'stopped', steps: [{ msg: 'clone plan: POST /x → 200' }],
+      result: { stopped_at: 'P1', error: 'move cycle answered 500', created: [{ kind: 'plan', id: 11, from: 'P1' }], skipped: [] } });
+    expect(html).toContain('nothing was undone');
+    expect(html).toContain('move cycle answered 500');
+    expect(html).toContain('plan 11 (from P1)');
+    expect(html).toContain('<li>clone plan: POST /x → 200</li>');
+    expect(renderRun({ state: 'refused', steps: [], result: { error: 'typed version differs' } })).toContain('nothing was written');
   });
 });

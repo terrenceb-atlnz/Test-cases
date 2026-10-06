@@ -502,10 +502,20 @@ Every LLM panel (Generator: objectives, steps, the 3 *Suggest* panels; PyTest Cr
   plan's tree, a question that fits the key, a reason and a source, and never on a "Maybe" row; a
   failed call leaves its plan fully ticked and says so. Jobs live in memory (the last 20) — a
   restart forgets them. `POST /api/zephyr-tool/upload/preview` runs `ask-ck/tools/zt_upload.py
-  --dry-run` (GET-only: finds the project folders and their ids, reads the template ids) and returns
-  the ordered call list — clone, move, unlink, remove-case, rename, verify — each with its method,
-  URL and body. Every request is known: unlink and rename used on IE570 2026-10-05, the rest
-  captured from the UI 2026-10-07 (PLAN §6a). **It writes nothing (D9); the tool refuses `--apply`.**
+  --dry-run` (GET-only: finds the project folders and their ids, every folder naming the project in
+  ANY version, the template ids, and plans already in the target folder) and returns the ordered
+  call list — clone (unticked cases left out by the cycle clone's `tql`), move, unlink, rename,
+  verify — each with its method, URL and body (PLAN §6a), plus the families it will SKIP because
+  their `<product>: <name> (Ask-CK)` plan already exists (D15). It writes nothing.
+- **Zephyr Templating Tool — the real upload (Phase 5, 2026-10-07; PLAN §5b).** `POST
+  /api/zephyr-tool/upload/run {selection…, confirm_product, confirm_version}` refuses (422) unless
+  the typed product AND version equal the selection's (P6 — a delayed project may carry an old
+  version), and one upload runs at a time (409). It runs `zt_upload.py --apply` as a job; the page
+  polls `GET /upload/run/{id}` for the tool's progress lines. The tool reads everything first,
+  writes an audit line to `ask-ck/db/zt-upload-audit.jsonl` before every write (no line, no write),
+  checks each cloned cycle's cases against the ticks, unlinks from both sides, renames, verifies
+  from the plan AND cycle side, and STOPS at the first failure without undoing anything (D14). The
+  token stays with the tool (D13, the shared `JIRA_KEY`). Jobs live in memory (the last 10).
 
 ## Typical Workflow (Repeatable Process — Generator)
 

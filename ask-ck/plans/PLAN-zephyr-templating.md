@@ -22,8 +22,10 @@ verified: 2026-10-07
 >
 > **2026-10-07 (later):** §8.13 answered — a cycle clone honours a `tql` that excludes cases (§6a);
 > §8.14 answered — all 15 template cycles are clean from the cycle side. D13–D15 decided. **The
-> real upload's design is §5b — reviewed and accepted; being built off the live tree (P7).**
-> Open questions: §8.
+> real upload's design is §5b — reviewed and accepted; BUILT 2026-10-07 on branch `zt-upload` in a
+> scratchpad worktree (P7): gate green there, 13 mutations each red, scratch-server smoke on IE570
+> (dry run + a refused confirmation; no write). Not yet applied to production, and no real upload
+> has been run by the tool.** Open questions: §8.
 
 ## 1. What the tool does (from `docs/zephyr.txt`)
 
@@ -188,7 +190,7 @@ typo for IE520) and its Schedule says 5.5.6-1.
 | **1** *(done by hand)* | the clone side effects measured on IE570 (§6) — Terrence cloned, Claude unlinked and renamed | Zephyr writes, each asked | **DONE** 2026-10-05 |
 | **3** | analysis: Q1–Q5 + AI Notes over the snapshot tree (§5a) | the per-seat LLM | **BUILT** 2026-10-05 (`zt_analysis.py`, 2 prompts, `/analyse`) |
 | **4** | the single page (§5a) | front end | **BUILT** 2026-10-05 (`current/zephyr-tool/`, both index pages) |
-| **5** | API Upload: **dry-run list first (D9)**; then an audit record written before the first write (the `push_to_zephyr` pattern), clone → move → unlink → rename → verify | Zephyr writes | dry run **BUILT** (`zt_upload.py`, `/upload/preview`); every request **CAPTURED** 2026-10-07 (§6a) and in the dry run; the writes are not built |
+| **5** | API Upload: **dry-run list first (D9)**; then an audit record written before the first write (the `push_to_zephyr` pattern), clone → move → unlink → rename → verify | Zephyr writes | dry run **BUILT** (`zt_upload.py`, `/upload/preview`); every request **CAPTURED** 2026-10-07 (§6a); the writes **BUILT** 2026-10-07 (`--apply`, `/upload/run`, §5b) — not yet applied or run |
 | later | wiki write-back: put the cloned plan keys into `{{ATMSummary|…}}` on `Test:<version>/<project>/Status` (D7) | one wiki write | not built |
 
 **The analysis guardrail (Phase 3):** the model may only PROPOSE deselections, each with a reason
@@ -242,7 +244,7 @@ to test strategy for details"); a reply with no usable JSON is asked once more. 
 gaps, no mis-cited section. Open (§8.12): with Q1 barred, the model unticked Advanced Management's
 ONLY cycle (Q2) on the same TPS rows — the plan is emptied anyway.
 
-## 5b. Phase 5 design — the real upload (2026-10-07, REVIEWED — building)
+## 5b. Phase 5 design — the real upload (2026-10-07, REVIEWED — BUILT on branch `zt-upload`, not applied)
 
 Decisions D13–D15 (§3); the requests are §6a's, all known. **P1–P7 were proposed by Claude and
 accepted by Terrence 2026-10-07, with P6 extended (the version) and P7's first target chosen.**

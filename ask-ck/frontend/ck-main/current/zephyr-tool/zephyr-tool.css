@@ -38,3 +38,5 @@
 #panel-zt .zt-calls code { font-size: 11px; word-break: break-all; }
 #panel-zt .zt-calls tr.zt-unknown td { color: var(--text-tertiary); }
 #panel-zt #zt-upload-result { margin-top: 12px; }
+#panel-zt .zt-run .form-input { max-width: 14em; }
+#panel-zt .zt-steps { font-size: 0.85em; margin: 0.5em 0 0 1.2em; }

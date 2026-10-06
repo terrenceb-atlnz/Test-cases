@@ -1,7 +1,9 @@
 // Zephyr Templating Tool — the single page (ask-ck/plans/PLAN-zephyr-templating.md §5a,
 // docs/zephyr.txt "UI"). Paste a project's wiki URL → Organize with LLM → What Version / What
 // Product fill in → two columns: Results Analysis (read-only) and the Plan → Cycle → Case tree
-// (checkboxes) → Confirm un-greys API Upload, which shows the DRY-RUN call list (D9).
+// (checkboxes) → Confirm un-greys API Upload, which shows the call list (D9) and where the project
+// has folders in every version → typing the product AND the version un-greys Write to Zephyr
+// (§5b P6), the real upload, polled like the analysis.
 //
 // One request, then polling (the browser connection ceiling): POST /analyse returns an id and
 // GET /analyse/{id} is polled every POLL_MS. Tree rows are keyed by PATH ("P", "P/C", "P/C/T"),
@@ -25,6 +27,9 @@ export const zt = {
   ai: new Map(),       // row id → {question, reason, source} for rows the analysis unticked
   manual: [],          // [id, on] the user's own ticks, in order — replayed over each poll
   confirmed: false,
+  previewed: null,     // the selection API Upload listed — the one Write to Zephyr sends
+  run: null,           // the latest GET /upload/run/{id}
+  runPoll: null,
   poll: null,
   loaded: false,
 };
@@ -191,17 +196,74 @@ export function renderAnalysis(job, tree) {
   return out.join('');
 }
 
-export function renderUpload(d) {
+/** True when the typed product and version equal the previewed selection's (§5b P6). */
+export function confirmMatches(sel, product, version) {
+  return !!(sel && sel.product && sel.version
+    && (product || '').trim() === sel.product && (version || '').trim() === sel.version);
+}
+
+/** The API Upload result: where the project has folders in EVERY version (a project that slipped
+ *  a release can carry an old version — P6), what is skipped (D15), the calls, and — when nothing
+ *  stands in the way — the Write to Zephyr box. */
+export function renderUpload(d, sel) {
   const t = d.targets || {};
-  const head = `<div class="zt-h">API Upload — dry run (nothing was written)</div>`
+  const c = d.counts || {};
+  const version = (sel && sel.version) || '';
+  const out = [`<div class="zt-h">API Upload — what it will do (nothing is written yet)</div>`
     + `<div class="zt-small">Plan folder: ${escapeHtml((t.testplan && t.testplan.path) || 'not found')} · `
     + `Cycle folder: ${escapeHtml((t.testrun && t.testrun.path) || 'not found')} · `
-    + `${d.counts.calls} calls, ${d.counts.writes_not_captured} not captured yet.</div>`
-    + ((d.problems || []).length ? '<ul>' + d.problems.map(p => `<li class="zt-problem">${escapeHtml(p)}</li>`).join('') + '</ul>' : '');
-  const rows = (d.calls || []).map(c => `<tr class="${c.known ? '' : 'zt-unknown'}"><td>${c.n}</td><td>${escapeHtml(c.op)}</td>`
-    + `<td><code>${escapeHtml(c.method)} ${escapeHtml(c.path)}</code></td><td>${escapeHtml(c.about)}</td>`
-    + `<td>${c.known ? 'known' : 'not captured'}</td></tr>`).join('');
-  return head + `<table class="table zt-calls"><thead><tr><th>#</th><th>step</th><th>call</th><th>what</th><th>request</th></tr></thead><tbody>${rows}</tbody></table>`;
+    + `${c.plans || 0} plan(s), ${c.cycles || 0} cycle(s), ${c.calls || 0} calls`
+    + `${c.skipped ? `, ${c.skipped} skipped` : ''}.</div>`];
+  const folders = d.project_folders || [];
+  const other = folders.filter(f => f.version !== version);
+  out.push(`<div class="zt-block"><div class="zt-h">Where ${escapeHtml((sel && sel.product) || 'the project')} has folders in Zephyr</div>`
+    + (folders.length ? '<ul>' + folders.map(f => `<li class="${f.version !== version ? 'zt-problem' : ''}">`
+      + `${f.kind === 'testplan' ? 'plans' : 'cycles'}: ${escapeHtml(f.path)}`
+      + `${f.version !== version ? ` — a different version from What Version (${escapeHtml(version)})` : ''}</li>`).join('') + '</ul>'
+      : '<div class="zt-small">None found.</div>')
+    + (other.length ? `<div class="zt-small zt-problem">Check What Version: if the project slipped a release, the wiki may still name the old one.</div>` : '')
+    + '</div>');
+  if ((d.duplicates || []).length) {
+    out.push(`<div class="zt-block"><div class="zt-h">Skipped — already in the project folder</div><ul>`
+      + d.duplicates.map(x => `<li><span class="zt-key">${escapeHtml(x.key)}</span> → ${escapeHtml(x.name)} exists</li>`).join('') + '</ul></div>');
+  }
+  if ((d.problems || []).length) {
+    out.push('<ul>' + d.problems.map(p => `<li class="zt-problem">${escapeHtml(p)}</li>`).join('') + '</ul>');
+  }
+  const rows = (d.calls || []).map(x => `<tr class="${x.known ? '' : 'zt-unknown'}"><td>${x.n}</td><td>${escapeHtml(x.op)}</td>`
+    + `<td><code>${escapeHtml(x.method)} ${escapeHtml(x.path)}</code></td><td>${escapeHtml(x.about)}</td></tr>`).join('');
+  out.push(`<table class="table zt-calls"><thead><tr><th>#</th><th>step</th><th>call</th><th>what</th></tr></thead><tbody>${rows}</tbody></table>`);
+  if (!(d.problems || []).length && (d.calls || []).length && sel) {
+    out.push(`<div class="zt-block zt-run"><div class="zt-h">Write to Zephyr</div>`
+      + `<div class="zt-small">This makes the changes above in Zephyr. To confirm, type the product and the AW+ version `
+      + `exactly as shown — and check the version is still right for this project.</div>`
+      + `<div class="zt-line"><input id="zt-run-product" class="form-input" autocomplete="off" aria-label="Type the product to confirm" placeholder="type ${escapeHtml(sel.product || '')}">`
+      + `<input id="zt-run-version" class="form-input" autocomplete="off" aria-label="Type the AW+ version to confirm" placeholder="type ${escapeHtml(sel.version || '')}">`
+      + `<button id="zt-run" class="btn btn-primary" data-action="ztRun" disabled>Write to Zephyr</button></div>`
+      + `<div id="zt-run-result"></div></div>`);
+  }
+  return out.join('');
+}
+
+/** The real upload's progress and outcome (GET /upload/run/{id}). */
+export function renderRun(job) {
+  if (!job) return '';
+  const res = job.result || {};
+  const head = {
+    running: 'Writing to Zephyr…', done: 'Upload complete.', refused: 'Refused — nothing was written.',
+    stopped: 'Stopped at the first failure — nothing after it was written, and nothing was undone.',
+    error: 'The upload tool failed.',
+  }[job.state] || job.state;
+  const out = [`<div class="zt-state zt-state-${escapeHtml(job.state)}">${escapeHtml(head)}</div>`];
+  const err = job.error || res.error;
+  if (err) out.push(`<div class="zt-problem">${escapeHtml(err)}</div>`);
+  if (res.stopped_at) out.push(`<div class="zt-small">Stopped in ${escapeHtml(res.stopped_at)}.</div>`);
+  if ((res.created || []).length) {
+    out.push(`<div class="zt-small">Created in Zephyr: ${res.created.map(x => `${escapeHtml(x.kind)} ${escapeHtml(String(x.id))} (from ${escapeHtml(x.from || '')})`).join(', ')}.</div>`);
+  }
+  if ((res.skipped || []).length) out.push(`<div class="zt-small">Skipped: ${res.skipped.map(x => escapeHtml(x.key)).join(', ')}.</div>`);
+  out.push('<ol class="zt-steps">' + (job.steps || []).map(x => `<li>${escapeHtml(x.msg || '')}</li>`).join('') + '</ol>');
+  return out.join('');
 }
 
 // ------------------------------------------------------------------ page
@@ -236,6 +298,11 @@ function project() {
 
 function setConfirmed(on) {
   zt.confirmed = on;
+  if (!on && !zt.run) {                     // the selection changed: the listed calls no longer apply
+    zt.previewed = null;
+    const r = el('zt-upload-result');
+    if (r) r.innerHTML = '';
+  }
   const up = el('zt-upload');
   if (up) up.disabled = !on;
   const cf = el('zt-confirm');
@@ -375,14 +442,58 @@ async function ztUpload() {
   if (!setButtonBusy(btn, true, { label: 'Preparing…' })) return;
   let ok = false;
   try {
-    const d = await api('/upload/preview', { method: 'POST', body: JSON.stringify(uploadSelection(zt.tree, zt.ticked, project())) });
-    el('zt-upload-result').innerHTML = renderUpload(d);
+    const sel = uploadSelection(zt.tree, zt.ticked, project());
+    const d = await api('/upload/preview', { method: 'POST', body: JSON.stringify(sel) });
+    zt.previewed = sel;
+    zt.run = null;
+    el('zt-upload-result').innerHTML = renderUpload(d, sel);
     ok = true;
   } catch (e) {
     setStatus(e.message, true);
   } finally {
     setButtonBusy(btn, false);
     flashButtonDone(btn, ok);
+  }
+}
+
+function stopRunPolling() {
+  if (zt.runPoll) { clearInterval(zt.runPoll); zt.runPoll = null; }
+}
+
+async function pollRun(id) {
+  let d;
+  try { d = await api('/upload/run/' + encodeURIComponent(id)); } catch (e) {
+    stopRunPolling(); setStatus(e.message, true); return;
+  }
+  zt.run = d;
+  const box = el('zt-run-result');
+  if (box) box.innerHTML = renderRun(d);
+  if (d.state !== 'running') {
+    stopRunPolling();
+    setStatus(d.state === 'done' ? 'Upload complete.' : 'The upload did not complete — see below.', d.state !== 'done');
+  }
+}
+
+/** The real upload of exactly the selection API Upload listed (§5b). */
+async function ztRun() {
+  const sel = zt.previewed;
+  const product = (el('zt-run-product') || {}).value || '';
+  const version = (el('zt-run-version') || {}).value || '';
+  if (!confirmMatches(sel, product, version)) return;
+  const btn = el('zt-run');
+  if (btn) btn.disabled = true;
+  ['zt-run-product', 'zt-run-version'].forEach(i => { const x = el(i); if (x) x.disabled = true; });
+  try {
+    const { id } = await api('/upload/run', { method: 'POST',
+      body: JSON.stringify(Object.assign({}, sel, { confirm_product: product.trim(), confirm_version: version.trim() })) });
+    zt.run = { id, state: 'running', steps: [] };
+    el('zt-run-result').innerHTML = renderRun(zt.run);
+    stopRunPolling();
+    zt.runPoll = setInterval(() => pollRun(id), POLL_MS);
+  } catch (e) {
+    setStatus(e.message, true);
+    if (btn) btn.disabled = false;
+    ['zt-run-product', 'zt-run-version'].forEach(i => { const x = el(i); if (x) x.disabled = false; });
   }
 }
 
@@ -413,6 +524,10 @@ document.addEventListener('input', (e) => {
     t.dataset.touched = '1';
     setConfirmed(false);
   }
+  if (t instanceof HTMLElement && (t.id === 'zt-run-product' || t.id === 'zt-run-version')) {
+    const b = el('zt-run');
+    if (b) b.disabled = !confirmMatches(zt.previewed, (el('zt-run-product') || {}).value, (el('zt-run-version') || {}).value);
+  }
 });
 
-registerActions({ ztAnalyse, ztCancel, ztToggle, ztConfirm, ztUpload, ztRefreshTemplates });
+registerActions({ ztAnalyse, ztCancel, ztToggle, ztConfirm, ztUpload, ztRun, ztRefreshTemplates });

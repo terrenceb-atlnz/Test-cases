@@ -16,9 +16,16 @@ ceiling). The job reads the project's wiki pages by running `ask-ck/tools/zt_wik
 read-only read — the accepted exception D12), asks the seat's LLM Q1–Q4 once per template plan and
 Q5 + AI Notes once per project, and keeps only what `zt_analysis` lets through. `POST
 /upload/preview` runs `ask-ck/tools/zt_upload.py --dry-run` — the call list, never a write (D9).
+
+Phase 5 (2026-10-07, §5b): the REAL upload. `POST /upload/run` checks the typed product and
+version against the selection (P6), then runs `zt_upload.py --apply` as a job — the tool holds the
+token (D13), audits every write and stops at the first failure (D14) — and the page polls `GET
+/upload/run/{id}` for its progress lines. One upload at a time; a restart forgets the job (the
+tool's audit log does not).
 """
 
 import asyncio
+import contextvars
 import json
 import subprocess
 import sys
@@ -28,7 +35,7 @@ import uuid
 from collections import OrderedDict
 from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel
 from starlette.concurrency import run_in_threadpool
 
@@ -48,6 +55,7 @@ WIKI_TOOL = ASKCK_ROOT / "tools" / "zt_wiki.py"
 WIKI_TIMEOUT_S = 120              # IE520 + IE570 read in ~5 s each on 2026-10-05
 UPLOAD_TOOL = ASKCK_ROOT / "tools" / "zt_upload.py"
 UPLOAD_TIMEOUT_S = 120
+UPLOAD_RUNS_KEPT = 10              # finished uploads kept for polling
 LLM_TIMEOUT_S = 600
 LLM_MAX_TOKENS = 16000
 JSON_RETRIES = 1                  # a reply with no usable JSON is asked once more
@@ -284,3 +292,88 @@ async def upload_preview(req: UploadPreviewRequest):
                                        "the upload preview", json.dumps(req.model_dump()))
     except RuntimeError as e:
         raise HTTPException(status_code=502, detail=str(e))
+
+
+# --------------------------------------------------------------------------- API Upload, for real (§5b)
+
+class UploadRunRequest(UploadPreviewRequest):
+    confirm_product: str = ""
+    confirm_version: str = ""
+
+
+_runs: "OrderedDict[str, Dict[str, Any]]" = OrderedDict()
+_runs_lock = threading.Lock()
+
+
+def _open_upload(cmd: List[str], stdin: str) -> subprocess.Popen:
+    """Start `zt_upload.py --apply`; its stdout is one JSON object per line."""
+    proc = subprocess.Popen([sys.executable] + cmd, cwd=str(ASKCK_ROOT.parent), stdin=subprocess.PIPE,
+                            stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    proc.stdin.write(stdin)
+    proc.stdin.close()
+    return proc
+
+
+def _follow(job: Dict[str, Any], proc) -> None:
+    """Read the tool's progress lines into the job until it exits."""
+    try:
+        for line in proc.stdout:
+            try:
+                ev = json.loads(line)
+            except ValueError:
+                continue
+            if ev.get("type") == "result":
+                job["result"] = ev
+            else:
+                job["steps"].append(ev)
+        rc = proc.wait()
+        err = (proc.stderr.read() or "").strip()[-1500:] if proc.stderr else ""
+    except Exception as e:                                      # noqa: BLE001 — shown on the page
+        rc, err = -1, f"{type(e).__name__}: {e}"
+    res = job.get("result")
+    job["state"] = res["outcome"] if res else "error"
+    if not res:
+        job["error"] = f"the upload tool exited ({rc}) without a result: {err}"
+    job["finished"] = time.time()
+
+
+@router.post("/upload/run")
+async def upload_run(req: UploadRunRequest, request: Request):
+    """Start the REAL upload of this selection; poll `GET /upload/run/{id}`. The typed product and
+    version must equal the selection's (P6) — the version may be stale if the project slipped."""
+    if not req.plans:
+        raise HTTPException(status_code=422, detail="nothing is selected")
+    if not req.product or not req.version or (req.confirm_product.strip(), req.confirm_version.strip()) \
+            != (req.product, req.version):
+        raise HTTPException(status_code=422, detail="type the product and the AW+ version exactly as shown "
+                                                    "to confirm the upload — nothing was written")
+    with _runs_lock:
+        if any(j["state"] == "running" for j in _runs.values()):
+            raise HTTPException(status_code=409, detail="an upload is already running — wait for it to finish")
+        job: Dict[str, Any] = {"id": uuid.uuid4().hex[:12], "state": "running", "started": time.time(),
+                               "finished": None, "product": req.product, "version": req.version,
+                               "steps": [], "result": None, "error": None}
+        _runs[job["id"]] = job
+        while len(_runs) > UPLOAD_RUNS_KEPT:
+            _runs.popitem(last=False)
+    sel = req.model_dump(exclude={"confirm_product", "confirm_version"})
+    seat = request.client.host if request.client else "unknown"
+    cmd = [str(UPLOAD_TOOL), "--apply", "--confirm-product", req.confirm_product.strip(),
+           "--confirm-version", req.confirm_version.strip(), "--seat", seat]
+    try:
+        proc = await run_in_threadpool(_open_upload, cmd, json.dumps(sel))
+    except Exception as e:                                      # noqa: BLE001
+        job.update(state="error", error=f"the upload tool did not start: {e}", finished=time.time())
+        raise HTTPException(status_code=500, detail=job["error"])
+    ctx = contextvars.copy_context()                            # taken here, on the request's thread
+    threading.Thread(target=ctx.run, args=(_follow, job, proc), daemon=True).start()
+    return {"id": job["id"]}
+
+
+@router.get("/upload/run/{job_id}")
+async def upload_run_status(job_id: str):
+    job = _runs.get(job_id)
+    if job is None:
+        raise HTTPException(status_code=404, detail="no such upload (the server may have restarted — "
+                                                    "ask-ck/db/zt-upload-audit.jsonl has its record)")
+    return job
