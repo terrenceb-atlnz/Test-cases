@@ -399,7 +399,7 @@
     border: none;
     margin: 0;
     padding: 0;
-    min-width: 0;
+    width: 100%;
   }
 </style>
 

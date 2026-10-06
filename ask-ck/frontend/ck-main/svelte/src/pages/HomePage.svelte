@@ -31,8 +31,13 @@
   let isAdmin = false;
   let adminStatusText = 'Loading status…';
 
-  function handleLogoDblClick() {
+  const ADMIN_CLICKS_REQUIRED = 8;
+  let logoClickCount = 0;
+
+  function handleLogoClick() {
     if (isAdmin) return;
+    logoClickCount += 1;
+    if (logoClickCount < ADMIN_CLICKS_REQUIRED) return;
     isAdmin = true;
     fetchAdminStatus().then((data) => { adminStatusText = describeAdminStatus(data); });
   }
@@ -111,7 +116,7 @@
 </script>
 
 <div class="home-hero">
-    <button type="button" class="logo-button" on:dblclick={handleLogoDblClick} aria-label="Ask CK logo">
+    <button type="button" class="logo-button" on:click={handleLogoClick} aria-label="Ask CK logo">
       <img src={isAdmin ? askCKAdmin : askCKLogo} alt="Ask CK logo" />
     </button>
     <h1>{isAdmin ? 'Welcome Admin' : 'Welcome to Ask CK'}</h1>
@@ -169,7 +174,6 @@
         flex-direction: column;
         align-items: center;
         text-align: center;
-        zoom: 0.8;
     }
     
     .logo-button {
@@ -180,18 +184,21 @@
     }
 
     .home-hero img {
-        width: 18em;
+        width: 14em;
         height: auto;
         margin-bottom: 1rem;
+        margin-top: 1rem;
     }
     
     .home-hero h1 {
-        font-size: 3rem;
+        font-size: 2.5rem;
         margin-bottom: 1.5rem;
+        border-bottom: 2px solid var(--color-text-muted);
+        padding-bottom: 0.5rem;
     }
     
     .home-hero p {
-        font-size: 1.2rem;
+        font-size: 1rem;
         color: var(--color-text-muted);
     }
 

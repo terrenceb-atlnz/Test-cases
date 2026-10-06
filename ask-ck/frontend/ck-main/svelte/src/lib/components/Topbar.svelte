@@ -23,7 +23,6 @@
     border-bottom: 1px solid var(--color-border-topbar);
     display: flex;
     align-items: center;
-    padding: 0 18px 0 24px;
     transition: background-color 0.2s ease, border-color 0.2s ease;
   }
 

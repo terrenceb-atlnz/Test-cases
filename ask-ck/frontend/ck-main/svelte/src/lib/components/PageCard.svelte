@@ -20,9 +20,9 @@
 <style>
   .tool-card {
     position: relative;
-    min-height: 350px;
-    width: 335px;
-    max-width: 400px;
+    min-height: 380px;
+    /* width: 335px; */
+    max-width: 320px;
     border: 4px solid var(--color-tool-card-border);
     border-radius: 14px;
     background: var(--color-tool-card-bg);
@@ -46,16 +46,19 @@
 
   .tool-card h2 {
     margin: 0;
-    font-size: 1.3rem;
+    font-size: 1.4rem;
     line-height: 1.3;
     letter-spacing: 0.08em;
     text-transform: uppercase;
     color: var(--color-tool-card-text);
     font-weight: 700;
     transition: color 0.2s ease;
+    /* margin-top: 8px; */
+    margin-bottom: 8px;
+
   }
 
-    .tool-card:hover h2{
+  .tool-card:hover h2{
     color: var(--accent-color, var(--color-tool-card-hover-text, var(--color-accent)));
   }
 
@@ -83,9 +86,10 @@
   .tool-card p {
     margin: 0;
     color: var(--color-tool-card-text);
-    font-size: 0.98rem;
+    font-size: 1.125rem;
     line-height: 1.5;
     transition: color 0.2s ease;
+    font-style: italic;
   }
 
   .tool-card:hover p {

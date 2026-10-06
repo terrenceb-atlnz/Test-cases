@@ -64,28 +64,30 @@
 
   .stepper-step {
     --stepper-node-radius: 2rem;
-    --stepper-line-gap: 10px;
+    --stepper-line-gap: 16px;
   }
 
   .stepper-step:not(:first-child)::before {
     content: '';
     position: absolute;
-    top: 2rem;
+    top: 2.2rem;
     left: calc(-50% + var(--stepper-node-radius) + var(--stepper-line-gap));
     width: calc(100% - (2 * (var(--stepper-node-radius) + var(--stepper-line-gap))));
     height: 4px;
     background: var(--color-stepper-outline);
+    border-radius: 999px;
     z-index: 0;
   }
 
   .stepper-step:not(:first-child)::after {
     content: '';
     position: absolute;
-    top: 2rem;
+    top: 2.2rem;
     left: calc(-50% + var(--stepper-node-radius) + var(--stepper-line-gap));
     width: calc(100% - (2 * (var(--stepper-node-radius) + var(--stepper-line-gap))));
     height: 4px;
     background: var(--color-accent);
+    border-radius: 999px;
     transform: scaleX(0);
     transform-origin: left;
     transition: transform 0.5s ease-out;
@@ -99,8 +101,8 @@
   .stepper-node {
     position: relative;
     z-index: 1;
-    width: 4rem;
-    height: 4rem;
+    width: 4.5rem;
+    height: 4.5rem;
     border-radius: 50%;
     border: 4px solid var(--color-stepper-outline);
     background: var(--color-bg-content);
@@ -143,8 +145,8 @@
   }
 
   .stepper-icon {
-    width: 1.5rem;
-    height: 1.5rem;
+    width: 1.6rem;
+    height: auto;
     filter: var(--icon-filter-muted);
     transition: filter 0.2s ease;
   }
@@ -158,7 +160,7 @@
   }
 
   .stepper-label {
-    font-size: 0.9rem;
+    font-size: 1..1rem;
     color: var(--color-stepper-outline);
     font-weight: 600;
     text-align: center;

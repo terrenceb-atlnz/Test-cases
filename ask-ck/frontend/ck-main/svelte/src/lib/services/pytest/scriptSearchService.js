@@ -9,9 +9,9 @@ function capitalize(str) {
 }
 
 export const scriptColumns = [
-  { key: 'id', label: 'Script', width: 2 },
+  { key: 'id', label: 'Script', width: 3, code: true },
   { key: 'coverage', label: 'Cov', width: 1, pillClass: (v) => (capitalize(v) === 'Full' ? 'pill-success' : 'pill-muted') },
-  { key: 'summary', label: 'Why', width: 3 }
+  { key: 'summary', label: 'Why', width: 9 }
 ];
 
 // // Mock reusable-script pool — replace with a real script index search later

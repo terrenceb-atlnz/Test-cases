@@ -280,12 +280,16 @@
     border-radius: 8px;
     background: var(--color-bg-surface);
     width: 100%;
+    flex: 1;
+    min-height: 0;
   }
 
   .objectives-html {
     color: var(--color-text);
     font-size: 0.94rem;
     line-height: 1.5;
+    flex: 1;
+    min-height: 0;
   }
 
   .objectives-html :global(ul) {
@@ -304,6 +308,8 @@
     gap: 10px;
     color: var(--color-text);
     font-size: 0.94rem;
+    flex: 1;
+    min-height: 0;
   }
 
   .step-expected {
@@ -316,6 +322,8 @@
     display: flex;
     flex-direction: column;
     gap: 10px;
+    flex: 1;
+    min-height: 0;
   }
 
   .editable-step {

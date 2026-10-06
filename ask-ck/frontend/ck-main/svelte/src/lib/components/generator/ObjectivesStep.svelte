@@ -210,6 +210,8 @@
     border-radius: 8px;
     background: var(--color-bg-surface);
     width: 100%;
+    flex: 1;
+    min-height: 0;
   }
 
   .objectives-html {
@@ -243,10 +245,14 @@
     font: inherit;
     font-size: 0.94rem;
     resize: vertical;
+    flex: 1;
+    min-height: 0;
   }
 
   .objectives-window-actions {
     display: flex;
     gap: 12px;
+    flex: 1;
+    min-height: 0;
   }
 </style>

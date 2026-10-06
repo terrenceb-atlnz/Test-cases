@@ -253,7 +253,7 @@
   .col-text {
     flex: 1;
     min-width: 0;
-    font-size: 0.8rem;
+    font-size: 0.875rem;
     color: var(--color-text-muted);
   }
 

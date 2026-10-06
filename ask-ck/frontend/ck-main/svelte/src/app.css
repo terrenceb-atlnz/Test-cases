@@ -1,16 +1,21 @@
 :root {
-  font-family: "Roboto", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-family: 'Inter Variable', 'Inter', 'Helvetica Neue', Helvetica, Arial, sans-serif;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   line-height: 1.5;
   font-weight: 400;
+  font-size: 14px;
+  code {
+    font-family: 'Roboto Mono Variable', 'Roboto Mono', monospace;
+    font-size: 0.9em;
+  }
 
   --color-text: #1d2a36;
   --color-text-heading: #101820;
   --color-text-body: #1f2d3a;
-  --color-text-muted: #4a5a68b7;
+  --color-text-muted: #475569;
   --color-strong: #1d2a36;
 
   --color-bg-page: #F6F8FB;
@@ -75,6 +80,9 @@
 
   color: var(--color-text);
   background: var(--color-bg-page);
+
+  --color-error-surface: rgba(220, 38, 38, 0.08);
+  --color-error-border: rgba(220, 38, 38, 0.5);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -141,6 +149,9 @@
 
   --arrow-filter-hover: brightness(1.25);
   --color-arrow-text-hover: #fff;
+
+  --color-error-surface: rgba(220, 38, 38, 0.08);
+  --color-error-border: rgba(220, 38, 38, 0.5);
   }
 }
 
@@ -273,6 +284,8 @@ button {
   background: var(--color-bg-content);
   min-width: 0;
   transition: background-color 0.2s ease;
+  display: flex;
+  flex-direction: column;
 }
 
 .workspace {
@@ -395,7 +408,9 @@ button {
 
 .content-inner {
   height: 100%;
-  padding: 16px 36px 28px;
+  padding: 16px 0px 16px;
+  display: flex;
+  flex-direction: column;
 }
 
 .home-hero {
@@ -422,6 +437,8 @@ button {
   text-align: left;
   padding: 1rem 5rem 5rem;
   width: 100%;
+  flex: 1;
+  min-height: 0;
 }
 
 .avatar {

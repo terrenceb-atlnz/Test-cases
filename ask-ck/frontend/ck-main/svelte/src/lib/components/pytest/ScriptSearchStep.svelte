@@ -235,7 +235,7 @@
     }
   }
 
-  $: tableColumns = [...columns, { key: '_viewSource', label: '', width: 0.6, button: { label: 'View', onClick: viewSource } }];
+  $: tableColumns = [...columns, { key: '_viewSource', label: '', width: 1, button: { label: 'View', onClick: viewSource } }];
 
   let showNoScriptsModal = false;
 
@@ -398,7 +398,7 @@
 
   .step-table-label {
     margin: 0 0 8px;
-    font-size: 0.75rem;
+    font-size: 0.9rem;
     font-weight: 700;
     letter-spacing: 0.06em;
     text-transform: uppercase;
@@ -420,7 +420,7 @@
     display: flex;
     flex-wrap: wrap;
     width: 100%;
-    gap: 16px;
+    gap: 0px 14px;
     padding: 5px 20px 8px;
     border-top: 1px solid var(--color-border-surface);
     border-bottom: 1px solid var(--color-border-surface);

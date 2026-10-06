@@ -66,7 +66,7 @@
       d={arrowPath}
       fill={fillValue}
       stroke={borderColorVar}
-      stroke-width="1"
+      stroke-width="0.5"
     />
   </svg>
   <span class="arrow-label">
@@ -83,7 +83,7 @@
     position: relative;
     flex: 0 0 auto;
     width: 72px;
-    height: 80px;
+    height: 70px;
     padding: 0;
     border: none;
     background: none;
@@ -155,7 +155,7 @@
     padding-right: 10px;
     padding-left: 30px;
 
-    font-size: 1.1rem;
+    font-size: 1rem;
     font-style: italic;
     font-weight: 700;
     transition: color 0.15s ease;
@@ -190,11 +190,11 @@
      currentColor (was a hardcoded #000) so it reads correctly against every status/theme. */
   .loader {
     display: block;
-    width: 28px;
+    width: 16px;
     aspect-ratio: 4;
     background: radial-gradient(circle closest-side,currentColor 90%,#0000) 0/calc(100%/3) 100% space;
     clip-path: inset(0 100% 0 0);
     animation: l1 1s steps(4) infinite;
-  }
+  } 
   @keyframes l1 {to{clip-path: inset(0 -34% 0 0)}}
 </style>
