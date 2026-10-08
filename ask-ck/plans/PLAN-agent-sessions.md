@@ -5,8 +5,8 @@ verified: 2026-10-09
 
 > ## Status (read first)
 >
-> **DRAFT — nothing built. Decisions D1–D5 (§10) taken 2026-10-09; the §4 launch option waits on
-> P0.** Written 2026-10-09
+> **DRAFT — nothing built. P0 done; decisions D1–D7 (§10) taken 2026-10-09: the launcher is the
+> Agent SDK (D7), the permission profile a launcher-supplied `--settings` file (D6). P1 is next.** Written 2026-10-09
 > at Terrence's request: *"I think its worth another plan that we tackle outright that will be
 > linked to this one, with that plan needing to be done first."* It is the **first** of three:
 >
@@ -134,7 +134,7 @@ All four keep K1: the session runs on the user's seat, under the user's login.
 - **Against:**
   - it needs Python or Node on Windows seats, which breaks K3;
   - it is gated by U6.
-- **Status (Terrence, 2026-10-09): tested in P0 alongside A.** *"I think option C is incredibly
+- **CHOSEN (D7, 2026-10-09).** Earlier status: tested in P0 alongside A. *"I think option C is incredibly
   interesting, we can add the download for windows if necessary as part of the setup script we
   run anyway."* So the Windows prerequisite is acceptable, provided the seat setup script
   installs it. U6 still has to be read at its source before C is chosen.
@@ -387,14 +387,24 @@ branch-and-merge procedure (SERVER-README, "Changing the backend of the hosted s
 - **U6 (Terrence, 2026-10-09):** the SDK overview's third-party restriction does not apply.
   *"This is not a product, it will not be bought or sold."*
 
-**Open (after P0, §9a):**
-1. **§4 launch option: A or C.** B is ruled out. A and C share one wire protocol:
-   - **A** = each seat agent speaks it directly: stdlib Python on Linux, PowerShell on Windows.
-     Nothing new to install, but two implementations kept in step, as today.
-   - **C** = the SDK, which needs Python on every seat. The setup script can install it on
-     Windows (Terrence: acceptable). It also opens the option of **one Python agent for both
-     OSes**, replacing `ck-agent.ps1`.
+**Open (after P0, §9a):** none. ~~1. §4 launch option: A or C~~ → **decided as D7 below.**
 ~~2. Permission profile for unattended campaigns~~ → **decided as D6 below.**
+
+- **D7 — The launcher is option C, the Claude Agent SDK in Python (Terrence, 2026-10-09).**
+  - **Chosen** after the A/C comparison (§9a). Both speak one wire protocol; C hands
+    maintenance of that protocol to Anthropic's typed SDK (permission/question callback, hooks,
+    interrupts, a changelog) instead of two hand-written copies.
+  - **Shape:**
+    - the **Linux seat agent** (`ck_agent.py`, already Python) gains the session job on the SDK;
+    - the SDK points at the **system `claude`** (`cli_path`, as in P0), so a seat runs one Claude
+      version and does not carry the ~240 MB bundled binary;
+    - the setup script installs `claude-agent-sdk` (31 packages in P0's virtualenv).
+  - **Windows** follows D1 (*"Windows will be an issue for future me"*). When it comes, the
+    intended path is one Python agent for both OSes, replacing `ck-agent.ps1`, with Python
+    installed by the setup script. Until then, nothing here assumes a Windows seat.
+  - **What P1 must pin:** the SDK version the agent requires, and an SDK↔CLI compatibility
+    check in `/health`. The CLI updates itself (it moved 2.1.294 → 2.1.295 mid-P0), so a seat can
+    drift ahead of the SDK it was set up with.
 
 - **D6 — The permission profile is a launcher-supplied `--settings` file (Terrence, 2026-10-09).**
   - **The requirement** (Terrence): *"usable by theoretically anyone inside the company … either
