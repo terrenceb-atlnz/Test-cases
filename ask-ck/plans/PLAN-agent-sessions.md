@@ -394,9 +394,68 @@ branch-and-merge procedure (SERVER-README, "Changing the backend of the hosted s
    - **C** = the SDK, which needs Python on every seat. The setup script can install it on
      Windows (Terrence: acceptable). It also opens the option of **one Python agent for both
      OSes**, replacing `ck-agent.ps1`.
-2. **Permission profile for unattended campaigns** (§9a): which bench commands a launched
-   `/test-mode` may run without a person (allowlist in device-testing's settings, or a
-   permission mode), and who owns that list.
+~~2. Permission profile for unattended campaigns~~ → **decided as D6 below.**
+
+- **D6 — The permission profile is a launcher-supplied `--settings` file (Terrence, 2026-10-09).**
+  - **The requirement** (Terrence): *"usable by theoretically anyone inside the company … either
+    apply to everyone uniformly, with one application, or settable by everyone, identically, when
+    we start using the tool. Preferably with minimal onboarding time."* He also said that config
+    mode must be allowed: *"the tester will have to go into configure terminal in order to
+    reconfigure things as tests require."*
+  - **Why it gets past the classifier in VS Code but not headless.** The classifier reads user
+    messages, tool calls and CLAUDE.md. It never reads tool results, so a hand-off file read
+    with a tool authorizes nothing. P0 also showed that Claude writing an authorization *in the
+    user's name* is itself blocked ("Auto-Mode Bypass").
+  - **Where a profile can live** (code.claude.com/docs/en/permissions, /auto-mode-config,
+    /permission-modes, read 2026-10-09):
+    - **project `.claude/settings.json` allow rules** are ignored by `-p` and SDK runs unless that
+      folder is trusted per user;
+    - **`autoMode` config** is read only from user settings, managed settings and `--settings` /
+      the SDK, never from project settings;
+    - **narrow Bash allow rules** resolve *before* the classifier;
+    - **broad rules are dropped in auto mode:** `Bash(*)`, wildcarded interpreters, `Agent`,
+      `Monitor`;
+    - **allow rules don't match past a leading assignment** of a non-whitelisted variable.
+  - **Chosen:** one versioned settings file that **every Ask-CK launch passes with `--settings`**.
+    It is uniform with one application (the commit), needs no onboarding (the seat agent from the
+    setup script already launches), and changes no one's interactive sessions. Managed settings
+    (org-wide), per-user `~/.claude/settings.json` (drifts, changes every session) and project
+    settings (trust-gated) were weighed and rejected.
+  - **What the file holds:**
+    - **(a)** narrow `permissions.allow` rules for a stable bench wrapper (below);
+    - **(b)** an `autoMode.environment` description of the lab as trusted infrastructure (the
+      testboxes, their consoles, the PDUs, the NFS lab home), plus an `autoMode.allow` exception:
+      configuring lab test devices through testbox consoles, including config mode, is routine;
+    - **(c)** `permissions.deny` for what STANDING-ORDERS §4 keeps for a person:
+      `bench_probe.py apply`, licence commands, root on the box.
+  - **What it needs from device-testing:**
+    - a **wrapper**, e.g. `tools/tb <box> ckcon|qmark|probe|precheck …`, that sets
+      `SSH_AUTH_SOCK` itself, so command text is stable and rule-matchable;
+    - **bench-runner switched to it.**
+
+    device-testing authors both the wrapper and the settings file (its repo, its bench
+    knowledge); Ask-CK's launcher only passes the path. Requested 2026-10-09.
+  - **Built and approved:**
+    - device-testing `6a6ecd8` built it: `tools/tb <action> <box> …`, with the action first so
+      every allow rule is anchored; `.claude/ask-ck-campaign.settings.json` with 34 narrow
+      allow rules, 2 pattern denies (`apply`, `--force`), and `autoMode` environment / allow /
+      hard_deny prose with `"$defaults"` kept. bench-runner, test-mode §3 and the sentinel cron
+      use the wrapper.
+    - Terrence approved the file **as it stands** on 2026-10-09. That was after being told that
+      allow rules resolve before the classifier, so the `hard_deny` prose does not guard commands
+      run *through* `tools/tb`: a licence line sent via `ckcon`, or a root tool via `sudotool`,
+      relies on the wrapper and the standing orders, not on the classifier.
+  - **Tested 2026-10-09 (12:46–12:49):**
+    - **Setup:** two headless sessions in device-testing, `--permission-mode auto`,
+      `--settings <that file>`, **no authorization text**, every host prompt denied and logged.
+    - **Commands:** `tools/tb scratch`; `tools/tb qmark tb470 … u0 … --mode "configure terminal"
+      "interface port1.0.3" -- speed duplex`; `tools/tb ps`; `tools/tb holders`.
+    - **Result:** **all four RAN, both in the main session and from a subagent: 0 classifier
+      denials, 0 host prompts.** The same work had 2 denials in P0.
+    - **u0 afterwards:** the console transcript shows `qmark` erasing its typed line, sending
+      `end` (back to `awplus#`) and `terminal no monitor`, and closing u0 cleanly. Both sessions
+      wrongly reported u0 "left in config-if mode", because they read only the tail of `qmark`'s
+      stdout. When reporting a console's final state, read the transcript.
 
 ## 11. Invariants
 
