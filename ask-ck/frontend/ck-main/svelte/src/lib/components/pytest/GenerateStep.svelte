@@ -4,34 +4,51 @@
   import ArrowStep from '../ArrowStep.svelte';
   import Button from '../Button.svelte';
   import EditableField from '../EditableField.svelte';
-  import ConfirmModal from '../ConfirmModal.svelte';
   import StatusModal from '../StatusModal.svelte';
-  import { scrollToTop, scrollToStepIntro } from '../../utils/scroll.js';
-  import { defaultPromptForUnit } from '../../services/pytest/generateService.js';
+  import ErrorBanner from '../ErrorBanner.svelte';
+  import { onMount, onDestroy } from 'svelte';
+  import { scrollToStepIntro } from '../../utils/scroll.js';
 
-  /** @type {Array<{ id: string, action: string, verify: string }>} Read-only */
-  export let sequencedTestSteps = [];
+  /** @type {string} Default Group — the case's own folder, used only until a naming value is
+      ever saved (session.step6.naming then wins on every later mount). */
+  export let initialGroup = '';
 
-  /** @type {string} Read-only — used in the default per-unit prompt text */
-  export let title = '';
+  /** @type {string} Already-saved session.step6.naming.name, if any. */
+  export let initialName = '';
 
-  /** @type {(unit: object) => Promise<string>} */
-  export let onGenerateUnit = async () => '';
+  /** @type {string} The session's already-assembled script (step6.files.test.code), if any —
+      restored so the Summary and Review/Fix don't start blank after a reload. */
+  export let initialAssembledCode = '';
 
-  /** @type {(units: Array) => Promise<Record<string, string>>} */
-  export let onGenerateAllUnits = async () => ({});
+  /** @type {Array<{ level: string, message: string }>} The lint for that script (step6.lint). */
+  export let initialLintResults = [];
 
-  /** @type {(generateUnits: Array, generateState: object) => { assembledCode: string, lintResults: Array }} */
-  export let onAssemble = () => ({ assembledCode: '', lintResults: [] });
+  /** @type {(group: string, name: string) => Promise<void>} Autosave-on-blur for the two
+      naming fields alone — 409s once a script has already been assembled (renaming after
+      that point has to move the file on disk too, which is onSave's job, not this one). */
+  export let onSaveNaming = async () => {};
 
-  /** @type {() => Promise<string>} */
-  export let onReview = async () => '';
+  /** @type {() => Promise<Array<{ id: string, kind: string, tc_n: number | null, action: string,
+      verify: string, prompt: string, code: string, status: string, error: string }>>}
+      The server's units (step_prompts) — called once on mount. */
+  export let onLoadUnits = async () => [];
 
-  /** @type {() => Promise<void>} */
-  export let onFixUnits = async () => {};
+  /** @type {(items: Array<{ id: string, prompt?: string, edited?: boolean }>) => Promise<{
+      dispatched: string[], already_running: string[], max_concurrent: number, primed: string | null }>}
+      Queues the units and returns at once — progress comes from onPollStatus. */
+  export let onDispatchUnits = async () => ({ dispatched: [], already_running: [], max_concurrent: 0, primed: null });
 
-  /** @type {() => Promise<void>} */
-  export let onFixWholeScript = async () => {};
+  /** @type {() => Promise<{ units: Record<string, { status: string, error: string, at: string }>, running: string[] }>}
+      Per-unit status, no code — polled every couple of seconds while anything is running. */
+  export let onPollStatus = async () => ({ units: {}, running: [] });
+
+  /** @type {(unitId: string) => Promise<{ status: string, code: string, error: string, at: string }>}
+      One unit's stored reply — fetched once as each unit lands. */
+  export let onFetchUnitCode = async () => ({ status: 'pending', code: '', error: '', at: '' });
+
+  /** @type {(group: string, name: string) => Promise<{ assembledCode: string, lintResults: Array }>}
+      No LLM — deterministic splice + lint, server-side. 409s if any unit is still missing code. */
+  export let onAssemble = async () => ({ assembledCode: '', lintResults: [] });
 
   /** @type {() => Promise<{ status: string, message: string }>} */
   export let onSave = async () => ({ status: 'success', message: '' });
@@ -45,38 +62,83 @@
   /** @type {(() => void) | null} Called once the save succeeds — parent marks the stepper finished */
   export let onFinished = null;
 
-  const GENERATE_SETUP_ID = '__generate_setup__';
   const GENERATE_SUMMARY_STEP_ID = '__generate_summary__';
-  const GENERATE_REVIEW_STEP_ID = '__generate_review__';
 
-  // Units for Generate: one "Setup" unit (the TestSet setUp/tearDown pair) followed by one unit
-  // per sequenced step (a single TestCase class) — numbering resumes at 1 after Setup.
-  $: generateUnits =
-    sequencedTestSteps.length > 0
-      ? [
-          { id: GENERATE_SETUP_ID, label: 'Setup', kind: 'setup', title: 'Setup', detail: 'TestSet setUp/tearDown pair' },
-          ...sequencedTestSteps.map((step, i) => ({
-            id: step.id,
-            label: i + 1,
-            kind: 'testcase',
-            step,
-            title: `Unit ${i + 1}`,
-            detail: step.action
-          }))
-        ]
-      : [];
+  // Group/name — seeded once at mount, same convention as Fragments'/Script Search's
+  // initial* props. Name starts blank until the reviewer types one (or one was already
+  // saved); group defaults to the case's own folder.
+  let group = initialGroup;
+  let name = initialName;
 
-  // Per-unit generation state, keyed by the unit's id — populated lazily below.
+  async function saveNaming() {
+    if (!group.trim() || !name.trim()) return;   // silent by design, matching current/'s own blur-save
+    try {
+      await onSaveNaming(group.trim(), name.trim());
+    } catch (e) {
+      // Silent on purpose — a 409 here just means a script already exists (rename is
+      // onSave's job instead), and a half-typed name on a stray blur isn't worth a dialog.
+    }
+  }
+
+  // Units for Generate come from the server (step_prompts), in file order: the "setup" unit
+  // (the TestSet configure/tear_down pair) when the skeleton has one, then one unit per
+  // TestCase class, keyed by the server's own ids ("tc1", "tc2", …). Arrow-step labels follow tc_n.
+  let generateUnits = [];
+
+  // Per-unit generation state, keyed by the unit's id — seeded from each unit's stored
+  // chunk, so a unit the server already generated shows its code (and one whose last run
+  // failed shows why) instead of starting blank. `renderedPrompt` is the prompt as loaded:
+  // a prompt that differs from it is the reviewer's edit. `storedEdit` is the server saying
+  // the loaded prompt is itself an earlier, kept edit. `at` is when the stored reply landed —
+  // a change of `at` on the poll means new bytes exist for that unit.
   let generateState = {};
   let generateActiveUnitId = null;
   let confirmedGenerateUnits = [];
 
-  $: {
-    for (const unit of generateUnits) {
-      if (!generateState[unit.id]) {
-        generateState[unit.id] = { prompt: defaultPromptForUnit(unit, title), code: '' };
+  let isLoadingUnits = false;
+  let loadUnitsError = '';
+
+  async function loadUnits() {
+    isLoadingUnits = true;
+    loadUnitsError = '';
+    try {
+      const units = await onLoadUnits();
+      const nextState = {};
+      for (const u of units) {
+        nextState[u.id] = {
+          prompt: u.prompt,
+          renderedPrompt: u.prompt,
+          storedEdit: !!u.edited,
+          code: u.status === 'ok' ? u.code : '',
+          error: u.status === 'error' ? u.error : '',
+          at: u.at || '',
+        };
       }
+      generateState = nextState;
+      // Code already stored from an earlier run counts as reviewed, so a reload doesn't
+      // demand every unit be re-confirmed. New code landing on this page un-confirms its
+      // unit again (fetchLandedCode) — that's the code that still needs a look.
+      confirmedGenerateUnits = units.filter((u) => nextState[u.id].code).map((u) => u.id);
+      generateUnits = units.map((u) =>
+        u.kind === 'setup'
+          ? { ...u, label: 'Setup', title: 'Setup', detail: 'TestSet setUp/tearDown pair' }
+          : { ...u, label: u.tc_n, title: `Unit ${u.tc_n}`, detail: u.action }
+      );
+    } catch (e) {
+      loadUnitsError = (e && e.message) || String(e);
+      return;
+    } finally {
+      isLoadingUnits = false;
     }
+    // A run may already be going (started before a reload, or by this page's previous
+    // mount) — one poll picks it up, and stops itself if nothing is in flight.
+    startPolling();
+  }
+
+  onMount(loadUnits);
+  onDestroy(stopPolling);
+
+  $: {
     if (!generateActiveUnitId && generateUnits.length > 0) {
       generateActiveUnitId = generateUnits[0].id;
     }
@@ -115,32 +177,143 @@
     generateActiveUnitId = unitId;
   }
 
-  let isGeneratingUnit = false;
+  // --- Generation: one dispatch request, then one status poll ------------------------
+  // Units in flight server-side, as last reported by the poll (or marked at dispatch).
+  // Drives each unit's own arrow-step spinner — the rest of the row stays usable.
+  let runningUnitIds = {};
+  let isDispatchingAll = false;
+  let runStatus = '';
+  let dispatchError = '';
 
-  async function generateUnitCode(unitId) {
-    isGeneratingUnit = true;
+  const POLL_MS = 2000;
+  let pollTimer = null;
+  let pollInFlight = false;
+
+  function startPolling() {
+    stopPolling();
+    pollTimer = setInterval(pollOnce, POLL_MS);
+    pollOnce();
+  }
+
+  function stopPolling() {
+    if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
+  }
+
+  function unitTitle(unitId) {
+    return generateUnits.find((u) => u.id === unitId)?.title ?? unitId;
+  }
+
+  // A unit's prompt travels with the request only when it is the reviewer's own: edited
+  // on this page, or an earlier kept edit the server handed back. Everything else is sent
+  // as a bare id and rendered fresh server-side — sending unedited text is how a stale tab
+  // once fed a whole run old prompts that the server then kept as edits (current/, 2026-09-07).
+  function dispatchItem(unitId) {
+    const st = generateState[unitId];
+    const edited = st.storedEdit || st.prompt !== st.renderedPrompt;
+    return edited && st.prompt.trim() ? { id: unitId, prompt: st.prompt, edited: true } : { id: unitId };
+  }
+
+  async function dispatch(unitIds) {
+    dispatchError = '';
+    for (const id of unitIds) runningUnitIds[id] = true;
+    runningUnitIds = runningUnitIds;
+    let d;
     try {
-      const unit = generateUnits.find((u) => u.id === unitId);
-      generateState[unitId].code = await onGenerateUnit(unit);
-      generateState = generateState;
+      d = await onDispatchUnits(unitIds.map(dispatchItem));
+    } catch (e) {
+      for (const id of unitIds) delete runningUnitIds[id];
+      runningUnitIds = runningUnitIds;
+      dispatchError = (e && e.message) || String(e);
+      return;
+    }
+    // Anything the server did not take (or was already running) is reconciled by the poll;
+    // only what it confirmed stays marked as in flight here.
+    const live = new Set([...(d.dispatched || []), ...(d.already_running || [])]);
+    for (const id of unitIds) if (!live.has(id)) delete runningUnitIds[id];
+    runningUnitIds = runningUnitIds;
+    const n = (d.dispatched || []).length;
+    runStatus = n === 0
+      ? 'Already running — waiting for it to finish.'
+      : `${n} unit${n === 1 ? '' : 's'} dispatched` +
+        (d.primed ? ` — ${unitTitle(d.primed)} runs alone first to warm the prompt cache.` : '.');
+    startPolling();
+  }
+
+  async function pollOnce() {
+    if (pollInFlight) return;
+    pollInFlight = true;
+    let d;
+    try {
+      d = await onPollStatus();
+    } catch (e) {
+      pollInFlight = false;
+      return;   // a dropped poll is not a failure of the work — the next tick retries
+    }
+    try {
+      const running = new Set(d.running || []);
+      const nextRunning = {};
+      const landed = [];
+      for (const unit of generateUnits) {
+        if (running.has(unit.id)) { nextRunning[unit.id] = true; continue; }
+        const st = d.units?.[unit.id];
+        // `at` is the discriminator, not status: a unit generated by an earlier run is
+        // already 'ok', so only a changed `at` means this run replaced its bytes.
+        if (st && st.at && st.at !== generateState[unit.id].at) landed.push(unit.id);
+      }
+      runningUnitIds = nextRunning;
+      await Promise.all(landed.map(fetchLandedCode));
+      if (running.size === 0) {
+        stopPolling();
+        if (runStatus) runStatus = settledSummary();
+      }
     } finally {
-      isGeneratingUnit = false;
+      pollInFlight = false;
     }
   }
 
-  let isGeneratingAllUnits = false;
-
-  async function generateAllUnits() {
-    isGeneratingAllUnits = true;
+  async function fetchLandedCode(unitId) {
     try {
-      const missing = generateUnits.filter((u) => !generateState[u.id].code);
-      const codeByUnitId = await onGenerateAllUnits(missing);
-      for (const unit of missing) {
-        generateState[unit.id].code = codeByUnitId[unit.id];
-      }
+      const r = await onFetchUnitCode(unitId);
+      const st = generateState[unitId];
+      st.at = r.at || st.at;
+      // A failed re-run must not keep showing the old success.
+      st.code = r.status === 'ok' ? r.code : '';
+      st.error = r.status === 'error' ? (r.error || 'failed') : '';
       generateState = generateState;
+      confirmedGenerateUnits = confirmedGenerateUnits.filter((id) => id !== unitId);
+    } catch (e) {
+      // Leave `at` unchanged so the next poll that sees this unit tries again.
+    }
+  }
+
+  function settledSummary() {
+    const total = generateUnits.length;
+    const ok = generateUnits.filter((u) => generateState[u.id].code).length;
+    const failed = generateUnits.filter((u) => generateState[u.id].error).length;
+    return `${ok}/${total} unit${total === 1 ? '' : 's'} generated` +
+      (failed ? ` — ${failed} failed; re-run ${failed === 1 ? 'it' : 'them'} individually.` : '.');
+  }
+
+  function generateUnitCode(unitId) {
+    if (runningUnitIds[unitId]) return;   // already in flight
+    dispatch([unitId]);
+  }
+
+  // Only units with no code yet, or whose last run failed — re-generating a unit that
+  // already has code is a deliberate per-unit click.
+  async function generateAllUnits() {
+    const wanted = generateUnits
+      .filter((u) => !runningUnitIds[u.id] && (!generateState[u.id].code || generateState[u.id].error))
+      .map((u) => u.id);
+    if (wanted.length === 0) {
+      runStatus = 'Every unit already has code — regenerate one from its own page.';
+      return;
+    }
+    isDispatchingAll = true;
+    try {
+      await dispatch(wanted);
     } finally {
-      isGeneratingAllUnits = false;
+      isDispatchingAll = false;
     }
   }
 
@@ -155,91 +328,31 @@
     scrollToStepIntro();
   }
 
-  let assembledCode = '';
-  let lintResults = [];
-  let assembled = false;
+  // Seeded once at mount from the session, same convention as group/name above.
+  let assembledCode = initialAssembledCode;
+  let lintResults = initialLintResults;
+  let assembled = !!initialAssembledCode;
 
-  function assembleAndLint() {
-    const result = onAssemble(generateUnits, generateState);
-    assembledCode = result.assembledCode;
-    lintResults = result.lintResults;
-    assembled = true;
-  }
+  let isAssembling = false;
+  let assembleError = '';
 
-  function confirmAndReviewGenerate() {
-    generateActiveUnitId = GENERATE_REVIEW_STEP_ID;
-    scrollToStepIntro();
-  }
-
-  // 'review' once there's an assembled script to look at — Review/Fix has no further "covered"
-  // state of its own since finishing it means leaving the Generate step entirely.
-  $: generateReviewStatus = assembled ? 'review' : 'none';
-
-  let scriptFeedback = '';
-  let showScriptFeedback = false;
-  let isReviewingWithLlm = false;
-
-  async function reviewWithLlm() {
-    isReviewingWithLlm = true;
+  async function assembleAndLint() {
+    isAssembling = true;
+    assembleError = '';
     try {
-      scriptFeedback = await onReview();
-      showScriptFeedback = true;
+      const result = await onAssemble(group.trim(), name.trim());
+      assembledCode = result.assembledCode;
+      lintResults = result.lintResults;
+      assembled = true;
+    } catch (e) {
+      assembleError = (e && e.message) || String(e);
     } finally {
-      isReviewingWithLlm = false;
+      isAssembling = false;
     }
   }
 
-  // Both "fix" actions invalidate the current assembly/lint/review and send the user back to
-  // Summary — Fix Units additionally un-confirms every unit (the LLM is regenerating their code,
-  // so each needs re-reviewing), while Fix Whole Script patches the assembled script directly and
-  // leaves already-confirmed units alone. Either way, Assemble & Lint (and then Review with LLM)
-  // must be run again before Review/Fix can be reached in a usable state.
-  function backToSummaryForFix() {
-    assembled = false;
-    assembledCode = '';
-    lintResults = [];
-    scriptFeedback = '';
-    showScriptFeedback = false;
-    generateActiveUnitId = GENERATE_SUMMARY_STEP_ID;
-    scrollToTop();
-  }
-
-  let isFixingUnits = false;
-
-  async function fixUnitsWithLlm() {
-    isFixingUnits = true;
-    try {
-      await onFixUnits();
-      confirmedGenerateUnits = [];
-      backToSummaryForFix();
-    } finally {
-      isFixingUnits = false;
-    }
-  }
-
-  let showFixWholeScriptModal = false;
-
-  function handleFixWholeScriptClick() {
-    showFixWholeScriptModal = true;
-  }
-
-  let isFixingWholeScript = false;
-
-  async function fixWholeScriptWithLlm() {
-    isFixingWholeScript = true;
-    try {
-      await onFixWholeScript();
-      backToSummaryForFix();
-    } finally {
-      isFixingWholeScript = false;
-    }
-  }
-
-  // Any LLM call in flight anywhere on the Generate step (a unit, the batch generate, the
-  // holistic review, or either fix) puts every arrow in its row into the loading state.
-  $: generateRowLoading =
-    isGeneratingUnit || isGeneratingAllUnits || isReviewingWithLlm || isFixingUnits || isFixingWholeScript;
-
+  // Generate ends at a linted, unreviewed script — there is no LLM review/fix pass here.
+  // Validating and fixing a script happens later, in Test Composer.
   let showSaveModal = false;
   let saveStatus = 'success';
   let saveStatusMessage = '';
@@ -271,7 +384,12 @@
   }
 </script>
 
-<p class="step-intro">Generated one unit at a time — a unit is a single TestCase class, or the TestSet setup pair. The frame (imports, TestSet, the ts.add_testCase() runner) is rendered here, not by an LLM, so it cannot vary between units. Page through the units: each shows the prompt that will be sent (editable — the button sends what you see) and the code that came back. Summary assembles them locally and lints the result; Review/Fix then runs the holistic LLM review and lets you send fixes back for another pass before you save and finish.</p>
+<p class="step-intro">Generated one unit at a time — a unit is a single TestCase class, or the TestSet setup pair. The frame (imports, TestSet, the ts.add_testCase() runner) is rendered here, not by an LLM, so it cannot vary between units. Page through the units: each shows the prompt that will be sent (editable — the button sends what you see) and the code that came back. Summary assembles them locally and lints the result, then you save and finish — the script is not LLM-reviewed here; it is validated and fixed later in Test Composer.</p>
+
+{#if isLoadingUnits}
+  <p class="fragment-empty units-loading">Rendering unit prompts…</p>
+{/if}
+<ErrorBanner message={loadUnitsError && `Loading units failed: ${loadUnitsError}`} />
 
 <div class="arrow-step-row">
   {#each generateUnits as unit (unit.id)}
@@ -280,7 +398,7 @@
       wide={unit.kind === 'setup'}
       status={generateUnitStatuses[unit.id] ?? 'none'}
       active={generateActiveUnitId === unit.id}
-      loading={generateRowLoading}
+      loading={!!runningUnitIds[unit.id]}
       onClick={() => selectGenerateUnit(unit.id)}
     />
   {/each}
@@ -290,26 +408,21 @@
       wide={true}
       status={generateSummaryStatus}
       active={generateActiveUnitId === GENERATE_SUMMARY_STEP_ID}
-      loading={generateRowLoading}
       onClick={() => selectGenerateUnit(GENERATE_SUMMARY_STEP_ID)}
-    />
-    <ArrowStep
-      label="Review/Fix"
-      wide={true}
-      status={generateReviewStatus}
-      active={generateActiveUnitId === GENERATE_REVIEW_STEP_ID}
-      loading={generateRowLoading}
-      onClick={() => selectGenerateUnit(GENERATE_REVIEW_STEP_ID)}
     />
   {/if}
 </div>
 
 <div class="script-search-toolbar">
-  <Button variant="primary" sparkle disabled={generateUnits.length === 0} loading={isGeneratingAllUnits} on:click={generateAllUnits}>Generate All Units (LLM)</Button>
+  <Button variant="primary" sparkle disabled={generateUnits.length === 0} loading={isDispatchingAll} on:click={generateAllUnits}>Generate All Units</Button>
   <div class="script-search-progress" role="progressbar" aria-valuenow={generateCoveragePercent} aria-valuemin="0" aria-valuemax="100">
     <div class="script-search-progress-fill" style="width: {generateCoveragePercent}%"></div>
   </div>
 </div>
+{#if runStatus}
+  <p class="generate-run-status">{runStatus}</p>
+{/if}
+<ErrorBanner message={dispatchError && `Dispatch failed: ${dispatchError}`} />
 <div class="step-frame">
   {#if generateActiveUnitId === GENERATE_SUMMARY_STEP_ID}
     <p class="step-table-label summary-title">Sequence Step Summary</p>
@@ -332,8 +445,22 @@
       {/each}
     </div>
 
+    <p class="step-table-label">Script Naming</p>
+    <div class="naming-fields">
+      <label class="naming-field">
+        <span>Group</span>
+        <input class="step-field" bind:value={group} on:blur={saveNaming} placeholder="e.g. AMF_Cluster" />
+      </label>
+      <label class="naming-field">
+        <span>Script name</span>
+        <input class="step-field" bind:value={name} on:blur={saveNaming} placeholder="e.g. test_amf_master" />
+      </label>
+    </div>
+
+    <ErrorBanner message={assembleError && `Assemble failed: ${assembleError}`} />
+
     <div class="step-actions">
-      <Button variant="primary" disabled={generateSummaryStatus !== 'covered'} on:click={assembleAndLint}>Assemble &amp; Lint</Button>
+      <Button variant="primary" disabled={generateSummaryStatus !== 'covered'} loading={isAssembling} on:click={assembleAndLint}>Assemble &amp; Lint</Button>
     </div>
 
     <p class="step-table-label">Assembled Script</p>
@@ -342,7 +469,7 @@
         type="code"
         bind:value={assembledCode}
         placeholder={'Not assembled yet. Click "Assemble & Lint" above.'}
-        height="420px"
+        height="600px"
       />
     </div>
 
@@ -350,14 +477,27 @@
       <p class="step-table-label">Lint Results</p>
       <ul class="lint-results">
         {#each lintResults as result}
-          <li class="lint-result" class:lint-pass={result.level === 'pass'} class:lint-warn={result.level === 'warn'}>{result.message}</li>
+          <li class="lint-result" class:lint-pass={result.level === 'pass'} class:lint-warn={result.level === 'warn'} class:lint-error={result.level === 'error'}>{result.message}</li>
         {/each}
       </ul>
     {/if}
 
     <div class="step-actions">
-      <Button variant="primary" disabled={!assembled} on:click={confirmAndReviewGenerate}>Confirm &amp; Review</Button>
+      <Button variant="success" disabled={!assembled} loading={isSaving} on:click={saveAndFinish}>Save and Finish</Button>
     </div>
+
+    <StatusModal
+      bind:open={showSaveModal}
+      status={saveStatus}
+      title={saveStatus === 'success' ? 'Save successful' : 'Save failed'}
+      message={saveStatusMessage}
+      closeText="Close"
+    >
+      <svelte:fragment slot="actions">
+        <Button variant="outline" on:click={createAnotherPytest}>Create Another PyTest</Button>
+        <Button variant="outline" on:click={goToComposer}>Compose Test</Button>
+      </svelte:fragment>
+    </StatusModal>
   {:else if generateActiveUnit}
     <div class="sequence-step-summary">
       <span
@@ -372,8 +512,10 @@
       <p><strong>{generateActiveUnit.title}</strong> - {generateActiveUnit.detail}</p>
     </div>
     <div class="step-generate">
-      <Button variant="primary" sparkle loading={isGeneratingUnit} on:click={() => generateUnitCode(generateActiveUnitId)}>Generate (LLM)</Button>
+      <Button variant="primary" sparkle loading={!!runningUnitIds[generateActiveUnitId]} on:click={() => generateUnitCode(generateActiveUnitId)}>Generate Unit</Button>
     </div>
+    <ErrorBanner message={generateState[generateActiveUnitId].error && `Last generation failed: ${generateState[generateActiveUnitId].error}`} />
+
     <div class="generate-panes">
       <div class="generate-pane generate-pane-prompt">
         <p class="step-table-label">Prompt — editable, sent as shown</p>
@@ -387,7 +529,7 @@
           <EditableField
             type="code"
             bind:value={generateState[generateActiveUnitId].code}
-            placeholder={'Not generated yet. Click the "Generate (LLM)" button above.'}
+            placeholder={'Not generated yet. Click the "Generate Unit" button above.'}
           />
         {/key}
       </div>
@@ -396,60 +538,6 @@
     <div class="step-actions">
       <Button variant="primary" disabled={!generateState[generateActiveUnitId].code} on:click={advanceGenerateUnit}>Confirm Unit</Button>
     </div>
-  {:else if generateActiveUnitId === GENERATE_REVIEW_STEP_ID}
-    <p class="step-table-label">Assembled Script</p>
-    <div class="generate-assembled-editor">
-      <EditableField
-        type="code"
-        bind:value={assembledCode}
-        placeholder={'Not assembled yet. Assemble & Lint on the Summary step first.'}
-        height="420px"
-      />
-    </div>
-
-    {#if !assembled}
-      <p class="fragment-empty">Assemble &amp; Lint the script on the Summary step first.</p>
-    {:else}
-      <div class="step-actions">
-        <Button variant="primary" sparkle loading={isReviewingWithLlm} on:click={reviewWithLlm}>Review with LLM</Button>
-      </div>
-
-      {#if showScriptFeedback}
-        <p class="step-table-label">Script Feedback (LLM)</p>
-        <div class="feedback-window">
-          <p class="holistic-review">{scriptFeedback}</p>
-        </div>
-        <div class="step-actions">
-          <Button variant="primary" sparkle loading={isFixingUnits} on:click={fixUnitsWithLlm}>Fix Units (LLM)</Button>
-          <Button variant="primary" sparkle loading={isFixingWholeScript} on:click={handleFixWholeScriptClick}>Fix Whole Script (LLM)</Button>
-        </div>
-        <div class="step-actions">
-          <Button variant="success" loading={isSaving} on:click={saveAndFinish}>Save and Finish</Button>
-        </div>
-
-        <ConfirmModal
-          bind:open={showFixWholeScriptModal}
-          title="Warning"
-          message="Fixing the whole script could exhaust a large portion of your AI token usage. Would you still like to continue?"
-          confirmText="Continue"
-          cancelText="Cancel"
-          onConfirm={fixWholeScriptWithLlm}
-        />
-
-        <StatusModal
-          bind:open={showSaveModal}
-          status={saveStatus}
-          title={saveStatus === 'success' ? 'Save successful' : 'Save failed'}
-          message={saveStatusMessage}
-          closeText="Close"
-        >
-          <svelte:fragment slot="actions">
-            <Button variant="outline" on:click={createAnotherPytest}>Create Another PyTest</Button>
-            <Button variant="outline" on:click={goToComposer}>Compose Test</Button>
-          </svelte:fragment>
-        </StatusModal>
-      {/if}
-    {/if}
   {/if}
 </div>
 
@@ -469,6 +557,42 @@
     color: var(--color-text-muted);
   }
 
+  .naming-fields {
+    display: flex;
+    gap: 16px;
+    margin: 0 0 20px;
+  }
+
+  .naming-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    flex: 1;
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
+  }
+
+  .step-field {
+    width: 100%;
+    padding: 8px 10px;
+    border-radius: 6px;
+    border: 1px solid var(--color-border-surface);
+    background: var(--color-bg-content);
+    color: var(--color-text);
+    font: inherit;
+    font-size: 0.9rem;
+  }
+
+  .units-loading {
+    margin-bottom: 16px;
+  }
+
+  .generate-run-status {
+    margin: -12px 0 20px;
+    color: var(--color-text-muted);
+    font-size: 0.85rem;
+  }
+
   .summary-title {
     margin-bottom: 22px;
   }
@@ -484,8 +608,8 @@
     display: flex;
     flex-wrap: wrap;
     width: 100%;
-    gap: 16px;
-    padding: 5px 20px 8px;
+    gap: 0px 14px;
+    padding: 8px 10px 8px 10px;
     border-top: 1px solid var(--color-border-surface);
     border-bottom: 1px solid var(--color-border-surface);
     margin-bottom: 16px;
@@ -516,18 +640,6 @@
     border: 1px solid var(--color-border-surface);
     border-radius: 8px;
     padding: 24px 24px 0px 24px;
-    width: 100%;
-  }
-
-  .feedback-window {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-    padding: 16px;
-    margin-bottom: 12px;
-    border: 1px solid var(--color-border-surface);
-    border-radius: 8px;
-    background: var(--color-bg-surface);
     width: 100%;
   }
 
@@ -631,10 +743,8 @@
     color: var(--color-warning);
   }
 
-  .holistic-review {
-    margin: 0 0 24px;
-    color: var(--color-text);
-    font-size: 0.94rem;
-    line-height: 1.6;
+  .lint-error {
+    color: var(--color-error);
+    font-weight: 600;
   }
 </style>

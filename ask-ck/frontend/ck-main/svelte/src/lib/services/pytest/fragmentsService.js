@@ -4,10 +4,10 @@ const PT_API = '/api/pytest-create';
 
 // Whole-case LLM call — gather_fragments has no step-id concept, it gathers against every
 // script chosen in Script Search at once (and 409s unless that step is already confirmed).
-export async function gatherFragments(key) {
+export async function gatherFragments(key, headers) {
   const res = await fetch(`${PT_API}/gather_fragments/${encodeURIComponent(key)}`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...headers },
     body: '{}',
   });
   if (!res.ok) {
