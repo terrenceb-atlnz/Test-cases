@@ -3,7 +3,7 @@ name: claude-agent-is-the-release-transport
 description: "`claude_agent` (browser broker -> ck-agent on the user's seat) is the ONLY Claude transport as of 2026-09-10, and since 2026-09-11 Ask-CK has exactly TWO backends (org vLLM, claude_agent) — Grok is gone; seats install the agent from the home page one-liner; the LLM choice is per seat (X-CK-LLM)"
 metadata:
   type: project
-  verified: 2026-09-28
+  verified: 2026-10-09
 ---
 
 **The Claude path is the per-user agent, and nothing else.** A browser tab brokers each call
@@ -37,3 +37,10 @@ the easy path rather than the RDP-to-localhost workaround of the two demo days.
   agents implement is in [[claude-code-cli-transport-contract]]. Adding a backend is a
   governance decision: update the wiki, `SUPPORTED_AUTH_METHODS` and
   `tests/test_llm_backend_allowlist.py` together.
+- **Two more rulings (Terrence, 2026-10-09):**
+  - a shared host login is never re-attached, even to make Windows seats work (*"we wont
+    re-attach the shared login. thats a bad idea"*);
+  - **Claude Code Remote Control is denied by company policy**, so it cannot be a UI surface.
+
+  Full-tools agent sessions for Validation and the Composer stay on the seat; see
+  `ask-ck/plans/PLAN-agent-sessions.md`.

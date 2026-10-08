@@ -1,235 +1,313 @@
 ---
-verified: 2026-09-28
+verified: 2026-10-09
 ---
-# PLAN — Test Composer: the run tool in five steps; the PyTest Creator ends at Save
+# PLAN — Test Composer: run a project's runnable cases on a topology template
 
 > ## Status (read first)
 >
-> **PLAN ONLY — nothing built.** Terrence, 2026-09-28: *"Definitely a plan first."* Every
-> "today" claim in §1 was checked against the code that day. The decisions Terrence took
-> while asking for this are in §0 and are settled; §7 lists the ones still open.
+> **PLAN ONLY — nothing built. Rewritten 2026-10-09** from Terrence's design in that day's
+> conversation. It is the third of three plans:
+> 1. [`PLAN-agent-sessions.md`](PLAN-agent-sessions.md) (A, first): how Ask-CK starts and talks
+>    to a `/test-mode` session.
+> 2. [`PLAN-test-validation.md`](PLAN-test-validation.md) (B): one script made to run, reviewed,
+>    Finalized.
+> 3. **this plan** (C).
 >
-> Supersedes, in part, `PLAN-pytest-creator.md` §8 (server-side setup templates, designed
-> 2026-09-01): see §3 for what is kept and what his later decisions replaced.
+> The 2026-09-28 version of this file (*"the run tool in five steps"*) is superseded. Its
+> Validation half moved to B. Its template storage decision, its requirements aggregate and
+> its reuse of `PLAN-pytest-creator.md` §8 carry over here (§3). The old text is in git
+> history.
 >
-> **2026-09-28 evening — new open point (g), for §7:** a tb470 run is now dispatched through
-> device-testing's `/test-mode` (one session = sentinel + `bench-runner` subagents; `bench-runner`
-> gate 8 refuses a dispatch that does not say `sentinel: parent` or name a live peer sentinel).
-> §2 step 5 "Run" must decide how the Composer's run reaches the bench: (1) the server run path
-> (`pt_exec`) with no sentinel — allowed by gate 7 but it runs none of the bench gates; (2) hand
-> the script to `/test-mode` (a device-testing session) and read the result back via
-> `run_result/{key}`; (3) the Composer's own agent dispatches `bench-runner` and arms the kit
-> itself. Undecided; Terrence's call.
+> **Settled 2026-10-09 (Terrence), not for re-litigation:**
+> - **C-D1 — all new UI in Svelte, in `current/`, on both the Classic and ATUI pages.** That
+>   covers the Composer, Validation and the ZTT port. It does not touch Trent's Svelte app:
+>   *"lets not overwrite what Trent is doing, you doing it first will make it easier for him to
+>   do his work later."*
+> - **C-D2 — ZTT is ported to Svelte first, as the pilot, after the plans are written** (§6).
+> - **C-D3 — ZTT records its uploads**, and a project can also be added by its wiki link (§2.1).
+> - **C-D4 — email when done** goes through the server's postfix (A §8; verified 2026-10-09).
+> - **C-D5 — after-hours runs** start from the seat agent polling the server (A D3).
+> - **C-D6 — the grading tier list** (memory `grading-authority-tier-list`). *"These tests are
+>   non-negotiable results, the agent wont override them."*
 
-## 0. The ask — Terrence, 2026-09-28
+## 0. The ask — Terrence, 2026-10-09
 
-The final form of the UI:
+> *"This will be separate from Validation, this will be the proper Test Composer tool."*
+>
+> - Pick a **Project** from a dropdown populated by the Zephyr Templating Tool (ZTT): *"Because we
+>   created the project with ZTT, we should know the plans, cycles, and test-cases that are
+>   attached to them."* The user also names the **test bench** in a field.
+> - Pick a **topology template** (SetupA, SetupB, …), *"already linked to test-cases so we know
+>   how many we can run in that topology. Selecting the setup should return how many test cases
+>   are runnable with that topology."*
+> - **Validate**: *"The agent will run the bench probe as usual, but this time it will be diffed
+>   against the selected templated .setup file."* The user sees *"either a Green Checkmark, or a
+>   list of differences that the agent found for the user to change, based on agent feedback."*
+> - After the green check: *"do a quick GET to populate what is actually IN the project, and then
+>   produce an identical frame to the ZTT hierarchy … filtered to match the topology file,
+>   listing what cases are runnable. The checkboxes here are going to be what we are going to ask
+>   the /test-mode agent to run."*
+> - **Start** launches `/test-mode` on the ticked cases, with a live window (A §7).
+> - **Results**: *"a table under PASS or FAIL or whatever the verdict is"*:
+>   - sorted into test cycles, with *"a clear visual indicator of whether they were PyScripts or
+>     manual tests"*;
+>   - clickable logs (framework logs for scripts, `/create-logs` output for manual cases);
+>   - a **Feedback** button where *"the pytest was run AND the agent encountered an error OR the
+>     test failed"*;
+>   - at the top, *"a clear numerical readout of Results, the amount of time the run took, and
+>     how many tokens it took."*
+> - From the ART tools (author's permission for **these two only**: the Test Runner and the Log
+>   Viewer; *"please do not wander off or edit their data in any way"*): a Log Viewer port, and
+>   *"do not reboot between tests", "skip getting a new build", and "email when done"* sorted out
+>   now. A **Cron option** for runs that need multiple restarts, run after hours.
 
-1. Identify the test box, check the connection works.
-2. Determine whether the `.setup` on the test box matches the actual topology ON the test box.
-3. Identify the script to test.
-4. Determine whether the topology requirements of the script match the `.setup`.
-5. Run the script on the test box.
+## 1. The flow
 
-And the decisions that frame it:
+| # | Step | Who | Built on |
+|---|---|---|---|
+| 1 | **Project** (dropdown or wiki link), **variants** (checklist when several), **test bench** field | page + server | §2.1 |
+| 2 | **Template** dropdown, with "N of M cases runnable" | server | §2.2 |
+| 3 | **Validate**: probe vs the chosen template; a green check, or the differences with the agent's advice | session (A) | §2.3 |
+| 4 | **The project tree**: a live GET, drawn like ZTT, filtered to runnable; tick boxes | server | §2.4 |
+| 5 | **Start**: hand-off `kind: "composer"`, `/test-mode --from-ask-ck`, live window; run options | session (A) | §2.5 |
+| 6 | **Results table**: by cycle, by verdict, script/manual marker, logs, Feedback, totals; Accept results | server + page | §2.6 |
 
-- **The Run panel is deprecated.** All five functions move into the Test Composer, *"as this
-  is literally what its supposed to do."* **Confirm and Save to generated/ are the last steps
-  of the PyTest Creator.**
-- **Templates come later.** *"EVENTUALLY, we will create a template pair that the current file
-  deployed on the box will compare against. Currently we need to create scripts to aggregate
-  enough topological requirements to determine what that setup template should look like."*
-- **Where results go.** A **"New Script?"** toggle changes the destination. Default:
-  `test-composer/runs/<date of run>/<test>.log`. With the toggle on: into the script's own
-  `.meta/` directory, a new `test/` beside `history/`. And *"the composer should hand the
-  failure back to the pytest handler somehow, probably back to the summary page for the
-  repair loop to handle."*
-- Reuse what §8 already settled *"unless ive directly contradicted it, in which case, lets
-  discuss. maybe the original is better."* (§3.)
+## 2. The steps
 
-## 1. What exists today, and where each piece goes
+### 2.1 Project, variants, test bench
 
-| Step | Today | Where | Goes to |
-| --- | --- | --- | --- |
-| 1 Testbox | profiles CRUD + `check` (`pt_exec.check_profile`), the Testboxes panel; `secrets.testboxes.json` (0600) | PyTest Creator | **moves** to the composer, unchanged |
-| 2 Bench truth | **nothing in the server.** device-testing's `bench-setup/bench_probe.py run`, run by hand ON tb470: reads every console, regenerates `bench-state.md`, diffs its ```setup fence against the deployed `tb470.setup`; exit 0 MATCH / 1 MISMATCH / 2 NEEDS-CHECK; ~2 min | device-testing | **new**: the composer runs it over ssh and shows the result (§2.2) |
-| 3 Script | only the open case's session script | PyTest Creator Run panel | **new**: a picker over `generated/` (§2.3) |
-| 4 Requirements | `pt_preflight` — runs hidden inside Run; blocks or is overridden ("run anyway", recorded) | `pt_exec._preflight_gate` | **moves** and becomes a visible step; **new**: the requirements aggregate (§2.4) |
-| 5 Run | `run/{key}`, `RunManager`, `--noupdate --nodefaultcfg`, log fetch, `parse_framework_log`, per-case PASS/FAIL | PyTest Creator, session `step7` | **moves**; results routing is **new** (§2.5) |
-| — Validate | `validate/{key}` (all PASS → `provenance.json` stamped), the Validate panel, `confirm_step 8` | PyTest Creator `step8` | **retires** with the Run panel; the composer stamps provenance (§7 a) |
-| — Fix from a run | `fix_script` / `fix_units` read `step7.runs[-1]` + `failure_excerpts` | PyTest Creator | **stays**; the composer hands the run back into `step7` (§2.5) |
+Two ways in, both kept (*"because i want this to be backwards-compatible"*):
 
-Nothing here touches `ck.db`'s schema: the composer's state is files (§8).
+- **Templated Project** (dropdown). **C-D3: ZTT records each upload.**
+  - **What:** project, product, version, team subfolder, project number, and each cloned plan and
+    cycle with its new key and id.
+  - **Where:** a record file beside the audit log, `ask-ck/db/zt-uploads.jsonl`, one line per
+    finished family. The audit log stays an audit log.
+  - **First entry:** IE570's Industrial Features upload of 2026-10-07 (P3266 / C8470), taken from
+    the audit log once.
+- **Zephyr Project Link** (URL field): the project's wiki page.
+  - **What is read:** its **"Test Results:"** cell, through `zt_wiki.py`'s page reader (GET
+    only). The cell is not parsed today; this is new.
+  - **The cell can list several plans, one per variant,** each with its status (Passed, Tested,
+    On Target, …).
+  - **More than one plan → a checklist of variants** for *this* run. *"Variance within product
+    families is very common … They are often entirely different chipsets and hardware, and as
+    such, could have different tests that apply between variants … the test strategies arent
+    always up-to-date with new variants, and the TPS can also lag behind as well."*
+  - The plans for the ticked variants are then fetched from Zephyr by GET.
+- **Test bench:** a field (`tbNNN`), which also feeds the hand-off.
 
-## 2. The five steps, as the composer
+### 2.2 Template and runnable count
 
-The composer is **not a case tool**. It has no `PtSession`; its selections (testbox, script,
-toggle) live in the tab (localStorage, per-viewer convenience) and its records on disk under
-`ask-ck/functions/test-composer/runs/`. Each step is enabled by the one before it, the way the
-creator's confirm gates work, but without confirms: the state is the last result on screen.
+- **Templates** live at `ask-ck/functions/test-composer/templates/<setup>/`: `<setup>.setup` plus
+  one `<setup>.<device>.cfg` per device (Terrence, 2026-09-25). Today `setup-a` and `setup-b` hold
+  **empty placeholder files**, a reference location only.
+- **How templates will be authored (Terrence):** *"after i run enough tests i shall aggregate that
+  data into a series of templates and then attempt to integrate as many of them as possible into
+  as few .setup permutations as possible (adjusting config and shutting down unused ports is a
+  non-issue, we just need the physical setup to be correct)."*
+- **Testing uses mock data:** *"We can fill it with mock data when we get to testing to ensure we
+  can handle swapping between two templates and how it can adjust the recommendations."*
+- **Runnable count, by case kind:**
+  - **Script cases** (a Finalized script exists): computed. `pt_preflight.parse_script(script)`
+    is checked against the template's `.setup` (`pt_preflight.check`). This is the old plan's
+    requirements aggregate, now used per template.
+  - **Manual cases:** declared. A `cases.txt` (or similar) in the template's directory lists the
+    case keys it supports, authored with the template. Open decision §8.1.
 
-### 2.1 Testbox — moved
+### 2.3 Validate — probe against the template
 
-`GET/POST/DELETE /api/test-composer/testboxes`, `POST …/{name}/check`. Same profile shape,
-same secrets file, same redaction. The creator's Testboxes panel and endpoints go in slice S3.
+- **How:** the session runs `bench_probe.py --box <TB> run --template <setup>.setup`. The
+  `--template` option exists (device-testing `bench-setup/bench_probe.py:1836`).
+- **Result:**
+  - **MATCH** → green check;
+  - **MISMATCH / NEEDS-CHECK** → the differences, each with the agent's plain-words advice
+    ("cable port1.0.3 of swi_a to tb eth2").
+- **The user changes the bench, not the session.** A change STANDING-ORDERS §4 reserves (`apply`,
+  recable, licence, root) is never self-applied (A §8 item 6). The user changes it and presses
+  Validate again.
+- **Bench questions (PDU and outlets, consoles, constraints)** are page fields filled before
+  Validate and carried in the hand-off (A D2).
 
-### 2.2 Bench truth — new
+### 2.4 The project tree
 
-"Does the `.setup` on the box match what is cabled?" is exactly `bench_probe.py run`. The
-composer does not re-implement it (one writer per repo: Test-cases calls device-testing's
-tool and never edits it). `POST /api/test-composer/probe/{testbox}` runs, over the profile's
-ssh, the command the profile names — for tb470
-`python3 /home/terrenceb/claude/device-testing/bench-setup/bench_probe.py run` — captures
-stdout and the exit code, and reports **MATCH / MISMATCH / NEEDS-CHECK** with the diff text.
-Long-running, so it is a background job with a status poll like a run.
+- **Live, not stored:** after the green check, a GET of what is actually in the project (plans,
+  cycles, cases), drawn with **ZTT's tree component** (the same Svelte component after the pilot,
+  §6), so it looks identical.
+- **Filtered** to the cases runnable on the template.
+- **Each case shows:**
+  - **script / manual**: a script case has a Finalized script (B §6). Its kind comes from the
+    Objective and PyTest tools' records: *"eventually all of these tests will have details
+    created by the previous Objective and PyTest tools, so … we should know all the test steps
+    and whether or not they are automatable with py scripts."*
+  - **Previously Run**: shown when an earlier run record has the same project, the same case
+    and the same **release version** (*"IF the Release Version is the same as the previous
+    session"*).
+- **The ticks are the run list.**
 
-Three facts the step must respect, all from the probe's own docstring:
+### 2.5 Start, the window, run options
 
-- it **opens every console** (`/dev/u0`–`u6`): refuse to start while a run is active on that
-  testbox, and say that a console another operator holds will read as absent;
-- it **switches `lldp run` on** for a device that had it off (running-config only, restored
-  after) — a device-state change. The panel states it before the button is pressed
-  (the bench-runner agent asks first; the composer's equivalent is the disclosure);
-- it is **tb470's** tool: the profile gains an optional `probe` command. A profile without one
-  reads *"no bench probe for this testbox"* at step 2, and step 4 falls back to the deployed
-  file fetched by sftp.
+- **Start** writes the hand-off (`kind: "composer"`, A §6): every ticked case with its `kind`
+  (script or manual), its cycle, and its script path for script cases. Then it launches
+  `/test-mode --from-ask-ck`.
+- **The live window** is A's W1 and up.
+- **D5 applies:** a campaign never stops to wait. It sends an informative email, works past the
+  problem, or BLOCKs that case and moves on (A §8).
+- **Run options:**
 
-When the probe MATCHes, `bench-setup/tb470.setup.current` is the file step 4 reads (the
-always-current local copy `pt_preflight`'s own usage names). MISMATCH does not block step 5
-— it is information for the operator, and `apply` stays a hand action in device-testing.
+| Option | What it means here | Source |
+|---|---|---|
+| Skip getting a new build | **Always on, not an option.** Every Ask-CK run is `--noupdate --nodefaultcfg` (memory `framework-run-always-noupdate`). ART's checkbox controls the web tool's own build fetch. `rtmt` itself always passes `--noupdate`. | `rtmt` read 2026-10-09 |
+| Do not reboot between tests | ART wires it to `rtmt -N`, which adds `--noconf -p` **from the second repeat** (skip `configure()` and the startup power cycle). It matters only for repeat runs. Between cases, the framework's post-failure power cycle is **accepted and not overridden** (STANDING-ORDERS §6). Shown as information, not a switch, until repeat runs exist. | `/home/st-art/tools/run_test_many_times.py` |
+| Email when done | Address field (pre-filled from the seat). The server sends via postfix → `int-smtp.atlnz.lc`, from `do-not-reply@alliedtelesis.co.nz`, with a small summary and a link. Also used for D5 notices. | verified 2026-10-09 |
+| Run after hours (cron) | A start time. The seat agent polls the server and launches at that time (A D3). The page says the seat must be on and logged in. | A §8 |
+| Extra framework flags | **Later**, as needed: *"eventually we will be able to integrate more of the functions this currently has (as required, like extra flags)."* | — |
 
-### 2.3 Script — new
+**Borrowed from ART's Test Runner** (behaviour only, no code):
+- the **share link** that pre-fills the form;
+- **attach to an active run**;
+- a **dry run** ("show the hand-off and the command, run nothing");
+- the **Follow** toggle on the live window.
 
-`GET /api/test-composer/scripts` lists `generated/<group>/<name>.py` with what
-`.meta/<group>/<name>/provenance.json` knows: case key, `saved_at`, iterations, validated.
-Picking one binds the run's files the way `run/{key}` binds them today: the script, the
-group's `library_<family>.py`, and the media helper (`_media_helper_source()` — every frame
-imports it). The **"New Script?"** toggle sits here, default off (§7 d).
+### 2.6 Results
 
-### 2.4 Requirements — moved, plus the aggregate
+- **Grouping:** one table, **grouped by test cycle**, columns by verdict (PASS, FAIL, UNSUPPORTED,
+  BLOCKED, NOT TESTED, …), and a **script / manual** marker on every row.
+- **Logs, click to open:**
+  - **script cases:** the framework log (non-negotiable verdicts, C-D6);
+  - **manual cases:** the final log written by `/create-logs --auto` (device-testing `83c0880`).
 
-`POST /api/test-composer/preflight` = `pt_preflight.preflight_text(script, setup)` for the
-chosen script against the step-2 file, rendered as its own page: RUNNABLE or the problems,
-with the "run anyway" override recorded on the run as today.
+  The viewer opens in the page (side by side or expanding in the row, *"as long as the data is
+  there, we can fix the UI later"*).
+- **The viewer is a port of the ART Log Viewer's design:**
+  - two panes, where any file can go in either pane to line up timestamps;
+  - the tail loads first, then "load earlier";
+  - download one file or the set;
+  - deep links;
+  - `.tgz` extraction on demand.
 
-**The aggregate (Terrence's point 1).** `GET /api/test-composer/requirements` runs
-`pt_preflight.parse_script` over every saved script and unions the demands — link roles
-(`tb`, `copper`, `fibre`, `cusfp`, optional or required), legacy `init_portlink` pairs, power
-— per group and overall, with the scripts that ask for each. That table IS the shopping list
-for the template pair (§3): what a bench must provide for the whole set to be runnable. Pure,
-offline, no hardware; it is `PLAN-pytest-creator.md` §8.4's *"which profiles does nothing I
-have implement?"* without the retired `[misc]` claims.
+  It reads our records, read-only: device-testing's `<TB>/<FAMILY>/<group>-<STAMP>/` (stored by
+  testbox, as today) and this run's own directory.
+- **Feedback** appears on a script case that FAILed or where the agent hit an error. It is a
+  separate LLM call on the seat's chosen backend: RCA, script feedback, by-the-ways, with the log
+  and the script in context. The reply is stored with the run.
+- **Grading:**
+  - the user can re-grade any row (they are top of the tier list);
+  - a manual case's re-grade re-runs `/create-logs --auto <queue> <id>`;
+  - a script case's framework verdict is shown as-is, and a re-grade is recorded beside it, not
+    over it.
+- **Accept results:** deletes the campaign's `work/` folders (*"we may require the evidence"*,
+  so only on Accept). Ask-CK's server does not write in device-testing, so Accept asks a session
+  there to do it. The mechanism comes from A.
+- **Header readout:**
+  - result counts per verdict;
+  - wall-clock time;
+  - tokens: from the session's `result` line, falling back to `/create-logs`' per-case
+    measurement (A §8, U4).
 
-### 2.5 Run — moved, results routed
+## 3. Carried over from the 2026-09-28 plan
 
-`POST /api/test-composer/run` starts `RunManager` exactly as today (workdir, sftp, the
-run flags, log fetch, parse). What changes is where the record lands:
+- **Template storage:** `templates/<setup>/<setup>.setup` + `<setup>.<device>.cfg` (one per
+  device; one per stack).
+- **`PLAN-pytest-creator.md` §8.2** (templates are run-time only; generation never reads a bench
+  file), **§8.6** (record the template's text hash on the run) and **§8.7** (verify a declaration
+  against the bench; never rewrite it from the bench).
+- **The requirements aggregate** (`GET /requirements`: every Finalized script's demands, unioned)
+  is now also the input to Terrence's template design: *"what a bench must provide for the
+  whole set to be runnable."*
 
-| toggle | destination | contents |
-| --- | --- | --- |
-| off (default) | `ask-ck/functions/test-composer/runs/<YYYY-MM-DD>/<test>.log` | the framework log; beside it `<test>.stdout.txt` and `<test>.run.json` (profile, setup + its hash, preflight verdict, parsed cases, exit code). A second run of the same test the same day gets `<test>.<HHMMSS>.log`. |
-| **New Script?** on | `generated/.meta/<group>/<name>/test/<run_id>/` — a new `test/` beside `history/` | the same three files |
-
-**Hand-back to the repair loop (New Script only).** `provenance.json` names the case key, so
-after a New-Script run finishes the composer calls
-`POST /api/pytest-create/run_result/{key}` with the run record. The creator appends it to
-`step7.runs` — the list `fix_script`, `fix_units` (`failure_excerpts`) and the Summary page
-already read — so the Summary page shows *"last run: N of M cases FAIL — Fix from run"* and
-the repair loop works unchanged. `step7` stays in the session model as the data holder; its
-panel goes. The creator never starts a run.
-
-A run with the toggle off is a bench result, not a script under repair: nothing is handed
-back and nothing in `.meta/` changes.
-
-## 3. Templates — later; what §8 still says, and what Terrence's later decisions replaced
-
-Kept from `PLAN-pytest-creator.md` §8 (2026-09-01):
-
-- §8.2 — templates are **run-time only**; generation never reads a bench file; no `ck.db`
-  change. Unchanged.
-- §8.6 — the run wiring: upload the chosen template's `.setup` into the workdir, `-s` the
-  bare name, and **record the template's text hash on the run**. Reused as written.
-- §8.7 — verify a declaration against the real bench, never rewrite it from the bench. The
-  probe's `diff` IS this; §2.2 is its first use.
-
-Replaced:
-
-- §8.3 storage (`pytest-creator/setups/` shared + `ask-ck/db/setups/` personal) → **Terrence
-  2026-09-25**: pairs live in `ask-ck/functions/test-composer/templates/<setup>/` as
-  `<setup>.setup` plus one `<setup>.<device>.cfg` per device (one per stack). The personal
-  location is dropped unless he wants it back.
-- §8.4 `[misc]` profile claims → retired 2026-09-21 (framework discovery). Matching is
-  `pt_preflight` alone; the aggregate of §2.4 replaces the claims table as the way to know
-  what a template must provide.
-
-When enough scripts exist to draw the template, step 2 gains a second mode: the probe's
-`diff` against the **template** instead of the deployed file, and a run starts by loading the
-template's device configs (device-testing's `restore_cfg.py` does this today by hand; whether
-the composer drives it is a decision for that day, not this plan).
-
-## 4. API sketch — all under `/api/test-composer`
+## 4. API sketch — under `/api/test-composer`
 
 | Method | Path | Purpose |
-| --- | --- | --- |
-| `GET/POST/DELETE` | `/testboxes`, `/testboxes/{name}` | profiles (moved) |
-| `POST` | `/testboxes/{name}/check` | connection check (moved) |
-| `POST` / `GET` | `/probe/{name}`, `/probe/{name}/{job}` | run the bench probe; poll it |
-| `GET` | `/scripts` | saved pairs with provenance |
-| `POST` | `/preflight` | `{testbox, script}` → the preflight report |
-| `GET` | `/requirements` | the aggregate of every saved script's demands |
-| `POST` / `GET` | `/run`, `/run/{run_id}` | start a run `{testbox, setup, script, new_script, ignore_preflight}`; poll |
-| `GET` | `/runs?date=` | the day's records |
+|---|---|---|
+| `GET` | `/projects` | templated projects (from `zt-uploads.jsonl`) |
+| `POST` | `/projects/from-wiki` | `{url}` → the Test Results cell's plans and variants |
+| `GET` | `/projects/{id}/tree?plans=…` | live GET of plans → cycles → cases |
+| `GET` | `/templates` | templates with per-template runnable counts for a project |
+| `GET` | `/requirements` | the aggregate of every Finalized script's demands |
+| `POST` | `/runs` | write the hand-off and record the run; the seat launches it (A) |
+| `GET` | `/runs/{run_id}` | the run record, results table, totals |
+| `GET` | `/runs/{run_id}/logs/…` | Log Viewer reads: list, tail, earlier, download, extract |
+| `POST` | `/runs/{run_id}/feedback/{case}` | the Feedback call |
+| `POST` | `/runs/{run_id}/regrade/{case}` | a re-grade |
+| `POST` | `/runs/{run_id}/accept` | Accept results |
+| `GET` | `/composer?script=…` | the deep link Finalize puts in Zephyr (B §6) |
 
-And one on the creator: `POST /api/pytest-create/run_result/{key}` (§2.5).
+## 5. Deep link for Finalize
 
-## 5. Frontend
+B's Finalize writes into Zephyr step 1: *"…use script <TITLE> in the ask-ck tool. <LINK>"*.
+`<LINK>` = `http://10.33.22.17:8000/?panel=composer&script=<group>/<name>`. It opens the
+Composer with the script's case preselected in step 4 once a project and template are chosen.
+**The host part is the server of record** (memory `askck-lan-hosting`). If the server ever
+moves, old links in Zephyr break, so the link should go through a stable name (open §8.5).
 
-`panel-tc-1` … `panel-tc-5` replace `panel-tc-tbd`; `nav.js` `PANEL_META` and the sidebar
-accordion get the five entries; `main.js` keeps `loadToolStatus('test-composer', …)`. The
-Run, Validate and Testboxes code in `pytest-creator/pytest.js` moves to
-`test-composer/composer.js` (the module boundary the README asks for). The creator's Summary
-page gains the *last run* line and the *Fix from run* button it already has the data for.
-Vitest covers the routing and the result-destination logic; the manual checklist covers the
-panels (memory `user-prefers-manual-ui-testing`).
+## 6. UI — Svelte in `current/`, ZTT first
 
-## 6. Build order — slices, each gated and mutation-checked, each one deploy
+**Decision C-D1.** Components are written in Svelte (versions matched to Trent's branch:
+`svelte ^5.57`, `vite ^8.3`, `@sveltejs/vite-plugin-svelte ^7.3`, so they lift over). They are
+compiled and mounted into panels of `current/`, on both `index.html` (Classic) and
+`restyle/index.html` (ATUI). The component reads `<html data-ui="atui">` the way `shared/ui.js`
+does.
 
-- **S1 — the move.** Testboxes + Run under `/api/test-composer`, `runs/<date>/` routing, the
-  five-panel shell with steps 2 and 4 as placeholders. The creator's Run/Validate/Testboxes
-  panels are hidden; their endpoints stay until S3 so nothing in flight breaks.
-- **S2 — steps 3 and 4.** The script picker, the visible preflight, the requirements
-  aggregate, the New-Script destination.
-- **S3 — the hand-back, and the retirement.** `run_result/{key}`, the Summary page's run
-  line, then the creator's Run/Validate/Testboxes panels and endpoints are removed; `confirm
-  7/8` go; `validate`'s provenance stamp moves to the composer.
-- **S4 — step 2.** The probe job, the profile's `probe` command, the disclosures.
-- **S5 — templates.** Its own section when the aggregate says what the pair looks like.
+**Proposed shape, which the pilot proves:**
+- **Source:** `ask-ck/frontend/ck-main/current/svelte-src/` (its own `package.json` and
+  `vite.config.js`). **Not** `ck-main/svelte/`, which is Trent's.
+- **Build output:** `current/islands/<name>.js` + `.css`, **committed**, because there is no CI and
+  the working tree is production. The gate gains a check that the committed output matches a
+  fresh build.
+- **Mounting:**
+  - each panel has one mount element (`<div id="zt-root">`), present in both HTML files, so
+    `tests/test_restyle_parity.py` holds;
+  - `main.js` imports the island's mount function, and the existing nav and action registry keep
+    working.
+- **Tests:** component tests in `tests/js/` under Vitest, which gains the Svelte plugin; the
+  existing 392 tests are unchanged.
+- **Cache:** the built file is served with `?v=N` cache-busting as today (README convention 4).
 
-S1 and S3 change `CK_server/*.py`, so they go through the branch-and-merge procedure
-(SERVER-README, "Changing the backend of the hosted server").
+**Pilot: ZTT** (608 lines in `current/zephyr-tool/zephyr-tool.js`, one page, `zt-page.spec.js`
+covering it).
+- **Done when:** it reaches feature parity on both UIs, the old module is removed, and the build,
+  serve and test path is proven.
+- **What the Composer reuses from it:** the tree component and the page patterns.
 
-## 7. Decisions still open for Terrence
+## 7. Slices — each gated, mutation-checked, one deploy
 
-- **(a) Final Validation's home.** Proposal: the composer stamps `provenance.json`
-  (`validated_at`, `validated_run_id`, `validated_profile`) when a New-Script run passes every
-  case; the creator's Validate panel and `confirm_step 8` retire with the Run panel.
-- **(b) The probe's device-state change.** Disclosure on the panel (proposed), or an explicit
-  confirm click like the admin panel's actions.
-- **(c) Retention** of `runs/<date>/`: keep everything (proposed; it is small text), or prune.
-- **(d) "New Script?"** default off, and the exact wording on the toggle.
-- **(e)** One run at a time **per testbox** (proposed) rather than per case as today.
-- **(f)** Whether a run with the toggle off may target a script that has an open creator
-  session (proposed: yes; it just does not hand back).
+- **Z1 — the ZTT Svelte pilot** (§6). Needs nothing from A.
+- **C1 — projects:**
+  - ZTT records uploads (`zt-uploads.jsonl` + the backfill);
+  - the dropdown;
+  - the wiki link with the Test Results cell parser and the variants checklist;
+  - the test bench field.
+- **C2 — templates:** the template picker, the runnable count (script cases computed, manual cases
+  declared), mock templates to exercise swapping.
+- **C3 — Validate:** the probe against the template through A (launch + W1), the green check or
+  the differences.
+- **C4 — the tree, Start and run options:** email, schedule, share link, dry run.
+- **C5 — results:** the table, the Log Viewer port, Feedback, re-grade, Accept results, totals.
 
-## 8. Invariants this must not break
+C3 onward needs A's Phase 1. Scheduling needs A's Phase 4.
 
-- `ck.db` gains no table: composer records are files under `test-composer/runs/` and
-  `generated/.meta/…/test/`; the hand-back reuses the session's existing `step7`.
-- `/home/st-art/framework` read-only; the workdir guard (`_assert_write_allowed`) moves with
-  the run code.
-- Generation never reads a bench file (`TOPOLOGY-PROFILES.md`); the composer is run-time only.
-- Every hardware run launches with `FRAMEWORK_RUN_FLAGS` (test pinned).
-- The write boundary: the composer **calls** device-testing's probe and reads its
-  `tb470.setup.current`; it never writes into that repo.
-- Tests never write the permanent `ck.db`; composer tests use `tmp_path` for records and the
-  in-process fakes `pt_exec`'s tests already use.
+## 8. Open decisions for Terrence
+
+1. **Manual cases on a template:** declared per template (a case list in the template's
+   directory), or inferred some other way?
+2. **ZTT upload record:** a file (`zt-uploads.jsonl`, proposed) or a `ck.db` table?
+3. **Previously Run match key:** project + case + release version (proposed)? Is "release
+   version" the Zephyr folder version (e.g. `5.5.6-2`) or the build?
+4. **Feedback backend:** the seat's chosen LLM (proposed), or always Claude?
+5. **The Finalize deep link's host:** the IP (works today), or a DNS name that survives a move?
+6. **Accept results:** once per campaign (proposed), or per group?
+
+## 9. Invariants
+
+- `ck.db`: no schema change proposed (records are files; §8.2 open).
+- Ask-CK writes only in Test-cases. device-testing is read, and changed only by its own sessions
+  (the write boundary).
+- `/home/st-art/framework` read-only. Every run uses `--noupdate --nodefaultcfg`. The standing
+  orders and bench gates apply to launched campaigns exactly as to typed ones.
+- Scripts never read a bench; templates are run-time only.
+- The ART tools: reuse the design of the Test Runner and the Log Viewer only. Never call their
+  APIs to change anything, never touch their data.
+- Zephyr: GET for the tree. The only writes in these plans are B's Finalize (audit first, read
+  back after).
+- Tests never write the permanent `ck.db`.

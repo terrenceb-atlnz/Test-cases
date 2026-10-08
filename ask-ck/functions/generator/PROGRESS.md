@@ -5,11 +5,89 @@ verified: 2026-09-28
 
 **Purpose**: This file exists so future sessions can quickly understand exactly where we are, what has been built, what the priorities are, and how to continue seamlessly.
 
-**Last Updated**: 2026-10-07, later (by Claude; the Zephyr real upload built, run once on IE570, applied)
+**Last Updated**: 2026-10-09 (by Claude; Test Composer split into three plans — agent sessions, Validation, Composer)
 
 > **Reading note (2026-09-23 doc sweep).** Entries are frozen as written. Where an entry's
 > claim has since stopped being true, a ⚠ line under its heading says what changed.
 > Newest first. Paths in older entries predate these moves (the same as in CHANGELOG): `tool/` → `ask-ck/tools/`, `ask-ck/var/` → `ask-ck/db/`, `objective-drafting/` → `ask-ck/functions/generator/`, `pytest-create/` → `ask-ck/functions/pytest-creator/`, `js-tests/` → `tests/js/`, `ask-ck/ck-facelift/` → `ask-ck/plans/`, root reports → `docs/`, and completed plans `ask-ck/plans/` → `archive/plans/` (2026-09-11, 2026-09-23). Also retired 2026-09-23: the demo notes → `archive/plans/demo-2026-09-11/`, and `HANDOFF-generate-token-efficiency.md` + `Fragments_prompt.md` → `archive/records/`.
+
+## Latest session (2026-10-09) — Test Composer split into three plans; device-testing taught Ask-CK campaigns
+
+Orientation, then Terrence: *"lets make a plan to create the Test-Composer section now."* The
+2026-09-28 `PLAN-test-composer.md` existed (plan only; stub router and panel). He was advised to
+split it into two features that both launch device-testing's `/test-mode`. A design
+conversation produced **three plans, all PLAN ONLY, no code**:
+
+- **`ask-ck/plans/PLAN-agent-sessions.md` (A, first):** how Ask-CK starts, watches and talks to a
+  full-tools Claude Code session on the user's seat.
+  - **Contents:** the launch options (A: the seat agent gets a "session" job; A+B: plus
+    `claude --bg`; C: Agent SDK); the hand-off file; the window ladder (W1 read-only, W2
+    questions, W3 chat, W4 docked helper); lifetime; after-hours; email; tokens.
+  - **Decisions D1–D5:**
+    - D1: Windows is out of scope until everything else works, then "remote mode";
+    - D2: Remote Control is denied by company policy;
+    - D3: after-hours runs start from the seat agent polling the server;
+    - D4: P0 includes one TRIAGE on tb470;
+    - D5: blocked on a person → an informative email, work past it, else BLOCK the case and
+      move on.
+  - **Flags verified** against Claude Code 2.1.294 on this host; six claims (U1–U6) are left
+    for P0.
+  - **Option C** interests Terrence (*"we can add the download for windows … as part of the
+    setup script"*), so P0 tests it too.
+- **`ask-ck/plans/PLAN-test-validation.md` (B):** one script.
+  - **Flow:** probe → preflight → run → the sentinel repairs a scratch copy until the run is
+    clean (Terrence's definition, §4) → review (false positives and negatives, objectives and
+    steps, improvements) → user approval overwrites via `save_script` → Finalize.
+  - **Finalize:** a Zephyr step-1 addendum and version 2.0→3.0, then the case leaves both lists,
+    via a `finalized_at` marker in `provenance.json`. Lists change only after the Zephyr writes
+    succeed.
+- **`ask-ck/plans/PLAN-test-composer.md` (C, rewritten):**
+  - **Choosing:** a project (ZTT upload records or the wiki "Test Results" cell with a variant
+    checklist), a test bench, a template with its runnable count.
+  - **Validate:** the probe `--template` gives a green check or the differences.
+  - **Running:** the live project tree filtered to runnable cases, then Start, with the live
+    window, email and cron.
+  - **Results:** grouped by cycle, a script/manual marker, a Log Viewer port, Feedback,
+    re-grade, Accept, totals.
+  - **C-D1:** all new UI in **Svelte inside `current/`**, Classic and ATUI (not Trent's app).
+  - **C-D2:** ZTT is ported first as the pilot.
+
+**Also done:**
+- **ART tools:** read the ART Test Runner and Log Viewer (GET only; the author permits reuse of
+  these two only).
+- **`rtmt`:** read on tb470 (`/home/st-art/tools/run_test_many_times.py`). `-N` adds
+  `--noconf -p` from the second repeat; `-m` mails via `smtplib` → `localhost:25`.
+- **Email path verified:** this host's postfix relays via `int-smtp.atlnz.lc`. One test mail
+  sent with consent and received at 11:12.
+- **Trent's Svelte UI** on `origin/userinterface` is active (last commit 2026-10-08) and already
+  has a `TestComposerPage.svelte` placeholder.
+
+**device-testing (by its own session `device-testing-8e`, from this session's messages; not
+pushed):**
+- `83c0880`: `/test-mode --from-ask-ck <handoff>`, `/create-logs --auto` (Ask-CK campaigns
+  only; keeps `work/` until Accept), the scoped rule text, and memory
+  `grading-authority-tier-list` (linked here).
+- `52cc64e`: D5 as `/test-mode` §10, the `NOTIFY` marker. "Work past it" never makes a
+  STANDING-ORDERS §4 decision.
+
+**Pending / next.**
+- **P0** (PLAN-agent-sessions §9), which Terrence asked for right after this wrap:
+  - the stream-json spike;
+  - the Agent SDK spike;
+  - U6 read at its source;
+  - one `/test-mode --from-ask-ck` TRIAGE on tb470.
+- **The open decisions in each plan:**
+  - A: §10, the launch option after P0;
+  - B: §8, five items;
+  - C: §8, six items.
+- **Slices waiting:** Z1 (the ZTT Svelte pilot) needs nothing from A. B's V0 is the Zephyr
+  "new version" capture.
+- **Carried:**
+  - the Jira cookies pasted 2026-10-07 (log out and in to revoke);
+  - the stray personal memory slugs (`-home-terrenceb`, `…Documents-banilla`, empty
+    `…WoW-Vanilla`), Terrence's call;
+  - the merged `zt-upload` branch and the superseded `unsupported-before-run-2026-10-01` branch
+    (its work landed as `38b5eab`), both still local, not deleted (not asked).
 
 ## Latest session (2026-10-07, later) — the Zephyr real upload: built, run once on IE570, applied
 

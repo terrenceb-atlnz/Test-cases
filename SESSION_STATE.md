@@ -4974,3 +4974,22 @@ Industrial Features → P3266 / C8470 on IE570, read back clean from both ends. 
 2026-10-07 (later) and the plan's §5b.
 
 Gate: EXIT=0 — both guards OK, pytest 2046 / 1 skipped, vitest 392 in 35 files, ck.db untouched.
+
+## Session Close / Handoff (2026-10-09) — the Test Composer split into three plans
+
+Orientation (gate green, tree clean), then a design conversation with Terrence. The 2026-09-28
+`PLAN-test-composer.md` became three plans, all PLAN ONLY with no code:
+
+- **`PLAN-agent-sessions.md` (A, first):** a full-tools Claude Code session on the seat, started
+  and watched from Ask-CK. It carries decisions D1–D5 (Windows deferred to "remote mode"; Remote
+  Control denied by policy; after-hours runs via seat-agent polling; P0 includes one tb470
+  TRIAGE; a campaign never blocks on a person). P0 is next.
+- **`PLAN-test-validation.md` (B).**
+- **`PLAN-test-composer.md` (C, rewritten):** all new UI is Svelte inside `current/`, with the ZTT
+  port as the pilot.
+
+The device-testing session made the matching skill changes in its own repo (`83c0880`,
+`52cc64e`) and wrote memory `grading-authority-tier-list` (linked here). The email path was
+verified with one test mail. Detail: PROGRESS 2026-10-09.
+
+Gate: EXIT=0 — both guards OK, pytest 2046 / 1 skipped, vitest 392 in 35 files, ck.db untouched.
