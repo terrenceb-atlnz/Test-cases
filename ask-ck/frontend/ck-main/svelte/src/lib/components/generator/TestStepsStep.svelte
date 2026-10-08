@@ -6,33 +6,23 @@
   import StatusModal from '../StatusModal.svelte';
   import LlmButton from '../LlmButton.svelte';
   import ErrorBanner from '../ErrorBanner.svelte';
+  import UploadIcon from '../../../assets/icons/upload.svg';
   import { scrollToBottom } from '../../utils/scroll.js';
 
-  /** @type {string} Case key — only used for the push-to-Zephyr confirmation copy. */
   export let caseKey = '';
 
-  /** @type {string} The finalized Step 4 objective (HTML), shown read-only for context. */
   export let objective = '';
 
-  /** @type {Array<{ description: string, expectedResult: string }>} The current
-      step5.testScript.steps — owned by the parent (derived from session), not bound here. */
   export let steps = [];
 
-  /** @type {(headers: Record<string, string>) => Promise<any>} Parent-owned closure —
-      calls synthesize_steps and replaces `session` itself. */
   export let onSynthesize = async () => null;
 
-  /** @type {(steps: Array<{description: string, expectedResult: string}>) => Promise<void>} */
   export let onSaveSteps = async () => {};
 
-  /** @type {() => Promise<any>} Calls /export — a real write to the tracked
-      refined-cases/ bundle, not a preview. */
   export let onExport = async () => ({});
 
-  /** @type {(opts: { dryRun: boolean }) => Promise<any>} Calls /push_to_zephyr. */
   export let onPushToZephyr = async () => ({});
 
-  /** @type {(() => void) | null} Called once Export actually writes the bundle. */
   export let onFinished = null;
 
   let isEditing = false;
@@ -73,7 +63,8 @@
       isSaving = false;
     }
   }
-
+  // Function to handle the confirmation of the reviewed test steps. It calls the onConfirm prop and manages the isConfirming
+  // and confirmError state variables to provide feedback to the user during the confirmation process.
   let isExporting = false;
   let showExportModal = false;
   let exportStatus = 'success';
@@ -178,7 +169,7 @@
       onResult={() => scrollToBottom()}
     />
   {:else}
-    <Button variant="primary" disabled>Synthesize Test Steps (LLM)</Button>
+    <Button variant="primary" disabled>Synthesize Test Steps</Button>
   {/if}
 </div>
 

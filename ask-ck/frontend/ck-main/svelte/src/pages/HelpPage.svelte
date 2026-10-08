@@ -1,4 +1,6 @@
 <script>
+// @ts-nocheck
+
   import chevronRightIcon from '../assets/icons/chevron-right.svg';
   import PageHeader from '../lib/components/PageHeader.svelte';
   import Button from '../lib/components/Button.svelte';
@@ -24,28 +26,28 @@
     {
       title: 'Objective / Test Case Generator',
       content: `<p>The original Ask CK tool. Turns a sparse AWPTCM manual case into a refined case with declarative objectives, Zephyr-ready test steps, and traceability — with a review gate at every step.</p>
-<ol>
-  <li><strong>Cases</strong> — pick a case from the Open/partial or Complete dropdown and Load it.</li>
-  <li><strong>TestLink</strong> — review the primary decision and candidate historical cases; Search or Suggest with the LLM, then Confirm your selections.</li>
-  <li><strong>Zephyr</strong> — review related external Zephyr cross-references; Confirm.</li>
-  <li><strong>ATPyLib (scored)</strong> — review the scored automation-coverage candidates and Confirm which ART suites apply.</li>
-  <li><strong>Objectives (LLM)</strong> — synthesize the declarative objective artefacts from the confirmed reviews; edit, then Confirm.</li>
-  <li><strong>Test Steps (LLM)</strong> — synthesize the Zephyr test steps from the finalized objective, then <strong>Export the Repeatable Bundle</strong> — this writes <code>traceability.md</code> + <code>zephyr_payload.json</code> into <code>refined-cases/&lt;Group&gt;/</code>. A case becomes "Complete" once this exists.</li>
-</ol>`
+        <ol>
+          <li><strong>Cases</strong> — pick a case from the Open/partial or Complete dropdown and Load it.</li>
+          <li><strong>TestLink</strong> — review the primary decision and candidate historical cases; Search or Suggest with the LLM, then Confirm your selections.</li>
+          <li><strong>Zephyr</strong> — review related external Zephyr cross-references; Confirm.</li>
+          <li><strong>ATPyLib (scored)</strong> — review the scored automation-coverage candidates and Confirm which ART suites apply.</li>
+          <li><strong>Objectives (LLM)</strong> — synthesize the declarative objective artefacts from the confirmed reviews; edit, then Confirm.</li>
+          <li><strong>Test Steps (LLM)</strong> — synthesize the Zephyr test steps from the finalized objective, then <strong>Export the Repeatable Bundle</strong> — this writes <code>traceability.md</code> + <code>zephyr_payload.json</code> into <code>refined-cases/&lt;Group&gt;/</code>. A case becomes "Complete" once this exists.</li>
+        </ol>`
     },
     { title: 'PyTest Creator',
       content: `<p>Turns a <strong>Complete</strong> case (one exported by the Generator above) into a runnable
-Allied Telesis <code>framework</code> (ATTestSet/ATTestCase) test script, then runs it on
-real hardware and iterates until it passes. Each step has a Confirm gate.</p>
-<ol>
-  <li><strong>Cases</strong> — pick a Complete case and Load it (use <strong>↻ Refresh list</strong> after exporting new cases in the Generator).</li>
-  <li><strong>Sequence</strong> — the LLM extracts a prescriptive sequence of automatable steps from the refined case; edit the rows, Save, then Confirm.</li>
-  <li><strong>Script Search</strong> — search the script databases (testsuites_art / svt_scripts / test_scripts) for scripts that do all, some, or none of the sequence; tick what to reuse, then Confirm.</li>
-  <li><strong>Fragments</strong> — gather reusable code from the selected scripts (resolved to real source), untick what you don't want, then Confirm.</li>
-  <li><strong>Generate</strong> — the LLM fills the standardized skeleton template from the fragments + gap-fill; edit the Group/name, Lint, Save to <code>generated/&lt;Group&gt;/</code>, then Confirm.</li>
-  <li><strong>Run</strong> — pick a stored testbox (or add one under <strong>Testboxes</strong>), choose the .setup, and run it over SSH; results are parsed into per-TestCase PASS/FAIL.</li>
-  <li><strong>Validate</strong> — Final Validation passes when every TestCase is PASS with zero failures. On failures, <strong>Fix with LLM</strong> loops back to Generate; promotion into <code>testsuites_art/</code> is manual.</li>
-</ol>`
+        Allied Telesis <code>framework</code> (ATTestSet/ATTestCase) test script, then runs it on
+        real hardware and iterates until it passes. Each step has a Confirm gate.</p>
+        <ol>
+          <li><strong>Cases</strong> — pick a Complete case and Load it (use <strong>↻ Refresh list</strong> after exporting new cases in the Generator).</li>
+          <li><strong>Sequence</strong> — the LLM extracts a prescriptive sequence of automatable steps from the refined case; edit the rows, Save, then Confirm.</li>
+          <li><strong>Script Search</strong> — search the script databases (testsuites_art / svt_scripts / test_scripts) for scripts that do all, some, or none of the sequence; tick what to reuse, then Confirm.</li>
+          <li><strong>Fragments</strong> — gather reusable code from the selected scripts (resolved to real source), untick what you don't want, then Confirm.</li>
+          <li><strong>Generate</strong> — the LLM fills the standardized skeleton template from the fragments + gap-fill; edit the Group/name, Lint, Save to <code>generated/&lt;Group&gt;/</code>, then Confirm.</li>
+          <li><strong>Run</strong> — pick a stored testbox (or add one under <strong>Testboxes</strong>), choose the .setup, and run it over SSH; results are parsed into per-TestCase PASS/FAIL.</li>
+          <li><strong>Validate</strong> — Final Validation passes when every TestCase is PASS with zero failures. On failures, <strong>Fix with LLM</strong> loops back to Generate; promotion into <code>testsuites_art/</code> is manual.</li>
+        </ol>`
     },
     { title: 'Test Composer', content: '' },
     { title: 'Zephyr Templating', content: '' }
@@ -207,7 +209,7 @@ real hardware and iterates until it passes. Each step has a Confirm gate.</p>
 
 <style>
   .help-page {
-    max-width: 760px;
+    width: 50rem;
     margin: 0 auto;
     padding-top: 16px;
   }

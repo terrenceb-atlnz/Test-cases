@@ -23,7 +23,7 @@
     min-height: 380px;
     /* width: 335px; */
     max-width: 320px;
-    border: 4px solid var(--color-tool-card-border);
+    border: 3px solid var(--color-tool-card-border);
     border-radius: 14px;
     background: var(--color-tool-card-bg);
     padding: 22px 18px 18px;
@@ -37,9 +37,9 @@
 
   .tool-card:hover {
     box-shadow: inset 0 0 0 1px rgba(22, 64, 96, 0.06), 0 5px 8px rgba(22, 64, 96, 0.378);
-    transform: translateY(-2px);
+    /* transform: translateY(-2px); */
     cursor: pointer;
-    border: 4px solid var(--color-tool-card-border-hover);
+    border: 3px solid var(--color-tool-card-border-hover);
     background: var(--color-tool-card-bg-hover);
   }
 

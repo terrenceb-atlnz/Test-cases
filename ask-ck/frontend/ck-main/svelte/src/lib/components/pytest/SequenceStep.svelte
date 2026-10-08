@@ -122,7 +122,7 @@
 
 <div class="step-actions">
   <LlmButton
-    label="Extract Sequence (LLM)"
+    label="Extract Sequence"
     verb="Extracting…"
     onRun={onSynthesize}
     onResult={handleSynthesizeResult}

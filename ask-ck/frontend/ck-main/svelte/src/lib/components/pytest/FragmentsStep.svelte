@@ -5,13 +5,15 @@
   import Button from '../Button.svelte';
   import FragmentCard from '../FragmentCard.svelte';
   import { scrollToTop, scrollToStepIntro } from '../../utils/scroll.js';
+  import { newCallId, cancelLlmCall } from '../../services/llmProgressService.js';
 
   /** @type {Array<{ id: string, action: string, verify: string }>} Read-only */
   export let sequencedTestSteps = [];
 
-  /** @type {() => Promise<{fragments: Array, selected: Array, accounting: Object}>} Whole-case
-      call — gather_fragments has no step-id concept, it gathers against every script chosen in
-      Script Search at once. */
+  /** @type {(headers: Record<string, string>) => Promise<{fragments: Array, selected: Array, accounting: Object}>}
+      Whole-case call — gather_fragments has no step-id concept, it gathers against every script
+      chosen in Script Search at once. `headers` carries X-CK-LLM-Call so a second click can
+      cancel the real, in-flight server-side call. */
   export let onGatherFragments = async () => ({});
 
   /** @type {(keep: Array<{source_id: string, symbol: string}>) => Promise<void>} Persists the
@@ -19,21 +21,34 @@
       ScriptSearchStep's onSaveMatches: save once at the end, not on every per-step advance). */
   export let onSaveFragments = async () => {};
 
-  /** @type {(() => void) | null} Called when Review & Confirm is clicked on the Summary panel */
+  /** @type {(() => void) | null}  */
   export let onConfirm = null;
+
+  // Already-saved session.step5 state — this component is destroyed/recreated every time
+  // PyTestPage switches away from it, so these are what let it repopulate on remount instead
+  // of starting empty (mirrors ScriptSearchStep's initialSelections/initialRecords).
+  /** @type {Array} session.step5.fragments — the whole gathered pool. */
+  export let initialFragments = [];
+  /** @type {Object} session.step5.accounting — {stepN(str): [{chosen, redundant}]}. */
+  export let initialAccounting = {};
+  /** @type {Array<{source_id: string, symbol: string}>} session.step5.selected. */
+  export let initialSelected = [];
 
   const FRAGMENTS_SUMMARY_STEP_ID = '__fragments_summary__';
 
   // Flat pool — one entry per unique (source_id, symbol), same shape gather_fragments returns.
-  let fragmentPool = [];
+  // Seeded once at mount from initialFragments — a plain `let` initializer, not a reactive
+  // block, since this only needs to run once when the component is created, same moment any
+  // prop value is first read.
+  let fragmentPool = initialFragments;
 
   // Flat list of selected fragment keys ("source_id||symbol") — global, not per-step, since
   // one fragment's maps_to can cover several sequence steps at once.
-  let selectedKeys = [];
+  let selectedKeys = initialSelected.map((s) => `${s.source_id}||${s.symbol}`);
 
   // Server-built {stepN (string): [{chosen: [source_id, symbol], redundant: [{key, why}]}]} —
   // kept exactly as gather_fragments returns it, not reshaped.
-  let accounting = {};
+  let accounting = initialAccounting;
 
   // Expand/collapse is a pure UI nicety with no server equivalent (current/ just uses a native
   // <details> element) — flat by fragment key is simplest, since a fragment's own code doesn't
@@ -67,10 +82,16 @@
   // Resolve step n's accounting entries + maps_to leftovers into actual fragment objects, in
   // the same order current/'s ptRenderFragSteps renders them: each chosen fragment immediately
   // followed by its own nested redundant alternatives, then any leftover maps_to fragment the
-  // accounting never placed. Called directly from the template (not wrapped in a `$:` reactive
-  // declaration) so it re-resolves on every render without needing fragmentPool/accounting
-  // listed as explicit dependencies — the same dependency-tracking gap `fragmentStepStatuses`
-  // above has to work around with `void` references doesn't apply to markup expressions.
+  // accounting never placed.
+  //
+  // CORRECTION: a comment here used to claim calling this directly from the template meant it
+  // "re-resolves on every render" without needing fragmentPool/accounting as explicit
+  // dependencies. That was wrong — Svelte tracks a template expression's dependencies the same
+  // way it tracks a `$:` block's: only identifiers textually present in that exact expression.
+  // `cardsForStep(fragmentActiveStepId)` only exposes `fragmentActiveStepId` to the compiler, so
+  // a gather that changes fragmentPool/accounting without changing the active step was silently
+  // not re-rendering the card list until the user switched steps and back. See activeStepCards
+  // below, which exists specifically to force the same dependency Svelte can't see otherwise.
   function cardsForStep(n) {
     const cards = [];
     const shown = new Set();
@@ -146,6 +167,17 @@
   $: fragmentActiveStep = sequencedTestSteps.find((s) => s.n === fragmentActiveStepId) ?? null;
   $: fragmentActiveStepIndex = sequencedTestSteps.findIndex((s) => s.n === fragmentActiveStepId);
 
+  // The active step's cards, recomputed whenever EITHER the active step changes OR a gather
+  // updates fragmentPool/accounting/selectedKeys — cardsForStep() reads all three, but only
+  // inside its own function body, which Svelte's dependency tracker can't see into (same gap
+  // fragmentStepStatuses below works around with its own `void` references). Without the
+  // `void` line here, this would silently stay on the pre-gather card list until the user
+  // switched to a different step and back.
+  $: activeStepCards = (() => {
+    void fragmentPool; void accounting; void selectedKeys;
+    return cardsForStep(fragmentActiveStepId);
+  })();
+
   let fragmentStepStatuses = {};
   $: {
     // Referenced directly so this block re-runs when any of them change — selectedKeysForStep()
@@ -182,16 +214,30 @@
   }
 
   let isGatheringFragments = false;
+  let currentGatherCallId = null;
+
+  // PORTED FROM current/pytest-creator/pytest.js's ptGatherFragments busyLabel, plus the
+  // click-to-stop affordance already added to Script Search's Suggest All Steps — gather_fragments
+  // is a single whole-case call (no per-step count to show), so this is just a plain busy label.
+  $: gatherLabel = isGatheringFragments ? 'Gathering… (click to stop)' : 'Gather Fragments';
 
   async function gatherFragments() {
+    if (isGatheringFragments) {
+      cancelLlmCall(currentGatherCallId);   // true server-side cancel of the in-flight call
+      return;
+    }
     isGatheringFragments = true;
+    currentGatherCallId = newCallId();
     try {
-      const result = await onGatherFragments();
+      const result = await onGatherFragments({ 'X-CK-LLM-Call': currentGatherCallId });
       fragmentPool = result.fragments || [];
       selectedKeys = (result.selected || []).map(fragKey);
       accounting = result.accounting || {};
+    } catch (e) {
+      // alert(`Gather Fragments failed: ${(e && e.message) || String(e)}`);
     } finally {
       isGatheringFragments = false;
+      currentGatherCallId = null;
     }
   }
 
@@ -207,11 +253,28 @@
       : [...expandedKeys, fragmentKey];
   }
 
-  function advanceFragmentStep() {
+  function buildKeepPayload() {
+    return selectedKeys
+      .map(fragByKey)
+      .filter(Boolean)
+      .map((f) => ({ source_id: f.source_id, symbol: f.symbol }));
+  }
+
+  async function advanceFragmentStep() {
     const updatedConfirmed = confirmedFragmentSteps.includes(fragmentActiveStepId)
       ? confirmedFragmentSteps
       : [...confirmedFragmentSteps, fragmentActiveStepId];
     confirmedFragmentSteps = updatedConfirmed;
+
+    // Persist at every per-step confirm, not just the Summary's final Review & Confirm —
+    // same fix as ScriptSearchStep's advanceScriptSearchStep, same reason: navigating away
+    // before ever reaching the Summary would otherwise lose everything, since this
+    // component's own state is destroyed the moment PyTestPage switches steps away from it.
+    try {
+      await onSaveFragments(buildKeepPayload());
+    } catch (e) {
+      alert(`Failed to save fragment selections: ${(e && e.message) || String(e)}`);
+    }
 
     const nextUnconfirmed = sequencedTestSteps.find((s) => !updatedConfirmed.includes(s.n));
     fragmentActiveStepId = nextUnconfirmed ? nextUnconfirmed.n : FRAGMENTS_SUMMARY_STEP_ID;
@@ -219,16 +282,12 @@
   }
 
   async function handleConfirm() {
-    const keep = selectedKeys
-      .map(fragByKey)
-      .filter(Boolean)
-      .map((f) => ({ source_id: f.source_id, symbol: f.symbol }));
-    await onSaveFragments(keep);
+    await onSaveFragments(buildKeepPayload());
     onConfirm && onConfirm();
   }
 </script>
 
-<p class="step-intro">Re-use real code from the selected scripts, reviewed per sequence step. Gather Fragments (LLM) proposes, for each step, the fragment(s) worth reusing (green) plus the redundant alternatives it was preferred over (red, nested below) — so the accounting of every candidate is visible. Page through the steps; tick a fragment to include it in Generate (untick a green one or tick a red one to override). Save, then confirm.</p>
+<p class="step-intro">Re-use real code from the selected scripts, reviewed per sequence step. Gather Fragments proposes, for each step, the fragment(s) worth reusing (green) plus the redundant alternatives it was preferred over (red, nested below) — so the accounting of every candidate is visible. Page through the steps; tick a fragment to include it in Generate (untick a green one or tick a red one to override). Save, then confirm.</p>
 
 <div class="arrow-step-row">
   {#each sequencedTestSteps as step, i (step.n)}
@@ -253,7 +312,7 @@
 </div>
 
 <div class="script-search-toolbar">
-  <Button variant="primary" sparkle disabled={sequencedTestSteps.length === 0} loading={isGatheringFragments} on:click={gatherFragments}>Gather Fragments (LLM)</Button>
+  <Button variant="primary" sparkle disabled={sequencedTestSteps.length === 0} busy={isGatheringFragments} on:click={gatherFragments}>{gatherLabel}</Button>
   <div class="script-search-progress" role="progressbar" aria-valuenow={fragmentsCoveragePercent} aria-valuemin="0" aria-valuemax="100">
     <div class="script-search-progress-fill" style="width: {fragmentsCoveragePercent}%"></div>
   </div>
@@ -305,7 +364,7 @@
     </div>
 
     <div class="fragment-groups">
-      {#each cardsForStep(fragmentActiveStepId).filter((c) => c.recommended) as card (fragKey(card.frag))}
+      {#each activeStepCards.filter((c) => c.recommended) as card (fragKey(card.frag))}
         <FragmentCard
           fragment={toCardFragment(card.frag)}
           recommended={true}
@@ -316,10 +375,10 @@
         />
       {/each}
 
-      {#if cardsForStep(fragmentActiveStepId).some((c) => !c.recommended)}
+      {#if activeStepCards.some((c) => !c.recommended)}
         <p class="fragment-redundant-label">Not selected — redundant to the above:</p>
         <div class="fragment-redundant-group">
-          {#each cardsForStep(fragmentActiveStepId).filter((c) => !c.recommended) as card (fragKey(card.frag))}
+          {#each activeStepCards.filter((c) => !c.recommended) as card (fragKey(card.frag))}
             <FragmentCard
               fragment={{ ...toCardFragment(card.frag), redundantReason: card.redundantWhy }}
               recommended={false}
@@ -332,13 +391,13 @@
         </div>
       {/if}
 
-      {#if !cardsForStep(fragmentActiveStepId).length}
-        <p class="fragment-empty">No fragments gathered yet. Click "Gather Fragments (LLM)" above.</p>
+      {#if !activeStepCards.length}
+        <p class="fragment-empty">No fragments gathered yet. Click "Gather Fragments" above.</p>
       {/if}
     </div>
 
     <div class="step-actions">
-      <Button variant="primary" disabled={!cardsForStep(fragmentActiveStepId).length} on:click={advanceFragmentStep}>Confirm Fragments</Button>
+      <Button variant="primary" disabled={!activeStepCards.length} on:click={advanceFragmentStep}>Confirm Fragments</Button>
     </div>
   {/if}
 </div>
@@ -374,8 +433,8 @@
     display: flex;
     flex-wrap: wrap;
     width: 100%;
-    gap: 16px;
-    padding: 5px 20px 8px;
+    gap: 0px 14px;
+    padding: 8px 10px 8px 10px;
     border-top: 1px solid var(--color-border-surface);
     border-bottom: 1px solid var(--color-border-surface);
     margin-bottom: 16px;

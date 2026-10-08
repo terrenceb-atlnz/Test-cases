@@ -8,81 +8,90 @@
   import ErrorBanner from '../ErrorBanner.svelte';
   import { scrollToCasesIntro, scrollToBottom } from '../../utils/scroll.js';
 
-  /** @type {Array<{ key: string, label: string, width?: number }>} */
+  // Array of column definitions for the candidates table *
   export let columns = [];
 
-  /** @type {string} */
+  // Text to display as an introduction before the candidate list
   export let introText = '';
 
-  /** @type {string} */
+  // Placeholder text for the search box 
   export let searchPlaceholder = 'Search…';
 
-  /** @type {string} */
+  // Label for the search button 
   export let searchButtonLabel = 'Search';
 
-  /** @type {string} Label above the candidates table */
+  // Label above the candidates table
   export let candidateLabel = 'Candidates';
 
-  /** @type {string} Label above the chosen table */
+  // Label above the chosen table
   export let chosenLabel = 'Chosen';
 
-  /** @type {(query: string) => Promise<Array>} */
-  export let onSearch = async () => [];
-
-  /** @type {(headers: Record<string, string>) => Promise<Array>} headers carries
-      X-CK-LLM-Call (llmProgressService) so the server can track/cancel this exact call. */
-  export let onSuggest = async () => [];
-
-  /** @type {Array} Bindable — the rows chosen for this step */
+  // Array of chosen candidates
   export let chosen = [];
 
-  /** @type {Array} Lazily fetched by the parent (GET step_candidates/{key}/{step}) the
-      first time this step opens for a case — arrives asynchronously, generally after this
-      component has already mounted, so it's seeded in reactively below rather than at
-      creation (contrast CasePicker's selectedCaseId, which is never late like this). */
+  // Array of initial candidates to populate the candidates list. 
+  // - This is used to seed the candidates list when the component is first rendered. 
+  // - It is excluded from the chosen list to avoid duplicates.
   export let initialCandidates = [];
 
-  /** @type {(() => Promise<void>) | null} Called when Review & Confirm is clicked — the
-      parent owns the real POST confirm_step call (it already has the case key and the
-      session to update); this just awaits it so a failure surfaces here instead of
-      silently advancing the step. */
-  export let onConfirm = null;
+  // Function to handle search functionality
+  export let onSearch = async () => [];
 
-  // Excludes anything already in `chosen` — matching current/generator/chosen.js's "the top
-  // table hides any id already present" behavior. chooseSelected/clearSelected keep the two
-  // lists disjoint themselves by moving rows explicitly, but candidates ARRIVING from
-  // outside (the initial seed, a fresh Search, a fresh Suggest) aren't aware of `chosen` at
-  // all unless every one of those call sites applies this the same way.
+  // Function to handle LLM suggestions
+  export let onSuggest = async () => [];
+
+  // Function to handle the confirmation of chosen candidates.
+  // - This function is called when the user clicks the "Review & Confirm" button.
+  export let onConfirm = null;
+  
+  // Search string entered by the user in the search box
+  let search = '';
+
+  // Flag to indicate whether the candidates list has been seeded with initial candidates
+  let candidatesSeeded = false;
+
+  // Array of candidate objects that are currently available for selection. 
+  // - This list is populated based on the initialCandidates prop and updated based on 
+  //   user actions.
+  let candidates = [];
+
+  // Array of IDs of candidates that are currently selected in the candidates table
+  let selectedCandidateIds = [];
+
+  // Array of IDs of candidates that are currently selected in the chosen table
+  let selectedChosenIds = [];
+
+  // Flag to indicate whether the user is confirming their choices
+  let isConfirming = false;
+
+  // Variable to hold any error message that occurs during the confirmation process
+  let confirmError = '';
+
+  // Reactive statement to seed the candidates list with initial candidates when the component 
+  // is first rendered.
+  $: if (!candidatesSeeded && initialCandidates.length) {
+    candidates = excludeChosen(initialCandidates);
+    candidatesSeeded = true;
+  }
+
+  // Function to exclude candidates that have already been chosen from a given list of rows.
+  // - This function is used to ensure that candidates that have already been chosen do not
+  //   appear in the candidates list.
   function excludeChosen(rows) {
     const chosenIds = new Set(chosen.map((c) => c.id));
     return (rows || []).filter((r) => !chosenIds.has(r.id));
   }
 
-  let search = '';
-  let candidates = [];
-  let candidatesSeeded = false;
-  // Late-arriving (see initialCandidates' own doc comment above) — seeded once, not on
-  // every `chosen` change, so a later choose/restore doesn't retroactively re-filter rows
-  // the user is actively looking at.
-  $: if (!candidatesSeeded && initialCandidates.length) {
-    candidates = excludeChosen(initialCandidates);
-    candidatesSeeded = true;
-  }
-  let selectedCandidateIds = [];
-  let selectedChosenIds = [];
-
-  async function handleSearch() {
-    candidates = excludeChosen(await onSearch(search));
-    selectedCandidateIds = [];
-    scrollToCasesIntro();
-  }
-
+  // Function to handle the result of the LLM suggestion process.
+  // - This function updates the candidates list with the suggested candidates, excluding
+  //   any candidates that have already been chosen.
   function handleSuggestResult(result) {
     candidates = excludeChosen(result);
     selectedCandidateIds = [];
     scrollToCasesIntro();
   }
 
+  // Function to move selected candidates from the candidates list to the chosen list.
   function chooseSelected() {
     const moving = candidates.filter((c) => selectedCandidateIds.includes(c.id));
     if (moving.length === 0) return;
@@ -92,6 +101,7 @@
     scrollToBottom();
   }
 
+  // Function to move selected candidates from the chosen list back to the candidates list.
   function clearSelected() {
     const moving = chosen.filter((c) => selectedChosenIds.includes(c.id));
     if (moving.length === 0) return;
@@ -101,16 +111,27 @@
     scrollToCasesIntro();
   }
 
+  // Function to move all candidates from the chosen list back to the candidates list.
+  // - This function is used to clear all chosen candidates and return them to the candidates list
   function clearAll() {
     candidates = [...candidates, ...chosen];
     chosen = [];
     selectedChosenIds = [];
     scrollToCasesIntro();
   }
+  
+  // Function to handle the search action initiated by the user.
+  // - This function calls the onSearch prop with the current search string and updates the
+  //   candidates list with the search results, excluding any candidates that have already been chosen.
+  async function handleSearch() {
+    candidates = excludeChosen(await onSearch(search));
+    selectedCandidateIds = [];
+    scrollToCasesIntro();
+  }
 
-  let isConfirming = false;
-  let confirmError = '';
-
+  // Function to handle the confirmation of chosen candidates.
+  // - This function calls the onConfirm prop and handles any errors that may occur during the
+  //   confirmation process. It also manages the isConfirming and confirmError state variables.
   async function handleConfirm() {
     if (!onConfirm) return;
     isConfirming = true;
@@ -146,7 +167,6 @@
 
 <p class="testlink-table-label">{chosenLabel}</p>
 <Table {columns} rows={chosen} bind:selected={selectedChosenIds} />
-
 <div class="testlink-final-actions">
   <Button variant="outline" on:click={clearSelected}>Clear Selected</Button>
   <Button variant="outline" on:click={clearAll}>Clear All</Button>
@@ -169,7 +189,6 @@
     align-items: center;
     margin-bottom: 20px;
   }
-
 
   .testlink-table-label {
     margin: 0 0 8px;

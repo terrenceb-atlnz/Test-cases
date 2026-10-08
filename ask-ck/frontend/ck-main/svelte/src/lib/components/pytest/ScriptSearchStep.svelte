@@ -33,6 +33,15 @@
   /** @type {(id: string) => Promise<{source: string, start?: number, end?: number}>} */
   export let onViewSource = async () => ({ source: '' });
 
+  /** @type {Record<string, string[]>} Already-saved {stepN(str): [scriptId, ...]} from
+      session.step3.selections — used to repopulate `chosen` on mount, since this component's
+      own state is destroyed/recreated every time PyTestPage switches away from this step. */
+  export let initialSelections = {};
+
+  /** @type {Record<string, object>} Already-saved {scriptId: slimRecord} from
+      session.step3.records — the chosen-row snapshots initialSelections' ids resolve to. */
+  export let initialRecords = {};
+
   const SUMMARY_STEP_ID = '__summary__';
 
   // Per sequenced-step search state, keyed by the sequenced step's id — populated lazily below
@@ -48,10 +57,15 @@
   $: {
     for (const step of sequencedTestSteps) {
       if (!scriptSearchState[step.n]) {
+        // Seed `chosen` from the already-saved session, if any — resolves each saved id
+        // through initialRecords for the full chosen-row shape (title/coverage/reason/...),
+        // same as current/'s own "chosen tables render with full fidelity forever after".
+        const savedIds = initialSelections[String(step.n)] || [];
+        const chosen = savedIds.map((id) => initialRecords[id]).filter(Boolean);
         scriptSearchState[step.n] = {
           search: '',
           candidates: [],
-          chosen: [],
+          chosen,
           selectedCandidateIds: [],
           selectedChosenIds: []
         };
@@ -104,6 +118,15 @@
   let stopRequested = false;
   let currentCallId = null;
   let isSuggestingAllSteps = false;
+  let suggestAllDone = 0;
+
+  // PORTED FROM current/pytest-creator/pytest.js's saLabel — live progress text on the
+  // button itself, doubling as the "click to stop" affordance discoverability.
+  $: suggestAllLabel = !isSuggestingAllSteps
+    ? 'Suggest All Steps'
+    : stopRequested
+    ? 'Suggesting stopped…'
+    : `Suggesting step ${Math.min(suggestAllDone + 1, sequencedTestSteps.length)}/${sequencedTestSteps.length}… (click to stop)`;
 
   // Which sequence step's arrow should currently show as loading — only ever one at a time
   // (both suggestForStep and suggestAllSteps' loop are sequential), so a single step.n is
@@ -122,6 +145,24 @@
     }
   }
 
+  // A tab Chromium treats as backgrounded can suspend a pending `await fetch` indefinitely
+  // (see agentService.js's ckBrokerLoop comment — same phenomenon, different fetch): the
+  // server can complete its side (300s budget for this endpoint) while the browser never
+  // runs the JS waiting on it, leaving isSuggestingAllSteps/suggestingStepN stuck until a
+  // reload. The broker loop has its own staleness/revival guard for its long-poll fetch;
+  // this is the equivalent bound for THIS fetch, which has no such protection otherwise.
+  // 360s gives real margin over the server's own 300s timeout for suggest_scripts_step —
+  // this is a liveness backstop for a frozen tab, not a normal-latency cutoff.
+  const SUGGEST_STEP_TIMEOUT_MS = 360_000;
+
+  function withTimeout(promise, ms, message) {
+    let timeoutId;
+    const timeout = new Promise((_, reject) => {
+      timeoutId = setTimeout(() => reject(new Error(message)), ms);
+    });
+    return Promise.race([promise, timeout]).finally(() => clearTimeout(timeoutId));
+  }
+
   async function suggestAllSteps() {
     if (isSuggestingAllSteps) {
       stopRequested = true;
@@ -130,12 +171,17 @@
     }
     isSuggestingAllSteps = true;
     stopRequested = false;
+    suggestAllDone = 0;
     for (const step of sequencedTestSteps) {
       if (stopRequested) break;
       suggestingStepN = step.n;
       currentCallId = newCallId();
       try {
-        const matches = await onSuggestForStep(step.n, { 'X-CK-LLM-Call': currentCallId });
+        const matches = await withTimeout(
+          onSuggestForStep(step.n, { 'X-CK-LLM-Call': currentCallId }),
+          SUGGEST_STEP_TIMEOUT_MS,
+          `Suggest for step ${step.n} timed out client-side (tab may have been backgrounded) — try again`
+        );
         const existing = scriptSearchState[step.n].candidates;
         const seen = new Set(existing.map((c) => c.id));
         const newOnes = matches.filter((m) => !seen.has(m.id));
@@ -143,8 +189,10 @@
         scriptSearchState = scriptSearchState;
       } catch (e) {
         // record a failure for this step, same as current/'s run.failures
+        // alert(`Suggest for step ${step.n} failed: ${(e && e.message) || String(e)}`);
       } finally {
         suggestingStepN = null;
+        suggestAllDone += 1;
       }
     }
     isSuggestingAllSteps = false;
@@ -195,11 +243,24 @@
     scriptSearchState = scriptSearchState;
   }
 
-  function advanceScriptSearchStep() {
+  async function advanceScriptSearchStep() {
     const updatedConfirmed = confirmedSteps.includes(activeStepId)
       ? confirmedSteps
       : [...confirmedSteps, activeStepId];
     confirmedSteps = updatedConfirmed;
+
+    // Persist at every per-step confirm, not just the Summary's final Review & Confirm —
+    // otherwise navigating away (e.g. to Fragments) before ever reaching the Summary loses
+    // everything, since this component's own scriptSearchState is destroyed the moment
+    // PyTestPage.svelte switches currentStep away from it. buildSaveMatchesPayload already
+    // scans every step's current chosen list, so this is a full, correct snapshot each time,
+    // not an incremental/partial one.
+    try {
+      const { selections, records } = buildSaveMatchesPayload();
+      await onSaveMatches(selections, records);
+    } catch (e) {
+      alert(`Failed to save script selections: ${(e && e.message) || String(e)}`);
+    }
 
     // Jump to the next step that isn't confirmed yet (not just the next one in order) — steps can
     // be confirmed out of sequence, so "next" must skip over ones already done. Once every step is
@@ -293,7 +354,7 @@
 </div>
 
 <div class="script-search-toolbar">
-  <Button variant="primary" sparkle disabled={sequencedTestSteps.length === 0} loading={isSuggestingAllSteps} on:click={suggestAllSteps}>Suggest All Steps (LLM)</Button>
+  <Button variant="primary" sparkle disabled={sequencedTestSteps.length === 0 || (isSuggestingAllSteps && stopRequested)} busy={isSuggestingAllSteps} on:click={suggestAllSteps}>{suggestAllLabel}</Button>
   <div class="script-search-progress" role="progressbar" aria-valuenow={coveragePercent} aria-valuemin="0" aria-valuemax="100">
     <div class="script-search-progress-fill" style="width: {coveragePercent}%"></div>
   </div>
@@ -346,7 +407,7 @@
         onSearch={() => searchForStep(activeStep.n)}
       />
       <LlmButton
-        label="Suggest for Step {activeStepIndex + 1} (LLM)"
+        label="Suggest for Step {activeStepIndex + 1}"
         verb="Suggesting…"
         onRun={(headers) => suggestForStep(activeStep.n, headers)}
       />    
@@ -421,7 +482,7 @@
     flex-wrap: wrap;
     width: 100%;
     gap: 0px 14px;
-    padding: 5px 20px 8px;
+    padding: 8px 10px 8px 10px;
     border-top: 1px solid var(--color-border-surface);
     border-bottom: 1px solid var(--color-border-surface);
     margin-bottom: 16px;

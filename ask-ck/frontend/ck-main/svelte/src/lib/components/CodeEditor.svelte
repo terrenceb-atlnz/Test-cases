@@ -114,3 +114,10 @@
 </script>
 
 <div class="code-editor" bind:this={container}></div>
+
+<style>
+  .code-editor {
+    border: 1px solid var(--color-accent);
+    border-radius: 10px;
+  } 
+</style>

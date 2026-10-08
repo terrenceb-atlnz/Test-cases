@@ -12,7 +12,7 @@
   export let placeholder = '';
 
   /** @type {string} CSS height for the display/edit box */
-  export let height = '260px';
+  export let height = '450px';
 
   let editing = false;
   let draft = value;
@@ -55,7 +55,7 @@
   </div>
 {:else}
   {#if type === 'code'}
-    <CodeEditor readonly {value} {placeholder} {height} />
+    <pre class="code-view" style="height: {height}">{value || placeholder}</pre>
   {:else}
     <div class="editable-field-view" class:is-placeholder={!value} style="height: {height}">{value || placeholder}</div>
   {/if}
@@ -75,19 +75,24 @@
     background: var(--color-bg-surface);
     color: var(--color-text);
     font: inherit;
-    font-size: 0.88rem;
+    font-size: 0.94rem;
     line-height: 1.5;
     overflow-y: auto;
   }
 
   .editable-field-textarea {
     resize: vertical;
+    border-color: var(--color-accent);
   }
 
   .editable-field-view {
     margin: 0;
     white-space: pre-wrap;
+    /* Long space-free runs (e.g. a dotted call in a unit prompt) must break inside the box —
+       pre-wrap alone only wraps at spaces, so they spilled sideways and widened the page. */
+    overflow-wrap: anywhere;
     color: var(--color-text);
+    overflow-wrap: anywhere;
   }
 
   .editable-field-view.is-placeholder {
@@ -98,5 +103,21 @@
     display: flex;
     gap: 10px;
     margin-top: 10px;
+  }
+
+  .code-view {
+    margin: 0 0 20px;
+    max-height: 60vh;
+    overflow: auto;
+    padding: 16px;
+    border-radius: 8px;
+    background: var(--color-code-bg);
+    border: 1px solid var(--color-border-surface);
+    color: var(--color-text);
+    font-family: 'SFMono-Regular', Consolas, monospace;
+    font-size: 0.82rem;
+    line-height: 1.5;
+    white-space: pre;
+    max-width: 100%;
   }
 </style>

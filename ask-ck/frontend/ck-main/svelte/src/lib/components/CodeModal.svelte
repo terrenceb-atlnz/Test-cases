@@ -110,7 +110,7 @@
     overflow: auto;
     padding: 16px;
     border-radius: 8px;
-    background: var(--color-table-header-bg);
+    background: var(--color-code-bg);
     border: 1px solid var(--color-border-surface);
     color: var(--color-text);
     font-family: 'SFMono-Regular', Consolas, monospace;

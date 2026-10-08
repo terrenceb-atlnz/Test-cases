@@ -43,7 +43,7 @@
   --color-tool-card-hover-text: #000;
 
 
-  --color-code-bg: rgba(0, 83, 143, 0.08);
+  --color-code-bg: rgba(0, 83, 143, 0.038);
 
   --color-accent: #00538f;
   --color-success: #16a34a;
@@ -188,7 +188,7 @@
   --color-tool-card-hover-text: #fff;
 
 
-  --color-code-bg: rgba(62, 160, 255, 0.16);
+  --color-code-bg: rgba(62, 158, 255, 0.071);
 
   --icon-filter-arrow: invert(100%) opacity(0%);
   --icon-filter-arrow-hover: invert(100%) opacity(50%);

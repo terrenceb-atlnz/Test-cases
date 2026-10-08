@@ -131,6 +131,8 @@
     background: var(--color-code-bg);
     font-family: 'SFMono-Regular', Consolas, monospace;
     font-size: 0.8rem;
+    max-height: 300px;
+    overflow: auto;
     overflow-x: auto;
     white-space: pre;
   }

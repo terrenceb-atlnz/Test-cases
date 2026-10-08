@@ -61,7 +61,7 @@
 
 <style>
   .sidebar-section-label {
-    padding: 14px 10px 6px;
+    padding: 14px 12px 6px;
     font-size: 0.8rem;
     font-weight: 700;
     letter-spacing: 0.12em;

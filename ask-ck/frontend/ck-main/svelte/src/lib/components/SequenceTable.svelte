@@ -158,7 +158,7 @@
 <style>
   .sequence-editor {
     width: 100%;
-    border: 1px solid var(--color-border-surface);
+    /* border: 1px solid var(--color-border-surface); */
     border-radius: 10px;
     overflow: hidden;
     background: var(--color-table-header-bg);

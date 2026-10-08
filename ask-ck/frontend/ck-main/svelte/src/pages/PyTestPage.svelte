@@ -23,13 +23,10 @@
   /** @type {((pageId: string) => void) | null} */
   export let onNavigate = null;
 
-  /** @type {((caseId?: string | null) => void) | null} Remounts this whole PyTest Creator
-      session from scratch — with no case id for "Create Another PyTest", or with one to switch
-      straight into a different case without leaking any of this instance's state into it */
+  /** @type {((caseId?: string | null) => void) | null}  */
   export let onCreateAnother = null;
 
-  /** @type {string | null} Case id to auto-load on mount (set when this instance was remounted
-      specifically to switch cases, via `onCreateAnother(caseId)`) */
+  /** @type {string | null} */
   export let initialCaseId = null;
 
   import briefcaseIcon from '../assets/icons/briefcase.svg';
@@ -46,7 +43,6 @@
     { id: 'script-search', label: 'Script Search', icon: folderSearchIcon },
     { id: 'fragments', label: 'Fragments', icon: puzzleIcon },
     { id: 'generate', label: 'Generate', icon: codeIcon }
-    // { id: 'validate', label: 'Validate', icon: checkIcon }
   ];
 
   let currentStep = 0;
@@ -215,6 +211,8 @@
       onSuggestForStep={(stepN, headers) => scriptSearchService.suggestStep(session.key, stepN, headers)}
       onSearch={scriptSearchService.searchScripts}
       onViewSource={scriptSearchService.getScriptSource}
+      initialSelections={session?.step3?.selections || {}}
+      initialRecords={session?.step3?.records || {}}
       onConfirm={async () => {
         const result = await sequenceService.confirmStep(session.key, 3);
         session = result.session;
@@ -222,13 +220,27 @@
         scrollToTop();
       }}      onSaveMatches={async (selections, records) => {
         await scriptSearchService.saveMatches(session.key, selections, records);
+        const sessResult = await casesService.getSession(session.key);
+        session = sessResult.session;
       }}
     />                            
   {:else if currentStep === 3}
     <FragmentsStep
       {sequencedTestSteps}
-      onGatherFragments={() => fragmentsService.gatherFragments(session.key)}
-      onSaveFragments={(keep) => fragmentsService.saveFragments(session.key, keep)}
+      initialFragments={session?.step5?.fragments || []}
+      initialAccounting={session?.step5?.accounting || {}}
+      initialSelected={session?.step5?.selected || []}
+      onGatherFragments={async (headers) => {
+        const result = await fragmentsService.gatherFragments(session.key, headers);
+        const sessResult = await casesService.getSession(session.key);
+        session = sessResult.session;
+        return result;
+      }}
+      onSaveFragments={async (keep) => {
+        await fragmentsService.saveFragments(session.key, keep);
+        const sessResult = await casesService.getSession(session.key);
+        session = sessResult.session;
+      }}
       onConfirm={ async () => { 
         const result = await sequenceService.confirmStep(session.key, 5);
         currentStep = 4; 
@@ -240,12 +252,24 @@
     <GenerateStep
       {sequencedTestSteps}
       {title}
-      onGenerateUnit={generateService.generateUnitCode}
-      onGenerateAllUnits={generateService.generateAllUnits}
-      onAssemble={generateService.assembleScript}
-      onReview={generateService.reviewScript}
-      onFixUnits={generateService.fixUnitsWithLlm}
-      onFixWholeScript={generateService.fixWholeScriptWithLlm}
+      initialGroup={session?.step6?.naming?.group || caseInfo?.groupDisplay || ''}
+      initialName={session?.step6?.naming?.name || ''}
+      initialAssembledCode={session?.step6?.files?.test?.code || ''}
+      initialLintResults={generateService.toLintResults(session?.step6?.lint)}
+      onSaveNaming={async (group, name) => {
+        const result = await generateService.saveNaming(session.key, group, name);
+        session = { ...session, step6: { ...(session.step6 || {}), naming: result.naming } };
+      }}
+      onLoadUnits={() => generateService.loadUnits(session.key)}
+      onDispatchUnits={(items) => generateService.dispatchUnits(session.key, items)}
+      onPollStatus={() => generateService.getUnitsStatus(session.key)}
+      onFetchUnitCode={(unitId) => generateService.getUnitCode(session.key, unitId)}
+      onAssemble={async (group, name) => {
+        const result = await generateService.assembleScript(session.key, group, name);
+        const sessResult = await casesService.getSession(session.key);
+        session = sessResult.session;
+        return result;
+      }}
       onSave={generateService.saveScript}
       {onNavigate}
       {onCreateAnother}
@@ -277,5 +301,6 @@
     margin: 0;
     padding: 0;
     min-width: 0;
+    width: 100%;
   }
 </style>
