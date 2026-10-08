@@ -62,6 +62,9 @@
   let generatorEverVisited = false;
   $: if (activePage === 'generator') generatorEverVisited = true;
 
+  let pyTestEverVisited = false;
+  $: if (activePage === 'pytest') pyTestEverVisited = true;
+
   // Bumped to force PyTestPage to remount from scratch — used both for "Create Another
   // PyTest" (caseId omitted) and for switching to a different case mid-session (caseId given),
   // so a stale case's downstream state (sequence/scripts/fragments/generate/...) can never leak
@@ -193,9 +196,9 @@
              generatorEverVisited above. Kept as its own branch here only so the {:else}
              ToolPage fallback doesn't wrongly catch 'generator'. -->
       {:else if activePage === 'pytest'}
-        {#key pytestInstanceKey}
+        <!-- {#key pytestInstanceKey}
           <PyTestPage onNavigate={selectPage} onCreateAnother={resetPytest} initialCaseId={pendingPytestCaseId} />
-        {/key}
+        {/key} -->
       {:else if activePage === 'composer'}
         <TestComposerPage />
       {:else if activePage === 'zephyr'}
@@ -208,6 +211,14 @@
         <div class="keep-alive-page" style:display={activePage === 'generator' ? 'contents' : 'none'}>
           {#key generatorInstanceKey}
             <CaseGeneratorPage onCreateAnother={resetGenerator} initialCaseId={pendingGeneratorCaseId} />
+          {/key}
+        </div>
+      {/if}
+
+      {#if pyTestEverVisited}
+        <div class="keep-alive-page" style:display={activePage === 'pytest' ? 'contents' : 'none'}>
+          {#key pytestInstanceKey}
+            <PyTestPage onNavigate={selectPage} onCreateAnother={resetPytest} initialCaseId={pendingPytestCaseId} />
           {/key}
         </div>
       {/if}

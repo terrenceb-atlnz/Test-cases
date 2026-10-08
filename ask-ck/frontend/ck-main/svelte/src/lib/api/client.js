@@ -1,16 +1,31 @@
-// ============================================================================
-// Per-tab session id + X-CK-Session / X-CK-LLM header injection.
-// COPIED OVER FROM current/shared/session.js, MODIFIED FOR SVELTE:
-//   - no S.currentPanel / X-CK-Panel — that's current/'s per-panel debug-log
-//     attribution, and there's no equivalent "current panel" concept here yet.
-//   - the fetch patch is otherwise the same trick: patch window.fetch ONCE, so
-//     every /api/ call anywhere in the app (agentService.js, llmConfigService.js,
-//     any future service) gets the right headers without a manual wrapper at
-//     each call site.
-// ============================================================================
+/** Author: Trent Morgan
+ *  Contact: trent.morgan@alliedtelesis.co.nz
+ *  Date Last Modified: 8/10/2024
+ *
+ *  Description: Client-side API utilities for Svelte frontend. This file is loaded
+ *               once at app startup, and patches window.fetch to inject per-tab session
+ *               id + X-CK-Session / X-CK-LLM headers on every /api call.
+ */
 
-// @ts-nocheck
+ // @ts-nocheck
 
+ // List of auth methods that are considered "seat LLM" methods. These are used to determine
+ // whether to include the X-CK-LLM header in API requests.
+ // - Ported from current/shared/session.js
+export const SEAT_LLM_METHODS = ['local_llm', 'claude_agent'];
+
+// Key used to store the last retired seat LLM method in localStorage. This is used to
+// track when a seat LLM method is no longer supported and to prevent it from being used.
+ // - Ported from current/shared/session.js
+export const SEAT_LLM_RETIRED_KEY = 'ckSeatLlmRetired';
+
+// Variable to hold the effective auth method for the current session. This is used to
+// determine whether the current session is using a seat LLM method.
+let effectiveAuthMethod = null;
+
+// Generate a unique session ID for the current browser session. This ID is stored in
+// sessionStorage and is used to identify the session in API requests.
+ // - Ported from current/shared/session.js
 const CK_SESSION_ID = (function () {
   let id = sessionStorage.getItem('ckSessionId');
   if (!id) {
@@ -20,14 +35,8 @@ const CK_SESSION_ID = (function () {
   return id;
 })();
 
-// The SEAT's LLM choice: what this browser applied under Settings -> LLM, stored in
-// localStorage by llmConfigService.js, sent on every /api call as X-CK-LLM so the server
-// dispatches THIS seat's requests to THIS seat's backend. Absent (no stored choice) means
-// "use the site default". Format: auth;model;unit;match. Mirrors the server's
-// SUPPORTED_AUTH_METHODS — a stored choice outside it is dropped by storedSeatLlm() below.
-export const SEAT_LLM_METHODS = ['local_llm', 'claude_agent'];
-export const SEAT_LLM_RETIRED_KEY = 'ckSeatLlmRetired';
-
+// Function to generate the value for the X-CK-LLM header based on the provided configuration.
+ // - Ported from current/shared/session.js
 export function seatLlmHeaderValue(cfg) {
   if (!cfg || !cfg.auth_method) return '';
   if (!SEAT_LLM_METHODS.includes(String(cfg.auth_method).toLowerCase())) return '';
@@ -35,29 +44,28 @@ export function seatLlmHeaderValue(cfg) {
   return [f(cfg.auth_method), f(cfg.model), f(cfg.unit_model), f(cfg.match_model)].join(';');
 }
 
-// The EFFECTIVE auth_method — whatever config Apply/cold-load last resolved, seat override
-// or site default. storedSeatLlm() alone is null for a seat that has never clicked Apply,
-// which is exactly the common cold-load case; agentService.js's ckAgentModeActive() needs
-// to know the mode is active even then, or the broker never starts its first poll.
-let effectiveAuthMethod = null;
-
+// Function to set the effective auth method for the current session. This is used to
+// determine whether the current session is using a seat LLM method.
 export function setEffectiveAuthMethod(method) {
   effectiveAuthMethod = method || null;
 }
 
+// Function to check if the effective auth method for the current session matches the provided method.
 export function effectiveAuthMethodActive(method) {
   const seat = storedSeatLlm();
   if (seat && seat.auth_method) return seat.auth_method === method;
   return effectiveAuthMethod === method;
 }
 
+// Function to retrieve the stored seat LLM configuration from localStorage. If the stored configuration 
+// is invalid or uses a retired auth method, it is removed from localStorage and null is returned.
+ // - Ported from current/shared/session.js
 export function storedSeatLlm() {
   try {
     const raw = localStorage.getItem('draftingLLMConfig');
     const cfg = raw ? JSON.parse(raw) : null;
     if (cfg && cfg.auth_method && !SEAT_LLM_METHODS.includes(String(cfg.auth_method).toLowerCase())) {
-      // Self-heal: a retired stored choice is dropped so the seat falls back to the site
-      // default. The drop is remembered so the LLM tab can say so once.
+
       try { localStorage.setItem(SEAT_LLM_RETIRED_KEY, String(cfg.auth_method)); } catch (_) {}
       localStorage.removeItem('draftingLLMConfig');
       return null;
@@ -68,9 +76,8 @@ export function storedSeatLlm() {
   }
 }
 
-// Patch window.fetch ONCE, at module load. Every other service in lib/ can just call
-// plain fetch('/api/...') and get X-CK-Session / X-CK-LLM for free — no wrapper needed
-// at each call site (this is what agentService.js's bare fetch(...) calls rely on).
+// Immediately patch the global fetch function to automatically include session and LLM headers for API requests.
+// - Ported from current/shared/session.js
 (function patchFetch() {
   const orig = window.fetch;
   window.fetch = function (input, init) {

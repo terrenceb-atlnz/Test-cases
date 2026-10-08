@@ -187,7 +187,7 @@
 
   .btn-success {
     border: none;
-    background: var(--color-success);
+    background: #005614;
     color: #fff;
   }
 

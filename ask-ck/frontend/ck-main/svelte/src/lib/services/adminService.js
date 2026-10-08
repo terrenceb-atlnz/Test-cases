@@ -4,6 +4,8 @@
 //     HomePage.svelte, not a router panel switch.
 //   - registerActions({...}) — that's the vanilla data-action dispatch system;
 //     Svelte binds on:click directly, so there is nothing to register into.
+
+// @ts-nocheck
 const ADMIN_API = '/api/admin';
 
 export async function fetchAdminStatus() {
