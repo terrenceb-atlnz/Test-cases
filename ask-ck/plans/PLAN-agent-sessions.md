@@ -78,7 +78,8 @@ verified: 2026-10-09
 - `--brief`: enables a SendUserMessage tool.
 - `--settings`, `--add-dir`, `--bare`, `--agents`.
 
-**Reported by the 2026-10-09 docs research but NOT yet verified here.** Each is a Phase 0 test
+**All six were settled by P0 on 2026-10-09; see §9a for the results.** The table below is
+the pre-P0 record. **Reported by the 2026-10-09 docs research but NOT yet verified here.** Each is a Phase 0 test
 (§9). None is a fact until that test runs.
 
 | # | Claim | Why it matters |
@@ -322,6 +323,51 @@ plan could add a small set of page actions the helper may call, but nothing here
 | **P4 — scheduling** | Seat-agent polling for scheduled runs; email on finish/fail/question. | A run scheduled for after hours starts with no tab open and emails its result |
 | **P5 — W4 helper** | The docked helper on other pages. | Its own small plan when we get there |
 
+### 9a. P0 findings (run 2026-10-09, Claude Code 2.1.294 → 2.1.295 mid-run)
+
+Everything ran from the session scratchpad: throwaway drivers, a throwaway project with a
+`p0probe` skill and a `p0helper` agent, and a scratch virtualenv with `claude-agent-sdk` 0.2.165.
+No Ask-CK code changed.
+
+| # | Result |
+|---|---|
+| U1 | **Confirmed.** `/p0probe` and `/test-mode` both expanded in `-p` with stream-json. Project agents ran (`p0helper`, `bench-runner` in the background). The init event lists Monitor, CronCreate, SendMessage and AskUserQuestion, and the TRIAGE session used Monitor, CronCreate, a background Agent and the subagent's SendMessage. |
+| U2 | **Confirmed — the wire protocol, read from the SDK's source and exercised raw:** launch with `--permission-prompt-tool stdio` plus stream-json in and out. **(1)** Send `{"type":"control_request","request_id":…,"request":{"subtype":"initialize"}}`. **(2)** The CLI sends `{"type":"control_request","request":{"subtype":"can_use_tool","tool_name":…,"input":…}}`. **(3)** The host replies `{"type":"control_response","response":{"subtype":"success","request_id":…,"response":{"behavior":"allow","updatedInput":…}}}` or `{"behavior":"deny","message":…}`. **AskUserQuestion is answered by allowing it with `updatedInput.answers = {<question text>: <option label>}`**; Claude then gets *"Your questions have been answered: …"*. |
+| U3 | **Confirmed.** A further `{"type":"user","message":{"role":"user","content":…}}` line on stdin starts a new turn in the same live process, with a `result` line per turn. |
+| U4 | **Confirmed.** Each `result` line has a cumulative `modelUsage` per model (subagent tokens included), with `costUSD` marked `costBasis: list`, an estimate at list price on a subscription. Each subagent's `task_notification` carries its own `usage` (tokens, tool uses, duration). The P0 TRIAGE cost $3.97 at list (~6.7 M cache-read tokens, 48 k output) over 9 minutes. |
+| U5 | **B ruled out.** A `--bg` session survives and is listed by `claude agents --json`. But `claude logs` returns raw terminal screen output (escape codes and spinner frames), there is no programmatic input (only interactive `attach`), and `--bg` refuses a folder not trusted interactively. Removed after the test. |
+| U6 | **Read at the source** (code.claude.com/docs/en/agent-sdk/overview): *"Unless previously approved, Anthropic does not allow third party developers to offer claude.ai login or rate limits for their products, including agents built on the Claude Agent SDK."* **Terrence's ruling, 2026-10-09:** *"This is not a product, it will not be bought or sold."* Ask-CK is an internal tool on each person's own Team-plan seat, so the restriction does not apply. That is the same basis as `ck-agent` since 2026-09-10, and A and C stand equally. |
+| A vs C | **One protocol.** The SDK launches the same CLI with the same flags and adds typed callbacks. The probe gave identical results through both (≈13 s each). The SDK also bundles its own `claude` binary (`_bundled/claude`). P0 pointed it at the system one with `cli_path`; otherwise a seat runs two Claude versions. |
+
+**Found by the real TRIAGE** (tb470, x230 as DUT, T33234 / T33235; device-testing `1ea546c`,
+`333f06f`, `9978608`, not pushed):
+
+- **D5 works end to end.** The session never asked. It emitted three `NOTIFY` lines, recorded
+  them in the queue's Issues, and refused to work around denials (*"Doing them from this session
+  would just get around the denial"*).
+- **Verdict:** 0 of 2 runnable.
+  - T33234 would mark all 14 cases UNSUPPORTED: the x230v2-28GS has no fixed copper port.
+  - T33235 is blocked: **both scripts bind the DUT to `.setup` slot `swi_a`, which on tb470 is
+    the IE520 stack member (u2), not the x230 (`swi_f`, u0).** The fix is a bench decision (swap
+    the names in `tb470.static` + `apply`) or a Composer template with the slots swapped. This is
+    the Composer's template step proving its worth on day one.
+- **Permissions are the real design item.** In `--permission-mode auto`:
+  - the classifier itself denied two commands, read-only console `show` commands with `?` help
+    in config mode ("Remote Shell Writes"), **without asking the host**;
+  - it sent only one command (a `ps` over ssh) to the host, which the driver denied.
+
+  So:
+  - **(a)** the window must show classifier denials (they arrive as tool results), not only
+    host requests;
+  - **(b)** an unattended campaign needs a **deliberate permission profile**, for example a
+    device-testing allowlist for the probe, `ckcon.py` / `qmark.py` and the `ssh tbNNN` forms,
+    or bench-runner gets stopped at its first console command. This joins §10 as an open item.
+- **Lifetime:** the sentinel's Monitor (and its cron) keep the session alive after the campaign
+  is done. The launcher needs an explicit stand-down: `/wrap-dt`, or a stop that also ends
+  `sentinel.sh`. P0 stopped it by PID.
+- **Left on the bench:** consoles u0–u5 still logged in after the probe. The session correctly
+  would not log them out against a denial. For Terrence.
+
 P1 onward changes the seat agents and the server. Server edits go through the
 branch-and-merge procedure (SERVER-README, "Changing the backend of the hosted server").
 
@@ -338,8 +384,19 @@ branch-and-merge procedure (SERVER-README, "Changing the backend of the hosted s
 - **D5 — Blocked on a person: an informative email, then work past it; if impossible, BLOCKED and
   move to the next case.** A campaign never stops to wait (§8).
 
-**Open:**
-1. **§4 launch option**, after P0: A, A+B, or C (only if U6 allows).
+- **U6 (Terrence, 2026-10-09):** the SDK overview's third-party restriction does not apply.
+  *"This is not a product, it will not be bought or sold."*
+
+**Open (after P0, §9a):**
+1. **§4 launch option: A or C.** B is ruled out. A and C share one wire protocol:
+   - **A** = each seat agent speaks it directly: stdlib Python on Linux, PowerShell on Windows.
+     Nothing new to install, but two implementations kept in step, as today.
+   - **C** = the SDK, which needs Python on every seat. The setup script can install it on
+     Windows (Terrence: acceptable). It also opens the option of **one Python agent for both
+     OSes**, replacing `ck-agent.ps1`.
+2. **Permission profile for unattended campaigns** (§9a): which bench commands a launched
+   `/test-mode` may run without a person (allowlist in device-testing's settings, or a
+   permission mode), and who owns that list.
 
 ## 11. Invariants
 
