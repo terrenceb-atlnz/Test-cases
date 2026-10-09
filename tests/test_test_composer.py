@@ -78,7 +78,8 @@ def test_a_validation_handoff_names_the_script_by_its_absolute_path(env):
     h = out["handoff"]
     assert tc_runs.RUN_ID_RE.match(h["run_id"]) and h["schema"] == 1
     assert h["cases"] == [{"key": "AWPTCM-T33234", "kind": "script",
-                           "script": str(env["gen"] / "9001_Port" / "test-9001.33234.py")}]
+                           "script": str(env["gen"] / "9001_Port" / "test-9001.33234.py"),
+                           "script_rel": None}]                  # tmp is outside the repo
     assert h["pdu"] == {"ip": "10.36.150.14", "outlets": {"u0": 1, "u1": 7}}
     d = tc_runs.run_dir(h["run_id"])
     assert json.loads((d / "handoff.json").read_text()) == h
@@ -310,3 +311,18 @@ def test_the_real_rendering_is_html_escaped_and_still_parses():
     assert "&#39;" in escaped and html.unescape(escaped) == RENDERED
     b = tc_projects.parse_status_block(escaped)
     assert [p["key"] for p in b["plans"]] == ["AWPTCM-P2903", "AWPTCM-P2902"] and b["plans"][0]["name"] == "x230-52GT V2"
+
+
+def test_a_composer_validate_handoff_names_the_templates_setup_relative_to_the_repo(env):
+    h = tc_runs.create_run(body(kind="composer-validate", cases=[], template="setup-a"), seat="s")["handoff"]
+    assert h["template_setup_rel"] == "ask-ck/functions/test-composer/templates/setup-a/a.setup"
+    with pytest.raises(tc_runs.RunError, match="needs a template"):
+        tc_runs.create_run(body(kind="composer-validate", cases=[]), seat="s")
+
+
+def test_a_script_inside_the_repo_also_carries_its_repo_relative_path(env, monkeypatch):
+    monkeypatch.delenv("CK_PT_GENERATED_DIR")
+    scripts = tc_runs.list_scripts()
+    s = next(x for x in scripts if x["case_key"] == "AWPTCM-T33234")
+    h = tc_runs.create_run(body(cases=[{"key": "AWPTCM-T33234", "kind": "script", "script": s["path"]}]), seat="s")["handoff"]
+    assert h["cases"][0]["script_rel"] == "ask-ck/functions/pytest-creator/generated/9001_Port/test-9001.33234.py"

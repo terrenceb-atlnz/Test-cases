@@ -1,0 +1,98 @@
+/* Validation and Test Composer pages (Svelte islands vd / tc). Loaded by BOTH index.html files
+   (current and restyle), so it uses only the tokens both stylesheets define — as zephyr-tool.css. */
+.tc-page .tc-step { font-weight: 600; color: var(--text-primary); margin: 18px 0 6px; display: flex; align-items: center; gap: 8px; }
+.tc-page .tc-step-n { display: inline-flex; width: 22px; height: 22px; border-radius: 50%; align-items: center; justify-content: center;
+  background: var(--accent-primary); color: var(--bg-primary, #fff); font-size: 12px; }
+.tc-page .tc-line { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin: 6px 0; }
+.tc-page .tc-line .form-input { flex: 1 1 280px; min-width: 0; }
+.tc-page .tc-small { font-size: 12px; color: var(--text-tertiary); }
+.tc-page .tc-status { min-height: 18px; font-size: 13px; color: var(--text-secondary); margin: 6px 0; }
+.tc-page .tc-status.is-bad, .tc-page .tc-problem { color: var(--status-critical); }
+.tc-page .tc-key { font-family: var(--font-mono); font-size: 12px; color: var(--accent-primary); }
+.tc-page .tc-spacer { flex: 1 1 auto; }
+.tc-page .tc-badge { font-size: 11px; padding: 1px 8px; border-radius: 10px; border: 1px solid var(--border-default); color: var(--text-secondary); }
+.tc-page .tc-state-running, .tc-page .tc-state-starting { color: var(--accent-primary); border-color: var(--accent-primary); }
+.tc-page .tc-state-done { color: var(--status-ok, #2e7d32); border-color: currentColor; }
+.tc-page .tc-state-error, .tc-page .tc-state-stopped { color: var(--status-critical); border-color: currentColor; }
+.tc-page .tc-check { color: var(--status-ok, #2e7d32); font-weight: 600; }
+
+/* setup fields */
+.tc-page .tc-fields { display: flex; flex-wrap: wrap; gap: 8px 12px; }
+.tc-page .tc-field { display: flex; flex-direction: column; gap: 3px; flex: 0 0 12em; }
+.tc-page .tc-field.tc-wide { flex: 1 1 18em; }
+.tc-page .tc-field.tc-full { flex: 1 1 100%; }
+.tc-page .tc-field label { font-size: 12px; color: var(--text-secondary); }
+.tc-page .tc-time { width: 8em; flex: none; }
+
+/* lists */
+.tc-page .tc-scripts, .tc-page .tc-runs { border: 1px solid var(--border-default); border-radius: 6px; background: var(--bg-secondary); max-height: 260px; overflow: auto; }
+.tc-page .tc-script-row, .tc-page .tc-run-row { display: flex; gap: 10px; align-items: baseline; padding: 6px 10px; border: 0;
+  border-bottom: 1px solid var(--border-subtle); background: none; width: 100%; text-align: left; cursor: pointer; color: var(--text-primary); font: inherit; }
+.tc-page .tc-script-row.is-chosen { background: var(--status-high-muted); }
+.tc-page .tc-variant { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; padding: 4px 0; }
+.tc-page .tc-blockers { margin: 0 0 0 1.2em; font-size: 12px; color: var(--text-tertiary); }
+
+/* the agent window */
+.tc-page .tc-window { border: 1px solid var(--border-default); border-radius: 6px; background: var(--bg-secondary); margin: 6px 0; }
+.tc-page .tc-window-head { display: flex; gap: 10px; align-items: center; padding: 6px 10px; border-bottom: 1px solid var(--border-subtle); flex-wrap: wrap; }
+.tc-page .tc-stream { max-height: 55vh; overflow: auto; padding: 8px 10px; font-size: 13px; color: var(--text-secondary); }
+.tc-page .tc-compact .tc-stream { max-height: 28vh; }
+.tc-page .tc-ev { margin: 3px 0; }
+.tc-page .tc-sub { margin-left: 22px; border-left: 2px solid var(--border-subtle); padding-left: 8px; }
+.tc-page .tc-text { color: var(--text-primary); white-space: pre-wrap; }
+.tc-page .tc-tool-row { display: flex; gap: 6px; align-items: baseline; width: 100%; border: 0; background: none; padding: 1px 0; cursor: pointer;
+  color: var(--text-secondary); font: inherit; text-align: left; }
+.tc-page .tc-tool-status { margin-left: auto; font-size: 11px; }
+.tc-page .tc-tool-status.is-ok { color: var(--status-ok, #2e7d32); }
+.tc-page .tc-tool-status.is-error, .tc-page .tc-tool-status.is-denied { color: var(--status-critical); }
+.tc-page .tc-task, .tc-page .tc-turn, .tc-page .tc-statechg { font-size: 12px; color: var(--text-tertiary); }
+.tc-page .tc-marker { font-family: var(--font-mono); font-size: 12px; padding: 2px 6px; border-radius: 4px; background: var(--bg-primary, transparent); }
+.tc-page .tc-m-pass { color: var(--status-ok, #2e7d32); }
+.tc-page .tc-m-fail { color: var(--status-critical); }
+.tc-page .tc-m-notify { color: var(--status-high); background: var(--status-high-muted); }
+.tc-page .tc-m-other, .tc-page .tc-m-done { color: var(--text-primary); }
+.tc-page .tc-user { text-align: right; color: var(--accent-primary); }
+.tc-page .tc-card { border: 1px solid var(--status-high); border-radius: 6px; padding: 6px 8px; background: var(--status-high-muted); }
+.tc-page .tc-card-head { font-weight: 600; color: var(--text-primary); }
+.tc-page .tc-opts { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px; }
+.tc-page .tc-other { flex: 1 1 160px; }
+.tc-page .tc-say { display: flex; gap: 8px; padding: 6px 10px; border-top: 1px solid var(--border-subtle); }
+.tc-page .tc-say .form-input { flex: 1 1 auto; }
+.tc-page .tc-pre { font-family: var(--font-mono); font-size: 11px; white-space: pre-wrap; word-break: break-word; margin: 4px 0; max-height: 40vh; overflow: auto; }
+.tc-page .tc-empty { color: var(--text-tertiary); }
+
+/* results */
+.tc-page .tc-readout { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; padding: 6px 0; }
+.tc-page .tc-count { font-size: 13px; }
+.tc-page .tc-cycle { font-weight: 600; color: var(--text-primary); margin-top: 10px; }
+.tc-page .tc-results { width: 100%; font-size: 12px; }
+.tc-page .tc-results td { vertical-align: top; padding: 4px 6px; border-top: 1px solid var(--border-subtle); }
+.tc-page .tc-actions { white-space: nowrap; }
+.tc-page .tc-kind { font-size: 11px; padding: 0 6px; border-radius: 8px; border: 1px solid var(--border-default); }
+.tc-page .tc-kind-script { color: var(--accent-primary); border-color: var(--accent-primary); }
+.tc-page .tc-kind-manual { color: var(--text-secondary); }
+.tc-page .tc-verdict { font-weight: 600; }
+.tc-page .tc-v-PASS { color: var(--status-ok, #2e7d32); }
+.tc-page .tc-v-FAIL, .tc-page .tc-v-ERROR { color: var(--status-critical); }
+.tc-page .tc-v-UNSUPPORTED, .tc-page .tc-v-BLOCKED, .tc-page .tc-v-PARTIAL { color: var(--status-high); }
+.tc-page .tc-prev { font-size: 11px; padding: 0 6px; border-radius: 8px; background: var(--status-high-muted); color: var(--status-high); }
+.tc-page .tc-accept { margin: 8px 0; }
+
+/* log viewer (ART design) */
+.tc-page .tc-panes { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px; }
+@media (max-width: 900px) { .tc-page .tc-panes { grid-template-columns: minmax(0, 1fr); } }
+.tc-page .tc-pane-head { display: flex; gap: 6px; align-items: center; }
+.tc-page .tc-log { max-height: 50vh; background: var(--bg-primary, transparent); border: 1px solid var(--border-subtle); padding: 4px 6px; }
+.tc-page .tc-log-fail { color: var(--status-critical); }
+.tc-page .tc-log-pass { color: var(--status-ok, #2e7d32); }
+
+/* the project tree reuses ZTT's row classes; zephyr-tool.css scopes them to #panel-zt */
+.tc-page .tc-tree { border: 1px solid var(--border-default); border-radius: 6px; background: var(--bg-secondary); max-height: 55vh; overflow: auto; padding: 6px 10px; font-size: 13px; }
+.tc-page .tc-tree .zt-row { padding: 2px 0 2px calc(var(--zt-depth) * 20px); }
+.tc-page .tc-tree .zt-row label { cursor: pointer; display: inline-flex; gap: 6px; align-items: baseline; flex-wrap: wrap; }
+.tc-page .tc-tree .zt-plan { font-weight: 600; color: var(--text-primary); margin-top: 6px; }
+.tc-page .tc-tree .zt-row.is-off label { opacity: 0.55; }
+.tc-page .tc-tree .zt-key { font-family: var(--font-mono); font-size: 12px; color: var(--accent-primary); }
+.tc-page .tc-tree .zt-count { font-size: 11px; color: var(--text-tertiary); }
+.tc-page .tc-tree .zt-fold { width: 1.4em; padding: 0; border: 0; background: none; color: var(--text-secondary); cursor: pointer; }
+.tc-page .tc-tree .zt-fold-pad { display: inline-block; width: 1.4em; }

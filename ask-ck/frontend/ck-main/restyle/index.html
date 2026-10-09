@@ -14,6 +14,7 @@
 <link rel="shortcut icon" href="/favicon.ico">
 <link rel="stylesheet" href="/restyle/static/styles.css?v=16">
 <link rel="stylesheet" href="/static/zephyr-tool/zephyr-tool.css?v=1">
+<link rel="stylesheet" href="/static/test-composer/test-composer.css?v=1">
 </head>
 <body>
 <!-- ATUI shell (PLAN-atui-restyle S13-S15): a 48px header — brand mark + name on the left (the element
@@ -67,11 +68,22 @@
       </div>
     </div>
 
-    <!-- Test Composer -->
+    <!-- Validation (PLAN-test-validation; Svelte island islands/vd.js) -->
+    <div class="sidebar-section-label" title="Validation"><span class="rs-icon rs-icon-tools" aria-hidden="true"></span><span class="rs-sec-text">Validation</span></div>
+    <div class="sidebar-steps">
+      <div data-action="goToPanel" data-args='["panel-vd"]' role="button" tabindex="0" class="sidebar-nav-item" data-panel="panel-vd">
+        Validate a Script
+      </div>
+    </div>
+
+    <!-- Test Composer (PLAN-test-composer; Svelte island islands/tc.js) -->
     <div class="sidebar-section-label" title="Test Composer"><span class="rs-icon rs-icon-edit" aria-hidden="true"></span><span class="rs-sec-text">Test Composer</span></div>
     <div class="sidebar-steps">
+      <div data-action="goToPanel" data-args='["panel-tc"]' role="button" tabindex="0" class="sidebar-nav-item" data-panel="panel-tc">
+        Compose a Run
+      </div>
       <div data-action="goToPanel" data-args='["panel-tc-tbd"]' role="button" tabindex="0" class="sidebar-nav-item" data-panel="panel-tc-tbd">
-        1. TBD
+        Colour specimen
       </div>
     </div>
 
@@ -526,10 +538,14 @@
       <div id="zt-root"></div>
     </div>
 
-    <!-- Test Composer (stub) -->
+    <!-- Validation and Test Composer — Svelte islands mounted by test-composer/test-composer.js -->
+    <div id="panel-vd" class="card tool-panel hidden"><div id="vd-root"></div></div>
+    <div id="panel-tc" class="card tool-panel hidden"><div id="tc-root"></div></div>
+
+    <!-- The former Test Composer stub: now only the Classic-vs-ATUI specimen (Terrence 2026-09-30) -->
     <div id="panel-tc-tbd" class="card tool-panel hidden">
       <div class="section">
-        <div class="section-heading">Test Composer — TBD</div>
+        <div class="section-heading">Colour and type specimen</div>
         <div class="section-description">Compose tests from building blocks. Scope to be defined.</div>
         <div class="placeholder-panel">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>

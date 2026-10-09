@@ -18,6 +18,7 @@ import '../generator/chosen.js';
 import '../generator/db-search.js';
 import '../llm-config/agent.js';
 import '../zephyr-tool/zephyr-tool.js';
+import { applyDeepLink } from '../test-composer/test-composer.js';
 import './version.js';    // side-effect: stale-tab guard (polls /api/version)
 
 // Fetch a stub tool router's /status message into a placeholder status element.
@@ -99,7 +100,9 @@ async function restoreUiState() {
   }
   updatePageHeader();
 }
-restoreUiState();
+// A Test Composer / Validation deep link (?panel=composer|validation|tc-runs) wins over the restored
+// panel, so it is applied AFTER the restore settles (PLAN-test-composer §5).
+restoreUiState().then(() => applyDeepLink(goToPanel));
 
 // Form-control bindings that were previously inline onchange/onkeydown attributes.
 document.querySelectorAll('input[name="llmAuthMethod"]').forEach((radio) => {

@@ -1,0 +1,58 @@
+### MOCK TEMPLATE for Test Composer testing (Claude, 2026-10-09; PLAN-test-composer §2.2 "mock data").
+### tb470's deployed .setup with swi_a and swi_f EXCHANGED everywhere — the binding the 2026-10-09 P0
+### triage said T33234/T33235 need for the x230 to be the DUT. The probe against it should MISMATCH.
+
+[power]
+pwr_a = (pdu, 10.36.150.14, 6)
+pwr_b = (pdu, 10.36.150.14, 8)
+pwr_c = (pdu, 10.36.150.14, 5)
+pwr_d = (pdu, 10.36.150.14, 4)
+pwr_e = (pdu, 10.36.150.14, 7)
+pwr_f = (pdu, 10.36.150.14, 1)
+
+[switch]
+swi_f = /dev/u2
+swi_b = /dev/u3
+swi_c = /dev/u5
+swi_d = /dev/u4
+swi_e = /dev/u1
+swi_a = /dev/u0
+
+[baudrates]
+swi_f = 115200
+swi_b = 115200
+swi_c = 115200
+swi_d = 115200
+swi_e = 115200
+swi_a = 115200
+
+[stack]
+stk_a = swi_f, swi_c, swi_d
+
+[configured_stackport]
+
+[powerlink]
+swi_f = pwr_a
+swi_b = pwr_b
+swi_c = pwr_c
+swi_d = pwr_d
+swi_e = pwr_e
+swi_a = pwr_f
+
+[boot_from_flash]
+stk_a = True
+swi_f = True
+swi_b = True
+swi_c = True
+swi_d = True
+swi_e = True
+swi_a = True
+
+[portlink]
+tb-swi_c = eth1-port3.0.13
+tb-swi_e = eth2-port1.0.1
+tb-swi_a = eth3-port1.0.5
+swi_f-swi_a = port1.0.17-port1.0.3, port1.0.2-port1.0.2, port1.0.3-port1.0.4
+swi_b-swi_d = port1.0.26-port4.0.26
+swi_c-swi_e = port3.0.2-port1.0.3
+swi_d-swi_e = port4.0.2-port1.0.4

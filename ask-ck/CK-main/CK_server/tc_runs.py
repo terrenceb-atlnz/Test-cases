@@ -26,6 +26,7 @@ from typing import Any, Dict, List, Optional
 
 from paths import ASKCK_ROOT, PT_GENERATED_DIR
 
+REPO_ROOT = ASKCK_ROOT.parent
 TC_ROOT = ASKCK_ROOT / "functions" / "test-composer"
 TEMPLATES_DIR = TC_ROOT / "templates"
 SCHEMA = 1
@@ -150,7 +151,11 @@ def build_handoff(body: Dict[str, Any], seat: str, now: Optional[datetime] = Non
             raise RunError(f"{key}: kind must be script or manual")
         entry = {"key": key, "kind": ck}
         if ck == "script":
-            entry["script"] = str(script_abspath(str(c.get("script") or "")))
+            sp = script_abspath(str(c.get("script") or ""))
+            entry["script"] = str(sp)
+            # Repo-relative too: a seat or testbox mounts the lab home elsewhere, so device-testing
+            # resolves this against the Test-cases checkout BESIDE its own (<dt root>/../Test-cases).
+            entry["script_rel"] = _repo_rel(sp)
         if c.get("cycle"):
             entry["cycle"] = str(c["cycle"])[:40]
         cases.append(entry)
@@ -159,9 +164,16 @@ def build_handoff(body: Dict[str, Any], seat: str, now: Optional[datetime] = Non
     if kind != "composer-validate" and not cases:
         raise RunError("no cases")
     template = body.get("template")
+    template_setup_rel = None
     if template is not None:
         if not TEMPLATE_RE.match(str(template)) or not (TEMPLATES_DIR / str(template)).is_dir():
             raise RunError(f"no template {template!r}")
+        setups = sorted((TEMPLATES_DIR / str(template)).glob("*.setup"))
+        if not setups:
+            raise RunError(f"template {template!r} has no .setup file")
+        template_setup_rel = _repo_rel(setups[0])
+    if kind == "composer-validate" and template is None:
+        raise RunError("a composer-validate run needs a template")
     email = str((body.get("options") or {}).get("email") or "").strip()
     if email and not all(EMAIL_RE.match(e.strip()) for e in email.split(",")):
         raise RunError("email is not an address (comma-separate several)")
@@ -172,10 +184,18 @@ def build_handoff(body: Dict[str, Any], seat: str, now: Optional[datetime] = Non
         "testbox": testbox, "consoles": consoles,
         "pdu": {"ip": pdu_ip or None, "outlets": outlets} if pdu_ip else None,
         "constraints": str(body.get("constraints") or "").strip()[:1000],
-        "template": template, "project": body.get("project") if isinstance(body.get("project"), dict) else None,
+        "template": template, "template_setup_rel": template_setup_rel, "project": body.get("project") if isinstance(body.get("project"), dict) else None,
         "cases": cases,
         "options": {"email": email or None, "start_after": (body.get("options") or {}).get("start_after")},
     }
+
+
+def _repo_rel(p: Path) -> Optional[str]:
+    """Path relative to the Test-cases checkout, or None for a file outside it (the specs' tmp)."""
+    try:
+        return Path(p).resolve().relative_to(REPO_ROOT.resolve()).as_posix()
+    except ValueError:
+        return None
 
 
 def create_run(body: Dict[str, Any], seat: str) -> Dict[str, Any]:

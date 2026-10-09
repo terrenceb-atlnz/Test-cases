@@ -36,7 +36,7 @@ describe('restyle rail', () => {
     // so a toggle that sat after the last section vanished whenever that section was closed.
     expect(toggle().classList.contains('sidebar-section-body')).toBe(false);
     expect(toggle().classList.contains('section-collapsed')).toBe(false);
-    expect(document.querySelectorAll('.sidebar-section-label').length).toBe(6);
+    expect(document.querySelectorAll('.sidebar-section-label').length).toBe(7);   // + Validation (2026-10-09)
   });
 
   it('the toggle collapses and expands, and remembers the choice per viewer', () => {

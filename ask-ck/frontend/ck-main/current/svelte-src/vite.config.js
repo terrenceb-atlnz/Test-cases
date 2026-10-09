@@ -45,7 +45,7 @@ export default defineConfig({
     minify: false,
     sourcemap: false,
     lib: {
-      entry: { zt: resolve(HERE, 'src/zt/main.js') },
+      entry: { zt: resolve(HERE, 'src/zt/main.js'), vd: resolve(HERE, 'src/vd/main.js'), tc: resolve(HERE, 'src/tc/main.js') },
       formats: ['es'],
       fileName: (_format, name) => `${name}.js`,
     },
