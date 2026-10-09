@@ -20,13 +20,14 @@ hide anything; the entries below simply stop a case being offered for review.
 A leaf: imports `db` and `paths` only. It must never import `routers.*`.
 """
 
+import json
 import logging
 import re
 from pathlib import Path
 from typing import Dict, List, Optional
 
 import db
-from paths import REFINED_DIR
+from paths import PT_GENERATED_DIR, REFINED_DIR
 
 log = logging.getLogger(__name__)
 
@@ -55,10 +56,38 @@ HIDDEN_CASE_FOLDERS = frozenset({
 })
 
 
+_FINALIZED = {"at": 0.0, "keys": frozenset()}
+_FINALIZED_TTL = 30.0
+
+
+def finalized_case_keys(generated: Optional[Path] = None) -> frozenset:
+    """Cases whose script Validation finalized (PLAN-test-validation §6): `finalized_at` in
+    generated/.meta/<group>/<name>/provenance.json. Cached briefly — the lists call this per case."""
+    import time  # noqa: PLC0415
+    now = time.monotonic()
+    if generated is None and now - _FINALIZED["at"] < _FINALIZED_TTL:
+        return _FINALIZED["keys"]
+    keys = set()
+    root = (generated or PT_GENERATED_DIR) / ".meta"
+    if root.is_dir():
+        for pp in root.glob("*/*/provenance.json"):
+            try:
+                prov = json.loads(pp.read_text(encoding="utf-8"))
+            except (OSError, ValueError):
+                continue
+            if prov.get("finalized_at") and prov.get("case_key"):
+                keys.add(prov["case_key"])
+    out = frozenset(keys)
+    if generated is None:
+        _FINALIZED.update(at=now, keys=out)
+    return out
+
+
 def is_hidden_case(key: str, folder: str = "") -> bool:
-    """A case is hidden from the lists if its key is explicitly hidden OR it lives in a
-    hidden folder. Display-only; ck.db is untouched."""
-    if key in HIDDEN_CASE_KEYS:
+    """A case is hidden from the lists if its key is explicitly hidden, it lives in a hidden
+    folder, or Validation FINALIZED it (Terrence 2026-10-09: "i dont want it re-authored there").
+    Display-only; ck.db is untouched, and deleting the marker brings the case back."""
+    if key in HIDDEN_CASE_KEYS or key in finalized_case_keys():
         return True
     f = (folder or "").rstrip("/")
     return f in HIDDEN_CASE_FOLDERS

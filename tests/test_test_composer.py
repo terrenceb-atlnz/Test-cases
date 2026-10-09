@@ -360,3 +360,15 @@ def test_the_finish_mail_counts_cases_as_the_table_shows_them(env, client):
     rid = client.post("/api/test-composer/runs", json=body()).json()["run_id"]
     client.post(f"/api/test-composer/runs/{rid}/events", json={"events": _events({"kind": "state", "state": "done"})})
     assert "1 NOT TESTED" in env["sent"][-1]["subject"]
+
+
+def test_finalize_refuses_with_its_reasons_and_never_writes_while_v0_is_open(env, client):
+    rid = client.post("/api/test-composer/runs", json=body()).json()["run_id"]
+    r = client.post(f"/api/test-composer/runs/{rid}/finalize/AWPTCM-T33234")
+    assert r.status_code == 409 and "not finished cleanly" in r.json()["detail"] and "REVIEWED" in r.json()["detail"]
+    tc_runs.apply_events(rid, _events({"kind": "marker", "line": "REVIEWED AWPTCM-T33234 tb470/x/review.md"},
+                                      {"kind": "state", "state": "done"}))
+    r = client.post(f"/api/test-composer/runs/{rid}/finalize/AWPTCM-T33234")
+    assert r.status_code == 409 and "V0" in r.json()["detail"]
+    prov = json.loads((env["gen"] / ".meta/9001_Port/test-9001.33234/provenance.json").read_text())
+    assert "finalized_at" not in prov

@@ -10,12 +10,14 @@ Records are files (tc_runs.py); nothing here touches ck.db's schema.
 from __future__ import annotations
 
 import asyncio
+from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, Body, HTTPException, Request
 from fastapi.responses import FileResponse
 
 import tc_campaign
+import tc_finalize
 import tc_mail
 import tc_projects
 import tc_runs
@@ -219,6 +221,39 @@ async def repaired(run_id: str, path: str, case: str):
         _bad(f"{case} is not a script case of this run")
     return {"case": case, "path": path, "code": p.read_text(encoding="utf-8", errors="replace"),
             "original": open(original, encoding="utf-8").read()}
+
+
+# ------------------------------------------------------------------ Validation: Finalize
+
+@router.post("/runs/{run_id}/finalize/{case}")
+async def finalize(request: Request, run_id: str, case: str):
+    """PLAN-test-validation §6. Refuses (409) with the reason until every precondition holds; while
+    V0 is open (the Zephyr new-version request is not captured) it always refuses before writing."""
+    try:
+        r = tc_runs.load(run_id)
+        events = tc_runs.read_events(run_id)
+    except (KeyError, tc_runs.RunError):
+        raise HTTPException(status_code=404, detail="no such run") from None
+    c = next((x for x in r.get("cases") or [] if x["key"] == case and x["kind"] == "script"), None)
+    if not c:
+        _bad(f"{case} is not a script case of this run")
+    blockers = []
+    if r.get("state") != "done":
+        blockers.append("the run has not finished cleanly")
+    lines = [e.get("line") or "" for e in events if e.get("kind") == "marker"]
+    if not any(ln.startswith(f"REVIEWED {case}") for ln in lines):
+        blockers.append("the review has not been written (REVIEWED)")
+    if blockers:
+        raise HTTPException(status_code=409, detail="; ".join(blockers))
+    script_rel = str(Path(c["script"]).resolve().relative_to(tc_runs.generated_dir().resolve()))
+    link = f"{str(request.base_url).rstrip('/')}/?panel=composer&script={script_rel}"
+    try:
+        out = await asyncio.to_thread(tc_finalize.finalize, case, script_rel, run_id, _seat(request),
+                                      tc_runs.generated_dir(), link, get_case=None, put_case=None,
+                                      new_version=None, audit=lambda e: True)
+    except tc_finalize.FinalizeBlocked as e:
+        raise HTTPException(status_code=409, detail=str(e)) from None
+    return out
 
 
 # ------------------------------------------------------------------ Feedback
