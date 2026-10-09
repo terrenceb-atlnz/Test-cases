@@ -15,8 +15,10 @@ verified: 2026-10-09
 >   link, Start.
 > - **C5:** results by cycle, the Log Viewer port, Feedback, re-grade, Accept, the readout.
 >
-> **Not built:** the after-hours start (stored only; the seat poller is P4); Accept results'
-> deletion of work/ (needs device-testing). §8 decisions are still open.
+> **The after-hours start is BUILT** (P4: the seat agent claims and starts due runs).
+>
+> **Not built:** Accept results' deletion of work/ (needs device-testing). §8 decisions are still
+> open.
 >
 > Rewritten 2026-10-09 from Terrence's design in that day's conversation. It is the third of three plans:
 > 1. [`PLAN-agent-sessions.md`](PLAN-agent-sessions.md) (A, first): how Ask-CK starts and talks

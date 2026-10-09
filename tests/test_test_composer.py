@@ -372,3 +372,32 @@ def test_finalize_refuses_with_its_reasons_and_never_writes_while_v0_is_open(env
     assert r.status_code == 409 and "V0" in r.json()["detail"]
     prov = json.loads((env["gen"] / ".meta/9001_Port/test-9001.33234/provenance.json").read_text())
     assert "finalized_at" not in prov
+
+
+# ------------------------------------------------------------------ after-hours runs (D3, P4)
+
+def test_a_start_time_schedules_the_run_for_the_next_occurrence():
+    from datetime import datetime, timedelta, timezone
+    tz = timezone(timedelta(hours=13))
+    now = datetime(2026, 10, 9, 17, 30, tzinfo=tz)
+    assert tc_runs.next_start("18:05", now) == datetime(2026, 10, 9, 18, 5, tzinfo=tz)
+    assert tc_runs.next_start("02:00", now) == datetime(2026, 10, 10, 2, 0, tzinfo=tz)
+    with pytest.raises(tc_runs.RunError):
+        tc_runs.next_start("25:00", now)
+
+
+def test_a_due_run_is_offered_only_to_its_own_seat_and_claimed_once(env, client):
+    b = body(options={"email": None, "start_after": "00:00"})
+    rid = tc_runs.create_run(b, seat="testclient")["run_id"]
+    r = tc_runs.load(rid)
+    assert r["state"] == "scheduled" and r["start_at"]
+    tc_runs.mark(rid, start_at="2000-01-01T00:00:00+13:00")         # due now
+    assert [d["run_id"] for d in client.get("/api/test-composer/scheduled").json()["due"]] == [rid]
+    assert tc_runs.due_runs("someone-else") == []
+    first = client.post(f"/api/test-composer/runs/{rid}/claim")
+    assert first.status_code == 200 and first.json()["handoff"]["run_id"] == rid
+    assert client.post(f"/api/test-composer/runs/{rid}/claim").status_code == 409     # never twice
+    assert client.get("/api/test-composer/scheduled").json()["due"] == []
+    other = tc_runs.create_run(b, seat="10.0.0.9")["run_id"]
+    tc_runs.mark(other, start_at="2000-01-01T00:00:00+13:00")
+    assert client.post(f"/api/test-composer/runs/{other}/claim").status_code == 409   # another seat's

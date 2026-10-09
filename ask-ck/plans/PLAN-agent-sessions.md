@@ -14,8 +14,10 @@ verified: 2026-10-09
 > - **Window:** W1 stream, plus W2 cards and the W3 message box for sessions that wait — all in the
 >   Svelte islands vd/tc.
 > - **E2E:** run end to end on tb470 (TRIAGE only).
-> - **Not built:** P4 (the seat agent's schedule poller, so after-hours runs are stored but not
->   started), P5 (the docked helper), Windows (D1).
+> - **P4 BUILT too:** a run with a start time is `scheduled`; the seat agent polls
+>   `/api/test-composer/scheduled` every 60 s, claims a due run once, starts it and relays its
+>   events itself, with no tab needed.
+> - **Not built:** P5 (the docked helper), Windows (D1).
 >
 > Commits: `bf00ff8`, `7c0d691`, `e2f6e92`; the device-testing side is `df4b009`, `e334e89`, `da37c2d`.
 > Earlier status: P0 done; decisions D1–D7 (§10) taken 2026-10-09: the launcher is the Agent SDK

@@ -153,7 +153,7 @@
       const b = body();
       if (b.options.start_after) {
         const created = await server('/runs', { method: 'POST', body: JSON.stringify(runBody('composer', setup, b)) });
-        setStatus(`Scheduled ${created.run_id} for ${startAfter}. NOTE: the seat agent's schedule poller is not built yet (PLAN-agent-sessions P4) — start it from the runs list when due.`, true);
+        setStatus(`Scheduled ${created.run_id} for ${startAfter} (${created.handoff.start_at}). Your seat agent starts it then — keep this seat on and logged in; no tab is needed. The results arrive in the runs list and by email.`);
         refreshKey += 1;
         return;
       }

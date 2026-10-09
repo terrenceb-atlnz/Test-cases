@@ -20,7 +20,7 @@ import os
 import re
 import secrets
 import threading
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -127,6 +127,18 @@ def list_templates() -> List[Dict[str, Any]]:
 
 # ------------------------------------------------------------------ the hand-off
 
+START_RE = re.compile(r"^([01]\d|2[0-3]):([0-5]\d)$")
+
+
+def next_start(hhmm: str, now: datetime) -> datetime:
+    """The next local `HH:MM` at or after `now` (today, else tomorrow) — after-hours runs (D3)."""
+    m = START_RE.match(hhmm.strip())
+    if not m:
+        raise RunError("start time must be HH:MM (24-hour)")
+    t = now.replace(hour=int(m.group(1)), minute=int(m.group(2)), second=0, microsecond=0)
+    return t if t >= now.replace(second=0, microsecond=0) else t + timedelta(days=1)
+
+
 def build_handoff(body: Dict[str, Any], seat: str, now: Optional[datetime] = None) -> Dict[str, Any]:
     kind = body.get("kind")
     if kind not in KINDS:
@@ -183,6 +195,10 @@ def build_handoff(body: Dict[str, Any], seat: str, now: Optional[datetime] = Non
     email = str((body.get("options") or {}).get("email") or "").strip()
     if email and not all(EMAIL_RE.match(e.strip()) for e in email.split(",")):
         raise RunError("email is not an address (comma-separate several)")
+    start_after = (body.get("options") or {}).get("start_after") or None
+    start_at = None
+    if start_after:
+        start_at = next_start(str(start_after), now or _now()).isoformat(timespec="seconds")
     run_id = new_run_id(kind, now)
     return {
         "schema": SCHEMA, "run_id": run_id, "kind": kind, "seat": seat,
@@ -192,7 +208,8 @@ def build_handoff(body: Dict[str, Any], seat: str, now: Optional[datetime] = Non
         "constraints": str(body.get("constraints") or "").strip()[:1000],
         "template": template, "template_setup_rel": template_setup_rel, "project": body.get("project") if isinstance(body.get("project"), dict) else None,
         "cases": cases,
-        "options": {"email": email or None, "start_after": (body.get("options") or {}).get("start_after")},
+        "options": {"email": email or None, "start_after": start_after},
+        "start_at": start_at,
     }
 
 
@@ -216,7 +233,7 @@ def create_run(body: Dict[str, Any], seat: str) -> Dict[str, Any]:
               "tokens": None, "turns": None, "started": None, "ended": None, "session_id": None,
               "cases": [{"key": c["key"], "kind": c["kind"], "cycle": c.get("cycle"),
                          "script": c.get("script")} for c in handoff["cases"]],
-              "mailed": []}
+              "mailed": [], "start_at": handoff.get("start_at")}
     _write(d, record)
     return {"run_id": handoff["run_id"], "handoff": handoff, "record": record}
 
@@ -417,3 +434,38 @@ def results_table(record: Dict[str, Any]) -> List[Dict[str, Any]]:
                      "reason": r["reason"] if r else "", "log": r["log"] if r else None,
                      "regrade": (record.get("regrades") or {}).get(k)})
     return rows
+
+
+# ------------------------------------------------------------------ after-hours runs (D3, P4)
+
+def due_runs(seat: str, now: Optional[datetime] = None) -> List[Dict[str, Any]]:
+    """Scheduled runs of THIS seat whose start time has come. The seat agent polls this; only the
+    seat that created a run starts it (its own login runs the session — K1)."""
+    now = now or _now()
+    out = []
+    root = runs_dir()
+    if not root.is_dir():
+        return out
+    for rj in sorted(root.glob("*/*/run.json")):
+        try:
+            r = json.loads(rj.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            continue
+        if r.get("state") == "scheduled" and r.get("seat") == seat and r.get("start_at") \
+                and datetime.fromisoformat(r["start_at"]) <= now:
+            out.append({"run_id": r["run_id"], "start_at": r["start_at"], "kind": r["kind"]})
+    return out
+
+
+def claim(run_id: str, seat: str) -> Dict[str, Any]:
+    """scheduled → claimed, once (the poller may race a second agent or a re-poll). Returns the
+    hand-off for the agent to start; raises RunError when the run is not this seat's to start."""
+    with _LOCK:
+        r = load(run_id)
+        if r.get("seat") != seat:
+            raise RunError("this run belongs to another seat")
+        if r.get("state") != "scheduled":
+            raise RunError(f"run is {r.get('state')}, not scheduled")
+        r.update(state="claimed", claimed_at=_now().isoformat(timespec="seconds"))
+        _write(run_dir(run_id), r)
+    return load_handoff(run_id)

@@ -76,7 +76,8 @@ ASKCK-DONE), `e334e89` (`*_rel` paths), `da37c2d` (§11 repair loop and review; 
 
 **Open / next:**
 - **V0:** capture Zephyr's "new version" request, then wire Finalize's two Zephyr calls.
-- **P4:** the seat agent's schedule poller; after-hours runs are stored but not started.
+- **P4:** BUILT after the docs commit (`/scheduled`, a one-time claim, the agent's poller and its
+  own relay). Not E2E-tested on a bench (that would mean waiting for a real start time).
 - **P5:** the docked helper.
 - **Windows (D1).**
 - **The `.meta/…/test/` record mirror** (PLAN-test-validation §7) is not done.

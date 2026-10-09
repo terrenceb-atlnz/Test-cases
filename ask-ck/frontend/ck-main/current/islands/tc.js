@@ -1,7 +1,7 @@
 /* Built from ask-ck/frontend/ck-main/current/svelte-src/ — do not edit; run `npm run build` there.
-* source-sha256:e70afbb2295891a4c61e432045cc3e0508a68b02a22bc5f5391fec2df5e04f6f */
-import { B as proxy, C as unmount, E as from_html, G as pop, H as state, I as child, J as reset, K as push, L as first_child, N as template_effect, O as delegate, R as only_child, S as set_text, T as comment, U as flushSync, V as set, W as user_derived, _ as each, a as bind_checked, b as if_block, c as remove_input_defaults, d as bind_select_value, f as init_select, h as set_class, j as get, k as delegated, l as set_attribute, n as onMount, o as bind_group, q as next, r as prop, s as bind_value, u as set_checked, v as index, w as append, x as mount, y as key, z as sibling } from "./disclose-version-BND4hK_m.js";
-import { _ as saveSetup, a as TC_API, c as effectiveVerdict, d as formatOutlets, f as httpAgent, g as runBody, h as parseOutlets, i as AgentWindow, l as fmtDuration, m as loadSetup, n as RunsList, o as VERDICT_ORDER, p as httpServer, r as ResultsTable, s as byCycle, t as SetupFields, u as fmtTokens, v as tokensOf, y as verdictCounts } from "./SetupFields-8IINZYsY.js";
+* source-sha256:558a27cb0e3e7aa1b1567b09b7d7b588b1938ff9641a2727f4bfacbd57d0518c */
+import { B as proxy, C as unmount, E as from_html, G as pop, H as state, I as child, J as reset, K as push, L as first_child, N as template_effect, O as delegate, R as only_child, S as set_text, T as comment, U as flushSync, V as set, W as user_derived, _ as each, a as bind_checked, b as if_block, c as remove_input_defaults, d as bind_select_value, f as init_select, h as set_class, j as get, k as delegated, l as set_attribute, n as onMount, o as bind_group, q as next, r as prop, s as bind_value, u as set_checked, v as index, w as append, x as mount, y as key, z as sibling } from "./disclose-version-Cf35PRTc.js";
+import { _ as saveSetup, a as TC_API, c as effectiveVerdict, d as formatOutlets, f as httpAgent, g as runBody, h as parseOutlets, i as AgentWindow, l as fmtDuration, m as loadSetup, n as RunsList, o as VERDICT_ORDER, p as httpServer, r as ResultsTable, s as byCycle, t as SetupFields, u as fmtTokens, v as tokensOf, y as verdictCounts } from "./SetupFields-CxWRVO5r.js";
 //#region src/tc/TcTree.svelte
 var root$1 = from_html(`<div class="zt-empty">No plans loaded.</div>`);
 var root_1$1 = from_html(`<span class="tc-prev">Previously Run</span>`);
@@ -384,10 +384,11 @@ function TcPage($$anchor, $$props) {
 		try {
 			const b = body();
 			if (b.options.start_after) {
-				setStatus(`Scheduled ${(await $$props.server("/runs", {
+				const created = await $$props.server("/runs", {
 					method: "POST",
 					body: JSON.stringify(runBody("composer", get(setup), b))
-				})).run_id} for ${get(startAfter)}. NOTE: the seat agent's schedule poller is not built yet (PLAN-agent-sessions P4) — start it from the runs list when due.`, true);
+				});
+				setStatus(`Scheduled ${created.run_id} for ${get(startAfter)} (${created.handoff.start_at}). Your seat agent starts it then — keep this seat on and logged in; no tab is needed. The results arrive in the runs list and by email.`);
 				set(refreshKey, get(refreshKey) + 1);
 				return;
 			}

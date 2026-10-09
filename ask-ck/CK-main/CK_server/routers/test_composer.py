@@ -105,6 +105,23 @@ async def runs(kind: Optional[str] = None, limit: int = 50):
     return {"runs": tc_runs.list_runs(limit=min(max(limit, 1), 200), kind=kind)}
 
 
+@router.get("/scheduled")
+async def scheduled(request: Request):
+    """The seat agent's poll (D3): this seat's scheduled runs that are due now."""
+    return {"due": tc_runs.due_runs(_seat(request))}
+
+
+@router.post("/runs/{run_id}/claim")
+async def claim(request: Request, run_id: str):
+    """The seat agent claims a due run once and gets its hand-off to start."""
+    try:
+        return {"handoff": tc_runs.claim(run_id, _seat(request))}
+    except tc_runs.RunError as e:
+        raise HTTPException(status_code=409, detail=str(e)) from None
+    except KeyError:
+        raise HTTPException(status_code=404, detail="no such run") from None
+
+
 @router.get("/runs/{run_id}")
 async def run(run_id: str):
     try:

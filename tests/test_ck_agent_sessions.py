@@ -340,3 +340,39 @@ def test_the_seat_setup_installs_the_pinned_sdk_in_a_private_venv_and_runs_the_a
     assert 'echo "dt_root=${DT_ROOT}"' in sh
     import subprocess
     assert subprocess.run(["bash", "-n", str(_REPO / "ask-ck" / "agent" / "setup.sh")]).returncode == 0
+
+
+# ---------------------------------------------------------------- after-hours runs (D3, P4)
+
+def test_the_poller_claims_a_due_run_starts_it_and_relays_every_event_to_the_server(dt, monkeypatch):
+    from http.server import BaseHTTPRequestHandler
+    got = {"claims": 0, "events": []}
+    handoff = dict(HANDOFF)
+
+    class S(BaseHTTPRequestHandler):
+        def _send(self, obj, code=200):
+            b = json.dumps(obj).encode(); self.send_response(code); self.send_header("Content-Type", "application/json")
+            self.send_header("Content-Length", str(len(b))); self.end_headers(); self.wfile.write(b)
+        def do_GET(self):
+            self._send({"due": [{"run_id": "r1"}] if got["claims"] == 0 else []})
+        def do_POST(self):
+            n = int(self.headers.get("Content-Length", 0)); body = json.loads(self.rfile.read(n) or b"{}")
+            if self.path.endswith("/claim"):
+                got["claims"] += 1
+                return self._send({"handoff": handoff}) if got["claims"] == 1 else self._send({"detail": "claimed"}, 409)
+            got["events"] += body["events"]; self._send({"ok": True})
+        def log_message(self, *a): pass
+
+    srv = ThreadingHTTPServer(("127.0.0.1", 0), S)
+    threading.Thread(target=srv.serve_forever, daemon=True).start()
+    base = f"http://127.0.0.1:{srv.server_address[1]}"
+    use(monkeypatch, _campaign)
+    assert ck_agent.poll_schedule_once(base) == ["r1"]
+    assert ck_agent.poll_schedule_once(base) == []                       # never twice
+    s = next(iter(ck_agent._SESSIONS.values()))
+    wait_state(s, ("done",))
+    t0 = time.time()
+    while len(got["events"]) < len(s.events) and time.time() - t0 < 10:
+        time.sleep(0.05)
+    assert [e["seq"] for e in got["events"]] == list(range(len(s.events)))
+    srv.shutdown()

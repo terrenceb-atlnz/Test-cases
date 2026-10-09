@@ -801,6 +801,71 @@ class AgentSession:
 _SESSIONS = {}
 _SESSIONS_LOCK = threading.Lock()
 
+# ---- after-hours runs (PLAN-agent-sessions D3, P4) ---------------------------------------
+# A run scheduled for later has no tab to broker it, so THIS agent asks its Ask-CK server for
+# this seat's due runs, claims one (the server hands it over once), starts the session, and
+# relays the session's events to the server itself. Only runs this seat created are offered
+# (the server matches the requester), so the session still runs under this seat's own login.
+SCHEDULE_POLL_SECONDS = int(os.environ.get("CK_AGENT_SCHEDULE_SECONDS", "60"))
+
+
+def _server_json(base, method, path, body=None, timeout=20):
+    import urllib.request  # noqa: PLC0415
+    data = json.dumps(body).encode() if body is not None else None
+    req = urllib.request.Request(base.rstrip("/") + path, data=data, method=method,
+                                 headers={"Content-Type": "application/json", "Accept": "application/json"})
+    with urllib.request.urlopen(req, timeout=timeout) as r:
+        return json.loads(r.read() or b"{}")
+
+
+def relay_session(session, base, interval=2.0):
+    """Push a session's events to the server until it ends and everything is acknowledged."""
+    def run():
+        sent = 0
+        while True:
+            evs = session.events_after(sent, 10)
+            if evs:
+                try:
+                    _server_json(base, "POST", f"/api/test-composer/runs/{session.run_id}/events",
+                                 {"events": evs, "session_id": session.id})
+                    sent += len(evs)
+                except Exception:  # noqa: BLE001 — retry the same batch next round
+                    time.sleep(interval)
+                    continue
+            if session.state in ("done", "error", "stopped") and sent >= len(session.events):
+                return
+    t = threading.Thread(target=run, daemon=True, name=f"relay-{session.id}")
+    t.start()
+    return t
+
+
+def poll_schedule_once(base):
+    """One poll: claim and start every due run for this seat. Returns the run ids started."""
+    started = []
+    try:
+        due = _server_json(base, "GET", "/api/test-composer/scheduled").get("due") or []
+    except Exception:  # noqa: BLE001 — the server may be down; try again next round
+        return started
+    for d in due:
+        try:
+            handoff = _server_json(base, "POST", f"/api/test-composer/runs/{d['run_id']}/claim")["handoff"]
+        except Exception:  # noqa: BLE001 — claimed elsewhere, or not ours
+            continue
+        r = start_session({"run_id": d["run_id"], "handoff": handoff, "mode": "campaign"})
+        if r.get("ok"):
+            relay_session(get_session(r["session_id"]), base)
+            started.append(d["run_id"])
+    return started
+
+
+def schedule_poller(base):
+    def loop():
+        while True:
+            if session_capability()["available"]:
+                poll_schedule_once(base)
+            time.sleep(max(15, SCHEDULE_POLL_SECONDS))
+    threading.Thread(target=loop, daemon=True, name="schedule-poller").start()
+
 
 def start_session(body: dict) -> dict:
     run_id = str(body.get("run_id") or "")
@@ -1005,6 +1070,9 @@ def main():
         print(f"  claude login: {'yes (' + str(status.get('org') or '?') + ')' if status.get('logged_in') else 'NO — run: claude auth login'}")
     print(f"  CORS origin: {ALLOWED_ORIGIN}")
     print("  Leave this running; select 'Claude Code CLI (my local machine)' in Ask CK.")
+    if ALLOWED_ORIGIN.startswith("http") and os.environ.get("CK_AGENT_SCHEDULE", "1") != "0":
+        schedule_poller(ALLOWED_ORIGIN)
+        print(f"  after-hours runs: polling {ALLOWED_ORIGIN} every {SCHEDULE_POLL_SECONDS}s")
     ThreadingHTTPServer(("127.0.0.1", PORT), Handler).serve_forever()
     print("ck-agent stopped.")
 
