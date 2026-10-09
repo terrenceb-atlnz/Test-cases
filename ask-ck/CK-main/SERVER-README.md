@@ -1524,6 +1524,71 @@ and the shortcut block names `portDut = peer.portDut`; three lint checks — `_l
 `prompt_block` renders a long sample as head + omitted-marker + tail so a table's rows and header
 reach the model (`_head_and_tail`). CHANGELOG 2026-09-08 has the measurements.
 
+## Validation and Test Composer — agent sessions (2026-10-09)
+
+Plans: `ask-ck/plans/PLAN-agent-sessions.md` (the foundation: D1–D7, P0 findings §9a),
+`PLAN-test-validation.md` and `PLAN-test-composer.md`. Both pages are Svelte islands
+(`current/svelte-src/` → `current/islands/vd.js`, `tc.js`; see the front-end README).
+
+**How a run flows.** Every Claude session runs on the user's own seat and login (D7). The browser
+is the broker, exactly as for `claude_agent` jobs:
+1. **The page asks the server for a run.** `POST /api/test-composer/runs` builds and checks the
+   **hand-off (schema 1)**, then stores it with a run record. The record lives under
+   `ask-ck/functions/test-composer/runs/<date>/<run_id>/` (`CK_TC_RUNS_DIR` overrides it).
+   It is files only: no ck.db change.
+2. **The page hands the hand-off to its own seat agent** (`POST <agent>/session/start`).
+   - The agent writes `~/.local/share/ck-agent/runs/<run_id>/<run_id>.json`.
+   - It runs `/test-mode --from-ask-ck <that file> <case keys>` through the **Claude Agent SDK**,
+     in the seat's device-testing checkout, with that repo's approved permission profile
+     `.claude/ask-ck-campaign.settings.json` (D6), in auto mode.
+   - The page never chooses the directory, the profile or the command.
+3. **The page long-polls the agent and relays every event to the server.** It polls
+   `GET <agent>/session/{id}/events`, one request at a time, and relays with
+   `POST /runs/{id}/events`, which is idempotent by `seq`; unacknowledged events are re-sent.
+4. **The server folds results ONLY from marker lines.** device-testing `/test-mode` prints them:
+   `RESULT <id> <VERDICT> -- <reason> -- <log>`, `NOTIFY <scope> -- <needed> -- <did>`,
+   `PROBE <MATCH|MISMATCH|NEEDS-CHECK> <template>`, `REPAIRED <case> <path>`,
+   `REVIEWED <case> <path>` and `ASKCK-DONE <run_id>`. The last one ends the session.
+5. **Mail (D5, C-D4).** Notices that arrive together go in one informative mail, and the finish
+   goes in another. Both go through this host's postfix (`smtplib` → `localhost:25` →
+   `int-smtp.atlnz.lc`, from `do-not-reply@alliedtelesis.co.nz`), and only when the run asked
+   for email.
+
+A campaign never waits for an answer (D5). `/test-mode` notifies, works past the problem, or
+BLOCKs the case.
+
+| Method | Path (`/api/test-composer`) | Purpose |
+|---|---|---|
+| GET | `/scripts` | saved scripts (generated/) with provenance |
+| GET | `/templates?plans=` | templates (`functions/test-composer/templates/`) with runnable counts (pt_preflight) |
+| GET | `/requirements` | every saved script's topology demands, unioned |
+| GET | `/projects` | templated projects: `db/zt-uploads.jsonl` (written by `zt_upload.py`) + an audit-log backfill |
+| POST | `/projects/from-wiki` | a project page's "Test Results" cell → one variant per `{{Test Status v2}}`, with its status and plans |
+| GET | `/projects/tree?plans=` | the live plan → cycle → case tree (Zephyr GET only) |
+| POST / GET | `/runs`, `/runs?kind=`, `/runs/{id}` | create (hand-off + record) / list / read (record, hand-off, results table, counts) |
+| GET / POST | `/runs/{id}/events` | the relayed events / relay more |
+| POST | `/runs/{id}/regrade` | a re-grade, kept BESIDE the framework's verdict (grading tier list) |
+| POST | `/runs/{id}/accept` | Accept results (recorded; work/ deletion is device-testing's) |
+| GET | `/runs/{id}/campaign`, `/file?path=&before=`, `/download?path=` | the campaign's device-testing queue and logs, read-only and confined to that campaign (the Log Viewer) |
+| GET | `/runs/{id}/repaired?path=&case=` | a repaired copy beside the saved original (Validation approval) |
+| POST | `/runs/{id}/finalize/{case}` | Finalize (§6). **409 until V0** (the Zephyr new-version request) is captured |
+| POST | `/runs/{id}/feedback/{case}` | one LLM call on the seat's chosen backend: RCA, script feedback, by-the-ways |
+
+**The seat agent (1.3.0).**
+- **Routes:** `/session/start`, `/session/{id}/events?after=&wait=`, `/answer`, `/message`, `/stop`,
+  `/sessions`. All POSTs are JSON-only.
+- **Health:** `/health` reports `sessions: {available, sdk_version, dt_root, reason}`.
+- **Install:** the Linux seat setup puts `claude-agent-sdk==0.2.165` in a venv beside the agent.
+- **Windows:** the PowerShell agent reports sessions unavailable (D1: Windows is deferred).
+
+**Finalize** (PLAN-test-validation §6):
+- **Actions:** the step-1 addendum, then version 3.0, then `finalized_at` in the script's
+  `provenance.json`.
+- **Effect:** `case_registry.is_hidden_case` honours that marker, so a finalized case leaves both
+  case lists.
+- **Not live yet:** the version request is unknown until V0, so the endpoint refuses before any
+  write.
+
 ## Migration from Original Single-File Tool
 
 - The original single-file `index.html` and `build_drafting_tool.py` logic (wizard UI, session model, selection tables, confirm buttons, export generation) has been migrated/adapted.

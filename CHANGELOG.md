@@ -21,6 +21,38 @@ current working thread see
 > `ask-ck/ck-facelift/`, `pytest-create/` and `CK-main/` plan paths moved to `ask-ck/plans/` on 2026-09-11 and, once complete, to `archive/plans/`.
 > `js-tests/` → `tests/js/`, `e2e/` → `tests/e2e/`, `static/js/` → `ask-ck/frontend/ck-main/current/<page>/` (2026-09-11).
 
+## 2026-10-09 — Validation and Test Composer; agent sessions on the seat; ZTT in Svelte (branch tc-build)
+
+**What.** Two new pages:
+- **Validation:** one saved script → probe, preflight, run, repair a copy, review → approve →
+  Finalize.
+- **Test Composer:** a project's runnable cases on a topology template → Validate the bench →
+  Start → results.
+
+Both launch device-testing's `/test-mode` as a full Claude Code session **on the user's own
+seat**, through ck-agent 1.3.0 and the Claude Agent SDK, and stream it into the page. ZTT was
+ported to Svelte first, as the pilot. Records:
+`ask-ck/plans/PLAN-agent-sessions.md` (D1–D7, P0 §9a), `PLAN-test-validation.md`,
+`PLAN-test-composer.md`.
+
+**Why it is shaped this way.**
+- *The session runs on the seat, never the server* (D7, K1). A subscription seat is per person,
+  and Terrence: *"we wont re-attach the shared login."*
+- *The Agent SDK, not hand-written stdin plumbing* (D7). It is the same wire protocol (P0
+  measured both), and Anthropic maintains it. Windows waits (D1: *"an issue for future me"*).
+- *The permission profile is a launcher-passed `--settings` file* (D6). The classifier never
+  reads tool results, so a hand-off file cannot authorize bench work. Project allow rules are
+  ignored by headless runs. Claude writing authorization in the user's name is (rightly)
+  blocked. One versioned file is uniform with no onboarding.
+- *Results only from marker lines.* RESULT, NOTIFY, PROBE, REPAIRED, REVIEWED and ASKCK-DONE are
+  a contract with device-testing; prose is never parsed for a verdict.
+- *A campaign never waits for a person* (D5). An informative mail goes out and the session works
+  past it or BLOCKs the case.
+- *Svelte inside `current/`, with built files committed* (C-D1). It serves without a build step
+  on the server, lifts into Trent's app later, and a hash check stops a stale bundle shipping.
+- *Finalize writes Zephyr first and the list marker last.* A half-done Finalize leaves the case
+  visible, and nothing writes until V0 is captured.
+
 ## 2026-10-07 (later) — Zephyr upload: the real writes; Stop mid-flight; the page's fields
 
 **What.** API Upload now writes: `POST /api/zephyr-tool/upload/run` runs `ask-ck/tools/zt_upload.py

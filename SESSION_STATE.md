@@ -4993,3 +4993,30 @@ The device-testing session made the matching skill changes in its own repo (`83c
 verified with one test mail. Detail: PROGRESS 2026-10-09.
 
 Gate: EXIT=0 — both guards OK, pytest 2046 / 1 skipped, vitest 392 in 35 files, ck.db untouched.
+
+## Session Close / Handoff (2026-10-09, later) — autonomous build on branch `tc-build`, E2E passed
+
+Terrence left at ~13:10 asking for as much of the three plans as possible ("record issues and
+move on"). Built on branch **`tc-build`** (scratch worktree, NOT live):
+- Z1, the ZTT Svelte pilot;
+- P1, seat-agent sessions on the Agent SDK and the server's run records;
+- the Validation and Test Composer pages (Svelte islands, Classic + ATUI);
+- the Finalize backend, which refuses until V0.
+
+device-testing made the matching `/test-mode` changes in its own repo. The E2E on tb470 (TRIAGE
+only) passed end to end from the page. Detail, commits and the apply steps: PROGRESS
+2026-10-09 (later). Gate on tc-build: pytest 2103 / 2 skipped, vitest 407.
+
+**To apply (Terrence) — nothing is live yet:**
+1. **The merge.** In the live tree: `git merge --ff-only tc-build` (one reload).
+   - It fast-forwards because main has not moved since `22891a0`. If main moved, merge instead.
+   - Then check that the worker restarted, `/health` answers, and the gate is green.
+2. **Your seat.** Re-run the seat setup (`curl -fsSL http://10.33.22.17:8000/setup/setup.sh | bash`).
+   - It installs agent 1.3.0 and a venv with `claude-agent-sdk==0.2.165` beside it.
+   - It needs a device-testing checkout at `~/claude/device-testing` (or `dt_root=` in
+     `ck-agent.conf`).
+   - Linux seats only (D1).
+3. **device-testing.** Its side is on its own main: `83c0880`, `52cc64e`, `6a6ecd8`, `df4b009`,
+   `e334e89`, `da37c2d`, plus the E2E's records. Push it with the rest.
+4. **Optional, before applying.** Browse the branch at http://10.33.22.17:8123/ (the scratch
+   server on a live-data snapshot). It reads only; launching needs a 1.3.0 seat agent.

@@ -26,6 +26,16 @@ problem, or BLOCKs the case and moves on. How the session is started and watched
 `ask-ck/plans/PLAN-agent-sessions.md`; its users are `PLAN-test-validation.md` and
 `PLAN-test-composer.md`.
 
+**Built 2026-10-09 (branch `tc-build`, applied by Terrence):**
+- **The launch:** the Validation and Test Composer pages launch `/test-mode --from-ask-ck`
+  through the seat agent's SDK session (agent 1.3.0, D7), with device-testing's
+  `.claude/ask-ck-campaign.settings.json` profile (D6) and the `tools/tb` wrapper.
+- **Markers the pages read:** RESULT / NOTIFY / PROBE / REPAIRED / REVIEWED / ASKCK-DONE
+  (test-mode §1, §8, §10, §11).
+- **E2E:** passed on tb470 13:49 and 13:56 (TRIAGE only).
+
+See [[agent-sessions-sdk-facts]].
+
 **How to apply:** to run anything on tb470, start a session in `../device-testing` and use
 `/test-mode <cases>` (or `--resume`); do not spawn `bench-runner` from here without the sentinel
 wording, and do not rebuild the sentinel — the kit is in orient-dt §10 there

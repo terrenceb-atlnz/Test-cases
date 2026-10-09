@@ -94,6 +94,29 @@ ever runs here, on your machine, as you.
   `--max-thinking-tokens 2048` on long calls, `stream-json` with every assistant message
   concatenated, from a neutral cwd with no CLAUDE.md above it (2026-09-04).
 
+## Agent sessions (Validation and Test Composer; agent 1.3.0, Linux)
+
+Besides one-shot `/run` jobs, the agent can run a **long-lived, full-tools Claude Code session** for
+Ask-CK's Validation and Test Composer pages (`ask-ck/plans/PLAN-agent-sessions.md`).
+
+- **What runs:** device-testing's `/test-mode --from-ask-ck <hand-off>` through the Claude Agent
+  SDK, under this seat's own login, in this seat's device-testing checkout, with that repo's
+  approved permission profile. The page supplies only the hand-off JSON.
+- **Needs:**
+  - the SDK in the agent's venv (the seat setup installs `claude-agent-sdk==0.2.165`);
+  - a device-testing checkout at `dt_root=` in `ck-agent.conf`, or `CK_DT_ROOT`, default
+    `~/claude/device-testing`, containing `.claude/ask-ck-campaign.settings.json`.
+
+  `/health` → `sessions.reason` says what is missing.
+- **Routes:** `POST /session/start {run_id, handoff, mode}`;
+  `GET /session/{id}/events?after=N&wait=20`, a long-poll; `POST /session/{id}/answer`,
+  `/message` and `/stop`; `GET /sessions`. All POSTs require `application/json`.
+- **Files:** `~/.local/share/ck-agent/runs/<run_id>/` (`CK_AGENT_RUNS`) holds the hand-off and
+  `events.jsonl`.
+- **Campaigns never wait for an answer** (D5): a question is answered "nobody is waiting" at
+  once.
+- **Windows:** not yet. `ck-agent.ps1` reports `sessions.available = false` (D1).
+
 ## Security
 
 Binds `127.0.0.1` only and restricts CORS to the Ask CK origin. No token: any

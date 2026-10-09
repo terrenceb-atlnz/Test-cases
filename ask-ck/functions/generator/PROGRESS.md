@@ -5,11 +5,86 @@ verified: 2026-09-28
 
 **Purpose**: This file exists so future sessions can quickly understand exactly where we are, what has been built, what the priorities are, and how to continue seamlessly.
 
-**Last Updated**: 2026-10-09 (by Claude; Test Composer split into three plans — agent sessions, Validation, Composer)
+**Last Updated**: 2026-10-09, later (by Claude, autonomous; Test Composer / Validation / agent sessions built on branch tc-build, E2E passed — NOT live)
 
 > **Reading note (2026-09-23 doc sweep).** Entries are frozen as written. Where an entry's
 > claim has since stopped being true, a ⚠ line under its heading says what changed.
 > Newest first. Paths in older entries predate these moves (the same as in CHANGELOG): `tool/` → `ask-ck/tools/`, `ask-ck/var/` → `ask-ck/db/`, `objective-drafting/` → `ask-ck/functions/generator/`, `pytest-create/` → `ask-ck/functions/pytest-creator/`, `js-tests/` → `tests/js/`, `ask-ck/ck-facelift/` → `ask-ck/plans/`, root reports → `docs/`, and completed plans `ask-ck/plans/` → `archive/plans/` (2026-09-11, 2026-09-23). Also retired 2026-09-23: the demo notes → `archive/plans/demo-2026-09-11/`, and `HANDOFF-generate-token-efficiency.md` + `Fragments_prompt.md` → `archive/records/`.
+
+## Latest session (2026-10-09, later — autonomous run while Terrence was away) — Test Composer, Validation and agent sessions BUILT on branch `tc-build`; E2E passed on tb470
+
+Terrence: *"Write, tests and implement as much as possible to finish the plans we have discussed
+today … Implement the UI as close to 100% as possible."* Then he left; the rules he set are in
+the scratchpad run log. Everything is on branch **`tc-build`** in a scratch worktree, **NOT live**.
+
+**Built (commits on tc-build):**
+- `7730dc4` **Z1** — ZTT is a Svelte island, with behaviour unchanged.
+  - `current/svelte-src/` holds the source, versions matched to Trent's branch.
+  - `npm run build` writes `current/islands/*.js`, which are committed; a gate test catches a
+    stale bundle.
+  - Specs drive the BUILT bundle.
+- `bf00ff8` **P1 backend.**
+  - Seat agent 1.3.0: an Agent SDK session job (`/session/*`).
+  - The server's `/api/test-composer`: hand-off schema 1, run records as files, results only from
+    marker lines, D5 notice and finish mail, the campaign's device-testing logs (read-only), the
+    projects list (ZTT upload records + the wiki "Test Results" cell → a variant checklist),
+    templates with runnable counts, Feedback.
+  - `zt_upload` records each uploaded family.
+- `7c0d691` **The pages** (Validation, Test Composer) on Classic and ATUI.
+  - **Agent window:** W1 stream, W2 cards and the W3 message box.
+  - **Results table:** grouped by cycle, PyScript/Manual marker, re-grade beside the verdict,
+    Feedback, Accept, the readout.
+  - **Log Viewer:** a port of ART's design.
+  - **Navigation:** deep links; the colour specimen is kept.
+  - **Mock templates:** `mock-tb470`, `mock-swapped`.
+- `e2f6e92` **device-testing's markers wired** (PROBE, REPAIRED, REVIEWED); the relay retries;
+  consoles are free text.
+- `82046e2` **Seat setup and mail:** the setup installs the pinned SDK in a venv; notice mails
+  are batched; the plans' status headers.
+- `d6bc4b9` **Finalize backend:** step-1 addendum → version → `finalized_at` marker, which hides
+  the case from both lists. It **refuses until V0**.
+
+**device-testing (by `device-testing-8e`, from this session's requests):** `6a6ecd8` (`tools/tb`
+and the D6 profile; Terrence approved it as it stands), `df4b009` (hand-off schema 1 and
+ASKCK-DONE), `e334e89` (`*_rel` paths), `da37c2d` (§11 repair loop and review; the PROBE line).
+
+**E2E on tb470** (headless page → test seat agent on 8766 → SDK → /test-mode):
+- **Validation TRIAGE** `2026-10-09T1349-val-1709`: probe MATCH, 3 NOTIFY, ASKCK-DONE, 5m50s,
+  2.85M tokens, $2.07 list, 4 mails accepted by the relay.
+- **composer-validate** with `setup-a` (empty in live): NOTIFY, ASKCK-DONE in 48 s.
+- **Permissions:** the D6 profile let `ckcon` on u0 through with zero denials. That console work
+  was denied in P0.
+- **Bench:** released to device-testing at 13:59.
+- **T33234 was not run as a case.** On the deployed .setup it binds the IE520 stack, not the
+  x230, so it would not have been harmless.
+
+**Gate on tc-build:** pytest 2103 / 2 skipped, vitest 407; every new behaviour mutation-checked.
+
+**To apply (Terrence) — nothing is live yet:**
+1. **The merge.** In the live tree: `git merge --ff-only tc-build` (one reload).
+   - It fast-forwards because main has not moved since `22891a0`. If main moved, merge instead.
+   - Then check that the worker restarted, `/health` answers, and the gate is green.
+2. **Your seat.** Re-run the seat setup (`curl -fsSL http://10.33.22.17:8000/setup/setup.sh | bash`).
+   - It installs agent 1.3.0 and a venv with `claude-agent-sdk==0.2.165` beside it.
+   - It needs a device-testing checkout at `~/claude/device-testing` (or `dt_root=` in
+     `ck-agent.conf`).
+   - Linux seats only (D1).
+3. **device-testing.** Its side is on its own main: `83c0880`, `52cc64e`, `6a6ecd8`, `df4b009`,
+   `e334e89`, `da37c2d`, plus the E2E's records. Push it with the rest.
+4. **Optional, before applying.** Browse the branch at http://10.33.22.17:8123/ (the scratch
+   server on a live-data snapshot). It reads only; launching needs a 1.3.0 seat agent.
+
+**Open / next:**
+- **V0:** capture Zephyr's "new version" request, then wire Finalize's two Zephyr calls.
+- **P4:** the seat agent's schedule poller; after-hours runs are stored but not started.
+- **P5:** the docked helper.
+- **Windows (D1).**
+- **The `.meta/…/test/` record mirror** (PLAN-test-validation §7) is not done.
+- **Accept results'** deletion of work/ in device-testing.
+- **A real PROBE MATCH test** with `mock-tb470` once the branch is live.
+- **The decisions in each plan's §8.**
+- **The colour specimen's placement:** Terrence to confirm.
+- **Carried:** the Jira cookies; the stray personal memory slugs.
 
 ## Latest session (2026-10-09) — Test Composer split into three plans; device-testing taught Ask-CK campaigns
 

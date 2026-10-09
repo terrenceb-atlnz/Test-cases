@@ -4,7 +4,7 @@ verified: 2026-10-06
 # `ask-ck/frontend/ck-main/current/` — the current Ask CK front-end
 
 **Layout (2026-09-11):** `index.html`, `styles.css` and the assets sit here; the ES modules are
-sorted into **page directories** — `generator/`, `pytest-creator/`, `llm-config/`, `admin/`, `zephyr-tool/` — plus
+sorted into **page directories** — `generator/`, `pytest-creator/`, `llm-config/`, `admin/`, `zephyr-tool/`, `test-composer/`, `validation/` — plus
 `shared/` for modules more than one page imports. The server mounts this directory at `/static`.
 The Svelte rewrite lives beside it at `../svelte/`. The **ATUI restyle** lives beside it at
 `../restyle/` (since 2026-09-30, `archive/plans/PLAN-atui-restyle.md`): its own `index.html` +
@@ -106,6 +106,25 @@ place of `el.textContent = text` — whose Classic return is exactly the old lit
 `data-action` in `index.html` must exist in `restyle/index.html` too (`tests/test_restyle_parity.py`).
 A shared-JS change for the restyle is live for Classic the moment it is saved (the working tree is
 production), so trial it from a separate worktree on the scratch server first.
+
+**6. Svelte islands (2026-10-09, PLAN-test-composer §6 / C-D1).** New UI is written in Svelte
+inside `current/`, not in Trent's app at `../svelte/`.
+- **Source and build:**
+  - the source is `svelte-src/` (its own `package.json`, with versions matched to Trent's branch;
+    `node_modules` is ignored and the lock file is committed);
+  - `npm run build` there writes `islands/<name>.js` plus shared chunks.
+- **The built files are COMMITTED,** because the server only serves files:
+  - every bundle carries `source-sha256:` over its sources;
+  - `tests/test_svelte_islands_built.py` fails the gate when a bundle is stale. Rebuild before
+    committing.
+- **Mounting:**
+  - a plain adapter module mounts each island into one `<div id="…-root">`, present in BOTH
+    index files: `zephyr-tool/zephyr-tool.js` → `zt`, `test-composer/test-composer.js` → `tc`
+    and `vd`;
+  - islands use Svelte handlers, not the `data-action` registry (convention 1 covers the plain
+    modules).
+- **Tests:** `tests/js/*.spec.js` import the BUILT bundles and drive them with fake servers and
+  agents, so they test exactly what ships.
 
 ## Known debt
 
