@@ -77,7 +77,10 @@ ASKCK-DONE), `e334e89` (`*_rel` paths), `da37c2d` (§11 repair loop and review; 
 **Open / next:**
 - **V0:** capture Zephyr's "new version" request, then wire Finalize's two Zephyr calls.
 - **P4:** BUILT after the docs commit (`/scheduled`, a one-time claim, the agent's poller and its
-  own relay). Not E2E-tested on a bench (that would mean waiting for a real start time).
+  own relay). **E2E passed with no tab**: run `2026-10-09T1410-com-bdcf`, scheduled for 14:11,
+  was claimed by the test agent's poller at 14:11:12, ran, and relayed all 46 events itself.
+  It used a nonexistent testbox (tb999) so tb470 was never touched: 2 NOTIFY, ASKCK-DONE,
+  done 14:12:11.
 - **P5:** the docked helper.
 - **Windows (D1).**
 - **The `.meta/…/test/` record mirror** (PLAN-test-validation §7) is not done.
