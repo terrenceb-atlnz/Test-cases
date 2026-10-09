@@ -10,7 +10,7 @@
   import TcTree from './TcTree.svelte';
   import { loadSetup, runBody, saveSetup } from './api.js';
 
-  let { server, agent, preselect = null, openRun = null } = $props();
+  let { server, agent, preselect = null, openRun = null, pollMs = 4000 } = $props();
 
   // 1. project
   let source = $state('templated');             // templated | wiki
@@ -52,8 +52,9 @@
   const tmpl = $derived(templates.find(t => t.name === template) || null);
   const scriptByCase = $derived(new Map(scripts.filter(s => s.case_key).map(s => [s.case_key, s])));
   const sessionsOk = $derived(health && health.sessions && health.sessions.available);
-  const validated = $derived(validateState === 'done' && !validateMarkers.some(l => l.startsWith('NOTIFY'))
-    && /\bMATCH\b/.test(validateText) && !/MISMATCH|NEEDS-CHECK/.test(validateText));
+  // device-testing prints `PROBE <MATCH|MISMATCH|NEEDS-CHECK> <template>` (test-mode §1, da37c2d).
+  const probe = $derived((validateMarkers.find(l => l.startsWith('PROBE ')) || '').split(/\s+/)[1] || null);
+  const validated = $derived(probe === 'MATCH');
   const tickedCases = $derived(tree ? tree.plans.flatMap(p => p.cycles.flatMap(cy => cy.cases
     .filter(c => ticked.has(`${cy.key}/${c.key}`)).map(c => ({ key: c.key, cycle: cy.key })))) : []);
 
@@ -178,7 +179,7 @@
       if (openRun) run = { runId: openRun, sessionId: null };
       if (preselect) setStatus(`Script ${preselect} preselected: choose its project and a template, then load the tree.`);
     });
-    const t = setInterval(watchValidate, 4000);
+    const t = setInterval(watchValidate, pollMs);
     return () => clearInterval(t);
   });
 </script>
@@ -228,7 +229,8 @@
   <div class="tc-line">
     <button type="button" id="tc-validate" class="btn btn-primary" disabled={!template || !setup.testbox || !setup.consoles || !sessionsOk} onclick={validate}>Validate</button>
     {#if validated}<span class="tc-check" title="the probe matched the template">✓ the bench matches {template}</span>
-    {:else if validateState && ['done', 'stopped', 'error'].includes(validateState)}<span class="tc-problem">Not a match — see the differences and notices below.</span>{/if}
+    {:else if probe}<span class="tc-problem">Probe: {probe} — the differences are in the session's report below.</span>
+    {:else if validateState && ['done', 'stopped', 'error'].includes(validateState)}<span class="tc-problem">No probe result — see the notices below.</span>{/if}
     <span class="tc-small">{health && !sessionsOk ? (health.error || (health.sessions && health.sessions.reason) || 'seat agent too old') : ''}</span>
   </div>
   {#if validateRun}

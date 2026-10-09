@@ -24,7 +24,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from paths import ASKCK_ROOT, PT_GENERATED_DIR
+from paths import ASKCK_ROOT, PT_GENERATED_DIR, REFINED_DIR
 
 REPO_ROOT = ASKCK_ROOT.parent
 TC_ROOT = ASKCK_ROOT / "functions" / "test-composer"
@@ -38,7 +38,9 @@ CASE_RE = re.compile(r"^AWPTCM-T\d+$")
 RUN_ID_RE = re.compile(r"^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{4}-[a-z]{3}-[a-z0-9]{4}$")
 TEMPLATE_RE = re.compile(r"^[a-z0-9][a-z0-9-]{0,40}$")
 EMAIL_RE = re.compile(r"^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$")
-CONSOLES_RE = re.compile(r"^[A-Za-z0-9 ,=()._:/+-]{1,200}$")
+# Free text the Test Engineer writes ("u0-u5 all (u0 = x230 DUT; u2,u4,u5 stack)"), carried as JSON to the
+# session and never to a shell: only control characters are refused, and the length is capped.
+CONSOLES_RE = re.compile(r"^[^\x00-\x1f\x7f]{1,300}$")
 IP_RE = re.compile(r"^\d{1,3}(\.\d{1,3}){3}$")
 VERDICTS = ("PASS", "FAIL", "PARTIAL", "UNSUPPORTED", "ERROR", "BLOCKED", "NOT TESTED", "SKIP")
 _LOCK = threading.Lock()
@@ -158,6 +160,10 @@ def build_handoff(body: Dict[str, Any], seat: str, now: Optional[datetime] = Non
             entry["script_rel"] = _repo_rel(sp)
         if c.get("cycle"):
             entry["cycle"] = str(c["cycle"])[:40]
+        # The refined case (objective + steps) the Validation review checks the script against
+        # (PLAN-test-validation §5); repo-relative like the script.
+        payload = next(iter(sorted(REFINED_DIR.glob(f"*/{key}/zephyr_payload.json"))), None) if REFINED_DIR.is_dir() else None
+        entry["case_payload_rel"] = _repo_rel(payload) if payload else None
         cases.append(entry)
     if kind == "validation" and len([c for c in cases if c["kind"] == "script"]) != 1:
         raise RunError("a Validation run has exactly one script")

@@ -1,6 +1,6 @@
 /* Built from ask-ck/frontend/ck-main/current/svelte-src/ — do not edit; run `npm run build` there.
-* source-sha256:14c621eeb8021f1b8cd419d530022cbd63ae5e2df1aaeebc96390df3c3288721 */
-import { A as event, B as proxy, E as from_html, G as pop, H as state, I as child, J as reset, K as push, L as first_child, M as untrack, N as template_effect, O as delegate, P as user_effect, R as only_child, S as set_text, T as comment, V as set, W as user_derived, _ as each, a as bind_checked, b as if_block, c as remove_input_defaults, d as bind_select_value, f as init_select, g as clsx, h as set_class, i as bind_this, j as get, k as delegated, l as set_attribute, n as onMount, p as select_option, q as next, r as prop, s as bind_value, t as onDestroy, v as index, w as append, z as sibling } from "./disclose-version-BJ9PcjzD.js";
+* source-sha256:e70afbb2295891a4c61e432045cc3e0508a68b02a22bc5f5391fec2df5e04f6f */
+import { A as event, B as proxy, E as from_html, G as pop, H as state, I as child, J as reset, K as push, L as first_child, M as untrack, N as template_effect, O as delegate, P as user_effect, R as only_child, S as set_text, T as comment, V as set, W as user_derived, _ as each, a as bind_checked, b as if_block, c as remove_input_defaults, d as bind_select_value, f as init_select, g as clsx, h as set_class, i as bind_this, j as get, k as delegated, l as set_attribute, n as onMount, p as select_option, q as next, r as prop, s as bind_value, t as onDestroy, v as index, w as append, z as sibling } from "./disclose-version-BND4hK_m.js";
 //#region src/tc/api.js
 var TC_API = "/api/test-composer";
 async function json(r) {
@@ -185,18 +185,22 @@ function AgentWindow($$anchor, $$props) {
 			box.scrollTop = box.scrollHeight;
 		});
 	}
+	let unsent = [];
 	async function relay(evs) {
-		if (!evs.length) return;
+		unsent = unsent.concat(evs);
+		if (!unsent.length) return;
 		try {
 			await $$props.server(`/runs/${encodeURIComponent($$props.runId)}/events`, {
 				method: "POST",
 				body: JSON.stringify({
-					events: evs,
+					events: unsent,
 					session_id: sessionId()
 				})
 			});
+			unsent = [];
+			if (get(error) && get(error).startsWith("Could not save")) set(error, null);
 		} catch (e) {
-			set(error, "Could not save events to the run record: " + e.message);
+			set(error, `Could not save ${unsent.length} event(s) to the run record (will retry): ${e.message}`);
 		}
 	}
 	function take(evs) {

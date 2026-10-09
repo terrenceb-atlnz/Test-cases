@@ -79,7 +79,8 @@ def test_a_validation_handoff_names_the_script_by_its_absolute_path(env):
     assert tc_runs.RUN_ID_RE.match(h["run_id"]) and h["schema"] == 1
     assert h["cases"] == [{"key": "AWPTCM-T33234", "kind": "script",
                            "script": str(env["gen"] / "9001_Port" / "test-9001.33234.py"),
-                           "script_rel": None}]                  # tmp is outside the repo
+                           "script_rel": None,                  # tmp is outside the repo
+                           "case_payload_rel": "ask-ck/functions/generator/refined-cases/Port/AWPTCM-T33234/zephyr_payload.json"}]
     assert h["pdu"] == {"ip": "10.36.150.14", "outlets": {"u0": 1, "u1": 7}}
     d = tc_runs.run_dir(h["run_id"])
     assert json.loads((d / "handoff.json").read_text()) == h
@@ -101,6 +102,13 @@ def test_a_validation_handoff_names_the_script_by_its_absolute_path(env):
 def test_the_handoff_refuses_what_it_cannot_trust(env, change, why):
     with pytest.raises(tc_runs.RunError, match=why):
         tc_runs.create_run(body(**change), seat="s")
+
+
+def test_consoles_are_free_text_as_the_test_engineer_writes_them(env):
+    h = tc_runs.create_run(body(consoles="u0-u5 all (u0 = x230 DUT; u2,u4,u5 IE520 stack; u1 AR4050S)"), seat="s")["handoff"]
+    assert h["consoles"].startswith("u0-u5 all (u0 = x230 DUT;")
+    with pytest.raises(tc_runs.RunError):
+        tc_runs.create_run(body(consoles="u0\nrm"), seat="s")
 
 
 def test_the_script_list_reads_provenance_and_skips_libraries(env):
@@ -326,3 +334,15 @@ def test_a_script_inside_the_repo_also_carries_its_repo_relative_path(env, monke
     s = next(x for x in scripts if x["case_key"] == "AWPTCM-T33234")
     h = tc_runs.create_run(body(cases=[{"key": "AWPTCM-T33234", "kind": "script", "script": s["path"]}]), seat="s")["handoff"]
     assert h["cases"][0]["script_rel"] == "ask-ck/functions/pytest-creator/generated/9001_Port/test-9001.33234.py"
+    assert h["cases"][0]["case_payload_rel"].endswith("/AWPTCM-T33234/zephyr_payload.json")
+
+
+def test_a_repaired_copy_is_served_beside_the_original_only_from_the_campaign(campaign, env, client):
+    d = env["tmp"] / "device-testing" / "tb470" / "x230v2-28GS" / "port-2026-10-09T1430" / "33234" / "work"
+    (d / "test-9001.33234.repaired.py").write_text(SCRIPT + "# fixed: import\n")
+    rel = "tb470/x230v2-28GS/port-2026-10-09T1430/33234/work/test-9001.33234.repaired.py"
+    r = client.get(f"/api/test-composer/runs/{campaign}/repaired", params={"path": rel, "case": "AWPTCM-T33234"}).json()
+    assert r["code"].endswith("# fixed: import\n") and r["original"] == SCRIPT
+    assert client.get(f"/api/test-composer/runs/{campaign}/repaired",
+                      params={"path": "tb470/x230v2-28GS/secret-elsewhere.txt", "case": "AWPTCM-T33234"}).status_code == 403
+    assert client.get(f"/api/test-composer/runs/{campaign}/repaired", params={"path": rel, "case": "AWPTCM-T9"}).status_code == 422

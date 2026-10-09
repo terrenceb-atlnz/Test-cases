@@ -244,3 +244,84 @@ describe('Test Composer', () => {
     expect(root.textContent).toContain('empty template');
   });
 });
+
+describe('the agent window under a flaky server', () => {
+  it('keeps events the server did not acknowledge and re-sends them with the next batch', async () => {
+    let fail = true;
+    const routes = vdRoutes({ [`POST /runs/${RID}/events`]: () => { if (fail) { fail = false; throw new Error('server restarting'); } return { ok: true }; } });
+    const f = fakeServer(routes);
+    const agent = fakeAgent();
+    const half = EVENTS.slice(0, 4), rest = EVENTS.slice(4);
+    agent.events = async (sid, after) => (after === 0 ? { state: 'running', events: half, next: 4 }
+      : after === 4 ? { state: 'running', events: rest, next: EVENTS.length } : { state: 'done', events: [], next: after });
+    root = document.createElement('div'); document.body.appendChild(root);
+    app = mountVd(root, { server: f.server, agent });
+    await until(() => $$('.tc-script-row').length && /ready/.test(root.textContent));
+    $('input[name="vd-script"]').click(); flushSync();
+    type($('#tc-testbox'), 'tb470'); type($('#tc-consoles'), 'u0-u5');
+    await click($('#vd-launch'));
+    await until(() => f.calls.filter(c => c.key === `POST /runs/${RID}/events`).length >= 2);
+    const posts = f.calls.filter(c => c.key === `POST /runs/${RID}/events`);
+    expect(posts[1].body.events.map(e => e.seq)).toEqual(EVENTS.map(e => e.seq));   // the failed half re-sent
+  });
+});
+
+describe('Validation: the review and a repaired copy (test-mode §11)', () => {
+  const REP = 'tb470/x230v2-28GS/port-2026-10-09T1500/33234/work/test-9001.33234.py';
+  const REV = 'tb470/x230v2-28GS/port-2026-10-09T1500/33234/review.md';
+  const MARKED = EVENTS.slice(0, 8).concat([
+    { seq: 8, t: 11, kind: 'marker', marker: 'RESULT', line: `REPAIRED AWPTCM-T33234 ${REP}` },
+    { seq: 9, t: 12, kind: 'marker', marker: 'RESULT', line: `REVIEWED AWPTCM-T33234 ${REV}` },
+    { seq: 10, t: 13, kind: 'state', state: 'done' }]);
+
+  it('reads the review, compares the repaired copy, and approves it through the PyTest Creator save', async () => {
+    const saved = [];
+    const f = fakeServer(vdRoutes({
+      [`GET /runs/${RID}/events`]: { events: MARKED },
+      [`GET /runs/${RID}/repaired`]: { case: 'AWPTCM-T33234', path: REP, code: 'a\nb2\nc\n', original: 'a\nb\nc\n' },
+      [`GET /runs/${RID}/file`]: { data: '# Review\n(a) no false positives' },
+    }));
+    root = document.createElement('div'); document.body.appendChild(root);
+    app = mountVd(root, { server: f.server, agent: fakeAgent(MARKED), pollMs: 20, saveScript: async (k, code) => { saved.push([k, code]); return {}; } });
+    await until(() => $$('.tc-script-row').length && /ready/.test(root.textContent));
+    $('input[name="vd-script"]').click(); flushSync();
+    type($('#tc-testbox'), 'tb470'); type($('#tc-consoles'), 'u0-u5');
+    await click($('#vd-launch'));
+    await until(() => [...root.querySelectorAll('button')].some(b => b.textContent.includes('Read the review')), 8000);
+    await click([...root.querySelectorAll('button')].find(b => b.textContent.includes('Read the review')));
+    await until(() => root.textContent.includes('(a) no false positives'));
+    await click([...root.querySelectorAll('button')].find(b => b.textContent.includes('Compare with the saved script')));
+    await until(() => $('.vd-approve'));
+    expect(root.textContent).toContain('1 line(s) removed, 1 added.');
+    expect($('.tc-blockers').textContent).toContain('waiting for your approval');
+    await click($('.vd-approve'));
+    await until(() => saved.length);
+    expect(saved).toEqual([['AWPTCM-T33234', 'a\nb2\nc\n']]);
+    await until(() => !$('.tc-blockers').textContent.includes('waiting for your approval'));
+  });
+});
+
+describe('Composer: the probe verdict comes from the PROBE line', () => {
+  it('shows the green check only on PROBE MATCH', async () => {
+    for (const [line, green] of [['PROBE MATCH mock-tb470', true], ['PROBE MISMATCH mock-tb470', false]]) {
+      const evs = [{ seq: 0, kind: 'state', state: 'running' }, { seq: 1, kind: 'marker', line }, { seq: 2, kind: 'state', state: 'done' }];
+      const routes = {
+        'GET /projects': { projects: [] }, 'GET /scripts': { scripts: [] }, 'GET /runs': { runs: [] },
+        'GET /templates': { templates: [{ name: 'mock-tb470', setup: 'mock-tb470.setup', runnable_scripts: [], manual_cases: [], runnable_count: 0, note: null }] },
+        'POST /runs': (b) => ({ run_id: '2026-10-09T1600-com-pppp', handoff: { run_id: '2026-10-09T1600-com-pppp', ...b } }),
+        'POST /runs/2026-10-09T1600-com-pppp/events': { ok: true },
+        'GET /runs/2026-10-09T1600-com-pppp/events': { events: evs },
+      };
+      const f = fakeServer(routes);
+      root = document.createElement('div'); document.body.appendChild(root);
+      app = mountTc(root, { server: f.server, agent: fakeAgent(evs), pollMs: 20 });
+      await until(() => $$('#tc-template option').length === 2);
+      const tp = $('#tc-template'); tp.value = 'mock-tb470'; tp.dispatchEvent(new Event('change')); flushSync();
+      type($('#tc-testbox'), 'tb470'); type($('#tc-consoles'), 'u0-u5');
+      await click($('#tc-validate'));
+      await until(() => (green ? $('.tc-check') : /Probe: MISMATCH/.test(root.textContent)), 8000);
+      expect(!!$('.tc-check')).toBe(green);
+      app.destroy(); app = null; root.remove(); root = null;
+    }
+  });
+});

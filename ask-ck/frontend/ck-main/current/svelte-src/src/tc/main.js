@@ -6,7 +6,8 @@ import { httpAgent, httpServer } from './api.js';
 export function mountTc(target, opts = {}) {
   const app = mount(TcPage, { target, props: {
     server: opts.server || httpServer(), agent: opts.agent || httpAgent(opts.agentUrl),
-    preselect: opts.preselect || null, openRun: opts.openRun || null } });
+    preselect: opts.preselect || null, openRun: opts.openRun || null,
+    ...(opts.saveScript ? { saveScript: opts.saveScript } : {}), ...(opts.pollMs ? { pollMs: opts.pollMs } : {}) } });
   return { destroy() { unmount(app); } };
 }
 

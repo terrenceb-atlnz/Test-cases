@@ -1,7 +1,7 @@
 /* Built from ask-ck/frontend/ck-main/current/svelte-src/ — do not edit; run `npm run build` there.
-* source-sha256:14c621eeb8021f1b8cd419d530022cbd63ae5e2df1aaeebc96390df3c3288721 */
-import { B as proxy, C as unmount, E as from_html, G as pop, H as state, I as child, J as reset, K as push, L as first_child, N as template_effect, O as delegate, R as only_child, S as set_text, T as comment, U as flushSync, V as set, W as user_derived, _ as each, a as bind_checked, b as if_block, c as remove_input_defaults, d as bind_select_value, f as init_select, h as set_class, j as get, k as delegated, l as set_attribute, n as onMount, o as bind_group, q as next, r as prop, s as bind_value, u as set_checked, v as index, w as append, x as mount, y as key, z as sibling } from "./disclose-version-BJ9PcjzD.js";
-import { _ as saveSetup, a as TC_API, c as effectiveVerdict, d as formatOutlets, f as httpAgent, g as runBody, h as parseOutlets, i as AgentWindow, l as fmtDuration, m as loadSetup, n as RunsList, o as VERDICT_ORDER, p as httpServer, r as ResultsTable, s as byCycle, t as SetupFields, u as fmtTokens, v as tokensOf, y as verdictCounts } from "./SetupFields-CR1IRlhc.js";
+* source-sha256:e70afbb2295891a4c61e432045cc3e0508a68b02a22bc5f5391fec2df5e04f6f */
+import { B as proxy, C as unmount, E as from_html, G as pop, H as state, I as child, J as reset, K as push, L as first_child, N as template_effect, O as delegate, R as only_child, S as set_text, T as comment, U as flushSync, V as set, W as user_derived, _ as each, a as bind_checked, b as if_block, c as remove_input_defaults, d as bind_select_value, f as init_select, h as set_class, j as get, k as delegated, l as set_attribute, n as onMount, o as bind_group, q as next, r as prop, s as bind_value, u as set_checked, v as index, w as append, x as mount, y as key, z as sibling } from "./disclose-version-BND4hK_m.js";
+import { _ as saveSetup, a as TC_API, c as effectiveVerdict, d as formatOutlets, f as httpAgent, g as runBody, h as parseOutlets, i as AgentWindow, l as fmtDuration, m as loadSetup, n as RunsList, o as VERDICT_ORDER, p as httpServer, r as ResultsTable, s as byCycle, t as SetupFields, u as fmtTokens, v as tokensOf, y as verdictCounts } from "./SetupFields-8IINZYsY.js";
 //#region src/tc/TcTree.svelte
 var root$1 = from_html(`<div class="zt-empty">No plans loaded.</div>`);
 var root_1$1 = from_html(`<span class="tc-prev">Previously Run</span>`);
@@ -160,17 +160,18 @@ var root_4 = from_html(`<div class="tc-small"> </div> <!>`, 1);
 var root_5 = from_html(`<div class="tc-line"><input id="tc-wiki" class="form-input" type="url" placeholder="https://wiki.atlnz.lc/awpwiki/index.php/Project:3171_AT-x230-V2"/> <button type="button" class="btn btn-secondary"> </button></div> <!>`, 1);
 var root_6 = from_html(`<span class="tc-small"> </span>`);
 var root_7 = from_html(`<span class="tc-check" title="the probe matched the template"> </span>`);
-var root_8 = from_html(`<span class="tc-problem">Not a match — see the differences and notices below.</span>`);
-var root_9 = from_html(`<span class="tc-small tc-problem">The bench has not been validated against the template.</span>`);
-var root_10 = from_html(`<div class="zt-scroll tc-tree"><!></div>`);
-var root_11 = from_html(`<pre class="tc-pre"> </pre>`);
-var root_12 = from_html(`<!> <!>`, 1);
-var root_13 = from_html(`<div class="tc-step"><span class="tc-step-n">6</span> </div> <!>`, 1);
-var root_14 = from_html(`<div class="section tc-page"><div class="section-heading">Test Composer</div> <div class="section-description">Pick a project and the test bench, choose the topology template, check the bench against it, then tick the cases to run. Script cases run their saved PyScript; manual cases are run by the session by hand. Everything runs through your seat's agent.</div> <div class="tc-step"><span class="tc-step-n">1</span> Project</div> <div class="tc-line"><label><input type="radio"/> Templated Project</label> <label><input type="radio"/> Zephyr Project Link</label></div> <!> <div class="tc-step"><span class="tc-step-n">2</span> Test bench and template</div> <!> <div class="tc-line"><select id="tc-template" class="form-input"><option>— topology template —</option><!></select> <!></div> <div class="tc-step"><span class="tc-step-n">3</span> Validate the bench against the template</div> <div class="tc-line"><button type="button" id="tc-validate" class="btn btn-primary">Validate</button> <!> <span class="tc-small"> </span></div> <!> <div class="tc-step"><span class="tc-step-n">4</span> What is in the project</div> <div class="tc-line"><button type="button" id="tc-load-tree" class="btn btn-secondary"> </button> <label class="tc-small"><input type="checkbox"/> </label> <!></div> <!> <div class="tc-step"><span class="tc-step-n">5</span> Start</div> <div class="tc-line"><label class="tc-small">Run after hours from <input type="time" class="form-input tc-time"/></label> <button type="button" class="btn btn-secondary"> </button> <button type="button" class="btn btn-secondary">Copy share link</button> <button type="button" id="tc-start" class="btn btn-primary"> </button></div> <!> <div role="status"> </div> <!> <div class="tc-step">Earlier campaigns</div> <!></div>`);
+var root_8 = from_html(`<span class="tc-problem"> </span>`);
+var root_9 = from_html(`<span class="tc-problem">No probe result — see the notices below.</span>`);
+var root_10 = from_html(`<span class="tc-small tc-problem">The bench has not been validated against the template.</span>`);
+var root_11 = from_html(`<div class="zt-scroll tc-tree"><!></div>`);
+var root_12 = from_html(`<pre class="tc-pre"> </pre>`);
+var root_13 = from_html(`<!> <!>`, 1);
+var root_14 = from_html(`<div class="tc-step"><span class="tc-step-n">6</span> </div> <!>`, 1);
+var root_15 = from_html(`<div class="section tc-page"><div class="section-heading">Test Composer</div> <div class="section-description">Pick a project and the test bench, choose the topology template, check the bench against it, then tick the cases to run. Script cases run their saved PyScript; manual cases are run by the session by hand. Everything runs through your seat's agent.</div> <div class="tc-step"><span class="tc-step-n">1</span> Project</div> <div class="tc-line"><label><input type="radio"/> Templated Project</label> <label><input type="radio"/> Zephyr Project Link</label></div> <!> <div class="tc-step"><span class="tc-step-n">2</span> Test bench and template</div> <!> <div class="tc-line"><select id="tc-template" class="form-input"><option>— topology template —</option><!></select> <!></div> <div class="tc-step"><span class="tc-step-n">3</span> Validate the bench against the template</div> <div class="tc-line"><button type="button" id="tc-validate" class="btn btn-primary">Validate</button> <!> <span class="tc-small"> </span></div> <!> <div class="tc-step"><span class="tc-step-n">4</span> What is in the project</div> <div class="tc-line"><button type="button" id="tc-load-tree" class="btn btn-secondary"> </button> <label class="tc-small"><input type="checkbox"/> </label> <!></div> <!> <div class="tc-step"><span class="tc-step-n">5</span> Start</div> <div class="tc-line"><label class="tc-small">Run after hours from <input type="time" class="form-input tc-time"/></label> <button type="button" class="btn btn-secondary"> </button> <button type="button" class="btn btn-secondary">Copy share link</button> <button type="button" id="tc-start" class="btn btn-primary"> </button></div> <!> <div role="status"> </div> <!> <div class="tc-step">Earlier campaigns</div> <!></div>`);
 function TcPage($$anchor, $$props) {
 	push($$props, true);
 	const binding_group = [];
-	let preselect = prop($$props, "preselect", 3, null), openRun = prop($$props, "openRun", 3, null);
+	let preselect = prop($$props, "preselect", 3, null), openRun = prop($$props, "openRun", 3, null), pollMs = prop($$props, "pollMs", 3, 4e3);
 	let source = state("templated");
 	let projects = state(proxy([]));
 	let projectId = state("");
@@ -213,7 +214,8 @@ function TcPage($$anchor, $$props) {
 	const tmpl = user_derived(() => get(templates).find((t) => t.name === get(template)) || null);
 	const scriptByCase = user_derived(() => new Map(get(scripts).filter((s) => s.case_key).map((s) => [s.case_key, s])));
 	const sessionsOk = user_derived(() => get(health) && get(health).sessions && get(health).sessions.available);
-	const validated = user_derived(() => get(validateState) === "done" && !get(validateMarkers).some((l) => l.startsWith("NOTIFY")) && /\bMATCH\b/.test(get(validateText)) && !/MISMATCH|NEEDS-CHECK/.test(get(validateText)));
+	const probe = user_derived(() => (get(validateMarkers).find((l) => l.startsWith("PROBE ")) || "").split(/\s+/)[1] || null);
+	const validated = user_derived(() => get(probe) === "MATCH");
 	const tickedCases = user_derived(() => get(tree) ? get(tree).plans.flatMap((p) => p.cycles.flatMap((cy) => cy.cases.filter((c) => get(ticked).has(`${cy.key}/${c.key}`)).map((c) => ({
 		key: c.key,
 		cycle: cy.key
@@ -421,10 +423,10 @@ function TcPage($$anchor, $$props) {
 			}, true);
 			if (preselect()) setStatus(`Script ${preselect()} preselected: choose its project and a template, then load the tree.`);
 		});
-		const t = setInterval(watchValidate, 4e3);
+		const t = setInterval(watchValidate, pollMs());
 		return () => clearInterval(t);
 	});
-	var div = root_14();
+	var div = root_15();
 	var div_1 = sibling(child(div), 6);
 	var label = child(div_1);
 	var input = child(label);
@@ -573,7 +575,13 @@ function TcPage($$anchor, $$props) {
 	};
 	var consequent_5 = ($$anchor) => {
 		var span_5 = root_8();
+		var text_11 = only_child(span_5);
+		template_effect(() => set_text(text_11, `Probe: ${get(probe) ?? ""} — the differences are in the session's report below.`));
 		append($$anchor, span_5);
+	};
+	var consequent_6 = ($$anchor) => {
+		var span_6 = root_9();
+		append($$anchor, span_6);
 	};
 	var d_1 = user_derived(() => get(validateState) && [
 		"done",
@@ -582,13 +590,14 @@ function TcPage($$anchor, $$props) {
 	].includes(get(validateState)));
 	if_block(node_8, ($$render) => {
 		if (get(validated)) $$render(consequent_4);
-		else if (get(d_1)) $$render(consequent_5, 1);
+		else if (get(probe)) $$render(consequent_5, 1);
+		else if (get(d_1)) $$render(consequent_6, 2);
 	});
-	var span_6 = sibling(node_8, 2);
-	var text_11 = only_child(span_6, true);
+	var span_7 = sibling(node_8, 2);
+	var text_12 = only_child(span_7, true);
 	reset(div_6);
 	var node_9 = sibling(div_6, 2);
-	var consequent_6 = ($$anchor) => {
+	var consequent_7 = ($$anchor) => {
 		var fragment_3 = comment();
 		var node_10 = first_child(fragment_3);
 		key(node_10, () => get(validateRun).runId, ($$anchor) => {
@@ -612,28 +621,28 @@ function TcPage($$anchor, $$props) {
 		append($$anchor, fragment_3);
 	};
 	if_block(node_9, ($$render) => {
-		if (get(validateRun)) $$render(consequent_6);
+		if (get(validateRun)) $$render(consequent_7);
 	});
 	var div_7 = sibling(node_9, 4);
 	var button_2 = child(div_7);
-	var text_12 = only_child(button_2, true);
+	var text_13 = only_child(button_2, true);
 	var label_3 = sibling(button_2, 2);
 	var input_4 = child(label_3);
 	remove_input_defaults(input_4);
-	var text_13 = sibling(input_4);
+	var text_14 = sibling(input_4);
 	reset(label_3);
 	var node_11 = sibling(label_3, 2);
-	var consequent_7 = ($$anchor) => {
-		var span_7 = root_9();
-		append($$anchor, span_7);
+	var consequent_8 = ($$anchor) => {
+		var span_8 = root_10();
+		append($$anchor, span_8);
 	};
 	if_block(node_11, ($$render) => {
-		if (!get(validated) && get(tree)) $$render(consequent_7);
+		if (!get(validated) && get(tree)) $$render(consequent_8);
 	});
 	reset(div_7);
 	var node_12 = sibling(div_7, 2);
-	var consequent_8 = ($$anchor) => {
-		var div_8 = root_10();
+	var consequent_9 = ($$anchor) => {
+		var div_8 = root_11();
 		TcTree(child(div_8), {
 			get tree() {
 				return get(tree);
@@ -655,7 +664,7 @@ function TcPage($$anchor, $$props) {
 		append($$anchor, div_8);
 	};
 	if_block(node_12, ($$render) => {
-		if (get(tree)) $$render(consequent_8);
+		if (get(tree)) $$render(consequent_9);
 	});
 	var div_9 = sibling(node_12, 4);
 	var label_4 = child(div_9);
@@ -663,33 +672,33 @@ function TcPage($$anchor, $$props) {
 	remove_input_defaults(input_5);
 	reset(label_4);
 	var button_3 = sibling(label_4, 2);
-	var text_14 = only_child(button_3);
+	var text_15 = only_child(button_3);
 	var button_4 = sibling(button_3, 2);
 	var button_5 = sibling(button_4, 2);
-	var text_15 = only_child(button_5);
+	var text_16 = only_child(button_5);
 	reset(div_9);
 	var node_14 = sibling(div_9, 2);
-	var consequent_9 = ($$anchor) => {
-		var pre = root_11();
-		var text_16 = only_child(pre, true);
-		template_effect(() => set_text(text_16, get(dryRun)));
+	var consequent_10 = ($$anchor) => {
+		var pre = root_12();
+		var text_17 = only_child(pre, true);
+		template_effect(() => set_text(text_17, get(dryRun)));
 		append($$anchor, pre);
 	};
 	if_block(node_14, ($$render) => {
-		if (get(dryRun)) $$render(consequent_9);
+		if (get(dryRun)) $$render(consequent_10);
 	});
 	var div_10 = sibling(node_14, 2);
 	let classes;
-	var text_17 = only_child(div_10, true);
+	var text_18 = only_child(div_10, true);
 	var node_15 = sibling(div_10, 2);
-	var consequent_10 = ($$anchor) => {
-		var fragment_5 = root_13();
+	var consequent_11 = ($$anchor) => {
+		var fragment_5 = root_14();
 		var div_11 = first_child(fragment_5);
-		var text_18 = sibling(child(div_11));
+		var text_19 = sibling(child(div_11));
 		reset(div_11);
 		var node_16 = sibling(div_11, 2);
 		key(node_16, () => get(run).runId, ($$anchor) => {
-			var fragment_6 = root_12();
+			var fragment_6 = root_13();
 			var node_17 = first_child(fragment_6);
 			AgentWindow(node_17, {
 				get runId() {
@@ -723,11 +732,11 @@ function TcPage($$anchor, $$props) {
 			});
 			append($$anchor, fragment_6);
 		});
-		template_effect(() => set_text(text_18, ` The campaign — ${get(run).runId ?? ""}`));
+		template_effect(() => set_text(text_19, ` The campaign — ${get(run).runId ?? ""}`));
 		append($$anchor, fragment_5);
 	};
 	if_block(node_15, ($$render) => {
-		if (get(run)) $$render(consequent_10);
+		if (get(run)) $$render(consequent_11);
 	});
 	var node_19 = sibling(node_15, 4);
 	RunsList(node_19, {
@@ -746,15 +755,15 @@ function TcPage($$anchor, $$props) {
 	reset(div);
 	template_effect(() => {
 		button_1.disabled = !get(template) || !get(setup).testbox || !get(setup).consoles || !get(sessionsOk);
-		set_text(text_11, get(health) && !get(sessionsOk) ? get(health).error || get(health).sessions && get(health).sessions.reason || "seat agent too old" : "");
+		set_text(text_12, get(health) && !get(sessionsOk) ? get(health).error || get(health).sessions && get(health).sessions.reason || "seat agent too old" : "");
 		button_2.disabled = !get(plans).length || !get(template) || get(treeBusy);
-		set_text(text_12, get(treeBusy) ? "Reading Zephyr…" : "Load the project");
-		set_text(text_13, ` runnable on ${(get(template) || "the template") ?? ""} only`);
-		set_text(text_14, `${get(dryRun) ? "Hide" : "Show"} the hand-off`);
+		set_text(text_13, get(treeBusy) ? "Reading Zephyr…" : "Load the project");
+		set_text(text_14, ` runnable on ${(get(template) || "the template") ?? ""} only`);
+		set_text(text_15, `${get(dryRun) ? "Hide" : "Show"} the hand-off`);
 		button_5.disabled = !get(tickedCases).length || !get(sessionsOk);
-		set_text(text_15, `Start (${get(tickedCases).length ?? ""})`);
+		set_text(text_16, `Start (${get(tickedCases).length ?? ""})`);
 		classes = set_class(div_10, 1, "tc-status", null, classes, { "is-bad": get(status).bad });
-		set_text(text_17, get(status).msg);
+		set_text(text_18, get(status).msg);
 	});
 	bind_group(binding_group, [], input, () => get(source), ($$value) => set(source, $$value));
 	bind_group(binding_group, [], input_1, () => get(source), ($$value) => set(source, $$value));
@@ -779,7 +788,9 @@ function mountTc(target, opts = {}) {
 			server: opts.server || httpServer(),
 			agent: opts.agent || httpAgent(opts.agentUrl),
 			preselect: opts.preselect || null,
-			openRun: opts.openRun || null
+			openRun: opts.openRun || null,
+			...opts.saveScript ? { saveScript: opts.saveScript } : {},
+			...opts.pollMs ? { pollMs: opts.pollMs } : {}
 		}
 	});
 	return { destroy() {

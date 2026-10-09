@@ -34,10 +34,17 @@
     if (follow && box) queueMicrotask(() => { box.scrollTop = box.scrollHeight; });
   }
 
+  // Events not yet acknowledged by the server: a failed relay (a server restart, a network blip)
+  // keeps them and re-sends them with the next batch — the server's record is idempotent by seq.
+  let unsent = [];
   async function relay(evs) {
-    if (!evs.length) return;
-    try { await server(`/runs/${encodeURIComponent(runId)}/events`, { method: 'POST', body: JSON.stringify({ events: evs, session_id: sessionId }) }); }
-    catch (e) { error = 'Could not save events to the run record: ' + e.message; }
+    unsent = unsent.concat(evs);
+    if (!unsent.length) return;
+    try {
+      await server(`/runs/${encodeURIComponent(runId)}/events`, { method: 'POST', body: JSON.stringify({ events: unsent, session_id: sessionId }) });
+      unsent = [];
+      if (error && error.startsWith('Could not save')) error = null;
+    } catch (e) { error = `Could not save ${unsent.length} event(s) to the run record (will retry): ${e.message}`; }
   }
 
   function take(evs) {

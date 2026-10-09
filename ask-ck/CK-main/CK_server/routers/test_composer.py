@@ -198,6 +198,29 @@ async def campaign_download(run_id: str, path: str):
     return FileResponse(p, filename=p.name, media_type="text/plain")
 
 
+# ------------------------------------------------------------------ Validation: a repaired copy
+
+@router.get("/runs/{run_id}/repaired")
+async def repaired(run_id: str, path: str, case: str):
+    """The repaired COPY device-testing reported (`REPAIRED <case> <path>`), beside the saved original,
+    for the page to compare before approving. Approval itself goes through the PyTest Creator's own
+    save (POST /api/pytest-create/save_script/{key}), so the units⇄script binding reports the edit."""
+    try:
+        p = tc_campaign.file_path(run_id, path)
+        r = tc_runs.load(run_id)
+    except FileNotFoundError as e:
+        _bad(e, 404)
+    except PermissionError as e:
+        _bad(e, 403)
+    except (KeyError, tc_runs.RunError):
+        raise HTTPException(status_code=404, detail="no such run") from None
+    original = next((c.get("script") for c in r.get("cases") or [] if c["key"] == case), None)
+    if not original:
+        _bad(f"{case} is not a script case of this run")
+    return {"case": case, "path": path, "code": p.read_text(encoding="utf-8", errors="replace"),
+            "original": open(original, encoding="utf-8").read()}
+
+
 # ------------------------------------------------------------------ Feedback
 
 FEEDBACK_SYSTEM = ("You are reviewing one automated AlliedWare Plus test-case run for the Test Engineer. "
