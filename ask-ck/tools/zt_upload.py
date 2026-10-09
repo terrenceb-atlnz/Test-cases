@@ -49,6 +49,9 @@ from jira_testlink_access import JIRA_BASE, JIRA_PROJECT_ID, SSL_CTX  # noqa: E4
 
 API = "/rest/tests/1.0"
 AUDIT_LOG = Path(__file__).resolve().parent.parent / "db" / "zt-upload-audit.jsonl"
+# One line per family that finished uploading — the Test Composer's "Templated Project" list
+# (PLAN-test-composer §2.1, C-D3, 2026-10-09). The audit log stays an audit log.
+UPLOADS_LOG = AUDIT_LOG.with_name("zt-uploads.jsonl")
 CASE_KEY = re.compile(r"^[A-Z][A-Z0-9]*-T\d+$")
 SLOW_READ_S = 600             # a cycle's links from the cycle side took 26–37 s, once >60 s (§6a)
 
@@ -269,7 +272,8 @@ def _cycle_links(get_slow: Get, run_id: int) -> Dict[int, int]:
 
 
 def apply(get: Get, get_slow: Get, send: Send, sel: dict, confirm: dict,
-          audit: Callable[[dict], bool], emit: Callable[[dict], None], seat: Optional[str] = None) -> dict:
+          audit: Callable[[dict], bool], emit: Callable[[dict], None], seat: Optional[str] = None,
+          record: Optional[Callable[[dict], bool]] = None) -> dict:
     """The real upload. `get` and `get_slow` read, `send` writes, `audit` appends one record and says
     whether it was written, `emit` reports progress. Returns the result (also emitted last)."""
     created: List[dict] = []
@@ -367,6 +371,10 @@ def apply(get: Get, get_slow: Get, send: Send, sel: dict, confirm: dict,
             keys = {"plan": get(f"{API}/testplan/{new_pid}?fields=id,key").get("key"),
                     "cycles": [get(f"{API}/testrun/{cid}?fields=id,key").get("key") for cid in new_cycles.values()]}
             audit({"event": "family", "from": p["key"], "new": keys})
+            if record:
+                record({"version": sel.get("version"), "middle": sel.get("middle"), "product": product,
+                        "number": sel.get("number"), "from_plan": p["key"], "plan": keys["plan"],
+                        "cycles": keys["cycles"], "seat": seat, "source": "zt_upload"})
             step(f"{p['key']} done: {keys['plan']} → {', '.join(keys['cycles'])}", family=family, new=keys)
             done.append(p["key"])
         return finish("done")
@@ -441,7 +449,7 @@ def main(argv: Optional[List[str]] = None) -> int:
 
     res = apply(get, get_slow, lambda m, p, b: _request(token, m, p, b), sel,
                 {"product": a.confirm_product, "version": a.confirm_version},
-                _audit_to(AUDIT_LOG), emit, seat=a.seat)
+                _audit_to(AUDIT_LOG), emit, seat=a.seat, record=_audit_to(UPLOADS_LOG))
     return 0 if res["outcome"] == "done" else 1
 
 

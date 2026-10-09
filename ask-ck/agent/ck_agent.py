@@ -36,7 +36,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 # Bump when the contract changes; the setup script compares this against the served
 # manifest to decide whether a running agent is stale and must be replaced.
-AGENT_VERSION = "1.2.0"
+AGENT_VERSION = "1.3.0"
 
 # Thinking and the answer share ONE MESSAGE's output budget (`maxOutputTokens`, 32,000 on
 # the CLI and not raisable). These are reasoning models, so uncapped thinking silently
@@ -391,6 +391,7 @@ def health_payload() -> dict:
         "jobs_in_flight": _jobs_in_flight(),
         "update_error": _LAST_UPDATE.get("error"),
         "hint": None,
+        "sessions": session_capability(),
     }
     if not cli:
         payload["hint"] = "Install Claude Code and run 'claude auth login'."
@@ -477,6 +478,381 @@ def run_claude(prompt: str, model: str = "default", timeout: int = DEFAULT_TIMEO
         return {"content": f"ERROR: {e}", "error": True}
 
 
+# ------------------------------------------------------------------ agent sessions (P1)
+#
+# A full-tools, long-lived Claude Code session for Ask-CK's Validation and Test Composer
+# (ask-ck/plans/PLAN-agent-sessions.md, D6/D7). Not a completion: it runs device-testing's
+# /test-mode in the seat's own device-testing checkout, under the seat's own login, through the
+# Claude Agent SDK (D7) pointed at the system `claude` (one CLI per seat). The page starts it,
+# long-polls its events and may answer its questions (W2) or send it messages (W3).
+#
+# The SDK is imported only when a session starts, so this file stays stdlib-only for every other
+# job and a seat without the SDK still serves /run; /health says whether sessions are possible.
+#
+# Where things come from — the page never chooses a directory or a settings file:
+#   device-testing root   CK_DT_ROOT, else `dt_root=` in ck-agent.conf, else ~/claude/device-testing
+#   permission profile    <dt root>/.claude/ask-ck-campaign.settings.json (D6; refused if absent)
+#   hand-off file         written HERE from the page's JSON: <runs dir>/<run_id>/<run_id>.json
+#   runs dir              CK_AGENT_RUNS, else `runs_dir=`, else ~/.local/share/ck-agent/runs
+
+SESSION_SETTINGS_REL = os.path.join(".claude", "ask-ck-campaign.settings.json")
+SESSION_DONE_MARKER = "ASKCK-DONE"        # /test-mode prints `ASKCK-DONE <run_id>` when stood down
+D5_QUESTION_REPLY = ("Ask-CK campaign (Driver: ask-ck): no one is waiting to answer questions. "
+                     "Follow /test-mode §10 (D5): send a NOTIFY, work past it, or BLOCK the case.")
+HOST_PROMPT_REPLY = ("Ask-CK session: permission prompts are not answered here. The approved "
+                     "profile (D6) covers bench work through tools/tb; use it, or record what you "
+                     "needed with a NOTIFY and move on.")
+_RUN_ID_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,80}$")
+_CASE_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,40}$")
+
+
+def session_dt_root() -> str:
+    return (os.environ.get("CK_DT_ROOT") or _CONF.get("dt_root")
+            or os.path.join(os.path.expanduser("~"), "claude", "device-testing"))
+
+
+def session_runs_dir() -> str:
+    return (os.environ.get("CK_AGENT_RUNS") or _CONF.get("runs_dir")
+            or os.path.join(os.path.expanduser("~"), ".local", "share", "ck-agent", "runs"))
+
+
+def _sdk_loader():
+    """The Agent SDK module. A seam: the specs swap in a fake."""
+    import claude_agent_sdk  # noqa: PLC0415 — deliberately lazy (see above)
+    return claude_agent_sdk
+
+
+def session_capability() -> dict:
+    """What /health reports about sessions: possible here, and if not, why not."""
+    out = {"available": False, "sdk_version": None, "dt_root": session_dt_root(), "reason": None}
+    try:
+        sdk = _sdk_loader()
+        out["sdk_version"] = getattr(sdk, "__version__", None)
+    except Exception as e:  # noqa: BLE001
+        out["reason"] = f"Claude Agent SDK not installed ({type(e).__name__}); re-run the seat setup."
+        return out
+    if not os.path.isfile(os.path.join(out["dt_root"], SESSION_SETTINGS_REL)):
+        out["reason"] = (f"No device-testing checkout with the Ask-CK permission profile at "
+                         f"{out['dt_root']} (set dt_root= in ck-agent.conf).")
+        return out
+    out["available"] = True
+    return out
+
+
+def _short(v, n=300):
+    s = v if isinstance(v, str) else json.dumps(v, default=str)
+    return s if len(s) <= n else s[:n] + f"… (+{len(s) - n})"
+
+
+def _block_text(content):
+    if isinstance(content, str):
+        return content
+    if isinstance(content, list):
+        return "\n".join(_block_text(c.get("text", "") if isinstance(c, dict) else getattr(c, "text", ""))
+                         for c in content)
+    return str(content or "")
+
+
+def normalize_message(msg) -> list:
+    """SDK message → page events (plain dicts). One message can carry several blocks."""
+    kind = type(msg).__name__
+    parent = getattr(msg, "parent_tool_use_id", None)
+    out = []
+    if kind == "AssistantMessage":
+        for b in getattr(msg, "content", []) or []:
+            bk = type(b).__name__
+            if bk == "TextBlock":
+                out.append({"kind": "text", "text": b.text, "parent": parent})
+            elif bk == "ToolUseBlock":
+                inp = b.input or {}
+                out.append({"kind": "tool_use", "id": b.id, "name": b.name, "parent": parent,
+                            "summary": _short(inp.get("description") or inp.get("command")
+                                              or inp.get("prompt") or inp.get("file_path") or inp, 200),
+                            "input": _short(inp, 1500)})
+            elif bk == "ThinkingBlock":
+                out.append({"kind": "thinking", "parent": parent})
+    elif kind == "UserMessage":
+        content = getattr(msg, "content", None)
+        for b in content if isinstance(content, list) else []:
+            if type(b).__name__ == "ToolResultBlock":
+                text = _block_text(b.content)
+                out.append({"kind": "tool_result", "id": b.tool_use_id, "parent": parent,
+                            "is_error": bool(b.is_error), "excerpt": _short(text, 1500),
+                            "denied": "auto mode classifier" in text})
+    elif kind == "ResultMessage":
+        out.append({"kind": "result", "subtype": msg.subtype, "is_error": msg.is_error,
+                    "num_turns": msg.num_turns, "duration_ms": msg.duration_ms,
+                    "total_cost_usd": msg.total_cost_usd, "usage": msg.usage,
+                    "model_usage": msg.model_usage, "text": _short(msg.result or "", 4000)})
+    elif hasattr(msg, "subtype") and hasattr(msg, "data"):        # SystemMessage and subclasses
+        d = msg.data or {}
+        st = msg.subtype
+        if st.startswith("task_"):
+            out.append({"kind": "task", "subtype": st, "task_id": d.get("task_id"),
+                        "description": d.get("description"), "subagent_type": d.get("subagent_type"),
+                        "status": d.get("status") or (d.get("patch") or {}).get("status"),
+                        "background": d.get("is_backgrounded"), "summary": _short(d.get("summary") or "", 600),
+                        "usage": d.get("usage")})
+        elif st == "init":
+            out.append({"kind": "init", "session_id": d.get("session_id"), "model": d.get("model"),
+                        "permission_mode": d.get("permissionMode"), "cwd": d.get("cwd"),
+                        "cli_version": d.get("claude_code_version")})
+        else:
+            out.append({"kind": "system", "subtype": st})
+    return out
+
+
+def marker_lines(text: str) -> list:
+    """`RESULT …` / `NOTIFY …` / `ASKCK-DONE …` lines in assistant text (logged-output.md §2,
+    test-mode §10) — the page and the server read results from these, never from prose."""
+    out = []
+    for line in (text or "").splitlines():
+        s = line.strip().strip("`").strip()
+        for m in ("RESULT ", "NOTIFY ", SESSION_DONE_MARKER):
+            if s.startswith(m):
+                out.append({"kind": "marker", "marker": m.strip(), "line": s})
+                break
+    return out
+
+
+class AgentSession:
+    """One long-lived SDK session. Thread-safe: HTTP threads read events and post answers while
+    the session's own thread runs an asyncio loop around ClaudeSDKClient."""
+
+    def __init__(self, sid, run_id, handoff, mode="campaign", question_timeout=0, prompt_extra=""):
+        self.id, self.run_id, self.handoff = sid, run_id, handoff
+        self.mode = mode
+        self.question_timeout = max(0, min(int(question_timeout or 0), 3600))
+        self.prompt_extra = prompt_extra
+        self.state = "starting"
+        self.error = None
+        self.events = []
+        self.cond = threading.Condition()
+        self.pending = {}          # request_id -> {"event": threading.Event, "answer": None}
+        self.inbox = []            # user messages waiting to be sent
+        self.stop_requested = False
+        self.started = time.time()
+        self.dir = os.path.join(session_runs_dir(), run_id)
+        # Named <run_id>.json: device-testing's /test-mode takes the run id from the hand-off's
+        # basename until it reads the JSON (its 83c0880 stopgap), so the name must BE the id.
+        self.handoff_path = os.path.join(self.dir, f"{run_id}.json")
+        self._loop = None
+        self._client = None
+        self.thread = None
+
+    # ---- events
+    def emit(self, ev):
+        with self.cond:
+            ev = dict(ev, seq=len(self.events), t=round(time.time() - self.started, 2))
+            self.events.append(ev)
+            self.cond.notify_all()
+        try:
+            with open(os.path.join(self.dir, "events.jsonl"), "a", encoding="utf-8") as fh:
+                fh.write(json.dumps(ev, default=str) + "\n")
+        except OSError:
+            pass
+        return ev
+
+    def set_state(self, state, error=None):
+        self.state = state
+        if error:
+            self.error = error
+        self.emit({"kind": "state", "state": state, "error": error})
+
+    def events_after(self, after, wait):
+        deadline = time.time() + max(0.0, min(float(wait or 0), 25.0))
+        with self.cond:
+            while len(self.events) <= after and self.state not in ("done", "error", "stopped") \
+                    and time.time() < deadline:
+                self.cond.wait(timeout=max(0.05, deadline - time.time()))
+            return self.events[after:]
+
+    def snapshot(self):
+        return {"session_id": self.id, "run_id": self.run_id, "state": self.state, "error": self.error,
+                "mode": self.mode, "events": len(self.events), "started": self.started,
+                "pending": sorted(self.pending)}
+
+    # ---- the page's inputs
+    def answer(self, request_id, payload):
+        p = self.pending.get(request_id)
+        if not p:
+            return False
+        p["answer"] = payload
+        p["event"].set()
+        return True
+
+    def send(self, text):
+        with self.cond:
+            self.inbox.append(text)
+            self.cond.notify_all()
+        self.emit({"kind": "user_message", "text": _short(text, 2000)})
+
+    def stop(self):
+        self.stop_requested = True
+        loop, client = self._loop, self._client
+        if loop and client and loop.is_running() and self.state in ("starting", "running"):
+            try:
+                import asyncio  # noqa: PLC0415
+                asyncio.run_coroutine_threadsafe(client.interrupt(), loop)
+            except Exception:  # noqa: BLE001
+                pass
+        for p in list(self.pending.values()):
+            p["event"].set()
+        with self.cond:
+            self.cond.notify_all()
+
+    # ---- the run
+    def prompt(self):
+        cases = " ".join(c["key"] for c in self.handoff.get("cases") or [] if _CASE_RE.match(str(c.get("key", ""))))
+        p = f"/test-mode --from-ask-ck {self.handoff_path} {cases}".strip()
+        return p + ("\n\n" + self.prompt_extra if self.prompt_extra else "")
+
+    async def _can_use_tool(self, tool_name, tool_input, context):
+        sdk = _sdk_loader()
+        rid = f"q{len(self.events)}-{int(time.time() * 1000) % 100000}"
+        is_q = tool_name == "AskUserQuestion"
+        self.emit({"kind": "question" if is_q else "approval", "request_id": rid, "tool": tool_name,
+                   "input": tool_input if is_q else _short(tool_input, 1500),
+                   "waits": self.question_timeout if (is_q or self.mode == "interactive") else 0})
+        if self.question_timeout and (is_q or self.mode == "interactive"):
+            import asyncio  # noqa: PLC0415
+            waiter = {"event": threading.Event(), "answer": None}
+            self.pending[rid] = waiter
+            try:
+                await asyncio.to_thread(waiter["event"].wait, self.question_timeout)
+            finally:
+                self.pending.pop(rid, None)
+            ans = waiter["answer"]
+            if ans is not None:
+                self.emit({"kind": "answered", "request_id": rid, "by": "page"})
+                if is_q and isinstance(ans.get("answers"), dict):
+                    return sdk.PermissionResultAllow(updated_input=dict(tool_input, answers=ans["answers"]))
+                if not is_q and ans.get("allow") is True:
+                    return sdk.PermissionResultAllow(updated_input=tool_input)
+                return sdk.PermissionResultDeny(message=str(ans.get("message") or "Denied by the user in Ask-CK."))
+        self.emit({"kind": "answered", "request_id": rid, "by": "nobody"})
+        return sdk.PermissionResultDeny(message=D5_QUESTION_REPLY if is_q else HOST_PROMPT_REPLY)
+
+    async def _run(self):
+        import asyncio  # noqa: PLC0415
+        sdk = _sdk_loader()
+        cap = session_capability()
+        if not cap["available"]:
+            raise RuntimeError(cap["reason"])
+        dt = cap["dt_root"]
+        opts = sdk.ClaudeAgentOptions(
+            cwd=dt, cli_path=_find_claude() or None, settings=os.path.join(dt, SESSION_SETTINGS_REL),
+            permission_mode="auto", setting_sources=["user", "project", "local"],
+            can_use_tool=self._can_use_tool)
+        self._loop = asyncio.get_running_loop()
+        async with sdk.ClaudeSDKClient(options=opts) as client:
+            self._client = client
+            self.set_state("running")
+            await client.query(self.prompt())
+            reader = asyncio.ensure_future(self._read(client))
+            while not reader.done():
+                if self.stop_requested:
+                    reader.cancel()
+                    break
+                msg = None
+                with self.cond:
+                    if self.inbox:
+                        msg = self.inbox.pop(0)
+                if msg:
+                    await client.query(msg)
+                await asyncio.sleep(0.2)
+            try:
+                await reader
+            except (asyncio.CancelledError, Exception):  # noqa: BLE001
+                pass
+
+    async def _read(self, client):
+        async for msg in client.receive_messages():
+            for ev in normalize_message(msg):
+                self.emit(ev)
+                if ev["kind"] == "text":
+                    for m in marker_lines(ev["text"]):
+                        self.emit(m)
+                        if m["marker"] == SESSION_DONE_MARKER:
+                            self.stop_requested = True
+            if self.stop_requested:
+                return
+
+    def start(self):
+        os.makedirs(self.dir, exist_ok=True)
+        with open(self.handoff_path, "w", encoding="utf-8") as fh:
+            json.dump(self.handoff, fh, indent=2)
+
+        def target():
+            import asyncio  # noqa: PLC0415
+            try:
+                asyncio.run(self._run())
+                self.set_state("stopped" if self.stop_requested and not self._done_marker() else "done")
+            except Exception as e:  # noqa: BLE001
+                self.set_state("error", f"{type(e).__name__}: {e}")
+
+        self.thread = threading.Thread(target=target, daemon=True, name=f"session-{self.id}")
+        self.thread.start()
+
+    def _done_marker(self):
+        return any(e.get("kind") == "marker" and e.get("marker") == SESSION_DONE_MARKER for e in self.events)
+
+
+_SESSIONS = {}
+_SESSIONS_LOCK = threading.Lock()
+
+
+def start_session(body: dict) -> dict:
+    run_id = str(body.get("run_id") or "")
+    handoff = body.get("handoff")
+    if not _RUN_ID_RE.match(run_id):
+        return {"ok": False, "error": "run_id missing or malformed"}
+    if not isinstance(handoff, dict) or handoff.get("run_id") != run_id:
+        return {"ok": False, "error": "handoff must be the run's JSON object, with the same run_id"}
+    mode = body.get("mode") if body.get("mode") in ("campaign", "interactive") else "campaign"
+    cap = session_capability()
+    if not cap["available"]:
+        return {"ok": False, "error": cap["reason"]}
+    with _SESSIONS_LOCK:
+        for s in _SESSIONS.values():
+            if s.run_id == run_id and s.state in ("starting", "running"):
+                return {"ok": True, "session_id": s.id, "already": True}
+        sid = f"s{int(time.time())}-{len(_SESSIONS)}"
+        s = AgentSession(sid, run_id, handoff, mode=mode,
+                         question_timeout=body.get("question_timeout") or 0,
+                         prompt_extra=str(body.get("note") or "")[:2000])
+        _SESSIONS[sid] = s
+    s.start()
+    return {"ok": True, "session_id": sid, "handoff_path": s.handoff_path, "prompt": s.prompt()}
+
+
+def get_session(sid):
+    with _SESSIONS_LOCK:
+        return _SESSIONS.get(sid)
+
+
+def session_post(route: str, body: dict) -> dict:
+    """The page's session writes. Each answers 200 with ok true/false (errors are the page's to show)."""
+    if route == "/session/start":
+        return start_session(body)
+    sid, action = route.split("/")[2], route.split("/")[3]
+    s = get_session(sid)
+    if not s:
+        return {"ok": False, "error": "no such session"}
+    if action == "stop":
+        s.stop()
+        return {"ok": True, "state": s.state}
+    if action == "message":
+        text = str(body.get("text") or "").strip()
+        if not text:
+            return {"ok": False, "error": "empty message"}
+        if s.state not in ("starting", "running"):
+            return {"ok": False, "error": f"session is {s.state}"}
+        s.send(text[:8000])
+        return {"ok": True}
+    return {"ok": s.answer(str(body.get("request_id") or ""), body), "request_id": body.get("request_id")}
+
+
 class Handler(BaseHTTPRequestHandler):
     server_version = f"ck-agent/{AGENT_VERSION}"
 
@@ -502,17 +878,39 @@ class Handler(BaseHTTPRequestHandler):
         self.end_headers()
 
     def do_GET(self):
-        if self.path.split("?")[0] == "/health":
+        route, _, query = self.path.partition("?")
+        if route == "/health":
             self._send(200, health_payload())
-        else:
-            self._send(404, {"error": "not found"})
+            return
+        if route == "/sessions":
+            with _SESSIONS_LOCK:
+                self._send(200, {"ok": True, "sessions": [s.snapshot() for s in _SESSIONS.values()]})
+            return
+        m = re.match(r"^/session/([A-Za-z0-9-]+)/events$", route)
+        if m:
+            s = get_session(m.group(1))
+            if not s:
+                self._send(404, {"ok": False, "error": "no such session"})
+                return
+            q = dict(kv.split("=", 1) for kv in query.split("&") if "=" in kv)
+            try:
+                after, wait = int(q.get("after", 0)), float(q.get("wait", 0))
+            except ValueError:
+                self._send(400, {"ok": False, "error": "after/wait must be numbers"})
+                return
+            evs = s.events_after(max(0, after), wait)
+            self._send(200, {"ok": True, "state": s.state, "error": s.error, "events": evs,
+                             "next": after + len(evs), "pending": sorted(s.pending)})
+            return
+        self._send(404, {"error": "not found"})
 
     def do_POST(self):
         route = self.path.split("?")[0]
-        if route not in ("/run", "/cancel", "/update", "/shutdown"):
+        session_route = route == "/session/start" or re.match(r"^/session/[A-Za-z0-9-]+/(answer|message|stop)$", route)
+        if route not in ("/run", "/cancel", "/update", "/shutdown") and not session_route:
             self._send(404, {"error": "not found"})
             return
-        if route in ("/update", "/shutdown"):
+        if route in ("/update", "/shutdown") or session_route:
             # These two change the machine's state, so they insist on a JSON content type.
             # A cross-site "simple" POST (text/plain, no preflight) can reach any loopback
             # port from any page; requiring application/json forces a CORS preflight, which
@@ -526,6 +924,9 @@ class Handler(BaseHTTPRequestHandler):
             body = json.loads(self.rfile.read(length) or b"{}")
         except (ValueError, json.JSONDecodeError):
             self._send(400, {"content": "ERROR: bad JSON body", "error": True})
+            return
+        if session_route:
+            self._send(200, session_post(route, body))
             return
         if route == "/cancel":
             # The browser calls this when the shared server says nobody wants the job any

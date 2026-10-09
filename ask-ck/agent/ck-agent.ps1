@@ -44,7 +44,7 @@ $ErrorActionPreference = 'Stop'
 $Lib = {
   # Bump when the contract changes; the setup script compares this against the served
   # manifest to decide whether a running agent is stale and must be replaced.
-  $script:AGENT_VERSION = '1.2.0'
+  $script:AGENT_VERSION = '1.3.0'
   # Thinking shares one message's output budget with the answer; cap it on LONG calls only
   # (passing the flag turns extended thinking on, and the 30s health ping must stay fast).
   # Mirrors ck_agent.py; "long" is decided by the job's timeout, which the server floors.
@@ -321,6 +321,8 @@ $Lib = {
       ok = $true; agent = 'ck-agent'; agent_version = $script:AGENT_VERSION
       claude_cli = [bool]$cli; claude_path = $cli; cli_version = $null; logged_in = $null; org = $null
       jobs_in_flight = $busy; update_error = $(if ($state.lastUpdate.ContainsKey('error')) { $state.lastUpdate['error'] } else { $null }); hint = $null
+      # Agent sessions (PLAN-agent-sessions D7) run on the Agent SDK in the Python agent only; Windows is deferred (D1).
+      sessions = [ordered]@{ available = $false; sdk_version = $null; dt_root = $null; reason = 'Agent sessions are not available on Windows yet (PLAN-agent-sessions D1).' }
     }
     if (-not $cli) { $p['hint'] = "Install Claude Code and run 'claude auth login'."; return $p }
     $s = Get-CliStatus $cli $state.status
