@@ -5,8 +5,21 @@ verified: 2026-10-09
 
 > ## Status (read first)
 >
-> **PLAN ONLY — nothing built.** Written 2026-10-09 from Terrence's design in that day's
-> conversation. It is the second of three plans:
+> **V1–V3 BUILT on branch `tc-build` (NOT live), 2026-10-09 autonomous run.**
+> - **The page:** script picker, setup fields and launch through the seat agent.
+> - **Records:** run records under `test-composer/runs/` (the plan's `.meta/…/test/` mirror is NOT
+>   done — records are by run id).
+> - **The repair loop:** REPAIRED → compare → Approve → `save_script`.
+> - **The review:** REVIEWED → read.
+>
+> Repair and review run in device-testing `/test-mode` §11 (`da37c2d`; a 5-unclean-run cap, then
+> BLOCKED).
+>
+> **Finalize is built as disabled, showing its reasons.** V0 (the Zephyr "new version" capture)
+> is Terrence's, and the Zephyr writes and the list removal wait on it. V4 (retiring the
+> creator's Run, Validate and Testboxes panels) is NOT done. §8 decisions are still open.
+>
+> Written 2026-10-09 from Terrence's design in that day's conversation. It is the second of three plans:
 > 1. [`PLAN-agent-sessions.md`](PLAN-agent-sessions.md) (A, first): how Ask-CK starts and talks
 >    to a `/test-mode` session.
 > 2. **this plan** (B).

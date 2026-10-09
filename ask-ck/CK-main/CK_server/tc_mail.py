@@ -44,15 +44,18 @@ def send(to: List[str], subject: str, body: str) -> Optional[str]:
         return f"{type(e).__name__}: {e}"
 
 
-def notice_mail(record: dict, notice: dict, link: str) -> tuple:
-    """D5: an informative mail, not a request — which run and scope, what it needed, what it did."""
-    subject = f"Ask-CK {record['kind']} {record['run_id']}: notice for {notice['scope']}"
-    body = (f"Run {record['run_id']} on {record['testbox']} carried on past something it needed a person for.\n\n"
-            f"Scope:          {notice['scope']}\n"
-            f"What it needed: {notice['needed']}\n"
-            f"What it did:    {notice['did']}\n\n"
-            f"The campaign did not stop (decision D5). Details and re-grading: {link}\n")
-    return subject, body
+def notice_mail(record: dict, notices: list, link: str) -> tuple:
+    """D5: an informative mail, not a request — which run, and for each notice its scope, what it
+    needed and what it did. Notices that arrive together go in ONE mail (the 2026-10-09 E2E sent
+    three identical-looking mails a second apart)."""
+    scopes = sorted({n["scope"] for n in notices})
+    subject = (f"Ask-CK {record['kind']} {record['run_id']}: "
+               + (f"notice for {scopes[0]}" if len(notices) == 1 else f"{len(notices)} notices ({', '.join(scopes)})"))
+    parts = [f"Run {record['run_id']} on {record['testbox']} carried on past something it needed a person for.\n"]
+    for i, n in enumerate(notices, 1):
+        parts.append(f"{i}. Scope:          {n['scope']}\n   What it needed: {n['needed']}\n   What it did:    {n['did']}\n")
+    parts.append(f"\nThe campaign did not stop (decision D5). Details and re-grading: {link}\n")
+    return subject, "\n".join(parts)
 
 
 def finish_mail(record: dict, counts: dict, link: str) -> tuple:

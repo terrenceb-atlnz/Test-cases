@@ -136,11 +136,11 @@ async def relay_events(request: Request, run_id: str, body: Dict[str, Any] = Bod
     to = [e for e in str((tc_runs.load_handoff(run_id).get("options") or {}).get("email") or "").split(",") if e.strip()]
     mailed = []
     if to:
-        for n in out["new_notices"]:
-            subject, text = tc_mail.notice_mail(record, n, _link(request, run_id))
-            mailed.append({"what": f"notice {n['scope']}", "error": await asyncio.to_thread(tc_mail.send, to, subject, text)})
+        if out["new_notices"]:
+            subject, text = tc_mail.notice_mail(record, out["new_notices"], _link(request, run_id))
+            mailed.append({"what": f"{len(out['new_notices'])} notice(s)", "error": await asyncio.to_thread(tc_mail.send, to, subject, text)})
         if out["finished"]:
-            subject, text = tc_mail.finish_mail(record, tc_runs.verdict_counts(record), _link(request, run_id))
+            subject, text = tc_mail.finish_mail(record, tc_runs.table_counts(record), _link(request, run_id))
             mailed.append({"what": "finished", "error": await asyncio.to_thread(tc_mail.send, to, subject, text)})
         if mailed:
             record = tc_runs.mark(run_id, mailed=(record.get("mailed") or []) + mailed)

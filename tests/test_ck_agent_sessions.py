@@ -330,3 +330,13 @@ def test_marker_lines_take_only_line_starts():
 def test_the_powershell_agent_says_sessions_are_not_available_on_windows():
     ps = (_REPO / "ask-ck" / "agent" / "ck-agent.ps1").read_text(encoding="utf-8")
     assert "sessions = [ordered]@{ available = $false" in ps
+
+
+def test_the_seat_setup_installs_the_pinned_sdk_in_a_private_venv_and_runs_the_agent_with_it():
+    sh = (_REPO / "ask-ck" / "agent" / "setup.sh").read_text(encoding="utf-8")
+    assert 'SDK_PIN="0.2.165"' in sh and '"claude-agent-sdk==${SDK_PIN}"' in sh
+    assert 'python3 -m venv "${AGENT_DIR}/venv"' in sh
+    assert "ExecStart=${AGENT_PY} ${AGENT_DIR}/ck_agent.py" in sh and 'exec setsid nohup "$AGENT_PY" ck_agent.py' in sh
+    assert 'echo "dt_root=${DT_ROOT}"' in sh
+    import subprocess
+    assert subprocess.run(["bash", "-n", str(_REPO / "ask-ck" / "agent" / "setup.sh")]).returncode == 0

@@ -151,10 +151,32 @@ if [ "$have_sha" != "$WANT_SHA" ]; then
   note "ck-agent ${WANT_VERSION} downloaded."
 fi
 
+# Agent sessions (PLAN-agent-sessions D7, 2026-10-09): the Validation / Test Composer sessions run
+# on the Claude Agent SDK, in a private venv beside the agent so nothing else on the seat changes.
+# Pinned: the version the sessions were proven with. A seat without python3-venv still gets the
+# agent; its /health then says why sessions are unavailable.
+SDK_PIN="0.2.165"
+AGENT_PY="python3"
+if [ ! -x "${AGENT_DIR}/venv/bin/python" ]; then
+  python3 -m venv "${AGENT_DIR}/venv" >/dev/null 2>&1 || note "Agent SDK: could not create a venv (install python3-venv) — Validation / Test Composer sessions will be unavailable on this seat."
+fi
+if [ -x "${AGENT_DIR}/venv/bin/python" ]; then
+  have_sdk="$("${AGENT_DIR}/venv/bin/python" -c 'import claude_agent_sdk as m; print(m.__version__)' 2>/dev/null)"
+  if [ "$have_sdk" != "$SDK_PIN" ]; then
+    "${AGENT_DIR}/venv/bin/python" -m pip install -q --disable-pip-version-check "claude-agent-sdk==${SDK_PIN}" >/dev/null 2>&1 \
+      && note "Agent SDK ${SDK_PIN} installed for sessions." \
+      || note "Agent SDK: pip install failed — Validation / Test Composer sessions will be unavailable on this seat."
+  fi
+  AGENT_PY="${AGENT_DIR}/venv/bin/python"
+fi
+# The seat's device-testing checkout — the session's working directory (its skills, its D6 profile).
+DT_ROOT="${CK_DT_ROOT:-$HOME/claude/device-testing}"
+
 # Config beside the agent: the agent reads it when the environment does not say otherwise.
 {
   echo "origin=${CK_SERVER}"
   echo "port=${AGENT_PORT}"
+  [ -d "$DT_ROOT" ] && echo "dt_root=${DT_ROOT}"
   if [ -f "$CONF" ] && grep -q '^autostart=' "$CONF"; then grep '^autostart=' "$CONF"; fi
 } > "${CONF}.new" && mv -f "${CONF}.new" "$CONF"
 
@@ -209,7 +231,7 @@ Type=simple
 Environment=CK_AGENT_ORIGIN=${CK_SERVER}
 Environment=CK_AGENT_PORT=${AGENT_PORT}
 Environment=PATH=${INSTALL_DIR}:/usr/local/bin:/usr/bin:/bin
-ExecStart=/usr/bin/env python3 ${AGENT_DIR}/ck_agent.py
+ExecStart=${AGENT_PY} ${AGENT_DIR}/ck_agent.py
 Restart=on-failure
 RestartSec=5
 
@@ -237,7 +259,7 @@ start_agent() {
       cd "$AGENT_DIR" || exit 1
       exec </dev/null >>"${AGENT_DIR}/agent.log" 2>&1
       export CK_AGENT_ORIGIN="$CK_SERVER" CK_AGENT_PORT="$AGENT_PORT"
-      exec setsid nohup python3 ck_agent.py
+      exec setsid nohup "$AGENT_PY" ck_agent.py
     ) &
   fi
 }

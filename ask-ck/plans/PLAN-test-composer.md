@@ -5,8 +5,20 @@ verified: 2026-10-09
 
 > ## Status (read first)
 >
-> **PLAN ONLY — nothing built. Rewritten 2026-10-09** from Terrence's design in that day's
-> conversation. It is the third of three plans:
+> **Z1 + C1–C5 BUILT on branch `tc-build` (NOT live), 2026-10-09 autonomous run.**
+> - **Z1:** ZTT is a Svelte island.
+> - **C1:** projects — ZTT upload records plus an audit-log backfill, and the wiki "Test Results"
+>   cell parsed into a variant checklist (verified on Project:3171 AT-x230-V2).
+> - **C2:** templates with runnable counts (pt_preflight), and two MOCK templates.
+> - **C3:** Validate (composer-validate → `PROBE` line, `da37c2d`).
+> - **C4:** the live tree filtered to runnable cases, with Previously Run; hand-off preview, share
+>   link, Start.
+> - **C5:** results by cycle, the Log Viewer port, Feedback, re-grade, Accept, the readout.
+>
+> **Not built:** the after-hours start (stored only; the seat poller is P4); Accept results'
+> deletion of work/ (needs device-testing). §8 decisions are still open.
+>
+> Rewritten 2026-10-09 from Terrence's design in that day's conversation. It is the third of three plans:
 > 1. [`PLAN-agent-sessions.md`](PLAN-agent-sessions.md) (A, first): how Ask-CK starts and talks
 >    to a `/test-mode` session.
 > 2. [`PLAN-test-validation.md`](PLAN-test-validation.md) (B): one script made to run, reviewed,

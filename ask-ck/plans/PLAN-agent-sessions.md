@@ -5,8 +5,21 @@ verified: 2026-10-09
 
 > ## Status (read first)
 >
-> **DRAFT — nothing built. P0 done; decisions D1–D7 (§10) taken 2026-10-09: the launcher is the
-> Agent SDK (D7), the permission profile a launcher-supplied `--settings` file (D6). P1 is next.** Written 2026-10-09
+> **P1 BUILT on branch `tc-build` (scratchpad worktree, NOT live) — 2026-10-09, autonomous run while
+> Terrence was away.**
+> - **Seat agent 1.3.0:** an Agent SDK session job (`/session/*`). The PowerShell agent reports
+>   sessions unavailable (D1).
+> - **Server:** `/api/test-composer` runs (hand-off schema 1, records as files, D5 notice and finish
+>   mail).
+> - **Window:** W1 stream, plus W2 cards and the W3 message box for sessions that wait — all in the
+>   Svelte islands vd/tc.
+> - **E2E:** run end to end on tb470 (TRIAGE only).
+> - **Not built:** P4 (the seat agent's schedule poller, so after-hours runs are stored but not
+>   started), P5 (the docked helper), Windows (D1).
+>
+> Commits: `bf00ff8`, `7c0d691`, `e2f6e92`; the device-testing side is `df4b009`, `e334e89`, `da37c2d`.
+> Earlier status: P0 done; decisions D1–D7 (§10) taken 2026-10-09: the launcher is the Agent SDK
+> (D7), the permission profile a launcher-supplied `--settings` file (D6). Written 2026-10-09
 > at Terrence's request: *"I think its worth another plan that we tackle outright that will be
 > linked to this one, with that plan needing to be done first."* It is the **first** of three:
 >

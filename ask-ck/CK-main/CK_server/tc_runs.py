@@ -290,6 +290,16 @@ def verdict_counts(record: Dict[str, Any]) -> Dict[str, int]:
     return counts
 
 
+def table_counts(record: Dict[str, Any]) -> Dict[str, int]:
+    """Counts as the results TABLE shows them: every case of the run, a case with no RESULT line
+    counted NOT TESTED once the run has ended (the finish mail and the table must agree)."""
+    counts: Dict[str, int] = {}
+    for row in results_table(record):
+        v = (row.get("regrade") or {}).get("verdict") or row["verdict"]
+        counts[v] = counts.get(v, 0) + 1
+    return counts
+
+
 def _tokens(model_usage: Any) -> Optional[int]:
     if not isinstance(model_usage, dict):
         return None

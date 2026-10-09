@@ -145,7 +145,7 @@ def test_the_api_relays_events_and_mails_a_notice_once_and_the_finish_once(env, 
     evs = _events({"kind": "state", "state": "running"},
                   {"kind": "marker", "line": "NOTIFY campaign -- consoles left logged in -- carried on"})
     r = client.post(f"/api/test-composer/runs/{rid}/events", json={"events": evs, "session_id": "s1"}).json()
-    assert [m["what"] for m in r["mailed"]] == ["notice campaign"] and r["mailed"][0]["error"] is None
+    assert [m["what"] for m in r["mailed"]] == ["1 notice(s)"] and r["mailed"][0]["error"] is None
     client.post(f"/api/test-composer/runs/{rid}/events", json={"events": evs})
     more = evs + _events({}, {}, {"kind": "marker", "line": "ASKCK-DONE x"}, {"kind": "state", "state": "done"})[2:]
     r = client.post(f"/api/test-composer/runs/{rid}/events", json={"events": more}).json()
@@ -346,3 +346,17 @@ def test_a_repaired_copy_is_served_beside_the_original_only_from_the_campaign(ca
     assert client.get(f"/api/test-composer/runs/{campaign}/repaired",
                       params={"path": "tb470/x230v2-28GS/secret-elsewhere.txt", "case": "AWPTCM-T33234"}).status_code == 403
     assert client.get(f"/api/test-composer/runs/{campaign}/repaired", params={"path": rel, "case": "AWPTCM-T9"}).status_code == 422
+
+
+def test_notices_that_arrive_together_go_in_one_mail(env, client):
+    rid = client.post("/api/test-composer/runs", json=body()).json()["run_id"]
+    evs = _events(*[{"kind": "marker", "line": f"NOTIFY AWPTCM-T33234 -- need {i} -- did {i}"} for i in range(3)])
+    r = client.post(f"/api/test-composer/runs/{rid}/events", json={"events": evs}).json()
+    assert [m["what"] for m in r["mailed"]] == ["3 notice(s)"] and len(env["sent"]) == 1
+    assert "3 notices (AWPTCM-T33234)" in env["sent"][0]["subject"] and "3. Scope:" in env["sent"][0]["msg"]
+
+
+def test_the_finish_mail_counts_cases_as_the_table_shows_them(env, client):
+    rid = client.post("/api/test-composer/runs", json=body()).json()["run_id"]
+    client.post(f"/api/test-composer/runs/{rid}/events", json={"events": _events({"kind": "state", "state": "done"})})
+    assert "1 NOT TESTED" in env["sent"][-1]["subject"]
