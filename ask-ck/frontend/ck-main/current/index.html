@@ -534,39 +534,8 @@
 
     <!-- Zephyr Templating Tool — one page (PLAN-zephyr-templating.md §5a; docs/zephyr.txt "UI") -->
     <div id="panel-zt" class="card tool-panel hidden">
-      <div class="section">
-        <div class="section-heading">Zephyr Templating Tool</div>
-        <div class="section-description">Paste a project's wiki page. The model reads its Test Strategy, TPS and Feature Page and proposes which template plans, cycles and cases to leave out — every proposal cites its source, and anything it does not mention stays ticked. Review the ticks, Confirm, then API Upload shows exactly what it would send to Zephyr.</div>
-        <div class="zt-line">
-          <input id="zt-url" class="form-input" type="url" placeholder="https://wiki.atlnz.lc/awpwiki/index.php/Project:3296_IE520_Software" aria-label="Project wiki page URL">
-          <button id="zt-analyse" class="btn btn-primary" data-action="ztAnalyse">Organize with LLM</button>
-          <button id="zt-cancel" class="btn btn-secondary hidden" data-action="ztCancel">Stop</button>
-        </div>
-        <div class="zt-line">
-          <div class="zt-field"><label for="zt-version">What Version (AW+)</label><input id="zt-version" class="form-input" placeholder="filled in by the analysis"><span id="zt-version-note" class="zt-small"></span></div>
-          <div class="zt-field"><label for="zt-product">What Product (DUT)</label><input id="zt-product" class="form-input" placeholder="filled in by the analysis"></div>
-          <div class="zt-field"><label for="zt-middle">What Team Subfolder</label><input id="zt-middle" class="form-input" placeholder="e.g. Tomahawk — blank if none"></div>
-          <div class="zt-field"><label for="zt-number">What Project Number</label><input id="zt-number" class="form-input" placeholder="e.g. 3001 — blank or N/A if none"></div>
-        </div>
-        <div id="zt-status" class="zt-status" role="status"></div>
-        <div class="zt-cols">
-          <div class="zt-col">
-            <div class="zt-col-head">Results Analysis</div>
-            <div id="zt-analysis" class="zt-scroll"></div>
-          </div>
-          <div class="zt-col">
-            <div class="zt-col-head"><span>Test Plans / Cycles / Cases</span><span id="zt-tree-count" class="zt-small"></span></div>
-            <div id="zt-tree" class="zt-scroll"></div>
-          </div>
-        </div>
-        <div class="zt-line zt-small"><span id="zt-templates-info"></span>
-          <button id="zt-refresh" class="btn btn-secondary btn-compact-small" data-action="ztRefreshTemplates" title="Re-read the template plans, cycles and cases from Zephyr (read only)">Refresh templates</button></div>
-        <div class="zt-actions">
-          <button id="zt-confirm" class="btn btn-secondary" data-action="ztConfirm">Confirm</button>
-          <button id="zt-upload" class="btn btn-primary" data-action="ztUpload" disabled title="Lists the calls first — nothing is written until you type the product and version and press Write to Zephyr">API Upload</button>
-        </div>
-        <div id="zt-upload-result"></div>
-      </div>
+      <!-- The page is a Svelte island (svelte-src/src/zt/, built to islands/zt.js), mounted here by zephyr-tool/zephyr-tool.js -->
+      <div id="zt-root"></div>
     </div>
 
     <!-- Test Composer (stub) -->
@@ -1057,6 +1026,6 @@ Interface port1.0.1
   </main>
 </div>
 
-<script type="module" src="/static/shared/main.js?v=40"></script>
+<script type="module" src="/static/shared/main.js?v=41"></script>
 </body>
 </html>
