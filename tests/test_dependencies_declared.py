@@ -55,7 +55,7 @@ _DIST_ALIASES = {
 _TRANSITIVE_OF_DECLARED = {"starlette"}
 
 # Modules that live in this repo but outside CK_server (ask-ck/tools/ is on the path at runtime).
-_REPO_LOCAL = {"cli_lookup", "pt_preflight",   # pt_preflight: ask-ck/tools, imported by the Run path (plan 10.4)
+_REPO_LOCAL = {"cli_lookup", "pt_preflight",   # pt_preflight: ask-ck/tools, imported by tc_projects (template counts)
                "zt_snapshot", "zt_wiki"}        # ask-ck/tools, imported by tc_projects (PLAN-test-composer §2.1)
 
 # Imports that are deliberately undeclared because a DECLARED package covers the same job.
@@ -133,7 +133,7 @@ def test_the_scan_finds_the_real_imports():
     """Guard the guard: a scan that matches nothing would pass forever while covering
     nothing. Anchor on imports that are certain to exist."""
     found = _third_party_imports()
-    for anchor in ("fastapi", "pydantic", "requests", "paramiko"):
+    for anchor in ("fastapi", "pydantic", "requests", "jinja2"):
         assert anchor in found, (
             f"{anchor} not detected as a third-party import — the scan is broken, "
             f"not the dependency list. Found: {sorted(found)}")

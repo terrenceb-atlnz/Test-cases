@@ -39,16 +39,6 @@ requests>=2.34,<3
 python-multipart>=0.0.9
 pydantic>=2.9,<3                 # 2.13.4 installed 2026-09-22
 
-# --- Testbox execution (PyTest Creator step "6. Run") ---
-# pt_exec.py's SSH/SFTP runner. It was used from the day that feature landed but declared
-# in NO requirements file — PLAN-pytest-creator.md merely noted "paramiko 2.9.3 is
-# installed", which was true of one machine, not of a fresh venv. The gap survived because
-# the failure is polite and far from the cause: `import paramiko` sits inside
-# pt_exec._connect(), so the server boots, every other tool works, and the profile probe
-# just answers {"ok": false, "detail": "SSH connection failed: No module named 'paramiko'"}
-# — which reads as a testbox/network problem, not a missing dependency.
-paramiko>=3.4,<6                 # 5.0.0 installed 2026-09-22
-
 # --- Py2 -> Py3 fragment translation (PyTest Creator "4. Fragments", D3) ---
 # The legacy corpus is Python 2, so reused fragments are modernized deterministically
 # before they reach Generate. That used the stdlib's lib2to3 — which Python 3.13 REMOVED,

@@ -27,7 +27,7 @@ graph evaluates.
 
 | Dir | File | Responsibility |
 |-----|------|----------------|
-| `shared/` | `main.js` | Entry point: ordered imports, `loadToolStatus`, boot block, form-control bindings |
+| `shared/` | `main.js` | Entry point: ordered imports, boot block, form-control bindings |
 | `shared/` | `session.js` | Per-tab session id + `window.fetch` monkeypatch injecting `X-CK-Session` / `X-CK-Panel` (side-effect) |
 | `shared/` | `state.js` | Shared mutable `S` state object (see below) |
 | `shared/` | `actions.js` | Action registry (`registerActions`) + delegated click/keydown dispatch |
@@ -39,7 +39,7 @@ graph evaluates.
 | `llm-config/` | `agent.js` | Local ck-agent bridge (broker long-poll, CLI status probes) |
 | `shared/` | `cases.js` | Case-select plumbing shared by Generator + PyTest Creator |
 | `shared/` | `nav.js` | Sidebar accordion + panel/step navigation |
-| `pytest-creator/` | `pytest.js` | PyTest Creator (7 visible steps; internal session keys still `step2`–`step8` — see `_step_label` / PLAN-pytest-creator.md 2026-07-23 flow revision) |
+| `pytest-creator/` | `pytest.js` | PyTest Creator (5 visible steps since 2026-10-12 — Run, Validate and Testboxes retired; internal session keys `step2`–`step6`, see `_step_label`). Confirm Step 5 saves, asks for any acknowledgement the server names (`X-CK-Needs`), then offers Validation (`openValidation` in `test-composer/test-composer.js`) |
 | `shared/` | `session-restore.js` | Refresh-safe UI state (sessionStorage, per tab): remembers active panel + each tool's loaded case so F5 doesn't dump the user at panel-main; `main.js` captures the snapshot BEFORE the boot default panel overwrites it |
 | `generator/` | `db-search.js` | merge + manual-search + LLM-suggest for TestLink/Zephyr/ATP |
 | `shared/` | `llm-progress.js` | Live LLM-button state: elapsed / ~typical / streamed counters polled from `/api/llm/inflight/{id}`, the 2px fill bar, and click-to-STOP (true server-side cancel via `/api/llm/cancel/{id}` — routed in actions.js before data-action so a busy button can't re-fire itself) |

@@ -21,6 +21,23 @@ current working thread see
 > `ask-ck/ck-facelift/`, `pytest-create/` and `CK-main/` plan paths moved to `ask-ck/plans/` on 2026-09-11 and, once complete, to `archive/plans/`.
 > `js-tests/` → `tests/js/`, `e2e/` → `tests/e2e/`, `static/js/` → `ask-ck/frontend/ck-main/current/<page>/` (2026-09-11).
 
+## 2026-10-12 — The PyTest Creator ends at a saved script; Run, Validate and Testboxes retired (branch tc-build)
+
+**What.** The Creator is 5 steps. Confirm Step 5 saves the script to `generated/`, confirms, and
+asks *"Do you want to test the new script?"* — Yes opens **Validation**, now inside the Test
+Composer sidebar section. 6. Run, 7. Validate and the Testboxes panel are gone, front end and
+server, with the SSH runner, the testbox profiles, `paramiko` and the framework read-only
+guards; `pt_exec.py` keeps only the log parser. Finalize turns on with a clean run. The colour
+specimen panel is removed.
+
+**Why.** Terrence (2026-10-12): running and validating a script *"should all be handled by
+Validation"*, which runs it through the seat agent's `/test-mode` session with the bench-runner's
+gates; a second, server-side run path would be the less safe of two ways to do the same thing.
+With no server code path to a testbox, invariant 3 now holds by construction rather than by a
+command guard. Confirm saves because *Complete* is now *saved*, and the two had to agree. Its
+overridable refusals gained `X-CK-Needs` because the page had never been able to send either
+acknowledgement — a coverage gap or a house-rule error blocked the case for good.
+
 ## 2026-10-09 — Validation and Test Composer; agent sessions on the seat; ZTT in Svelte (branch tc-build)
 
 **What.** Two new pages:

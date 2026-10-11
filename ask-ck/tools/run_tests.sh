@@ -28,7 +28,6 @@ fi
 
 echo "== invariant guards =="
 "$PY" ask-ck/tools/guard_db_only.py
-"$PY" ask-ck/tools/guard_framework_readonly.py
 
 # ck.db must be untouched by the gate. tests/conftest.py copies it to a temp file and
 # points CK_DB_PATH there, so nothing here should ever write the real one — this is the

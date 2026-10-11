@@ -76,7 +76,7 @@ flowchart TB
         R["8 routers<br/>wizard · pytest-create · zephyr-tool · test-composer<br/>agent · llm · admin · locks"]
         CORE["Shared leaf modules<br/>llm_config · case_registry · session_store · locks<br/>generator/ (descriptions · gates · backfill)"]
         LLM["llm.py — provider abstraction"]
-        EXEC["pt_exec.py — SSH/SFTP runner"]
+        EXEC["pt_exec.py — framework log parser"]
     end
 
     subgraph data["Data layer"]
@@ -95,7 +95,8 @@ flowchart TB
     R --> LLM
     LLM --> VLLM
     LLM -.->|long-poll bridge| AGENT
-    R --> EXEC -->|"SSH + SFTP"| TB
+    R --> EXEC
+    AGENT -.->|"/test-mode session (Validation, Test Composer)"| TB
     DB --- EMB
 ```
 
@@ -180,22 +181,24 @@ integration to be removed.
 
 ## 7. The hardware bridge
 
-`pt_exec.py` uploads a generated script over SFTP into a per-run workdir on a lab testbox,
-symlinks the read-only framework, and runs it under `sudo` with the bench's `.setup` topology
-file. Results are parsed back into per-TestCase PASS/FAIL.
+Since 2026-10-12 the server never connects to a testbox. **Validation** and **Test Composer**
+build a hand-off and start device-testing's `/test-mode` session on the user's own seat through
+the seat agent (`ask-ck/agent/ck_agent.py`, PLAN-agent-sessions); its bench-runner probes the
+bench, runs the script and reports results back as marker lines, which the page relays to the
+server's run record. `pt_exec.py` keeps only the framework log parser (per-TestCase
+PASS/FAIL), the contract a generated script's log is written against. (Until then `pt_exec.py`
+ran scripts itself over SFTP + `sudo` from the PyTest Creator's *Run* step.)
 
 The interesting engineering here is defensive, because **a lab bench is shared, mutable, and
 lies about itself**:
 
-- The framework tree is **read-only and guarded** — redirection, interpreters, `rsync`,
-  `install` and `cp -t` into it are all blocked, not just `rm`.
-- SSH host keys are pinned trust-on-first-use; the run command is `shlex`-quoted and
-  metacharacter-validated.
+- The framework tree is **read-only**: nothing in Ask-CK writes to a testbox at all, and the
+  session's bench-runner works in a per-run workdir.
 - A generated script **names no port and no partner**. It binds the framework's `swi_a` slot,
   discovers its cables through `get_all_port_links()` and reads each port's media from the DUT
   at run time (2026-09-21 — nothing is pre-declared in `[misc]`), so the same file runs on a
   chassis, a stack, or a standalone switch unchanged.
-- Before a run, `ask-ck/tools/pt_preflight.py` answers *offline* whether a bench has the cables a
+- Before a run, `ask-ck/tools/pt_preflight.py` (run by the session) answers *offline* whether a bench has the cables a
   script needs (media it declares unknowable); at run time `ask-ck/tools/pt_media.py` classifies
   each bound port's physical media.
 
@@ -203,7 +206,7 @@ That last set exists because of a specific, expensive failure class: the framewo
 `(None, None)` for a link the bench never declared, and the CLI accepts nonsensical settings
 (`speed 100` on a fibre port) without complaint. Both produce runs that **fail looking like
 product defects when the real cause is cabling**. Feeding a false defect report into a judging
-pipeline is worse than failing loudly, so the system now refuses to start such a run.
+pipeline is worse than failing loudly, so a session refuses to start such a run.
 
 ---
 
@@ -216,8 +219,8 @@ convention:
    not rebuildable.
 2. **The server reads corpora only from `ck.db`** — zero runtime JSON. Enforced by
    `ask-ck/tools/guard_db_only.py`.
-3. **The testbox framework tree is read-only.** Enforced by
-   `ask-ck/tools/guard_framework_readonly.py`.
+3. **The testbox framework tree is read-only.** Since 2026-10-12 there is nothing to guard: the
+   server has no code path that writes to a testbox (runs go through `/test-mode`).
 4. **The org vLLM is the only live external dependency**, and it is core function.
 
 ---

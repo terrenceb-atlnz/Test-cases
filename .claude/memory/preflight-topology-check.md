@@ -29,9 +29,9 @@ Usage: `python3 ask-ck/tools/pt_preflight.py --setup ~/claude/device-testing/ben
 No scp: that copy on the NFS lab home is always current, because tb470's `.setup` is
 GENERATED from `~/claude/device-testing/bench-setup/bench-state.md`, the source of truth
 for that bench.
-**2026-09-23: Run calls it too** (`pt_exec._preflight_gate`, via `preflight_text`, before
-upload). UN-RUNNABLE stops the run as `preflight_failed`, and the page's **Run anyway** sends
-`ignore_preflight`. An error inside the check never blocks the run.
+**2026-09-23 → 2026-10-12: the PyTest Creator's Run called it too** (`pt_exec._preflight_gate`);
+that Run path is retired. Now the `/test-mode` session runs it against the probed `.setup`, and
+the Test Composer's template counts use it (`tc_projects.templates_with_counts`).
 **2026-09-21 — reads the discovery frame's ROLE demands.** `self._ck_bind_link(setup, dut,
 '<role>'[, optional=True])` call sites: `tb` needs a testbox↔DUT `port` link; a partner role
 (copper/fibre/cusfp) needs an unused DUT↔partner `port` link, the DUT expanded to the stack

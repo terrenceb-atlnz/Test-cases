@@ -1,7 +1,7 @@
 /* Built from ask-ck/frontend/ck-main/current/svelte-src/ — do not edit; run `npm run build` there.
-* source-sha256:558a27cb0e3e7aa1b1567b09b7d7b588b1938ff9641a2727f4bfacbd57d0518c */
-import { B as proxy, C as unmount, D as text, E as from_html, G as pop, H as state, I as child, J as reset, K as push, L as first_child, N as template_effect, O as delegate, R as only_child, S as set_text, U as flushSync, V as set, W as user_derived, _ as each, b as if_block, c as remove_input_defaults, h as set_class, j as get, k as delegated, n as onMount, o as bind_group, r as prop, v as index, w as append, x as mount, y as key, z as sibling } from "./disclose-version-Cf35PRTc.js";
-import { _ as saveSetup, f as httpAgent, g as runBody, i as AgentWindow, m as loadSetup, n as RunsList, p as httpServer, r as ResultsTable, t as SetupFields } from "./SetupFields-CxWRVO5r.js";
+* source-sha256:cf9c53cb5a519fbc3adac9ae9996c7ad144bc46af17c905c78e1c819f440295e */
+import { B as proxy, C as unmount, D as text, E as from_html, G as pop, H as state, I as child, J as reset, K as push, L as first_child, N as template_effect, O as delegate, R as only_child, S as set_text, U as flushSync, V as set, W as user_derived, _ as each, b as if_block, c as remove_input_defaults, h as set_class, j as get, k as delegated, n as onMount, o as bind_group, r as prop, v as index, w as append, x as mount, y as key, z as sibling } from "./disclose-version-UECZjiUI.js";
+import { _ as saveSetup, f as httpAgent, g as runBody, i as AgentWindow, m as loadSetup, n as RunsList, p as httpServer, r as ResultsTable, t as SetupFields } from "./SetupFields-7DN-mdZc.js";
 //#region src/vd/VdPage.svelte
 var root = from_html(`<span class="tc-badge tc-state-done">finalized</span>`);
 var root_1 = from_html(`<label><input type="radio" name="vd-script"/> <span class="tc-key"> </span> <span> </span> <span class="tc-small"> </span> <!></label>`);
@@ -19,13 +19,16 @@ var root_12 = from_html(`<div class="tc-small"> </div> <div class="tc-panes"><pr
 var root_13 = from_html(`<!> <!>`, 1);
 var root_14 = from_html(`<div class="tc-card"><div class="tc-card-head"> </div> <div class="tc-small"> </div> <!></div>`);
 var root_15 = from_html(`<div class="tc-small">No repaired copy or review yet — both appear here when the session reports them.</div>`);
-var root_16 = from_html(`<li> </li>`);
-var root_17 = from_html(`<div class="tc-step"><span class="tc-step-n">4</span> </div> <!> <div class="tc-step"><span class="tc-step-n">6</span> Review and repaired copy</div> <!> <!> <!> <div class="tc-step"><span class="tc-step-n">7</span> Finalize</div> <div class="tc-line"><button type="button" id="vd-finalize" class="btn btn-primary" disabled="">Finalize</button> <ul class="tc-blockers"></ul></div>`, 1);
-var root_18 = from_html(`<div class="section tc-page"><div class="section-heading">Validation</div> <div class="section-description">Run one saved script on a test bench through your seat's agent. The session probes the bench, checks the script's topology needs, runs it, repairs a <i>copy</i> until the run is clean, and reviews it. Nothing changes the saved script until you approve; Finalize then marks the case automatable in Zephyr and takes it off the authoring lists.</div> <div class="tc-step"><span class="tc-step-n">1</span> Script</div> <div class="tc-scripts"><!> <!></div> <div class="tc-step"><span class="tc-step-n">2</span> Where it runs</div> <!> <div class="tc-step"><span class="tc-step-n">3</span> Launch</div> <div class="tc-line"><button type="button" id="vd-launch" class="btn btn-primary"> </button> <span class="tc-small"><!></span></div> <div role="status"> </div> <!> <div class="tc-step">Earlier Validation runs</div> <!></div>`);
+var root_16 = from_html(`<span class="tc-check"> </span>`);
+var root_17 = from_html(`<li> </li>`);
+var root_18 = from_html(`<ul class="tc-blockers"></ul>`);
+var root_19 = from_html(`<span class="tc-small">Writes Zephyr first (step 1's note, then version 3.0), then takes the case off the lists. Zephyr's "new version" request is not captured yet (V0), so for now the server says so and writes nothing.</span>`);
+var root_20 = from_html(`<div class="tc-step"><span class="tc-step-n">4</span> </div> <!> <div class="tc-step"><span class="tc-step-n">6</span> Review and repaired copy</div> <!> <!> <!> <div class="tc-step"><span class="tc-step-n">7</span> Finalize</div> <div class="tc-line"><button type="button" id="vd-finalize" class="btn btn-primary"> </button> <!></div>`, 1);
+var root_21 = from_html(`<div class="section tc-page"><div class="section-heading">Validation</div> <div class="section-description">Run one saved script on a test bench through your seat's agent. The session probes the bench, checks the script's topology needs, runs it, repairs a <i>copy</i> until the run is clean, and reviews it. Nothing changes the saved script until you approve; Finalize then marks the case automatable in Zephyr and takes it off the authoring lists.</div> <div class="tc-step"><span class="tc-step-n">1</span> Script</div> <div class="tc-scripts"><!> <!></div> <div class="tc-step"><span class="tc-step-n">2</span> Where it runs</div> <!> <div class="tc-step"><span class="tc-step-n">3</span> Launch</div> <div class="tc-line"><button type="button" id="vd-launch" class="btn btn-primary"> </button> <span class="tc-small"><!></span></div> <div role="status"> </div> <!> <div class="tc-step">Earlier Validation runs</div> <!></div>`);
 function VdPage($$anchor, $$props) {
 	push($$props, true);
 	const binding_group = [];
-	let preselect = prop($$props, "preselect", 3, null), openRun = prop($$props, "openRun", 3, null), saveScript = prop($$props, "saveScript", 3, defaultSave), pollMs = prop($$props, "pollMs", 3, 5e3);
+	let preselect = prop($$props, "preselect", 7, null), openRun = prop($$props, "openRun", 3, null), saveScript = prop($$props, "saveScript", 3, defaultSave), pollMs = prop($$props, "pollMs", 3, 5e3);
 	/** Approval goes through the PyTest Creator's own save, so its units⇄script binding reports the edit. */
 	async function defaultSave(caseKey, code) {
 		const r = await fetch(`/api/pytest-create/save_script/${encodeURIComponent(caseKey)}`, {
@@ -141,9 +144,29 @@ function VdPage($$anchor, $$props) {
 		!get(run) && "no run yet",
 		get(run) && get(runState) !== "done" && "the latest run has not finished cleanly",
 		get(repaired).some((r) => !(get(compare)[r.path] && get(compare)[r.path].saved)) && "a repaired copy is waiting for your approval",
-		!get(reviewed) && "the review has not been written yet (test-mode §11.2)",
-		"Zephyr's \"new version\" request is not captured yet (V0) — Finalize writes nothing until it is"
+		!get(reviewed) && "the review has not been written yet (test-mode §11.2)"
 	].filter(Boolean));
+	let finalizing = state(false);
+	let finalized = state(null);
+	async function finalize() {
+		if (get(finalizeBlockers).length || get(finalizing)) return;
+		set(finalizing, true);
+		const c = get(reviews)[0].case;
+		try {
+			set(finalized, await $$props.server(`/runs/${encodeURIComponent(get(run).runId)}/finalize/${encodeURIComponent(c)}`, { method: "POST" }), true);
+			setStatus(`${c} finalized: it has left the PyTest Creator and the Objective / Test Case lists.`);
+			loadScripts();
+		} catch (e) {
+			setStatus(`Finalize did not run for ${c}: ${e.message}`, true);
+		} finally {
+			set(finalizing, false);
+		}
+	}
+	/** The PyTest Creator's "test the new script?" pop-up opens this page on one script. */
+	function select(key) {
+		preselect(key);
+		return loadScripts();
+	}
 	function setStatus(msg, bad = false) {
 		set(status, {
 			msg,
@@ -190,6 +213,7 @@ function VdPage($$anchor, $$props) {
 				sessionId: started.session_id
 			}, true);
 			set(markers, [], true);
+			set(finalized, null);
 			set(refreshKey, get(refreshKey) + 1);
 			setStatus(`Launched ${created.run_id} on ${body.testbox}.`);
 		} catch (e) {
@@ -215,7 +239,8 @@ function VdPage($$anchor, $$props) {
 		const t = setInterval(watchMarkers, pollMs());
 		return () => clearInterval(t);
 	});
-	var div = root_18();
+	var $$exports = { select };
+	var div = root_21();
 	var div_1 = sibling(child(div), 6);
 	var node = child(div_1);
 	each(node, 17, () => get(scripts), (s) => s.path, ($$anchor, s) => {
@@ -306,8 +331,8 @@ function VdPage($$anchor, $$props) {
 	let classes_1;
 	var text_8 = only_child(div_4, true);
 	var node_5 = sibling(div_4, 2);
-	var consequent_12 = ($$anchor) => {
-		var fragment_3 = root_17();
+	var consequent_14 = ($$anchor) => {
+		var fragment_3 = root_20();
 		var div_5 = first_child(fragment_3);
 		var text_9 = sibling(child(div_5));
 		reset(div_5);
@@ -462,23 +487,49 @@ function VdPage($$anchor, $$props) {
 			if (!get(repaired).length && !get(reviews).length) $$render(consequent_11);
 		});
 		var div_15 = sibling(node_16, 4);
-		var ul = sibling(child(div_15), 2);
-		each(ul, 21, () => get(finalizeBlockers), index, ($$anchor, b) => {
-			var li = root_16();
-			var text_18 = only_child(li, true);
-			template_effect(() => set_text(text_18, get(b)));
-			append($$anchor, li);
+		var button_4 = child(div_15);
+		var text_18 = only_child(button_4, true);
+		var node_17 = sibling(button_4, 2);
+		var consequent_12 = ($$anchor) => {
+			var span_7 = root_16();
+			var text_19 = only_child(span_7);
+			template_effect(($0) => set_text(text_19, `✓ finalized ${$0 ?? ""}`), [() => String(get(finalized).finalized_at || "").slice(0, 16)]);
+			append($$anchor, span_7);
+		};
+		var consequent_13 = ($$anchor) => {
+			var ul = root_18();
+			each(ul, 21, () => get(finalizeBlockers), index, ($$anchor, b) => {
+				var li = root_17();
+				var text_20 = only_child(li, true);
+				template_effect(() => set_text(text_20, get(b)));
+				append($$anchor, li);
+			});
+			reset(ul);
+			append($$anchor, ul);
+		};
+		var alternate_4 = ($$anchor) => {
+			var span_8 = root_19();
+			append($$anchor, span_8);
+		};
+		if_block(node_17, ($$render) => {
+			if (get(finalized)) $$render(consequent_12);
+			else if (get(finalizeBlockers).length) $$render(consequent_13, 1);
+			else $$render(alternate_4, -1);
 		});
-		reset(ul);
 		reset(div_15);
-		template_effect(() => set_text(text_9, ` The session — ${get(run).runId ?? ""}`));
+		template_effect(() => {
+			set_text(text_9, ` The session — ${get(run).runId ?? ""}`);
+			button_4.disabled = get(finalizeBlockers).length > 0 || get(finalizing) || !!get(finalized);
+			set_text(text_18, get(finalizing) ? "Finalizing…" : "Finalize");
+		});
+		delegated("click", button_4, finalize);
 		append($$anchor, fragment_3);
 	};
 	if_block(node_5, ($$render) => {
-		if (get(run)) $$render(consequent_12);
+		if (get(run)) $$render(consequent_14);
 	});
-	var node_17 = sibling(node_5, 4);
-	RunsList(node_17, {
+	var node_18 = sibling(node_5, 4);
+	RunsList(node_18, {
 		get server() {
 			return $$props.server;
 		},
@@ -492,6 +543,7 @@ function VdPage($$anchor, $$props) {
 				sessionId: null
 			}, true);
 			set(markers, [], true);
+			set(finalized, null);
 		}
 	});
 	reset(div);
@@ -503,7 +555,7 @@ function VdPage($$anchor, $$props) {
 	});
 	delegated("click", button, launch);
 	append($$anchor, div);
-	pop();
+	return pop($$exports);
 }
 delegate(["click"]);
 //#endregion
@@ -520,9 +572,12 @@ function mountVd(target, opts = {}) {
 			...opts.pollMs ? { pollMs: opts.pollMs } : {}
 		}
 	});
-	return { destroy() {
-		unmount(app);
-	} };
+	return {
+		destroy() {
+			unmount(app);
+		},
+		select: (key) => app.select(key)
+	};
 }
 //#endregion
 export { flushSync, mountVd };

@@ -8,10 +8,10 @@ the same case — and the thread's first `on_update` was refused by its own init
 refusal happened inside the connect `try/except`, so it surfaced as
 "SSH connect failed: … the case is locked" and sent five sessions to look at the bench.
 
-The first test here fails against a bare `threading.Thread` and passes with
-`contextvars.copy_context()`. The last one is the generalisation: no module in the server
-may spawn a thread without carrying the context, because the failure is silent and the
-symptom always points somewhere else.
+RunManager went with the PyTest Creator's Run step on 2026-10-12; what stays is the rule it
+taught. The first tests pin the ContextVar behaviour itself; the sweep is the generalisation:
+no module in the server may spawn a thread without carrying the context, because the failure
+is silent and the symptom always points somewhere else.
 """
 import ast
 import contextvars
@@ -22,7 +22,6 @@ import pytest
 
 import llm
 import locks
-import pt_exec
 
 SERVER_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
                           "ask-ck", "CK-main", "CK_server")
@@ -56,64 +55,6 @@ def test_bare_thread_loses_the_holder(held_case):
     t.join()
     assert seen["holder"] == "", "a bare thread must NOT inherit the ContextVar"
     assert locks.current_holder() == "browser-tab-abc"
-
-
-def test_run_manager_thread_inherits_the_holder(held_case):
-    """The fix. The run thread must see the tab that started it as the lock holder."""
-    seen = {}
-    done = threading.Event()
-
-    def fake_run(*args):
-        seen["holder"] = locks.current_holder()
-        try:
-            locks.require_can_write("pt", held_case)
-            seen["can_write"] = True
-        except Exception as exc:
-            seen["can_write"] = False
-            seen["error"] = f"{type(exc).__name__}: {exc}"
-        done.set()
-
-    mgr = pt_exec.RunManager()
-    original = mgr._run
-    try:
-        mgr._run = fake_run
-        mgr.start(held_case, {"run_id": "r1"}, {}, {}, "setup", None, lambda r: None)
-        assert done.wait(5), "run thread never started"
-    finally:
-        mgr._run = original
-
-    assert seen["holder"] == "browser-tab-abc", (
-        "the run thread did not inherit the initiating session — this is the defect that "
-        "made every browser-initiated run report 'SSH connect failed: the case is locked'")
-    assert seen["can_write"] is True, seen.get("error")
-
-
-def test_run_thread_can_persist_while_the_initiator_holds_the_lock(held_case):
-    """End-to-end shape of the bug: the first status update must not be locked out.
-
-    `RunManager._run` sets status='connecting' and calls `on_update` BEFORE `_connect`.
-    That call is what used to raise.
-    """
-    errors = []
-    done = threading.Event()
-
-    def on_update(run):
-        try:
-            locks.require_can_write("pt", held_case)
-        except Exception as exc:
-            errors.append(str(exc))
-        finally:
-            done.set()
-
-    mgr = pt_exec.RunManager()
-    original = mgr._run
-    try:
-        mgr._run = lambda run, *a: on_update(run)
-        mgr.start(held_case, {"run_id": "r2"}, {}, {}, "setup", None, on_update)
-        assert done.wait(5)
-    finally:
-        mgr._run = original
-    assert not errors, f"first status update was locked out by its own initiator: {errors}"
 
 
 def test_context_copy_is_taken_on_the_calling_thread(held_case):

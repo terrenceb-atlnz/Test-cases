@@ -20,14 +20,14 @@ import { copy } from './ui.js';
 const HEARTBEAT_MS = 5 * 60 * 1000;
 
 // Which step panels become read-only when the case is locked by someone else. The case
-// picker (step-0 / panel-pt-cases) and the global Testboxes panel stay usable so you can
-// still switch cases or manage testboxes while viewing someone else's work.
+// picker (step-0 / panel-pt-cases) stays usable so you can still switch cases while viewing
+// someone else's work.
 const _tools = {
   wizard: { key: null, heldByMe: false, timer: null, reload: null,
             panels: ['step-1', 'step-2', 'step-3', 'step-4', 'step-5'] },
   pt:     { key: null, heldByMe: false, timer: null, reload: null,
             panels: ['panel-pt-seq', 'panel-pt-search', 'panel-pt-frag',
-                     'panel-pt-gen', 'panel-pt-run', 'panel-pt-validate'] },
+                     'panel-pt-gen'] },
 };
 let _releaseArmed = false;
 

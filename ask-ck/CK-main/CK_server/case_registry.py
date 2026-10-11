@@ -83,6 +83,26 @@ def finalized_case_keys(generated: Optional[Path] = None) -> frozenset:
     return out
 
 
+def saved_script_case_keys(generated: Optional[Path] = None) -> frozenset:
+    """Cases whose script is saved to generated/ — the PyTest Creator's Complete (Terrence
+    2026-10-12: "saving the script to generated/ marks it complete"). A save writes
+    generated/<group>/<name>.py and generated/.meta/<group>/<name>/provenance.json with
+    `case_key` and `saved_at`; both must be there, so a deleted script reads as not saved."""
+    root = generated or PT_GENERATED_DIR
+    keys = set()
+    meta = root / ".meta"
+    if meta.is_dir():
+        for pp in meta.glob("*/*/provenance.json"):
+            try:
+                prov = json.loads(pp.read_text(encoding="utf-8"))
+            except (OSError, ValueError):
+                continue
+            group, name = pp.parent.parent.name, pp.parent.name
+            if prov.get("case_key") and prov.get("saved_at") and (root / group / f"{name}.py").is_file():
+                keys.add(prov["case_key"])
+    return frozenset(keys)
+
+
 def is_hidden_case(key: str, folder: str = "") -> bool:
     """A case is hidden from the lists if its key is explicitly hidden, it lives in a hidden
     folder, or Validation FINALIZED it (Terrence 2026-10-09: "i dont want it re-authored there").

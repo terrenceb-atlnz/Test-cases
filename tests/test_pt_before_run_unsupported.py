@@ -393,10 +393,3 @@ def test_a_run_without_marks_reads_exactly_as_before():
     text = (_FIX / "framework_run_pass.log").read_text(encoding="utf-8")
     r = pt_exec.parse_framework_log(text)
     assert r["not_run_cases"] == [] and "not run" not in r["verdict"]
-
-
-def test_the_run_panel_shows_why_a_case_did_not_run():
-    js = (_REPO / "ask-ck" / "frontend" / "ck-main" / "current" / "pytest-creator" / "pytest.js").read_text(
-        encoding="utf-8")
-    assert "c.ran === false" in js and "'not run: '" in js
-

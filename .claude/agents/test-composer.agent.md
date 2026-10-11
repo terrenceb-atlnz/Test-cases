@@ -25,8 +25,8 @@ get rediscovered.
    copy with a `.orig` beside it, patch the copy. Your tests and smoke checks must not write
    it; use `ask-ck/tools/run_scratch_server.sh`. Real user traffic *should* dirty it.
 2. **`/home/st-art/framework` is read-only.** Never write, edit, `cp`, `rsync` or redirect into
-   it. Copy anything you must change into the run workdir first. `ask-ck/tools/guard_framework_readonly.py`
-   enforces this and is in the gate.
+   it. Copy anything you must change into the run workdir first. (No gate guard since 2026-10-12:
+   Ask-CK's server no longer runs scripts on a testbox; bench-runner does, in its own workdir.)
 3. **The working tree IS production.** `ask-ck.service` runs uvicorn `--reload` against this
    checkout, so **any save to a `.py` under `ask-ck/CK-main/` hot-reloads the LAN server within
    a second** and kills in-flight LLM calls. Repo-root `tests/` is outside the watch. Never edit

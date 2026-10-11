@@ -3,6 +3,11 @@ verified: 2026-09-23
 ---
 # PyTest Creator — Testing & Standardization Plan
 
+> **2026-10-12:** the PyTest Creator's 6. Run / 7. Validate and the server's SSH run path are
+> retired — a generated script now runs through **Validation** (`PLAN-test-validation.md`, the seat
+> agent's `/test-mode` session). Part 3b's hardware runs belong there; everything below about
+> `/run`, profiles and `pt_exec`'s runner is history.
+>
 > **Status check 2026-09-23 (verified against the code and the logs) — read before the dated
 > entries below, several of which were later reversed without a marker here:**
 > - **Part 3b / Phase 11.4 has NEVER happened.** No generated script has run on tb470. It was

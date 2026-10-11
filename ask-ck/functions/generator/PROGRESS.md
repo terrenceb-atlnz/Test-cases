@@ -5,11 +5,56 @@ verified: 2026-09-28
 
 **Purpose**: This file exists so future sessions can quickly understand exactly where we are, what has been built, what the priorities are, and how to continue seamlessly.
 
-**Last Updated**: 2026-10-09, later (by Claude, autonomous; Test Composer / Validation / agent sessions built on branch tc-build, E2E passed — NOT live)
+**Last Updated**: 2026-10-12 (by Claude, with Terrence; the PyTest Creator ends at a saved script; Run/Validate/Testboxes retired; Validation moved into Test Composer — on branch tc-build)
 
 > **Reading note (2026-09-23 doc sweep).** Entries are frozen as written. Where an entry's
 > claim has since stopped being true, a ⚠ line under its heading says what changed.
 > Newest first. Paths in older entries predate these moves (the same as in CHANGELOG): `tool/` → `ask-ck/tools/`, `ask-ck/var/` → `ask-ck/db/`, `objective-drafting/` → `ask-ck/functions/generator/`, `pytest-create/` → `ask-ck/functions/pytest-creator/`, `js-tests/` → `tests/js/`, `ask-ck/ck-facelift/` → `ask-ck/plans/`, root reports → `docs/`, and completed plans `ask-ck/plans/` → `archive/plans/` (2026-09-11, 2026-09-23). Also retired 2026-09-23: the demo notes → `archive/plans/demo-2026-09-11/`, and `HANDOFF-generate-token-efficiency.md` + `Fragments_prompt.md` → `archive/records/`.
+
+## Latest session (2026-10-12) — the PyTest Creator ends at a saved script; Run, Validate and Testboxes retired; Validation moved into Test Composer (branch `tc-build`)
+
+Terrence (2026-10-12): *"Remove 7. Validate (since this should all be handled by Validation).
+Move new Validation section INTO Test Composer section"*, then, in answers: saving to
+`generated/` makes a case Complete; the Creator ends there with a pop-up, *"Do you want to test
+the new script?"* (Yes → Validation, No → 1. Cases), shown after **Confirm Step 5**, and Confirm
+saves first; a clean Validation run enables Finalize, which takes the case off the list; **6. Run,
+7. Validate and Testboxes are audited, then removed, front end AND server**; drop step 7's
+"Fix whole script" (5. Generate keeps its own, so `/fix_script` stays); keep the log parser, drop
+the framework read-only guards and update invariant 3; fix Confirm's never-sendable
+acknowledgements; edit TESTBOX-ACCESS here; remove the colour specimen.
+
+**Done (one commit on `tc-build`, on top of the merged `9835258`):**
+- **Sidebar:** the Test Composer section holds *Validate a Script* then *Compose a Run*, on both
+  pages; Validation's own section and the colour specimen (panel, CSS, parity test, the
+  `loadToolStatus` that only fed it) are gone. `main.js?v=42`.
+- **PyTest Creator:** 5 steps. Confirm Step 5 pushes the editor, the server WRITES `generated/`
+  then confirms (a failed write leaves it unconfirmed), and the pop-up offers Validation
+  (`openValidation` selects the script by case key — the display group is not the family
+  directory). Its overridable 409s carry `X-CK-Needs`, and the page asks for the coverage-gap
+  acknowledgement or a house-rule reason and resends; it always sent `{}` before, so neither
+  could be confirmed from the UI. *Complete* = `case_registry.saved_script_case_keys` (provenance
+  `saved_at` + the `.py` on disk).
+- **Removed:** `/run`, `/run_status`, `/profiles` CRUD + check, `/validate`, `confirm_step` 7-8,
+  `_sweep_stale_runs`, the media-helper shipping, the run input to Fix units (`_fix_reasons`,
+  the prompt's bench block, the hold rule) and to the whole-script Fix; `pt_exec.py` is now only
+  the log parser; `paramiko`; `ask-ck/tools/guard_framework_readonly.py` (and its gate line).
+  `PtSession.step7/8` stay as fields so stored sessions load.
+- **Validation:** Finalize turns on with a clean run (done, reviewed, nothing awaiting approval)
+  and posts; while V0 is open the server refuses before any write and the page shows the reason.
+- **Docs:** CLAUDE.md / README / ARCHITECTURE / REVIEWER-ONBOARDING invariant 3, SERVER-README,
+  front-end README, the orient skill and test-composer agent, three plan headers, four memories,
+  and device-testing's `TESTBOX-ACCESS.md` (**uncommitted there**, for its next wrap).
+
+**Gate:** pytest 2073 / 2 skipped, vitest 395; 28 mutations red (one survivor was dead code, removed). Scratch smoke on :8123:
+both pages load v42 with no removed panel, `/run` `/profiles` `/validate` 404, `confirm_step/7` 400.
+
+**Pending (Terrence):**
+- apply `tc-build` (ff-only; a backend change, so the merge restarts the live server);
+- commit device-testing's `TESTBOX-ACCESS.md`;
+- delete the now-unread `secrets.testboxes.json` if wanted;
+- the whole-script Fix prompt still opens "fixing a script that failed when executed on a real
+  testbox" and its rules say "Diagnose from the log" — the run input is gone, so the wording
+  should change (a prompt change, not made).
 
 ## Latest session (2026-10-09, later — autonomous run while Terrence was away) — Test Composer, Validation and agent sessions BUILT on branch `tc-build`; E2E passed on tb470
 

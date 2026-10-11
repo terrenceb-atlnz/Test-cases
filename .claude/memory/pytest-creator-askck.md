@@ -1,6 +1,6 @@
 ---
 name: pytest-creator-askck
-description: "PyTest Creator tool in Ask CK — current flow shape, tracker location, and what remains (tb470 execution, .setup parsing)"
+description: "PyTest Creator tool in Ask CK — 5 steps ending at a saved script (Run/Validate/Testboxes retired 2026-10-12), tracker location, ART identity"
 metadata:
   node_type: memory
   type: project
@@ -11,8 +11,17 @@ metadata:
 
 The **PyTest Creator** (a tool inside the Ask CK FastAPI workbench at
 `ask-ck/CK-main/CK_server/`) turns refined AWPTCM cases into runnable
-Allied Telesis `framework` (ATTestSet/ATTestCase) scripts, then runs them on real hardware
-over SSH and iterates via an LLM fix loop.
+Allied Telesis `framework` (ATTestSet/ATTestCase) scripts.
+
+**2026-10-12 (Terrence): it ENDS at a saved script.** 5 steps (Cases, Sequence, Script Search,
+Fragments, Generate); Confirm Step 5 saves to `generated/` and pops up "Do you want to test the
+new script?" (Yes → Validation, No → 1. Cases). **6. Run, 7. Validate and Testboxes are gone,
+front end and server** (no `/run`, `/validate`, `/profiles`; `pt_exec.py` is only the log parser;
+no paramiko). Running, repairing and finalizing a script is **Validation's** job (Test Composer
+section; `ask-ck/plans/PLAN-test-validation.md`), through the seat agent's `/test-mode` session —
+[[tb470-runs-go-through-test-mode]]. Cases-list *Complete* = the script is saved
+(`case_registry.saved_script_case_keys`); Finalize hides the case. Old sessions' `step7`/`step8`
+load but are ignored. Anything below about running on hardware from the Creator is history.
 
 The living plan/progress tracker is `ask-ck/plans/PLAN-pytest-creator.md`
 — **update it as milestones land** (user explicitly wants progress tracked there). Testing
@@ -21,12 +30,14 @@ status lives in the companion `PLAN-pytest-testing.md`.
 Facts that have CHANGED since this memory was first written (2026-07-14) — do not trust the
 older phrasing found in historical doc entries:
 
-- The flow is **7 steps, not 8** — Fit Decision was removed 2026-07-23. Internal `stepN`
-  session keys are unchanged (fragments are still `step5`, generate `step6`).
+- The flow was **7 steps, not 8** after Fit Decision was removed 2026-07-23 (5 since
+  2026-10-12, above). Internal `stepN` session keys are unchanged (fragments are still `step5`,
+  generate `step6`).
 - Generation **fills a fixed skeleton** (`templates/pt_script_template.py.jinja`); it is not
   a free compose.
 - All script source comes from **`ck.db`** — the old script mount (`testsuites_art/` etc.)
-  is retired and guarded against. The testbox framework dir is read-only, also guarded.
+  is retired and guarded against. The testbox framework dir is read-only (no runtime guard since
+  2026-10-12: the server has no code path to a testbox).
 
 Remaining as of 2026-07-28: **Part 3b** (execution judging on tb470) needs `configs/tb470.setup`
 — the schema is no longer the blocker (captured in `SETUP-FILE-REFERENCE.md`), only tb470's
@@ -48,7 +59,6 @@ Running ONE TestCase by that number is UNVERIFIED against the live framework —
 Conventions: `framework` is a whole library (not just the two base classes); generated
 scripts go to `generated/<family>_<Group>/<Name>.py` — the name is DERIVED from the case key,
 not typed (the panel's naming inputs were removed 2026-09-17);
-testbox profiles need `tb_number` + IP minimum, stored in gitignored `secrets.testboxes.json`;
 server runs via `ask-ck/CK-main/run.sh` on port 8000. Reaching a device by hand:
 [[testbox-console-access]].
 
@@ -65,7 +75,8 @@ Facts confirmed 2026-08-06 (driving the API end-to-end for the pilot trio):
   extract_sequence → confirm_step/2 (coverage gate) → suggest_scripts → save_matches
   ({stepN:[ids]}) → confirm_step/3 → gather_fragments → save_fragments ({keep:[{source_id,symbol}]})
   → confirm_step/5 → generate_script (also runs an initial lint) → lint_script → confirm_step/6
-  (needs clean lint; policy errors overridable with a recorded reason). LLM steps are slow
+  (needs clean lint; policy errors overridable with a recorded reason; since 2026-10-12 it also
+  WRITES generated/ before confirming, and its overridable 409s name the field in `X-CK-Needs`). LLM steps are slow
   (extract/generate ~60-200s on Opus/`claude_code`, 300-600s server timeouts) — run with a long
   client timeout or they read as failures.
 - **`testCaseDesc`/`testCaseRef`/`testCaseMethod` stay** — they don't control LLM drift, but the

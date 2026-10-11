@@ -13,6 +13,8 @@ the original acceptance did not cover:
   2. SSH AutoAddPolicy with no known_hosts anywhere in the repo. The NEW fact: the
      "localhost/single-user" rationale does not apply — this connection is OUTBOUND to a
      lab testbox, so its exposure is independent of the web UI being single-user.
+     (Its tests went with that SSH path, pt_exec's run engine, on 2026-10-12: Ask-CK no
+     longer connects to a testbox.)
 
 The fixes deliberately preserve existing capability as an explicit opt-in rather than
 removing it, so no working setup breaks.
@@ -104,50 +106,3 @@ def test_the_cli_protection_force_would_bypass_still_exists():
     cli = (_REPO / "ask-ck" / "frontend" / "ck-main" / "current" / "generator" / "upload_refined.py").read_text(encoding="utf-8")
     assert "not args.force" in cli
     assert "already appears refined" in cli
-
-
-# --- 2. SSH host-key pinning ----------------------------------------------------
-def _connect_src():
-    src = (_CK / "CK_server" / "pt_exec.py").read_text(encoding="utf-8")
-    return src.split("def _connect(", 1)[1].split("\ndef ", 1)[0]
-
-
-def test_known_hosts_are_loaded_before_the_policy_is_set():
-    """Order is the whole fix: loading first PINS a testbox we have seen before, so a
-    changed key (what a MITM looks like) raises instead of being silently accepted."""
-    body = _connect_src()
-    assert "load_system_host_keys" in body, "host keys are never loaded"
-    assert body.index("load_system_host_keys") < body.index("set_missing_host_key_policy"), \
-        "known_hosts must load BEFORE the missing-key policy or nothing is pinned"
-
-
-def test_autoadd_remains_so_new_hosts_still_work():
-    """Trust-on-first-use, not trust-nothing — an unseen testbox must not need a prompt."""
-    assert "AutoAddPolicy" in _connect_src()
-
-
-def test_known_hosts_failure_is_not_fatal():
-    """A malformed known_hosts must not block a testbox run."""
-    body = _connect_src()
-    assert "except Exception" in body
-    assert "Warning" in body
-
-
-def test_pinning_can_be_disabled_deliberately():
-    """A legitimately reimaged testbox needs an escape hatch."""
-    body = _connect_src()
-    assert "CK_SSH_TRUST_ANY" in body
-
-
-def test_pt_exec_imports_os():
-    """`os.getenv` in _connect would NameError on every connect without this import —
-    py_compile does not catch it, so pin it explicitly."""
-    import pt_exec
-    assert getattr(pt_exec, "os", None) is not None
-
-
-def test_no_other_unpinned_ssh_client_appeared():
-    """Any future SSHClient must go through _connect, or it bypasses the pinning."""
-    src = (_CK / "CK_server" / "pt_exec.py").read_text(encoding="utf-8")
-    assert src.count("paramiko.SSHClient()") == 1, (
-        "a second SSHClient exists — route it through _connect so host keys stay pinned")

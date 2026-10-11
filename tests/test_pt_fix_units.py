@@ -139,6 +139,8 @@ def _sess():
                     "suggestion": "assert x"},
                    {"severity": "low", "kind": "other", "where": "(script)", "step": None,
                     "what": "imports unused module", "evidence": "", "suggestion": ""}]}}
+    # A stored session from before 2026-10-12 can still carry 6. Run's results; they are no
+    # longer a reason to fix (the bench runs moved to Validation).
     s.step7 = {"runs": [{"parsed": {"cases": [
         {"name": "TestCase_1", "result": "PASS", "fail_msgs": []},
         {"name": "TestCase_2", "result": "FAIL", "fail_msgs": ["bad"]},
@@ -150,11 +152,10 @@ def test_reasons_land_on_their_units_and_the_rest_is_reported_unmapped():
     r = pc._fix_reasons(_sess(), CTX, SCRIPT)
     per = r["per_unit"]
     assert set(per) == {"tc1", "tc2"}
-    assert per["tc2"]["lint"] == ["structure: TestCase_2 missing testCaseDesc"]
-    assert per["tc2"]["run"]["result"] == "FAIL" and per["tc2"]["excerpt"] == ""
+    assert per["tc2"] == {"lint": ["structure: TestCase_2 missing testCaseDesc"], "review": []}
     assert len(per["tc1"]["lint"]) == 1 and per["tc1"]["review"][0]["where"] == "TestCase_1.main"
-    assert per["tc1"]["run"] is None                      # a PASS is not a reason
-    assert [u[:6] for u in r["unmapped"]] == ["lint: ", "review", "run: T"]
+    assert set(per["tc1"]) == {"lint", "review"}          # an old run result is not a reason
+    assert [u[:6] for u in r["unmapped"]] == ["lint: ", "review"]
 
 
 def test_a_session_with_nothing_wrong_yields_nothing():
@@ -183,8 +184,7 @@ def test_the_fix_prompt_keeps_the_generations_shared_half_byte_for_byte(monkeypa
     unit = next(u for u in UNITS if u["id"] == "tc2")
     reasons = {"lint": ["structure: TestCase_2 missing testCaseDesc"],
                "review": [{"severity": "high", "where": "TestCase_2.main", "what": "wrong verdict",
-                           "evidence": "self.failed('bad')", "suggestion": "assert y"}],
-               "run": {"result": "FAIL", "fail_msgs": ["bad"]}, "excerpt": "LOG LINE"}
+                           "evidence": "self.failed('bad')", "suggestion": "assert y"}]}
     p = pc._fix_unit_prompt("AWPTCM-T1", {}, pc.PtSession(key="AWPTCM-T1"), CTX, unit,
                             "class TestCase_2: CURRENT", reasons)
     shared, user = pc._split_unit_prompt(p)
@@ -192,9 +192,10 @@ def test_the_fix_prompt_keeps_the_generations_shared_half_byte_for_byte(monkeypa
     assert p.count(pc._PT_PROMPT_SPLIT) == 1
     assert user.startswith("## Your unit: TestCase_2")             # the generation's unit half first
     for needle in ("FIX PASS for TestCase_2", "class TestCase_2: CURRENT",
-                   "missing testCaseDesc", "wrong verdict", "assert y", "FAIL", "LOG LINE",
+                   "missing testCaseDesc", "wrong verdict", "assert y",
                    "Never weaken or delete an assertion", "SELF-CONTAINED"):
         assert needle in user, needle
+    assert "Bench result" not in user and "Log excerpt" not in user   # run input retired 2026-10-12
 
 
 def test_the_setup_pair_is_asked_for_as_a_pair():
@@ -859,15 +860,15 @@ def test_G7_apply_promotes_only_the_held_units_and_discard_drops_only_the_held_r
     assert out["tc1"]["held"]["code"] == "FIX1"
 
 
-def test_G7_the_store_path_HOLDS_a_review_or_run_driven_fix_and_splices_a_lint_only_one():
+def test_G7_the_store_path_HOLDS_a_review_driven_fix_and_splices_a_lint_only_one():
     body = _CODE[_CODE.index("def _unit_call_and_store"):_CODE.index("def _dispatch_primed")]
     assert 'if guard.get("hold"):' in body
     assert '"held": {"code": code' in body and '"scope": scope' in body
     assert body.index('if guard.get("hold"):') > body.index("_unit_lint_regression(")    # verified first
     assert body.index('if guard.get("hold"):') < body.index('_store({"status": "ok"')     # held returns before the splice
     assert '"status": "held"' in body
-    # The hold decision is D2's: review- or run-driven → hold; lint-only → apply.
-    assert '"hold": bool(reasons["per_unit"][uid]["review"]) or bool(reasons["per_unit"][uid]["run"])' in FIX_UNITS
+    # The hold decision is D2's: review-driven → hold; lint-only → apply.
+    assert '"hold": bool(reasons["per_unit"][uid]["review"])}' in FIX_UNITS
     # The chain assembles only what was APPLIED and records what is held.
     assert 'record["held"] = held' in FIX_UNITS and 'record["applied"] = applied' in FIX_UNITS
     assert "if fresh is not None and not failed and not refused and applied:" in FIX_UNITS

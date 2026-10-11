@@ -10,8 +10,7 @@ already detected.
   - db.py:816 — _rrf_merge truncated to `limit` with no concept of pinned ids, so the
     keep_ids contract the keyword layer implements (always return the client's pool,
     re-scored) was silently violated on the hybrid path.
-  - pytest_create.py:2068 — restart-orphaned runs were re-marked 'stale' only inside
-    load_case, so the polling endpoint reported the persisted 'running' forever.
+  - (pytest_create.py's stale-run sweep was here too; it went with the Run step on 2026-10-12.)
   - agent_jobs.py:111 — gc() had zero call sites; _queues/_session_seen grew for the
     lifetime of the process, keyed by an unvalidated client header.
 
@@ -189,47 +188,6 @@ def test_session_id_length_is_capped():
     from routers.agent_bridge import _resolve_session, _MAX_SESSION_ID_LEN
     assert len(_resolve_session("x" * 10_000, "")) == _MAX_SESSION_ID_LEN
     assert _resolve_session("normal-session-id", "") == "normal-session-id"
-
-
-# --- pytest_create.py — the stale-run sweep --------------------------------------
-def test_stale_sweep_marks_orphaned_runs():
-    """A run whose process died with the server must not stay 'running' forever."""
-    from models import PtSession
-    from routers.pytest_create import _sweep_stale_runs
-
-    sess = PtSession(key="AWPTCM-T99995")
-    sess.step7 = {"runs": [{"run_id": "r1", "status": "running"},
-                           {"run_id": "r2", "status": "done"}]}
-    assert _sweep_stale_runs(sess) is True
-    statuses = {r["run_id"]: r["status"] for r in sess.step7["runs"]}
-    assert statuses["r1"] == "stale"
-    assert statuses["r2"] == "done", "a finished run was wrongly re-marked"
-
-
-def test_stale_sweep_is_a_noop_when_nothing_is_live():
-    from models import PtSession
-    from routers.pytest_create import _sweep_stale_runs
-
-    sess = PtSession(key="AWPTCM-T99996")
-    sess.step7 = {"runs": [{"run_id": "r1", "status": "done"}]}
-    assert _sweep_stale_runs(sess) is False
-
-
-def test_stale_sweep_handles_no_runs():
-    from models import PtSession
-    from routers.pytest_create import _sweep_stale_runs
-    assert _sweep_stale_runs(PtSession(key="AWPTCM-T99997")) is False
-
-
-def test_run_status_sweeps_too():
-    """The whole point of the fix: the polling endpoint must apply the sweep."""
-    import pathlib
-    src = (pathlib.Path(__file__).resolve().parents[1]
-           / "ask-ck" / "CK-main" / "CK_server" / "routers"
-           / "pytest_create.py").read_text(encoding="utf-8")
-    run_status = src.split("async def run_status(", 1)[1].split("async def", 1)[0]
-    assert "_sweep_stale_runs" in run_status, (
-        "run_status still reports the persisted status without re-checking staleness")
 
 
 # --- llm.py streaming: SSE encoding (found while REFUTING backlog llm.py:494) ----

@@ -43,19 +43,6 @@ Fix the CONDITION, never by weakening or deleting an assertion.
 {%- endfor %}
 {% endif %}
 
-## Execution results (parsed from the framework log)
-{% for c in results %}
-- {{ c.name }}: {{ c.result }}{% if c.fail_msgs %} — failures: {% for m in c.fail_msgs %}{{ m }}; {% endfor %}{% endif %}
-{% endfor %}
-
-## Log excerpts around each failure
-{% for e in log_excerpts %}
-### {{ e.case }}
-```
-{{ e.text }}
-```
-{% endfor %}
-
 ## Rules
 - Diagnose from the log: wrong prompt mode, wrong CLI syntax for this platform, insufficient wait/settle time, wrong expected string, topology handle misuse (`self.testSet.<name>`), missing configure step.
 - The helpers module above is part of the script: a call that matches a signature or documented

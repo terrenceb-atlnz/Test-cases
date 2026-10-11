@@ -129,7 +129,9 @@ guards in the test gate.
 2. **The server reads corpora only from `ck.db`** — zero runtime JSON. Guard:
    `ask-ck/tools/guard_db_only.py`.
 3. **`/home/st-art/framework` is read-only.** Never write, edit or redirect into it; copy to a
-   local staging path instead. Guard: `ask-ck/tools/guard_framework_readonly.py`.
+   local staging path instead. No runtime guard since 2026-10-12: Ask-CK has no code path that writes to a testbox — runs go
+   through the seat agent's `/test-mode` session and device-testing's bench-runner, whose own rules
+   carry this (PLAN-test-validation V4).
 4. **The org vLLM is the one live external dependency, and it is core function** — not an
    inter-dependency to remove. Its models are *reasoning* models. The embedding model is
    bundled and loads fully offline.
@@ -195,17 +197,22 @@ exported bundle to the live Zephyr case (dry-run Preview first; ensures version 
 out to `ask-ck/frontend/ck-main/current/generator/upload_refined.py` so the server never holds the JIRA token).
 
 **PyTest Creator** — turns a Complete case into a runnable `framework` (ATTestSet /
-ATTestCase) script over seven gated steps: *Cases* → *Sequence* (LLM extracts automatable
+ATTestCase) script over five gated steps: *Cases* → *Sequence* (LLM extracts automatable
 steps, classified **setup / verify / physical / manual**) → *Script Search* → *Fragments*
 (reusable symbols resolved to real source by line range) → *Generate* (the LLM fills a fixed
-skeleton; lint enforces conformance) → *Run* (over SSH on a stored testbox) → *Validate*.
+skeleton; lint enforces conformance). Confirming *Generate* saves the script to `generated/`
+and ends the Creator; it then offers to test the script in **Validation** (its *Run* and
+*Validate* steps and the stored testboxes were retired on 2026-10-12).
 Physical steps are **in scope**: they generate an operator prompt plus a wait-for-state-change
 poll, and manual checks generate a `yesNo()`.
 
-**Test Composer** — scaffolded, not yet implemented. **Zephyr Templating Tool** — one page (**Organize Templates**): paste a project's wiki page, the model trims the template plans/cycles/cases citing the TPS and Test Strategy, you review the ticks; API Upload is a dry run for now (`ask-ck/plans/PLAN-zephyr-templating.md`).
+**Test Composer** — two pages, both launching device-testing's `/test-mode` through your seat's
+agent: **Validate a Script** (one saved script, run on a bench, repaired on a copy until the run
+is clean, reviewed, then Finalized) and **Compose a Run** (a project's runnable cases on a
+template bench, with results by cycle). Plans: `ask-ck/plans/PLAN-test-validation.md`,
+`PLAN-test-composer.md`, `PLAN-agent-sessions.md`. **Zephyr Templating Tool** — one page (**Organize Templates**): paste a project's wiki page, the model trims the template plans/cycles/cases citing the TPS and Test Strategy, you review the ticks; API Upload is a dry run for now (`ask-ck/plans/PLAN-zephyr-templating.md`).
 
-Stored testboxes live in the gitignored `secrets.testboxes.json`. Before touching lab
-hardware, read [`TESTBOX-ACCESS.md`](TESTBOX-ACCESS.md) in full.
+Before touching lab hardware, read [`TESTBOX-ACCESS.md`](TESTBOX-ACCESS.md) in full.
 
 ## Repository layout
 
@@ -275,7 +282,7 @@ says so prominently. Multi-user **identity** (Phase 2) and attribution + TLS (Ph
 planned in
 [`ask-ck/plans/PLAN-auth-and-case-locking.md`](ask-ck/plans/PLAN-auth-and-case-locking.md),
 gated on an organisational decision. Never commit credentials — `secrets.md`,
-`secrets.local.json` and `secrets.testboxes.json` are gitignored.
+`secrets.local.json` and `secrets.testboxes.json` (the retired testbox profiles) are gitignored.
 
 > **Note:** primary development is on an internal machine; this GitHub tree is a published
 > copy. On 2026-07-13 the repo was restructured (`drafting-tool/` → `ask-ck/CK-main/`; root

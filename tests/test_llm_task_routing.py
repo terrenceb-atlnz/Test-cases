@@ -30,8 +30,8 @@ _PC_SRC = (_SERVER / "routers" / "pytest_create.py").read_text(encoding="utf-8")
 _PC_CODE = re.sub(r'#[^\n]*', '', re.sub(r'"""[\s\S]*?"""', '', _PC_SRC))
 
 
-def _region(start: str, end: str) -> str:
-    return _PC_CODE[_PC_CODE.index(start):_PC_CODE.index(end)]
+def _region(start: str, end: str = None) -> str:
+    return _PC_CODE[_PC_CODE.index(start):_PC_CODE.index(end) if end else len(_PC_CODE)]
 
 
 # --- the config shape ---------------------------------------------------------------
@@ -161,7 +161,7 @@ def test_unit_fills_and_step_matching_are_routed_and_nothing_else_is():
         assert "_llm_cfg(sess)" not in body
     # Review and the whole-script Fix keep the toggle model.
     for start, end in (('@router.post("/review_script/', '@router.post("/fix_script/'),
-                       ('@router.post("/fix_script/', "@router.post(\"/validate/")):
+                       ('@router.post("/fix_script/', None)):     # the file's last endpoint
         body = _region(start, end)
         assert "_llm_cfg(sess)" in body and "_llm_cfg_for" not in body
 

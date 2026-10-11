@@ -7,8 +7,9 @@ that chain, each with its own way of silently breaking:
                 (framework discovery, 2026-09-21), not a FILL slot the model can fill with
                 anything (or omit), and never from a `[misc]` declaration.
   2. SHIPPED  — `ck_media.py` must reach the run workdir, or every script dies on `import
-                ck_media`. The filename in `files` and the name the template imports are two
-                separate strings that must agree.
+                ck_media`. Since 2026-10-12 device-testing's bench-runner ships it (a copy of
+                ask-ck/tools/pt_media.py under that name — bench-runner.agent.md,
+                TESTBOX-ACCESS.md); the name the template imports must stay that name.
   3. ENFORCED — a script that calls `setup.init_portlink()` directly gets a port with NO media
                 guarantee, which defeats the mechanism entirely. The lint has to reject that.
 
@@ -141,41 +142,12 @@ def test_link_role_detection():
 # ------------------------------------------------------------------------ 2. SHIPPED
 
 
-def test_the_shipped_helper_is_byte_identical_to_the_tested_module():
-    """One source. A copy would let the testbox run logic the in-repo tests never saw."""
-    assert pc._media_helper_source() == (REPO / "ask-ck" / "tools" / "pt_media.py").read_text(
-        encoding="utf-8")
-
-
 def test_the_shipped_filename_matches_the_name_the_template_imports():
-    """Two independent strings; if they drift, every run dies on `import ck_media`."""
-    module = Path(pc.MEDIA_HELPER_NAME).stem
-    assert re.search(rf"^\s*import {re.escape(module)}\b", SKELETON.read_text(), re.M), (
-        f"template does not `import {module}` but runs ship {pc.MEDIA_HELPER_NAME}")
-
-
-def test_the_run_endpoint_adds_the_helper_to_the_upload_set():
-    """Structural, because exercising `/run` needs a live session + SSH. The upload dict is
-    the only thing that puts `ck_media.py` in the workdir, so its removal must fail the gate
-    rather than surface as `ImportError` on a testbox."""
-    src = Path(pc.__file__).read_text(encoding="utf-8")
-    tree = ast.parse(src)
-    run_fn = next((n for n in ast.walk(tree)
-                   if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef))
-                   and n.name == "run_script"), None)
-    assert run_fn is not None, "run_script endpoint not found — has it been renamed?"
-    body = "\n".join(src.splitlines()[run_fn.lineno - 1:run_fn.end_lineno])
-    assert "run_manager.start(" in body, "wrong function: this one does not launch a run"
-    assert re.search(r"files\[\s*MEDIA_HELPER_NAME\s*\]\s*=\s*_media_helper_source\(\)", body), (
-        "run_script no longer adds the ck_media helper to the upload set — every generated "
-        "script would die on `import ck_media` on the testbox")
-
-
-def test_the_helper_read_fails_loudly_if_the_path_is_wrong(monkeypatch):
-    """A silent miss would ship runs with no helper; every script would die on import."""
-    monkeypatch.setattr(pc, "_MEDIA_HELPER_SRC", Path("/nonexistent/pt_media.py"))
-    with pytest.raises(RuntimeError, match="media helper not found"):
-        pc._media_helper_source()
+    """bench-runner copies pt_media.py to the run workdir as `ck_media.py`; if the template's
+    import drifts from that name, every run dies on `import ck_media`."""
+    assert re.search(r"^\s*import ck_media\b", SKELETON.read_text(), re.M), (
+        "the template no longer does `import ck_media` — the name device-testing's "
+        "bench-runner ships ask-ck/tools/pt_media.py under")
 
 
 def test_the_shipped_helper_is_importable_on_its_own():

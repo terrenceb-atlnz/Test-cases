@@ -18,6 +18,11 @@ verified: 2026-09-23
 >   re-design before it is built); `.setup` parsing inside `CK_server` (still only
 >   `ask-ck/tools/pt_preflight.py` reads one).
 >
+> **2026-10-12 (Terrence): the Creator ends at 5. Generate.** Confirm Step 5 saves the script to
+> `generated/` and offers Validation; **6. Run, 7. Validate and Testboxes are retired**, front end
+> and server (`PLAN-test-validation.md` V4). "Phase C's first execution on a real testbox" above is
+> now Validation's job. Every Run/Validate/profile item in the body below is history.
+>
 > Living tracker for the PyTest Creator build-out. Update the checklist and Progress Log
 > as milestones land (same convention as `archive/plans/PLAN-facelift.md`).
 > Approved: 2026-07-14.

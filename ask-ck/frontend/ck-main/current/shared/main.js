@@ -7,7 +7,7 @@ import { S } from './state.js';
 import { initSidebarAccordion, goToPanel, updatePageHeader } from './nav.js';
 import { initCases, onCaseSelectChange } from './cases.js';
 import { updateAuthMethodUI, updateLLMStatus, loadWorkspaceLLMConfig, applyLocalLlmMode, applyClaudeMode } from '../llm-config/llm.js';
-import { ptProfileSelected, ptLoadCase } from '../pytest-creator/pytest.js';
+import { ptLoadCase } from '../pytest-creator/pytest.js';
 import { readSnapshot, waitForOptions, hasOption } from './session-restore.js';
 import { onPtCaseSelectChange } from './cases.js';
 import { openAdminPanel } from '../admin/admin.js';
@@ -20,19 +20,6 @@ import '../llm-config/agent.js';
 import '../zephyr-tool/zephyr-tool.js';
 import { applyDeepLink } from '../test-composer/test-composer.js';
 import './version.js';    // side-effect: stale-tab guard (polls /api/version)
-
-// Fetch a stub tool router's /status message into a placeholder status element.
-async function loadToolStatus(apiName, elId) {
-  const el = document.getElementById(elId);
-  if (!el) return;
-  try {
-    const r = await fetch(`/api/${apiName}/status`);
-    if (r.ok) {
-      const d = await r.json();
-      el.textContent = d.message || d.status || '';
-    }
-  } catch (_) { /* leave placeholder text when offline */ }
-}
 
 // Read the pre-refresh snapshot FIRST. goToPanel() records wherever it moves to,
 // so the boot default ('panel-main', below) overwrites the stored panel before an
@@ -47,7 +34,6 @@ S.currentStep = 0;              // Generator defaults to step 0 when first opene
 goToPanel('panel-main');     // Landing view = Main splash / Help home
 updateLLMStatus();
 loadWorkspaceLLMConfig();       // cold-load: reflect the persisted login (incl. Local LLM key state)
-loadToolStatus('test-composer', 'tc-status');
 
 // Restore where the user was before a refresh, then fall back to the old
 // default (first open/partial case) only when there is nothing to restore.
@@ -92,7 +78,7 @@ async function restoreUiState() {
   if (panel && document.getElementById(panel)) {
     const isPt = panel.startsWith('panel-pt-');
     // Don't drop the user into a PyTest panel whose case failed to come back.
-    if (!isPt || ptRestored || panel === 'panel-pt-cases' || panel === 'panel-pt-testbox') {
+    if (!isPt || ptRestored || panel === 'panel-pt-cases') {
       goToPanel(panel);
     } else {
       goToPanel('panel-pt-cases');
@@ -127,8 +113,4 @@ document.querySelectorAll('input[name="claudeMode"]').forEach((radio) => {
 {
   const logo = document.querySelector('.sidebar-logo');
   if (logo) logo.addEventListener('dblclick', (e) => { e.preventDefault(); openAdminPanel(); });
-}
-{
-  const prof = document.getElementById('pt-run-profile');
-  if (prof) prof.addEventListener('change', function () { ptProfileSelected(this); });
 }

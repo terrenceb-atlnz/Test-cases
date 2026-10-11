@@ -1134,21 +1134,16 @@ def list_session_progress() -> Dict[str, dict]:
 
 
 def list_pt_progress() -> Dict[str, dict]:
-    """Per-PyTest-Creator-case progress map (kind='pt'). Returns, per case key, how
-    far the PyTest Creator flow has gotten — used to split the Complete cases into
-    'in progress' vs 'complete' in the PyTest Creator Cases panel. A case is
-    PyTest-'complete' only when step 8 (Final Validation) is both confirmed and
-    validated (mirrors updatePtBadges' step-8 rule in pytest.js)."""
+    """Per-PyTest-Creator-case progress map (kind='pt'): how many of steps 2-6 each case has
+    confirmed, a hint for the Cases panel's "In progress" group. Whether a case is COMPLETE is
+    not a session fact since 2026-10-12 — it is "its script is saved to generated/"
+    (case_registry.saved_script_case_keys)."""
     out: Dict[str, dict] = {}
     for r in _rows("SELECT id, payload FROM sessions WHERE kind='pt'"):
         raw = _json(r["payload"], {})
         key = raw.get("key") or r["id"]
-        s8 = raw.get("step8") or {}
-        validated = bool(s8.get("confirmed") and s8.get("validated"))
-        # confirms = how many of steps 2-8 are confirmed, as a lightweight hint
-        confirms = sum(bool((raw.get(f"step{n}") or {}).get("confirmed")) for n in range(2, 9))
-        out[key] = {"validated": validated, "confirms": confirms,
-                    "status": "complete" if validated else "in_progress"}
+        confirms = sum(bool((raw.get(f"step{n}") or {}).get("confirmed")) for n in range(2, 7))
+        out[key] = {"confirms": confirms}
     return out
 
 

@@ -79,8 +79,10 @@ that run in the test gate.
    gitignored, not rebuildable.
 2. **The server reads corpora only from `ck.db`** — zero runtime JSON. Guard:
    `ask-ck/tools/guard_db_only.py`.
-3. **`/home/st-art/framework` is read-only** — never write, edit, or redirect into it. Guard:
-   `ask-ck/tools/guard_framework_readonly.py`.
+3. **`/home/st-art/framework` is read-only** — never write, edit, or redirect into it.
+   No runtime guard since 2026-10-12: Ask-CK has no code path that writes to a testbox — runs go
+   through the seat agent's `/test-mode` session and device-testing's bench-runner, whose own rules
+   carry this (PLAN-test-validation V4).
 4. **The organisation's vLLM endpoint is the one live external dependency, and it is core
    function** — not a dependency to be engineered away. The embedding model, by contrast, is
    bundled and loads fully offline.

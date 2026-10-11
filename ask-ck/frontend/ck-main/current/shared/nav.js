@@ -4,7 +4,7 @@ import { S } from './state.js';
 import { rememberPanel } from './session-restore.js';
 import { renderLlmDebugFooter } from './llm-debug.js';
 import { loadStepCandidates, renderObjectiveResult, renderReviewSummary, renderStepsResult, synthesize } from '../generator/generator.js';
-import { ptSession, renderPtFragPanel, renderPtGenPanel, renderPtRunPanel, renderPtSearchPanel, renderPtSeqPanel, renderPtTestboxPanel, renderPtValidatePanel } from '../pytest-creator/pytest.js';
+import { ptSession, renderPtFragPanel, renderPtGenPanel, renderPtSearchPanel, renderPtSeqPanel } from '../pytest-creator/pytest.js';
 import { renderZtPanel } from '../zephyr-tool/zephyr-tool.js';
 import { renderTcPanel, renderVdPanel } from '../test-composer/test-composer.js';
 
@@ -108,9 +108,6 @@ export function goToPanel(panelId) {
     'panel-pt-search': renderPtSearchPanel,
     'panel-pt-frag': renderPtFragPanel,
     'panel-pt-gen': renderPtGenPanel,
-    'panel-pt-run': renderPtRunPanel,
-    'panel-pt-validate': renderPtValidatePanel,
-    'panel-pt-testbox': renderPtTestboxPanel,
     'panel-zt': renderZtPanel,
     'panel-tc': renderTcPanel,
     'panel-vd': renderVdPanel,
@@ -164,15 +161,11 @@ export function updatePageHeader() {
     'panel-zt': { title: 'Zephyr Templating Tool', desc: 'Trim the template test plans, cycles and cases to one project.' },
     'panel-vd': { title: 'Validation', desc: 'Run one saved script on a bench through your seat agent; repair, review, Finalize.' },
     'panel-tc': { title: 'Test Composer', desc: 'Run a project\'s runnable cases on a topology template through your seat agent.' },
-    'panel-tc-tbd': { title: 'Colour specimen', desc: 'Classic vs ATUI colour and type specimen.' },
     'panel-pt-cases': { title: 'PyTest Creator', desc: 'Select an Open/Partial case to turn into a framework test script.' },
     'panel-pt-seq': { title: 'PyTest Creator', desc: 'Step 2: identify the prescriptive test-step sequence, then confirm.' },
     'panel-pt-search': { title: 'PyTest Creator', desc: 'Step 3: search the script databases for full/partial coverage, then confirm.' },
     'panel-pt-frag': { title: 'PyTest Creator', desc: 'Step 4: gather reusable code fragments, then confirm.' },
-    'panel-pt-gen': { title: 'PyTest Creator', desc: 'Step 5: fill the skeleton template, name, lint and save the script, then confirm.' },
-    'panel-pt-run': { title: 'PyTest Creator', desc: 'Step 6: execute on a stored testbox and review the parsed log.' },
-    'panel-pt-validate': { title: 'PyTest Creator', desc: 'Step 7: final validation loop — fix with LLM until all cases PASS.' },
-    'panel-pt-testbox': { title: 'PyTest Creator', desc: 'Manage stored testbox connections for the Run step.' }
+    'panel-pt-gen': { title: 'PyTest Creator', desc: 'Step 5: fill the skeleton template, lint and review the script, then confirm — which saves it and ends the Creator.' }
   };
 
   const eyebrowEl = document.querySelector('.page-eyebrow');

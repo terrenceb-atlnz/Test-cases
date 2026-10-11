@@ -58,7 +58,6 @@ def _wire(pc, monkeypatch, *, by_me=True, disk=DISK, disk_raises=False):
     monkeypatch.setattr(pc, "pt_sessions", {KEY: stale})
     monkeypatch.setattr(pc, "_pt_load", lambda k: stale)
     monkeypatch.setattr(pc, "_pt_persist", lambda s: persisted.append(s))
-    monkeypatch.setattr(pc, "_sweep_stale_runs", lambda s: False)
     monkeypatch.setattr(pc.dbx, "delete_session", lambda kind, k: deleted.append((kind, k)))
     monkeypatch.setattr(pc.locks, "acquire", lambda kind, k: {"by_me": by_me})
 

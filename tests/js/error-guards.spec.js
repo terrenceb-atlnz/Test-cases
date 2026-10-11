@@ -92,16 +92,4 @@ describe('no unguarded fetches remain in the wizard front-end', () => {
   }
 });
 
-describe('pytest.js run polling', () => {
-  const src = read('pytest.js');
-
-  it('stops polling when the server reports the run is no longer active', () => {
-    // A run orphaned by a restart used to poll forever: the persisted status stayed
-    // 'running' and the spinner never resolved.
-    expect(src).toMatch(/d\.active === false/);
-  });
-
-  it('tells the user the run was interrupted rather than just stopping', () => {
-    expect(src).toMatch(/interrupted/);
-  });
-});
+// (The pytest.js run-polling guards went with the PyTest Creator's 6. Run on 2026-10-12.)

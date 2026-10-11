@@ -1,4 +1,4 @@
-// PyTest Creator: the full 8-step gated flow.
+// PyTest Creator: the 5-step gated flow (Cases → Sequence → Script Search → Fragments → Generate; Run/Validate retired 2026-10-12).
 import { registerActions } from '../shared/actions.js';
 import { S } from '../shared/state.js';
 import { dataArgs, escapeHtml, setButtonBusy, flashButtonDone } from '../shared/dom-helpers.js';
@@ -10,6 +10,7 @@ import { onCaseLoaded, registerReloader } from '../shared/locks.js';
 import { llmButtonStart, isCancelMessage, newCallId, cancelLlmCall } from '../shared/llm-progress.js';
 import { rememberCase } from '../shared/session-restore.js';
 import { isAtui, copy, icon, glyphHtml, setGlyphText, sevMark } from '../shared/ui.js';
+import { openValidation } from '../test-composer/test-composer.js';
 
 // Let "Take over" (locks.js) re-run the editable load without a circular import.
 registerReloader('pt', ptLoadCase);
@@ -45,7 +46,6 @@ export let ptSession = null;          // server session for S.ptCase.key
 // every button that would re-splice the units is disabled with the reason as its tooltip.
 export let ptGenState = null;
 let ptCaseInfo = null;         // {title, group_display, objective, steps} from load_case
-let ptRunPoll = null;          // setInterval handle while a run is active
 
 const PT_API = '/api/pytest-create';
 
@@ -81,8 +81,11 @@ async function ptApi(path, opts = {}, statusEl = null) {
       const msg = d.detail || `HTTP ${r.status}`;
       // The user's own Stop is not a failure — say what happened, calmly.
       const shown = isCancelMessage(msg) ? '⏹ stopped — nothing was kept.' : '⚠ ' + msg;
-      if (errRef) errRef.msg = msg;
-      else if (statusEl) setGlyphText(statusEl, shown);
+      if (errRef) {
+        errRef.msg = msg;
+        // confirm_step's overridable refusals name the field they want (X-CK-Needs).
+        errRef.needs = (r.headers && r.headers.get && r.headers.get('X-CK-Needs')) || '';
+      } else if (statusEl) setGlyphText(statusEl, shown);
       else alert('PyTest Creator: ' + msg);
       return null;
     }
@@ -126,7 +129,7 @@ async function ptRefreshCases() {
   const nOpen = openSel ? Array.from(openSel.options).filter(o => o.value).length : 0;
   const nDone = doneSel ? Array.from(doneSel.options).filter(o => o.value).length : 0;
   if (st) st.textContent = `Case lists refreshed — ${nOpen} open/partial, ${nDone} complete. `
-    + 'A case appears here only once it has a refined zephyr_payload.json (export it in the Objective/Test Case Generator first); it moves to Complete once its PyTest script passes Final Validation (step 7).';
+    + 'A case appears here only once it has a refined zephyr_payload.json (export it in the Objective/Test Case Generator first); it moves to Complete once its script is saved to generated/ (Confirm Step 5 saves it); Validation\'s Finalize then takes it off both lists.';
   if (btn) btn.disabled = false;
 }
 
@@ -186,7 +189,7 @@ function updatePtBadges() {
   document.querySelectorAll('#nav-pt .sidebar-nav-item[data-pt-step]').forEach(item => {
     const n = item.getAttribute('data-pt-step');
     const step = s['step' + n] || {};
-    const conf = n === '8' ? !!(step.confirmed && step.validated) : !!step.confirmed;
+    const conf = !!step.confirmed;
     let b = item.querySelector('.nav-badge');
     if (conf && !b) {
       b = document.createElement('span');
@@ -195,7 +198,7 @@ function updatePtBadges() {
       item.appendChild(b);
     } else if (!conf && b) b.remove();
   });
-  for (let n = 2; n <= 8; n++) {
+  for (let n = 2; n <= 6; n++) {
     const el = document.getElementById('pt-badge-' + n);
     if (el) el.classList.toggle('hidden', !((s['step' + n] || {}).confirmed));
   }
@@ -203,8 +206,94 @@ function updatePtBadges() {
 
 async function ptConfirm(step) {
   if (!ptRequireCase()) return;
-  const d = await ptApi(`/confirm_step/${S.ptCase.key}/${step}`, { method: 'POST', body: '{}' });
-  if (d) { ptSession = d.session; updatePtBadges(); }
+  // Confirm Step 5 saves the script (server side), so push what is on screen first — the
+  // same push Lint does, which also re-lints it — or an unsaved edit would be lost.
+  if (step === 6 && document.getElementById('pt-gen-code') && !(await ptPushCodeEdits(false))) return;
+  // A refusal a reviewer may override names the acknowledgement it wants (X-CK-Needs); ask for
+  // it and resend. Each kind is asked at most once per press.
+  const body = {};
+  let d = null;
+  for (;;) {
+    const err = {};
+    d = await ptApi(`/confirm_step/${S.ptCase.key}/${step}`, { method: 'POST', body: JSON.stringify(body), errRef: err });
+    if (d) break;
+    if (!err.needs || err.needs in body) { alert('PyTest Creator: ' + err.msg); return; }
+    const ack = await ptAskAcknowledgement(err.needs, err.msg);
+    if (ack === null) return;
+    body[err.needs] = ack;
+  }
+  ptSession = d.session; updatePtBadges();
+  if (step === 6) {
+    if (d.written && d.written.length) ptStatusEl('pt-gen-status').textContent = 'Saved: ' + d.written.join(', ');
+    ptAskTestNewScript();
+  }
+}
+
+// confirm_step's two overridable refusals (a coverage gap; house-rule lint errors). Resolves to
+// the value to send — true, or the reviewer's reason (recorded on the session) — or null.
+export function ptAskAcknowledgement(needs, message) {
+  const lint = needs === 'acknowledge_lint_policy';
+  return new Promise((resolve) => {
+    const overlay = document.createElement('div');
+    overlay.className = 'update-overlay';
+    overlay.innerHTML = `
+      <div class="update-dialog pt-ack-dialog" role="dialog" aria-modal="true" aria-labelledby="pt-ack-title">
+        <div class="update-title" id="pt-ack-title">${lint ? 'Confirm despite house-rule errors?' : 'Confirm with a coverage gap?'}</div>
+        <pre class="update-body pt-ack-message">${escapeHtml(message || '')}</pre>
+        ${lint ? '<label class="update-body" for="pt-ack-reason">Why is this acceptable? (recorded on the case)</label>'
+          + '<textarea id="pt-ack-reason" class="form-input" rows="3"></textarea>' : ''}
+        <div class="update-actions">
+          <button type="button" class="btn btn-secondary" id="pt-ack-cancel">Cancel</button>
+          <button type="button" class="btn btn-primary" id="pt-ack-ok"${lint ? ' disabled' : ''}>Confirm anyway</button>
+        </div>
+      </div>`;
+    const reason = overlay.querySelector('#pt-ack-reason');
+    const ok = overlay.querySelector('#pt-ack-ok');
+    const done = (v) => { overlay.remove(); document.removeEventListener('keydown', onKey); resolve(v); };
+    const onKey = (e) => { if (e.key === 'Escape') done(null); };
+    if (reason) reason.addEventListener('input', () => { ok.disabled = !reason.value.trim(); });
+    ok.addEventListener('click', () => done(lint ? reason.value.trim() : true));
+    overlay.querySelector('#pt-ack-cancel').addEventListener('click', () => done(null));
+    document.addEventListener('keydown', onKey);
+    document.body.appendChild(overlay);
+    (reason || ok).focus();
+  });
+}
+
+// Confirm Step 5 is the end of the PyTest Creator (Terrence 2026-10-12): running and fixing a
+// script is Validation's job now. Ask whether to test it there; No goes back to 1. Cases.
+export function ptAskTestNewScript() {
+  // Validation finds the script by its case key: naming.group is the display group ("Port"),
+  // not the family directory on disk ("9001_Port"), so a path built from it matches nothing.
+  const key = S.ptCase.key;
+  const name = ((((ptSession || {}).step6 || {}).files || {}).test || {}).name || key;
+  const overlay = document.createElement('div');
+  overlay.className = 'update-overlay';
+  overlay.innerHTML = `
+    <div class="update-dialog" role="dialog" aria-modal="true"
+         aria-labelledby="pt-test-new-title" aria-describedby="pt-test-new-body">
+      <div class="update-title" id="pt-test-new-title">Do you want to test the new script?</div>
+      <div class="update-body" id="pt-test-new-body">
+        <code>${escapeHtml(name)}</code> is saved to generated/. <b>Yes</b> opens it in Validation, which runs it
+        on a test bench through your seat's agent; <b>No</b> goes back to 1. Cases.
+      </div>
+      <div class="update-actions">
+        <button type="button" class="btn btn-secondary" id="pt-test-new-no">No</button>
+        <button type="button" class="btn btn-primary" id="pt-test-new-yes">Yes</button>
+      </div>
+    </div>`;
+  const close = (yes) => {
+    overlay.remove();
+    document.removeEventListener('keydown', onKey);
+    if (yes) openValidation(goToPanel, key);
+    else goToPanel('panel-pt-cases');
+  };
+  const onKey = (e) => { if (e.key === 'Escape') close(false); };
+  overlay.querySelector('#pt-test-new-yes').addEventListener('click', () => close(true));
+  overlay.querySelector('#pt-test-new-no').addEventListener('click', () => close(false));
+  document.addEventListener('keydown', onKey);
+  document.body.appendChild(overlay);
+  overlay.querySelector('#pt-test-new-yes').focus();
 }
 
 // --- Step 2: Sequence -------------------------------------------------------
@@ -1978,7 +2067,7 @@ function ptRenderReview(review, code = '') {
     return;
   }
   el.innerHTML = `<span class="badge">review: ${findings.length} finding(s)</span> `
-    + `<span class="justification-note">${escapeHtml(counts)} — feed to the Fix button (here, or on step 7 Validate).</span>`
+    + `<span class="justification-note">${escapeHtml(counts)} — feed to the Fix buttons.</span>`
     + list;
 }
 
@@ -2078,13 +2167,6 @@ async function ptFixUnits() {
   await _ptFixUnitsCommon(document.getElementById('pt-fix-units-btn'), ptStatusEl('pt-gen-status'));
 }
 
-async function ptFixUnitsFromValidate() {
-  if (!ptRequireCase()) return;
-  const d = await _ptFixUnitsCommon(document.getElementById('pt-fix-units-validate-btn'),
-                                    ptStatusEl('pt-validate-status'));
-  if (d) goToPanel('panel-pt-gen');       // the pills and the Summary live there
-}
-
 async function ptReviewScript() {
   if (!ptRequireCase()) return;
   // Push edits first, exactly as Lint does — reviewing the session copy while the textarea
@@ -2167,421 +2249,6 @@ async function ptSaveScript() {
   ptStatusEl('pt-gen-status').textContent = 'Saved: ' + (d.written || []).join(', ');
 }
 
-// --- Step 7: Run ---------------------------------------------------------------
-
-let ptProfiles = {};
-
-async function ptLoadProfiles() {
-  const d = await ptApi('/profiles');
-  ptProfiles = (d && d.profiles) || {};
-  return ptProfiles;
-}
-
-function ptProfileLabel(name, p) {
-  return `${name} — ${p.tb_number || '?'} (${p.host || '?'})`;
-}
-
-// Both the Run and Validate panels used to name no case at all, which on a
-// shared server meant the two most consequential panels — one runs code on
-// hardware, the other closes a case out — gave no way to tell WHAT they were
-// about to act on. Mirrors the line renderPtSeqPanel already draws.
-function ptRenderCaseLine(elId, extra) {
-  const el = document.getElementById(elId);
-  if (!el) return;
-  if (!S.ptCase.key || !ptSession) {
-    el.innerHTML = '<em class="review-empty">No case loaded — go to </em>'
-      + '<a href="#" data-action="goToPanel" data-args="[&quot;panel-pt-cases&quot;]">1. Cases</a>.';
-    return;
-  }
-  el.innerHTML = `<b>Case:</b> <span class="sel-label">${escapeHtml(S.ptCase.key)}</span>`
-    + (ptCaseInfo && ptCaseInfo.title ? ` — ${escapeHtml(ptCaseInfo.title)}` : '')
-    + (extra || '');
-}
-
-export async function renderPtRunPanel() {
-  await ptLoadProfiles();
-  const sel = document.getElementById('pt-run-profile');
-  const cur = ((ptSession || {}).step7 || {}).profile;
-  sel.innerHTML = '<option value="">Select testbox…</option>'
-    + Object.entries(ptProfiles).map(([n, p]) =>
-      `<option value="${escapeHtml(n)}" ${n === cur ? 'selected' : ''}>${escapeHtml(ptProfileLabel(n, p))}</option>`).join('')
-    + `<option value="__add__">${copy('➕ Add new testbox…', 'New Testbox…')}</option>`;
-  ptProfileSelected(sel);
-  // Same shape as ptUpdateGenPath(): step6 stores naming {group,name}, no path.
-  const naming = ((ptSession || {}).step6 || {}).naming || {};
-  const script = (naming.group && naming.name)
-    ? `generated/${naming.group}/${naming.name}.py` : null;
-  ptRenderCaseLine('pt-run-case', script
-    ? ` — will run <code>${escapeHtml(script)}</code>` : '');
-  ptSyncRunButton();
-  ptRenderRuns();
-  updatePtBadges();
-}
-
-// "Run on Testbox" is the primary action and was always enabled, so the most
-// consequential click in the tool was a dead one until a testbox was picked
-// (ptRun only then alerted "Select a testbox."). Gate the affordance instead.
-// Deliberately does NOT fight locks.js: when the lock layer has disabled the
-// button it owns that state and we leave it alone.
-export function ptSyncRunButton() {
-  const btn = document.getElementById('pt-run-btn');
-  const sel = document.getElementById('pt-run-profile');
-  if (!btn || !sel) return;
-  if (btn.getAttribute('data-ck-lock-disabled') === '1') return;
-  const ready = !!sel.value && sel.value !== '__add__';
-  btn.disabled = !ready;
-  btn.title = ready ? '' : 'Select a testbox first';
-}
-
-export function ptProfileSelected(sel) {
-  if (sel.value === '__add__') {
-    sel.value = '';
-    ptSyncRunButton();
-    goToPanel('panel-pt-testbox');
-    return;
-  }
-  ptSyncRunButton();
-  const p = ptProfiles[sel.value];
-  const setupSel = document.getElementById('pt-run-setup');
-  setupSel.innerHTML = '';
-  if (p && p.setups && Object.keys(p.setups).length) {
-    setupSel.innerHTML = Object.entries(p.setups).map(([n, path]) =>
-      `<option value="${escapeHtml(n)}">${escapeHtml(n)} (${escapeHtml(path)})</option>`).join('');
-  } else {
-    setupSel.innerHTML = '<option value="">— none stored —</option>';
-  }
-}
-
-async function ptCheckProfile() {
-  const name = document.getElementById('pt-run-profile').value;
-  if (!name) { alert('Select a testbox first.'); return; }
-  const st = ptStatusEl('pt-run-status');
-  st.textContent = 'Checking…';
-  const d = await ptApi(`/profiles/${encodeURIComponent(name)}/check`, { method: 'POST' }, st);
-  if (d) setGlyphText(st, (d.ok ? '✓ ready — ' : '✗ not ready — ') + (d.detail || JSON.stringify(d)));
-}
-
-function ptRenderRuns() {
-  const runs = ((ptSession || {}).step7 || {}).runs || [];
-  const el = document.getElementById('pt-run-results');
-  if (!runs.length) { el.innerHTML = '<em class="review-empty">No runs yet.</em>'; return; }
-  const last = runs[runs.length - 1];
-  let html = `<div class="mb-1"><b>Run ${escapeHtml(last.run_id)}</b> on ${escapeHtml(last.profile || '')} — `
-    + `<span class="badge ${last.status === 'done' ? 'badge-success' : ''}">${escapeHtml(last.status)}</span>`
-    + (last.error ? ` <span class="justification-note">${icon('⚠')} ${escapeHtml(last.error)}</span>` : '') + '</div>';
-  // Plan 10.4: the bench was checked before anything ran, and it cannot host this script as
-  // declared. Show why, and offer the recorded override — preflight has no "cannot determine"
-  // verdict yet, so it can be wrong.
-  const pf = last.preflight;
-  if (last.status === 'preflight_failed' && pf && typeof pf === 'object') {
-    html += '<div class="status-banner warning mb-1"><b>Preflight: this bench cannot run this script as declared.</b> Nothing was executed.<ul>'
-      + (pf.problems || []).map(p => `<li>${escapeHtml(p.message || '')}${p.detail ? ` <span class="justification-note">${escapeHtml(p.detail)}</span>` : ''}</li>`).join('')
-      + '</ul><button class="btn btn-compact" data-action="ptRunAnyway" title="Dispatch without the topology check; the skip is recorded on the run">' + copy('Run anyway', 'Run Anyway') + '</button></div>';
-  } else if (pf && typeof pf === 'object' && pf.skipped) {
-    html += '<div class="justification-note mb-1">Preflight skipped for this run ("run anyway").</div>';
-  }
-  const parsed = last.parsed || {};
-  if ((parsed.cases || []).length) {
-    html += '<table class="table"><thead><tr><th>TestCase</th><th style="width:80px">Result</th><th>Failures</th></tr></thead><tbody>';
-    parsed.cases.forEach(c => {
-      html += `<tr><td class="cell-id">${escapeHtml(c.name)}</td>
-        <td><span class="badge ${c.result === 'PASS' ? 'badge-success' : ''}">${escapeHtml(c.result || '?')}</span></td>
-        <td class="justification-note">${c.ran === false
-          ? escapeHtml('not run: ' + (c.reason || 'marked unsupported before it ran'))
-          : (c.fail_msgs || []).map(escapeHtml).join('; ')}</td></tr>`;
-    });
-    html += `</tbody></table><div class="justification-note">numPassed ${parsed.numPassed || 0} · numFailed ${parsed.numFailed || 0}</div>`;
-  }
-  if (runs.length > 1) html += `<div class="justification-note mt-1">${runs.length - 1} earlier run(s) in session history.</div>`;
-  el.innerHTML = html;
-}
-
-async function ptRunAnyway() { return ptRun(true); }
-
-async function ptRun(ignorePreflight) {
-  if (!ptRequireCase()) return;
-  const profile = document.getElementById('pt-run-profile').value;
-  if (!profile) { alert('Select a testbox.'); return; }
-  const setupName = document.getElementById('pt-run-setup').value;
-  const setupPath = document.getElementById('pt-run-setup-path').value.trim();
-  const d = await ptApi(`/run/${S.ptCase.key}`, {
-    method: 'POST',
-    body: JSON.stringify({ profile, setup: setupPath || setupName,
-                           ignore_preflight: ignorePreflight === true }),
-  }, ptStatusEl('pt-run-status'));
-  if (!d) return;
-  ptStatusEl('pt-run-status').textContent = `Run ${d.run_id} queued…`;
-  if (ptRunPoll) clearInterval(ptRunPoll);
-  ptRunPoll = setInterval(() => ptPollRun(d.run_id), 4000);
-}
-
-async function ptPollRun(runId) {
-  const d = await ptApi(`/run_status/${S.ptCase.key}/${runId}?tail=60`);
-  if (!d) { clearInterval(ptRunPoll); ptRunPoll = null; return; }
-  await ptRefreshSession();
-  ptRenderRuns();
-  document.getElementById('pt-run-log').textContent = d.log_tail || '';
-  ptStatusEl('pt-run-status').textContent = `Run ${runId}: ${d.run.status}`;
-  // Stop on a terminal status, OR when the server says nothing is running for this
-  // case — a run orphaned by a restart would otherwise poll forever. The server now
-  // re-marks those 'stale' (_sweep_stale_runs), so this is belt-and-braces against any
-  // other way `active` and `status` can disagree.
-  const TERMINAL = ['done', 'error', 'stale', 'preflight_failed'];
-  if (TERMINAL.includes(d.run.status) || d.active === false) {
-    clearInterval(ptRunPoll);
-    ptRunPoll = null;
-    if (d.active === false && !TERMINAL.includes(d.run.status)) {
-      ptStatusEl('pt-run-status').textContent =
-        `Run ${runId}: interrupted (no longer running on the server)`;
-    }
-  }
-}
-
-// --- Step 8: Validate ------------------------------------------------------------
-
-export function renderPtValidatePanel() {
-  ptRenderCaseLine('pt-validate-case', '');
-  const el = document.getElementById('pt-validate-result');
-  if (!ptSession) { el.innerHTML = '<em class="review-empty">Load a case first.</em>'; return; }
-  const s8 = ptSession.step8 || {};
-  if (!s8.checks) { el.innerHTML = '<em class="review-empty">Run Final Validation after a testbox run.</em>'; updatePtBadges(); return; }
-  ptRenderValidation({ validated: s8.validated, checks: s8.checks, promotion: null });
-  updatePtBadges();
-}
-
-function ptRenderValidation(d) {
-  const el = document.getElementById('pt-validate-result');
-  const rows = Object.entries(d.checks || {}).map(([k, v]) =>
-    `<tr><td>${escapeHtml(k)}</td><td>${v ? icon('✓', '', 'pass') : icon('✗', '', 'fail')}</td></tr>`).join('');
-  el.innerHTML = `<div class="mb-2"><span class="badge ${d.validated ? 'badge-success' : ''}">`
-    + `${d.validated ? 'VALIDATED — all checks pass' : 'Not validated yet'}</span></div>`
-    + `<table class="table" style="max-width:420px"><tbody>${rows}</tbody></table>`
-    + (d.promotion ? `<div class="justification-note mt-2">${escapeHtml(d.promotion)}</div>` : '');
-}
-
-async function ptValidate() {
-  if (!ptRequireCase()) return;
-  const d = await ptApi(`/validate/${S.ptCase.key}`, { method: 'POST' }, ptStatusEl('pt-validate-status'));
-  if (!d) return;
-  await ptRefreshSession();
-  ptRenderValidation(d);
-}
-
-async function ptFixScript() {
-  if (!ptRequireCase()) return;
-  const btn = document.getElementById('pt-fix-btn');
-  const d = await ptApi(`/fix_script/${S.ptCase.key}`,
-    { method: 'POST', btn, busyLabel: 'Fixing…', llm: true }, ptStatusEl('pt-validate-status'));
-  // Awaited (unlike the other handlers): this handler navigates to panel-pt-gen
-  // below, and the record must be filed under THIS panel before currentPanel changes.
-  await recordLLMDebug(btn);
-  if (!d) return;
-  await ptRefreshSession();
-  ptStatusEl('pt-validate-status').textContent =
-    `Revised (iteration ${d.iterations}); previous code archived. Review in 5. Generate, then re-run.`;
-  goToPanel('panel-pt-gen');
-}
-
-// --- Testboxes (profiles CRUD) -----------------------------------------------------
-
-export async function renderPtTestboxPanel() {
-  await ptLoadProfiles();
-  const el = document.getElementById('pt-tb-list');
-  // The editor starts empty rather than unrendered, so its "none stored" line is
-  // visible before anyone clicks edit.
-  if (document.getElementById('pt-tb-setups') && !document.querySelector('#pt-tb-setups .tb-setup-row')) {
-    ptRenderSetupRows([]);
-  }
-  const names = Object.keys(ptProfiles);
-  if (!names.length) { el.innerHTML = '<em class="review-empty">No testboxes stored yet — add one below.</em>'; return; }
-  let html = '<table class="table"><thead><tr><th>Name</th><th>tb</th><th>IP</th><th>User</th><th>Auth</th><th>Setups</th><th style="width:150px"></th></tr></thead><tbody>';
-  names.forEach(n => {
-    const p = ptProfiles[n];
-    const setupNames = Object.keys(p.setups || {});
-    html += `<tr><td><b>${escapeHtml(n)}</b></td><td>${escapeHtml(p.tb_number || '')}</td>
-      <td class="cell-id">${escapeHtml(p.host || '')}</td><td>${escapeHtml(p.user || '')}</td>
-      <td>${escapeHtml(p.auth || '')}${p.has_password ? ' (pw set)' : ''}</td>
-      <td>${setupNames.length ? escapeHtml(setupNames.join(', ')) : '<span class="status-muted">—</span>'}</td>
-      <td>
-        <button class="btn btn-compact" data-action="ptEditProfile" data-args="${dataArgs(n)}">${copy('edit', 'Edit')}</button>
-        <button class="btn btn-compact" data-action="ptCheckProfileNamed" data-args="${dataArgs(n)}">${copy('check', 'Check')}</button>
-        <button class="btn btn-compact" data-action="ptDeleteProfile" data-args="${dataArgs(n)}">${copy('✕', icon('✕', 'trash-can') + 'Delete')}</button>
-      </td></tr>`;
-  });
-  el.innerHTML = html + '</tbody></table>';
-}
-
-function ptEditProfile(name) {
-  const p = ptProfiles[name];
-  if (!p) return;
-  document.getElementById('pt-tb-name').value = name;
-  document.getElementById('pt-tb-number').value = p.tb_number || '';
-  document.getElementById('pt-tb-host').value = p.host || '';
-  document.getElementById('pt-tb-user').value = p.user || '';
-  document.getElementById('pt-tb-auth').value = p.auth || 'key';
-  document.getElementById('pt-tb-keypath').value = p.key_path || '';
-  document.getElementById('pt-tb-password').value = '';
-  document.getElementById('pt-tb-framework').value = p.framework_path || '';
-  document.getElementById('pt-tb-workdir').value = p.remote_workdir || '';
-  // Key names are the owner's and are reproduced verbatim, so a save round-trips
-  // them unchanged instead of collapsing everything to one invented name.
-  ptRenderSetupRows(Object.entries(p.setups || {}).map(([name, path]) => ({ name, path })));
-  // An earlier failed save may have left fields marked; editing a row is a fresh start.
-  document.querySelectorAll('#panel-pt-testbox .tb-invalid')
-    .forEach(el => el.classList.remove('tb-invalid'));
-  ptStatusEl('pt-tb-status').textContent = `Editing "${name}" — Save updates it.`;
-}
-
-// The four fields a testbox profile genuinely needs. `user` is here rather than
-// defaulted because the server's old `st-art` fallback is wrong on some benches
-// (tb470 authenticates as `terrenceb`) and produced a "Permission denied" that
-// reads like a lab fault. Everything else has a working server default.
-//
-// `.setup` files are deliberately NOT here. A testbox profile is shared by
-// everyone on this server, and each person runs their own topology, so requiring
-// one at create time would just make the creator's file everyone's de-facto
-// default under another name. They are a named, optional list instead.
-const PT_TB_REQUIRED = [
-  ['pt-tb-name', 'Name'],
-  ['pt-tb-number', 'tb number'],
-  ['pt-tb-host', 'Host or IP'],
-  ['pt-tb-user', 'SSH user'],
-];
-
-// --- setups: a NAMED map, never a "default" ----------------------------------
-// `setups` is {name: remote_path} and the Run panel renders every entry. The name
-// is the owner's to choose and is preserved verbatim across an edit -- an earlier
-// version of this form wrote every setup under the literal key "default", which
-// silently renamed whatever was already stored and, on a shared server, meant the
-// last person to save named everyone else's setup.
-
-export function ptReadSetupRows() {
-  return Array.from(document.querySelectorAll('#pt-tb-setups .tb-setup-row')).map(row => ({
-    name: row.querySelector('.tb-setup-name').value.trim(),
-    path: row.querySelector('.tb-setup-path').value.trim(),
-  }));
-}
-
-export function ptRenderSetupRows(rows) {
-  const host = document.getElementById('pt-tb-setups');
-  if (!rows.length) {
-    host.innerHTML = '<div class="tb-setups-empty">None stored. Runs will need a path typed into the Run panel.</div>';
-    return;
-  }
-  host.innerHTML = rows.map((r, i) => `
-    <div class="tb-setup-row">
-      <input class="form-input tb-setup-name" placeholder="name (e.g. terrenceb-ie520)" value="${escapeHtml(r.name)}">
-      <input class="form-input tb-setup-path" placeholder="/home/st-art/st-art/configs/tb470.setup" value="${escapeHtml(r.path)}">
-      <button class="btn btn-compact" data-action="ptRemoveSetupRow" data-args="[${i}]" title="Remove this setup">${copy('&#10005;', icon('✕') + 'Remove')}</button>
-    </div>`).join('');
-}
-
-function ptAddSetupRow() {
-  // Read first: re-rendering must not discard what is already typed.
-  ptRenderSetupRows(ptReadSetupRows().concat([{ name: '', path: '' }]));
-  const rows = document.querySelectorAll('#pt-tb-setups .tb-setup-name');
-  if (rows.length) rows[rows.length - 1].focus();
-}
-
-function ptRemoveSetupRow(i) {
-  const rows = ptReadSetupRows();
-  rows.splice(i, 1);
-  ptRenderSetupRows(rows);
-}
-
-function ptResetProfileForm() {
-  ['pt-tb-name', 'pt-tb-number', 'pt-tb-host', 'pt-tb-user',
-   'pt-tb-keypath', 'pt-tb-password', 'pt-tb-framework', 'pt-tb-workdir']
-    .forEach(id => {
-      const el = document.getElementById(id);
-      if (el) { el.value = ''; el.classList.remove('tb-invalid'); }
-    });
-  const auth = document.getElementById('pt-tb-auth');
-  if (auth) auth.value = 'key';
-  ptRenderSetupRows([]);
-  ptStatusEl('pt-tb-status').textContent = '';
-}
-
-async function ptSaveProfile() {
-  // Validate here so a missing field reads as a named field rather than as the
-  // server's generic 400, and so the offending input is visibly marked.
-  const missing = [];
-  PT_TB_REQUIRED.forEach(([id, label]) => {
-    const el = document.getElementById(id);
-    const ok = !!(el && el.value.trim());
-    if (el) el.classList.toggle('tb-invalid', !ok);
-    if (!ok) missing.push(label);
-  });
-  if (missing.length) {
-    ptStatusEl('pt-tb-status').textContent = `Required: ${missing.join(', ')}.`;
-    const first = document.getElementById(
-      PT_TB_REQUIRED.find(([, l]) => l === missing[0])[0]);
-    if (first) first.focus();
-    return;
-  }
-
-  // A half-filled setup row is a mistake, not an empty one: silently dropping a
-  // named row with no path would lose the entry without saying so.
-  const rows = ptReadSetupRows();
-  const setups = {};
-  for (const r of rows) {
-    if (!r.name && !r.path) continue;              // an untouched blank row
-    if (!r.name || !r.path) {
-      ptStatusEl('pt-tb-status').textContent =
-        `Setup "${r.name || r.path}" needs both a name and a path.`;
-      return;
-    }
-    if (Object.prototype.hasOwnProperty.call(setups, r.name)) {
-      ptStatusEl('pt-tb-status').textContent = `Duplicate setup name "${r.name}".`;
-      return;
-    }
-    setups[r.name] = r.path;
-  }
-
-  const body = {
-    name: document.getElementById('pt-tb-name').value.trim(),
-    tb_number: document.getElementById('pt-tb-number').value.trim(),
-    host: document.getElementById('pt-tb-host').value.trim(),
-    user: document.getElementById('pt-tb-user').value.trim(),
-    auth: document.getElementById('pt-tb-auth').value,
-    setups,
-  };
-  // Advanced fields: send only what was typed, so a blank box keeps the
-  // server-side default instead of pinning today's default into the profile.
-  const opt = {
-    key_path: 'pt-tb-keypath',
-    framework_path: 'pt-tb-framework',
-    remote_workdir: 'pt-tb-workdir',
-  };
-  Object.entries(opt).forEach(([field, id]) => {
-    const v = document.getElementById(id).value.trim();
-    if (v) body[field] = v;
-  });
-  const pw = document.getElementById('pt-tb-password').value;
-  if (pw) body.password = pw;
-
-  const d = await ptApi('/profiles', { method: 'POST', body: JSON.stringify(body) }, ptStatusEl('pt-tb-status'));
-  if (d) {
-    document.getElementById('pt-tb-password').value = '';
-    ptStatusEl('pt-tb-status').textContent = `Saved "${d.saved}" — press check on its row to verify SSH, framework and sudo.`;
-    renderPtTestboxPanel();
-  }
-}
-
-async function ptDeleteProfile(name) {
-  if (!confirm(copy(`Delete testbox "${name}"?`,
-    `Delete testbox ${name}? This permanently deletes its connection details and setups. This cannot be undone.`))) return;
-  const d = await ptApi(`/profiles/${encodeURIComponent(name)}`, { method: 'DELETE' }, ptStatusEl('pt-tb-status'));
-  if (d) renderPtTestboxPanel();
-}
-
-async function ptCheckProfileNamed(name) {
-  const st = ptStatusEl('pt-tb-status');
-  st.textContent = `Checking ${name}…`;
-  const d = await ptApi(`/profiles/${encodeURIComponent(name)}/check`, { method: 'POST' }, st);
-  if (d) setGlyphText(st, `${name}: ` + (d.ok ? '✓ ready — ' : '✗ not ready — ') + (d.detail || ''));
-}
-
 
 // Register this tool's data-action handlers.
 registerActions({
@@ -2594,12 +2261,9 @@ registerActions({
   ptSaveMatches,
   ptGatherFragments, ptSaveFragments, ptGenerateScript,
   ptFragGoStep, ptFragPrevStep, ptFragNextStep, ptFragToggle, ptPreviewFragments,
-  ptLintScript, ptReviewScript, ptFixScript, ptFixFromSummary, ptFixUnits, ptFixUnitsFromValidate, ptFixThisUnit, ptSaveScript,
+  ptLintScript, ptReviewScript, ptFixFromSummary, ptFixUnits, ptFixThisUnit, ptSaveScript,
   ptLoadUnits, ptGenerateUnit, ptGenerateAllUnits, ptAssembleScript, ptAssembleAndSettle,
   ptRechunk, ptResetGenerate, ptPruneLibrary, ptPruneLibraryApply,
   ptGoUnit, ptGoSummary, ptUnitPrev, ptUnitNext, ptClearUnitErrors,
-  ptViewSource, ptRun, ptRunAnyway, ptValidate,
-  ptEditProfile, ptSaveProfile, ptCheckProfile, ptResetProfileForm,
-  ptAddSetupRow, ptRemoveSetupRow,
-  ptCheckProfileNamed, ptDeleteProfile,
+  ptViewSource,
 });

@@ -70,25 +70,16 @@
       </div>
     </div>
 
-    <!-- Validation (PLAN-test-validation; Svelte island islands/vd.js) -->
-    <div class="sidebar-section-label">Validation</div>
+    <!-- Test Composer (PLAN-test-composer, PLAN-test-validation; Svelte islands islands/vd.js, islands/tc.js) -->
+    <div class="sidebar-section-label">Test Composer</div>
     <div class="sidebar-steps">
       <div data-action="goToPanel" data-args='["panel-vd"]' role="button" tabindex="0" class="sidebar-nav-item" data-panel="panel-vd">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
         Validate a Script
       </div>
-    </div>
-
-    <!-- Test Composer (PLAN-test-composer; Svelte island islands/tc.js) -->
-    <div class="sidebar-section-label">Test Composer</div>
-    <div class="sidebar-steps">
       <div data-action="goToPanel" data-args='["panel-tc"]' role="button" tabindex="0" class="sidebar-nav-item" data-panel="panel-tc">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
         Compose a Run
-      </div>
-      <div data-action="goToPanel" data-args='["panel-tc-tbd"]' role="button" tabindex="0" class="sidebar-nav-item" data-panel="panel-tc-tbd">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
-        Colour specimen
       </div>
     </div>
 
@@ -114,18 +105,6 @@
       <div data-action="goToPanel" data-args='["panel-pt-gen"]' role="button" tabindex="0" class="sidebar-nav-item" data-panel="panel-pt-gen" data-pt-step="6">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>
         5. Generate
-      </div>
-      <div data-action="goToPanel" data-args='["panel-pt-run"]' role="button" tabindex="0" class="sidebar-nav-item" data-panel="panel-pt-run" data-pt-step="7">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
-        6. Run
-      </div>
-      <div data-action="goToPanel" data-args='["panel-pt-validate"]' role="button" tabindex="0" class="sidebar-nav-item" data-panel="panel-pt-validate" data-pt-step="8">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
-        7. Validate
-      </div>
-      <div data-action="goToPanel" data-args='["panel-pt-testbox"]' role="button" tabindex="0" class="sidebar-nav-item" data-panel="panel-pt-testbox">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect><rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect><line x1="6" y1="6" x2="6.01" y2="6"></line><line x1="6" y1="18" x2="6.01" y2="18"></line></svg>
-        Testboxes
       </div>
     </div>
 
@@ -233,18 +212,16 @@
           <summary>PyTest Creator</summary>
           <div class="splash-body">
             Turns a <b>Complete</b> case (one exported by the Generator above) into a runnable
-            Allied Telesis <code>framework</code> (ATTestSet/ATTestCase) test script, then runs it on
-            real hardware and iterates until it passes. Each step has a Confirm gate.
+            Allied Telesis <code>framework</code> (ATTestSet/ATTestCase) test script, and saves it to <code>generated/</code>.
+            Each step has a Confirm gate; confirming 5. Generate saves the script and ends the Creator.
             <ol>
               <li><b>1. Cases</b> — pick a Complete case and Load it (use <b>↻ Refresh list</b> after exporting new cases in the Generator).</li>
               <li><b>2. Sequence</b> — the LLM extracts a prescriptive sequence of automatable steps from the refined case; edit the rows, Save, then Confirm.</li>
               <li><b>3. Script Search</b> — search the script databases (testsuites_art / svt_scripts / test_scripts) for scripts that do all, some, or none of the sequence; tick what to reuse, then Confirm.</li>
               <li><b>4. Fragments</b> — gather reusable code from the selected scripts (resolved to real source), untick what you don't want, then Confirm.</li>
-              <li><b>5. Generate</b> — the LLM fills the standardized skeleton template from the fragments + gap-fill; edit the Group/name, Lint, Save to <code>generated/&lt;Group&gt;/</code>, then Confirm.</li>
-              <li><b>6. Run</b> — pick a stored testbox (or add one under <b>Testboxes</b>), choose the .setup, and run it over SSH; results are parsed into per-TestCase PASS/FAIL.</li>
-              <li><b>7. Validate</b> — Final Validation passes when every TestCase is PASS with zero failures. On failures, <b>Fix with LLM</b> loops back to Generate; promotion into <code>testsuites_art/</code> is manual.</li>
+              <li><b>5. Generate</b> — the LLM fills the standardized skeleton template from the fragments + gap-fill; Lint and Review it, then Confirm — which saves it to <code>generated/&lt;Group&gt;/</code> and asks whether to test it in <b>Validation</b> (Test Composer section).</li>
             </ol>
-            <div style="margin-top:6px;">First-time setup: build the script index with <code>ask-ck/tools/build_script_index.py</code>, and add a testbox under the <b>Testboxes</b> sidebar item.</div>
+            <div style="margin-top:6px;">First-time setup: build the script index with <code>ask-ck/tools/build_script_index.py</code>.</div>
           </div>
         </details>
 
@@ -556,141 +533,11 @@
     <div id="panel-vd" class="card tool-panel hidden"><div id="vd-root"></div></div>
     <div id="panel-tc" class="card tool-panel hidden"><div id="tc-root"></div></div>
 
-    <!-- The former Test Composer stub: now only the Classic-vs-ATUI specimen (Terrence 2026-09-30) -->
-    <div id="panel-tc-tbd" class="card tool-panel hidden">
-      <div class="section">
-        <div class="section-heading">Colour and type specimen</div>
-        <div class="section-description">Compose tests from building blocks. Scope to be defined.</div>
-        <div class="placeholder-panel">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
-          <div class="placeholder-title">Under construction</div>
-          <div class="placeholder-text">The Test Composer's first step is not yet designed.</div>
-          <div class="placeholder-status" id="tc-status"></div>
-        </div>
-      <!-- ck-specimen:start — Classic vs ATUI colour + type specimen (Terrence, 2026-09-30; PLAN-atui-restyle).
-           Identical in current/ and restyle/ (a test pins that); each page's own stylesheet colours it. -->
-      <div class="ck-specimen">
-        <div class="ck-spec-title">Colour and type specimen</div>
-        <div class="ck-spec-note">Identical markup in Classic and ATUI — swap to compare. Every swatch is the live variable; the components below use the app's real classes.</div>
-        <div class="ck-spec-group">Backgrounds</div>
-        <div class="ck-spec-grid">
-          <div class="ck-sw" style="--sw: var(--bg-primary)"><span class="ck-sw-chip"></span><span class="ck-sw-text"><code>--bg-primary</code><span>page</span></span></div>
-          <div class="ck-sw" style="--sw: var(--bg-secondary)"><span class="ck-sw-chip"></span><span class="ck-sw-text"><code>--bg-secondary</code><span>cards, panels</span></span></div>
-          <div class="ck-sw" style="--sw: var(--bg-tertiary)"><span class="ck-sw-chip"></span><span class="ck-sw-text"><code>--bg-tertiary</code><span>inputs, recessed</span></span></div>
-          <div class="ck-sw" style="--sw: var(--bg-sidebar)"><span class="ck-sw-chip"></span><span class="ck-sw-text"><code>--bg-sidebar</code><span>sidebar</span></span></div>
-          <div class="ck-sw" style="--sw: var(--bg-elevated)"><span class="ck-sw-chip"></span><span class="ck-sw-text"><code>--bg-elevated</code><span>menus, modals</span></span></div>
-          <div class="ck-sw" style="--sw: var(--bg-hover)"><span class="ck-sw-chip"></span><span class="ck-sw-text"><code>--bg-hover</code><span>hover fill</span></span></div>
-          <div class="ck-sw" style="--sw: var(--bg-active)"><span class="ck-sw-chip"></span><span class="ck-sw-text"><code>--bg-active</code><span>selected item</span></span></div>
-        </div>
-        <div class="ck-spec-group">Text</div>
-        <div class="ck-spec-grid">
-          <div class="ck-sw" style="--sw: var(--text-primary)"><span class="ck-sw-chip"></span><span class="ck-sw-text"><code>--text-primary</code><span>body text</span></span></div>
-          <div class="ck-sw" style="--sw: var(--text-secondary)"><span class="ck-sw-chip"></span><span class="ck-sw-text"><code>--text-secondary</code><span>supporting text</span></span></div>
-          <div class="ck-sw" style="--sw: var(--text-tertiary)"><span class="ck-sw-chip"></span><span class="ck-sw-text"><code>--text-tertiary</code><span>hints, captions</span></span></div>
-          <div class="ck-sw" style="--sw: var(--text-inverse)"><span class="ck-sw-chip"></span><span class="ck-sw-text"><code>--text-inverse</code><span>text on blue fills</span></span></div>
-        </div>
-        <div class="ck-spec-group">Borders</div>
-        <div class="ck-spec-grid">
-          <div class="ck-sw" style="--sw: var(--border-default)"><span class="ck-sw-chip"></span><span class="ck-sw-text"><code>--border-default</code><span>hairlines</span></span></div>
-          <div class="ck-sw" style="--sw: var(--border-subtle)"><span class="ck-sw-chip"></span><span class="ck-sw-text"><code>--border-subtle</code><span>faint dividers</span></span></div>
-          <div class="ck-sw" style="--sw: var(--border-strong)"><span class="ck-sw-chip"></span><span class="ck-sw-text"><code>--border-strong</code><span>emphasised edges</span></span></div>
-        </div>
-        <div class="ck-spec-group">Accent</div>
-        <div class="ck-spec-grid">
-          <div class="ck-sw" style="--sw: var(--accent-primary)"><span class="ck-sw-chip"></span><span class="ck-sw-text"><code>--accent-primary</code><span>primary buttons, links</span></span></div>
-          <div class="ck-sw" style="--sw: var(--accent-hover)"><span class="ck-sw-chip"></span><span class="ck-sw-text"><code>--accent-hover</code><span>primary hover</span></span></div>
-          <div class="ck-sw" style="--sw: var(--accent-muted)"><span class="ck-sw-chip"></span><span class="ck-sw-text"><code>--accent-muted</code><span>tinted accent fill</span></span></div>
-          <div class="ck-sw" style="--sw: var(--accent-text)"><span class="ck-sw-chip"></span><span class="ck-sw-text"><code>--accent-text</code><span>accent text</span></span></div>
-        </div>
-        <div class="ck-spec-group">Status</div>
-        <div class="ck-spec-grid">
-          <div class="ck-sw" style="--sw: var(--status-critical)"><span class="ck-sw-chip"></span><span class="ck-sw-text"><code>--status-critical</code><span>critical</span></span></div>
-          <div class="ck-sw" style="--sw: var(--status-critical-muted)"><span class="ck-sw-chip"></span><span class="ck-sw-text"><code>--status-critical-muted</code><span>critical fill</span></span></div>
-          <div class="ck-sw" style="--sw: var(--status-high)"><span class="ck-sw-chip"></span><span class="ck-sw-text"><code>--status-high</code><span>high</span></span></div>
-          <div class="ck-sw" style="--sw: var(--status-high-muted)"><span class="ck-sw-chip"></span><span class="ck-sw-text"><code>--status-high-muted</code><span>high fill</span></span></div>
-          <div class="ck-sw" style="--sw: var(--status-medium)"><span class="ck-sw-chip"></span><span class="ck-sw-text"><code>--status-medium</code><span>medium</span></span></div>
-          <div class="ck-sw" style="--sw: var(--status-medium-muted)"><span class="ck-sw-chip"></span><span class="ck-sw-text"><code>--status-medium-muted</code><span>medium fill</span></span></div>
-          <div class="ck-sw" style="--sw: var(--status-low)"><span class="ck-sw-chip"></span><span class="ck-sw-text"><code>--status-low</code><span>low</span></span></div>
-          <div class="ck-sw" style="--sw: var(--status-low-muted)"><span class="ck-sw-chip"></span><span class="ck-sw-text"><code>--status-low-muted</code><span>low fill</span></span></div>
-          <div class="ck-sw" style="--sw: var(--status-success)"><span class="ck-sw-chip"></span><span class="ck-sw-text"><code>--status-success</code><span>success</span></span></div>
-          <div class="ck-sw" style="--sw: var(--status-success-muted)"><span class="ck-sw-chip"></span><span class="ck-sw-text"><code>--status-success-muted</code><span>success fill</span></span></div>
-        </div>
-        <div class="ck-spec-row"><span class="ck-sev" style="--c: var(--status-critical); --m: var(--status-critical-muted)">Critical</span> <span class="ck-sev" style="--c: var(--status-high); --m: var(--status-high-muted)">High</span> <span class="ck-sev" style="--c: var(--status-medium); --m: var(--status-medium-muted)">Medium</span> <span class="ck-sev" style="--c: var(--status-low); --m: var(--status-low-muted)">Low</span> <span class="ck-sev" style="--c: var(--status-success); --m: var(--status-success-muted)">Success</span></div>
-        <div class="ck-spec-group">Focus, overlay</div>
-        <div class="ck-spec-grid">
-          <div class="ck-sw" style="--sw: var(--focus-ring)"><span class="ck-sw-chip"></span><span class="ck-sw-text"><code>--focus-ring</code><span>focus outline</span></span></div>
-          <div class="ck-sw" style="--sw: var(--overlay)"><span class="ck-sw-chip"></span><span class="ck-sw-text"><code>--overlay</code><span>modal backdrop</span></span></div>
-        </div>
-        <div class="ck-spec-group">Undefined in Classic (shows its hard-coded fallbacks) · defined in ATUI since Phase 2</div>
-        <div class="ck-spec-grid">
-          <div class="ck-sw" style="--sw: var(--status-err, #dc2626)"><span class="ck-sw-chip"></span><span class="ck-sw-text"><code>--status-err</code><span>errors · falls back to #dc2626</span></span></div>
-          <div class="ck-sw" style="--sw: var(--status-ok, #16a34a)"><span class="ck-sw-chip"></span><span class="ck-sw-text"><code>--status-ok</code><span>ok · falls back to #16a34a</span></span></div>
-          <div class="ck-sw" style="--sw: var(--status-info, #3b82f6)"><span class="ck-sw-chip"></span><span class="ck-sw-text"><code>--status-info</code><span>info · falls back to #3b82f6</span></span></div>
-          <div class="ck-sw" style="--sw: var(--status-info-muted, #1e3a5f)"><span class="ck-sw-chip"></span><span class="ck-sw-text"><code>--status-info-muted</code><span>info fill · falls back to #1e3a5f</span></span></div>
-          <div class="ck-sw" style="--sw: var(--color-danger, #c0392b)"><span class="ck-sw-chip"></span><span class="ck-sw-text"><code>--color-danger</code><span>danger · falls back to #c0392b</span></span></div>
-          <div class="ck-sw" style="--sw: var(--text-muted, var(--text-secondary))"><span class="ck-sw-chip"></span><span class="ck-sw-text"><code>--text-muted</code><span>muted text · falls back to var(--text-secondary)</span></span></div>
-          <div class="ck-sw" style="--sw: var(--border-color, var(--border-default))"><span class="ck-sw-chip"></span><span class="ck-sw-text"><code>--border-color</code><span>borders · falls back to var(--border-default)</span></span></div>
-        </div>
-        <div class="ck-spec-group">Shadows</div>
-        <div class="ck-spec-row"><div class="ck-shadow" style="--sw: var(--shadow-sm)">--shadow-sm</div><div class="ck-shadow" style="--sw: var(--shadow-md)">--shadow-md</div><div class="ck-shadow" style="--sw: var(--shadow-lg)">--shadow-lg</div></div>
-        <div class="ck-spec-group">Buttons</div>
-        <div class="ck-spec-row">
-          <button type="button" class="btn btn-primary">Primary</button>
-          <button type="button" class="btn btn-secondary">Secondary</button>
-          <button type="button" class="btn btn-ghost">Ghost</button>
-          <button type="button" class="btn btn-danger">Danger</button>
-          <button type="button" class="btn btn-export">Export</button>
-          <button type="button" class="btn btn-primary" disabled>Disabled</button>
-        </div>
-        <div class="ck-spec-group">Badges</div>
-        <div class="ck-spec-row"><span class="badge badge-success">success</span> <span class="badge badge-warning">warning</span> <span class="badge badge-low">low</span></div>
-        <div class="ck-spec-group">Status banners</div>
-        <div class="status-banner is-success"><span class="status-title">Success</span> — the step completed.</div>
-        <div class="status-banner is-warning"><span class="status-title">Warning</span> — review before continuing.</div>
-        <div class="status-banner is-error"><span class="status-title">Error</span> — the request failed.</div>
-        <div class="status-banner is-busy"><span class="status-title">Busy</span> — waiting for the LLM.</div>
-        <div class="ck-spec-group">PyTest Creator pills and states</div>
-        <div class="ck-spec-row"><div class="pt-pill-row ck-spec-pills">
-          <button type="button" class="pt-pill pt-pill-ok">1 ok</button>
-          <button type="button" class="pt-pill pt-pill-gap">2 gap</button>
-          <button type="button" class="pt-pill pt-pill-limit">3 limit</button>
-          <button type="button" class="pt-pill pt-pill-ok pt-pill-current">4 current</button>
-          <span class="pt-state pt-state-ok">ok</span><span class="pt-state pt-state-stale">stale</span>
-        </div></div>
-        <div class="pt-frag-stale">Step 3 changed since the fragments were gathered — re-gather before generating.</div>
-        <div class="pt-seq-sanity-box">Sequence sanity: <span class="pt-seq-flag">⚑</span> step 4 verifies a value no step sets.</div>
-        <table class="ck-spec-table"><tbody>
-          <tr><td>3</td><td>configure the port speed</td></tr>
-          <tr class="pt-seq-flagged"><td>4</td><td>verify <code>current</code> speed <span class="pt-seq-flag">⚑</span></td></tr>
-        </tbody></table>
-        <div class="pt-held-warn">Held: the review hash no longer matches the units.</div>
-        <div class="llm-debug-error">LLM error text (styled with --status-low)</div>
-        <div class="ck-spec-group">Form fields</div>
-        <div class="ck-spec-row">
-          <div class="tb-field"><label class="tb-label">Name<span class="tb-req">*</span></label><input class="form-input" placeholder="tb470"></div>
-          <div class="tb-field"><label class="tb-label">Invalid<span class="tb-req">*</span></label><input class="form-input tb-invalid" value="not a number"></div>
-        </div>
-        <div class="ck-spec-group">Type</div>
-        <div class="section-heading">Section heading</div>
-        <div class="section-description">Section description — supporting text under a heading.</div>
-        <p class="ck-spec-p">Body text: the PyTest Creator turns a refined case into a runnable framework script. <strong>Bold</strong>, <em>italic</em>, <a href="/process" target="_blank" rel="noopener">a link</a>, <small>small text</small>.</p>
-        <p class="ck-spec-p ck-t2">Secondary text colour.</p>
-        <p class="ck-spec-p ck-t3">Tertiary text colour.</p>
-        <p class="ck-spec-p">Inline mono: <code>show interface port1.0.1</code> · <code>AT-x550-hq-01</code> · <code>192.168.1.1</code> · <code>aa:bb:cc:dd:ee:ff</code></p>
-        <pre class="ck-spec-pre">awplus# show interface port1.0.1
-Interface port1.0.1
-  Link is UP, administrative state is UP
-  current duplex full, current speed 1000</pre>
-      </div>
-      <!-- ck-specimen:end -->
-      </div>
-    </div>
-
     <!-- PyTest Creator: Cases (selection independent of the Generator's loaded case) -->
     <div id="panel-pt-cases" class="card tool-panel hidden">
       <div class="section">
         <div class="section-heading">PyTest Creator — Cases</div>
-        <div class="section-description">Pick a case to generate pytest code for (only Generator-Complete cases with a refined <code>zephyr_payload.json</code> are listed). <b>Open/Partial</b> = PyTest work not yet fully validated; <b>Complete</b> = generated + validated here (step 7). Selection is independent of the Generator's loaded case. Use <b>Refresh</b> after exporting new cases in the Generator or validating one here.</div>
+        <div class="section-description">Pick a case to generate pytest code for (only Generator-Complete cases with a refined <code>zephyr_payload.json</code> are listed). <b>Open/Partial</b> = no script saved yet; <b>Complete</b> = its script is saved to <code>generated/</code> (Validation's Finalize then removes the case from both lists). Selection is independent of the Generator's loaded case. Use <b>Refresh</b> after exporting new cases in the Generator or confirming one here.</div>
         <div class="mt-2">
           <div class="compact-flex mb-1">
             <label class="case-select-label" for="ptCaseSelOpen" id="ptCaseSelOpenLabel">Open/Partial</label>
@@ -813,12 +660,12 @@ Interface port1.0.1
             <li><b>Assemble + lint</b> — splice the units into the frame, re-stamp provenance, manifest-check + <code>py_compile</code>/PEP-8. Clear a red lint before moving on.</li>
             <li><b>Review (LLM)</b> — read the assembled script for logic defects the linter can't see (a verdict not matching its step, cross-unit inconsistencies). Findings only — no rewrite.</li>
             <li><b>Save to generated/</b> — write the file to disk.</li>
-            <li><b>Confirm step 5</b> — needs a clean lint (syntax errors can't be overridden); unlocks step 7 (Validate).</li>
+            <li><b>Confirm step 5</b> — needs a clean lint (syntax errors can't be overridden); saves the script to <code>generated/</code> and ends the Creator. House-rule errors and a coverage gap ask for your acknowledgement first.</li>
           </ol>
           <div class="justification-note">
             <b>If something's wrong &nbsp;·&nbsp;</b>
             <b>Re-lint</b> re-checks the current script after a hand-edit (local, no re-assemble).
-            <b>⤺ Fix units (LLM)</b> re-generates only the units the lint errors, review findings or failed run name, under the cached shared half. A review- or run-driven fix is <b>HELD</b> with a diff on the unit's page (⏸) for you to Apply or Discard; a lint-only fix applies itself. It re-assembles and re-lints for you, so re-Assembling after it is redundant, not harmful.
+            <b>⤺ Fix units (LLM)</b> re-generates only the units the lint errors or review findings name, under the cached shared half. A review-driven fix is <b>HELD</b> with a diff on the unit's page (⏸) for you to Apply or Discard; a lint-only fix applies itself. It re-assembles and re-lints for you, so re-Assembling after it is redundant, not harmful.
             <b>Fix whole script (LLM)</b> rewrites the whole file — for findings that name no unit. <b>Don't re-Assemble after THAT one</b> (it re-splices the units and discards the rewrite): Re-lint / Review, then Save &amp; Confirm.
             Grey buttons run locally; blue ones call the LLM.
           </div>
@@ -895,143 +742,8 @@ Interface port1.0.1
       </div>
     </div>
 
-    <!-- PyTest Creator: Step 7 — Run -->
-    <div id="panel-pt-run" class="card tool-panel hidden">
-      <div class="section">
-        <div class="section-heading step-heading-row">PyTest Creator — 6. Run <span id="pt-badge-7" class="badge hidden">Confirmed</span></div>
-        <div class="section-description">Execute the confirmed script on a testbox. Pick a stored testbox (or add a new one), choose the .setup, run, and watch the parsed results.</div>
-        <div id="pt-run-case" class="mt-2 mb-2"></div>
-        <div class="compact-flex mb-2">
-          <label class="justification-note">Testbox:</label>
-          <select id="pt-run-profile" class="form-select" style="width:auto"></select>
-          <button data-action="ptCheckProfile" class="btn btn-compact">Check Connection</button>
-          <label class="justification-note">Setup:</label>
-          <select id="pt-run-setup" class="form-select" style="width:auto"></select>
-          <input id="pt-run-setup-path" class="form-input" style="width:22ch" placeholder="…or remote .setup path">
-        </div>
-        <div class="compact-flex mb-2">
-          <button data-action="ptRun" class="btn btn-primary btn-compact" id="pt-run-btn">Run on Testbox</button>
-          <button data-action="ptConfirm" data-args='[7]' class="btn btn-compact">Confirm Step 6</button>
-          <span id="pt-run-status" class="justification-note"></span>
-        </div>
-        <div id="pt-run-results" class="mb-2"></div>
-        <details><summary class="justification-note">Raw log tail</summary><pre id="pt-run-log" class="session-pre"></pre></details>
-      </div>
-    </div>
 
-    <!-- PyTest Creator: Step 8 — Validate -->
-    <div id="panel-pt-validate" class="card tool-panel hidden">
-      <div class="section">
-        <div class="section-heading step-heading-row">PyTest Creator — 7. Validate <span id="pt-badge-8" class="badge hidden">Confirmed</span></div>
-        <div class="section-description">Final Validation: latest run finished, every TestCase PASS, zero failures. On failures, loop back with an LLM fix; on all-PASS, confirm to close out.</div>
-        <div id="pt-validate-case" class="mt-2 mb-2"></div>
-        <div class="compact-flex mb-2">
-          <button data-action="ptValidate" class="btn btn-primary btn-compact">Run Final Validation</button>
-          <button data-action="ptFixUnitsFromValidate" class="btn btn-compact" id="pt-fix-units-validate-btn"
-                  title="Re-generate only the failing units, then re-assemble">Fix units (LLM, from failures)</button>
-          <button data-action="ptFixScript" class="btn btn-compact" id="pt-fix-btn">Fix whole script (LLM)</button>
-          <button data-action="ptConfirm" data-args='[8]' class="btn btn-compact">Confirm Step 7 (close out)</button>
-        </div>
-        <div id="pt-validate-status" class="justification-note mb-2"></div>
-        <div id="pt-validate-result"></div>
-      </div>
-    </div>
 
-    <!-- PyTest Creator: Testboxes (profiles) -->
-    <div id="panel-pt-testbox" class="card tool-panel hidden">
-      <div class="section">
-        <div class="section-heading">PyTest Creator &mdash; Testboxes</div>
-        <div class="section-description">Stored SSH connections to lab testboxes. These populate the Run panel's dropdown. Kept in the gitignored <code>secrets.testboxes.json</code>; passwords are write-only and are never returned by the API.</div>
-
-        <div class="tb-instructions">
-          <div class="tb-instructions-title">Adding a testbox</div>
-          <ol>
-            <li><b>Name</b> it whatever you want to see in the Run dropdown &mdash; <code>tb470</code> is fine.</li>
-            <li><b>Host</b> is the hostname or IP. Lab short names resolve, so <code>tb470</code> works as-is.</li>
-            <li><b>User</b> must be a real login on that box. <b>There is no default</b>, deliberately: <code>st-art</code> is not valid on every bench (tb470 authenticates as <code>terrenceb</code>), and a wrong guess here surfaces as <i>Permission denied</i>, which reads like a network or hardware fault.</li>
-            <li><b>Setups</b> are optional and belong to whoever adds them. Give yours a name you will recognise and the path <i>on the testbox</i> to your topology file &mdash; the Run panel lists every one, and never picks for you. Existing names are never rewritten by a save.</li>
-            <li><b>Save</b>, then press <b>check</b> on the row. It probes SSH, the framework directory and passwordless <code>sudo</code> &mdash; <b>all three must pass</b> before a run can execute.</li>
-          </ol>
-          <div class="tb-note">Everything else has a working default and lives under <b>Advanced</b>. Key authentication uses the <i>server process's</i> SSH agent, not your shell's &mdash; so if <code>check</code> fails at SSH with a key you know is good, the server was started without <code>SSH_AUTH_SOCK</code> pointing at the keyring agent.</div>
-        </div>
-
-        <div id="pt-tb-list" class="mb-2"></div>
-
-        <div class="section-heading mt-2" style="font-size:12px">Add / edit testbox</div>
-        <div class="tb-grid">
-          <div class="tb-field">
-            <label class="tb-label" for="pt-tb-name">Name<span class="tb-req">*</span></label>
-            <input id="pt-tb-name" class="form-input" placeholder="tb470">
-            <div class="tb-hint">Shown in the Run dropdown. Saving an existing name edits it.</div>
-          </div>
-          <div class="tb-field">
-            <label class="tb-label" for="pt-tb-number">tb number<span class="tb-req">*</span></label>
-            <input id="pt-tb-number" class="form-input" placeholder="470">
-            <div class="tb-hint">Label only &mdash; nothing in the run path reads it.</div>
-          </div>
-          <div class="tb-field">
-            <label class="tb-label" for="pt-tb-host">Host or IP<span class="tb-req">*</span></label>
-            <input id="pt-tb-host" class="form-input" placeholder="tb470">
-            <div class="tb-hint">Lab short names resolve; an IP works too.</div>
-          </div>
-          <div class="tb-field">
-            <label class="tb-label" for="pt-tb-user">SSH user<span class="tb-req">*</span></label>
-            <input id="pt-tb-user" class="form-input" placeholder="terrenceb">
-            <div class="tb-hint">No default. <code>st-art</code> fails on some benches.</div>
-          </div>
-        </div>
-
-        <div class="tb-setups">
-          <div class="tb-setups-head">
-            <span class="tb-label" style="margin:0">Setups on this testbox</span>
-            <span class="tb-optional">optional &mdash; any number</span>
-          </div>
-          <p class="tb-advanced-note">Each person adds their own, named however they like. The Run panel lists every one and picks none for you; a run can also override with a path typed into the Run panel. Names you save here are never rewritten.</p>
-          <div id="pt-tb-setups"></div>
-          <button data-action="ptAddSetupRow" class="btn btn-compact">+ Add setup</button>
-        </div>
-
-        <details class="tb-advanced">
-          <summary>Advanced &mdash; SSH auth and remote paths</summary>
-          <p class="tb-advanced-note">Every field below already has a working default. Leave them blank unless this bench differs.</p>
-          <div class="tb-grid">
-            <div class="tb-field">
-              <label class="tb-label" for="pt-tb-auth">Authentication</label>
-              <select id="pt-tb-auth" class="form-select">
-                <option value="key">SSH key (default)</option><option value="password">Password</option>
-              </select>
-              <div class="tb-hint">Key auth uses the server's SSH agent first.</div>
-            </div>
-            <div class="tb-field">
-              <label class="tb-label" for="pt-tb-keypath">Private key path</label>
-              <input id="pt-tb-keypath" class="form-input" placeholder="~/.ssh/id_rsa">
-              <div class="tb-hint">Fallback when the agent has no usable key.</div>
-            </div>
-            <div class="tb-field">
-              <label class="tb-label" for="pt-tb-password">Password</label>
-              <input id="pt-tb-password" type="password" class="form-input" placeholder="only for password auth">
-              <div class="tb-hint">Write-only. Blank on edit keeps the stored one.</div>
-            </div>
-            <div class="tb-field">
-              <label class="tb-label" for="pt-tb-framework">Framework path</label>
-              <input id="pt-tb-framework" class="form-input" placeholder="/home/st-art/framework">
-              <div class="tb-hint">Read-only on the testbox; <code>check</code> verifies it exists.</div>
-            </div>
-            <div class="tb-field">
-              <label class="tb-label" for="pt-tb-workdir">Remote workdir</label>
-              <input id="pt-tb-workdir" class="form-input" placeholder="/home/st-art/pytest-create">
-              <div class="tb-hint">Where each run's files are copied.</div>
-            </div>
-          </div>
-        </details>
-
-        <div class="compact-flex mb-2">
-          <button data-action="ptSaveProfile" class="btn btn-primary btn-compact">Save Testbox</button>
-          <button data-action="ptResetProfileForm" class="btn btn-compact">Clear form</button>
-          <span id="pt-tb-status" class="justification-note"></span>
-        </div>
-      </div>
-    </div>
 
     <details id="session-debug" class="session-debug hidden">
       <summary class="session-debug-summary">Session debug JSON</summary>
@@ -1044,6 +756,6 @@ Interface port1.0.1
   </main>
 </div>
 
-<script type="module" src="/static/shared/main.js?v=41"></script>
+<script type="module" src="/static/shared/main.js?v=42"></script>
 </body>
 </html>

@@ -60,9 +60,9 @@ def test_the_helper_is_empty_strings_when_the_suite_has_no_library():
 
 # --- both endpoints pass it ------------------------------------------------------------
 
-def _body(start, end):
+def _body(start, end=None):
     i = _CODE.index(start)
-    j = _CODE.index(end, i)
+    j = _CODE.index(end, i) if end else len(_CODE)
     return _CODE[i:j]
 
 
@@ -73,7 +73,7 @@ def test_review_script_hands_the_library_to_its_prompt():
 
 
 def test_fix_script_hands_the_library_to_its_prompt():
-    body = _body("async def fix_script", "async def validate")
+    body = _body("async def fix_script")              # the file's last endpoint since 2026-10-12
     assert "_library_prompt_context(step6)" in body
     assert '"pt_fix_script.jinja"' in body
 

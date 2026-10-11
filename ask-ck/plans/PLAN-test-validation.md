@@ -15,9 +15,18 @@ verified: 2026-10-09
 > Repair and review run in device-testing `/test-mode` §11 (`da37c2d`; a 5-unclean-run cap, then
 > BLOCKED).
 >
-> **Finalize is built as disabled, showing its reasons.** V0 (the Zephyr "new version" capture)
-> is Terrence's, and the Zephyr writes and the list removal wait on it. V4 (retiring the
-> creator's Run, Validate and Testboxes panels) is NOT done. §8 decisions are still open.
+> **2026-10-12 (Terrence):**
+> - **V4 DONE:** the creator's 6. Run, 7. Validate and Testboxes are removed, front end and
+>   server. That settles §8.3 (Fix-from-run retired with the Run panel) and §8.4 (`RunManager`,
+>   the profiles, the SSH path and the framework read-only guards removed; the log parser kept).
+> - **The PyTest Creator ends at Confirm Step 5:** it saves the script, then a pop-up asks
+>   *"Do you want to test the new script?"* — Yes opens Validation with the script selected.
+>   *Complete* in its Cases list = the script is saved to `generated/`.
+> - **Finalize turns on with a clean run** (finished, reviewed, no repaired copy waiting). V0 is
+>   still open, so the server refuses before any Zephyr write and the page shows why.
+> - **Validation lives in the Test Composer sidebar section** (Validate a Script, then Compose a
+>   Run).
+> - §8.1, §8.2 and §8.5 are still open.
 >
 > Written 2026-10-09 from Terrence's design in that day's conversation. It is the second of three plans:
 > 1. [`PLAN-agent-sessions.md`](PLAN-agent-sessions.md) (A, first): how Ask-CK starts and talks

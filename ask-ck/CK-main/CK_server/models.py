@@ -204,7 +204,7 @@ class WizardSession(BaseModel):
 class PtSession(BaseModel):
     """PyTest Creator per-case session (see ask-ck/plans/PLAN-pytest-creator.md).
 
-    Steps 2-8 are free-form dicts each carrying confirmed/confirmed_at, mirroring
+    Steps 2-6 are free-form dicts each carrying confirmed/confirmed_at, mirroring
     the wizard's step4/step5 shape. Persisted as sessions/pt-{key}.json.
       step2: {sequence: [{n, action, verify, zephyr_step_idx}], provenance, confirmed}
       step3: {matches: [{id, score, coverage, reason}], selections: [id...],
@@ -214,8 +214,9 @@ class PtSession(BaseModel):
       step5: {fragments: [{source_id, symbol, loc, code, maps_to, why}], confirmed}
       step6: {naming: {group, name}, files: {test: {name, code}, library}, iterations,
               provenance, confirmed}
-      step7: {profile, setup, runs: [{run_id, status, log_file, parsed, ...}], confirmed}
-      step8: {validated, validated_at, run_id}
+      step7, step8: RETIRED 2026-10-12 (6. Run, 7. Validate — running and validating a script
+             moved to Validation). Kept as fields only so stored sessions that carry them
+             deserialize; not produced or read anymore.
     """
     key: str  # AWPTCM-Txxxx
     group: str = ""              # refined-cases group dir (e.g. "Port (7)")

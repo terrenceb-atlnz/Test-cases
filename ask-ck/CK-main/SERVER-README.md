@@ -55,8 +55,8 @@ always opens Classic (`archive/plans/PLAN-atui-restyle.md`).
 - **Ask CK multi-tool sidebar** (always-expanded sections, top→bottom):
   - **LLM** — live status + **Configure** entry (opens the LLM Provider Login as a main-area panel)
   - **Zephyr Templating Tool** — one page, **Organize Templates** (`panel-zt`, `zephyr-tool/zephyr-tool.js`): project URL → analysis → tick tree → Confirm → API Upload (dry run)
-  - **Test Composer** — 1. TBD (placeholder panel)
-  - **PyTest Creator** — full 7-step flow (2026-07-23): **1. Cases** (Open/Partial + Complete dropdowns, split by PyTest work state; partials auto-sorted to top; independent of the Generator) / **2. Sequence** / **3. Script Search** / **4. Fragments** / **5. Generate** / **6. Run** / **7. Validate**. (Former **4. Fit Decision** removed; internal `stepN` keys unchanged.) See the detailed **PyTest Creator** section below.
+  - **Test Composer** — **Validate a Script** (`panel-vd`) then **Compose a Run** (`panel-tc`); Validation moved into this section and the colour specimen panel was removed on 2026-10-12
+  - **PyTest Creator** — 5-step flow (7 steps 2026-07-23; **6. Run** and **7. Validate** retired 2026-10-12 — running a script is Validation's job): **1. Cases** (Open/Partial + Complete dropdowns, split by PyTest work state; partials auto-sorted to top; independent of the Generator) / **2. Sequence** / **3. Script Search** / **4. Fragments** / **5. Generate** (Confirm saves the script and offers Validation). (Former **4. Fit Decision** removed; internal `stepN` keys unchanged.) See the detailed **PyTest Creator** section below.
   - **Objective/Test Case Generator** — **1. Cases**, **2. TestLink**, **3. Zephyr**, **4. ATPyLib (scored)**, **5. Objectives (LLM)**, **6. Test Steps (LLM)**
 - Navigation: `goToPanel(panelId)` shows exactly one `.tool-panel` card; `goToStep()` wraps it for the Generator. **Visible step numbers (1–6) are display-only** — the internal scheme (`data-step` 0–5, panel ids `step-0..5`, session keys `step1..step5`, `confirm_step` domain ids 1–3) is unchanged and load-bearing.
 - Generator Cases panel: dual dropdowns — **Open / partial** (in-progress first) vs **Complete** (has `refined-cases/.../zephyr_payload.json`). Review steps 2–4 each have Search + Suggest with LLM toolbars.
@@ -182,11 +182,10 @@ seat agents.
 **Two runtime deps exist because their absence FAILS POLITELY** — the feature switches off and
 the symptom points somewhere else, so neither had a failing test until 2026-08-03:
 
-- **`paramiko`** — `pt_exec.py`'s SSH/SFTP runner, used since the testbox-execution feature
-  landed but declared in no requirements file. `import paramiko` sits inside `_connect()`, so
-  the server boots, every other tool works, and the profile probe answers
-  `{"ok": false, "detail": "SSH connection failed: No module named 'paramiko'"}` — which reads
-  as a testbox/network fault. On a fresh venv the entire **6. Run** step was dead.
+- **`paramiko`** (historical — removed 2026-10-12 with the SSH runner it served) — `pt_exec.py`'s
+  SSH/SFTP runner, used since the testbox-execution feature landed but declared in no
+  requirements file; on a fresh venv the entire **6. Run** step was dead behind a polite
+  "SSH connection failed" that read as a network fault.
 - **`fissix`** — the maintained fork of `lib2to3`, which Python **3.13 removed from the
   stdlib**, i.e. the version this project asks you to prefer. Without it the D3 py2→py3 fragment
   translation returns `status: "unavailable"` and legacy fragments ship untranslated behind a
@@ -1031,7 +1030,14 @@ a clean sweep to every count-based check. Expected-case count comes from the scr
    **Lint** (py_compile + structure +
    framework-import + **template/logging-contract conformance**: each `main()` needs a
    `self.log()` and ≥1 non-empty `passed()`/`failed()`, no empty verdicts, no leftover
-   FILL placeholders), **Save**, Confirm.
+   FILL placeholders), **Save**, Confirm. **Confirm saves** (2026-10-12): the page pushes the
+   editor's code, the server writes `generated/` and only then confirms, so the Cases list's
+   *Complete* (= a saved script, `case_registry.saved_script_case_keys`) and Validation see the
+   confirmed code. The two refusals a reviewer may override (a coverage gap; house-rule lint
+   errors) carry `X-CK-Needs: acknowledge_coverage_gap | acknowledge_lint_policy`, and the page
+   asks for that acknowledgement and resends (it used to send `{}`, so neither could be
+   confirmed from the UI). Confirming ends the Creator: a pop-up asks *"Do you want to test the
+   new script?"* — **Yes** opens Validation with the script selected, **No** returns to 1. Cases.
    **Stack + management-port hazards (2026-07-28, added after a live 8-member x950 run):**
    two further warnings. (1) `interface eth0` under config — eth0 is the out-of-band
    MANAGEMENT port (`show interface eth0 status` reports `Vlan: none`; it belongs to no
@@ -1044,47 +1050,16 @@ a clean sweep to every count-based check. Expected-case count comes from the scr
    than a test bug. Both key off the code shape, not the case text, so they fire whether or
    not the case is "about" stacking; both are silenced by the correct fix. See
    `ask-ck/functions/pytest-creator/{TEMPLATE-SPEC,LOGGING-CONTRACT,PART2A-WALKTHROUGH}.md`.
-6. **Run** — pick a stored testbox from the dropdown (or ➕ Add new testbox…), pick
-   the `.setup` (schema + a real worked example:
-   **`ask-ck/functions/pytest-creator/SETUP-FILE-REFERENCE.md`** — it declares stack membership
-   `[stack]`, the ports a test must never touch `[configured_stackport]`, and the testbox
-   NIC ↔ switch port cabling `[portlink] tb-swi_X = ethN-portA.B.C`; these are DECLARED
-   there and must never be inferred from case text), **Check Connection**,
-   **Run on Testbox**. The script + setup go over
-   SSH/SFTP, run as `sudo python3 <script> -s <setup> -v --noupdate --nodefaultcfg`
-   (`pt_exec.FRAMEWORK_RUN_FLAGS`, 2026-09-25: the devices already run their topology's own
-   config, so the framework's setup must not reset them — without the flags it writes a
-   generated `default.cfg`, strips licences, reboots and TFTP-copies a `.rel` into flash), and
-   the framework `.log` comes back and is parsed into per-TestCase PASS/FAIL. **The testbox framework dir
-   (`framework_path`, default `/home/st-art/framework`) is READ-ONLY** — `pt_exec.py`
-   refuses any SFTP write or remote command that would mutate it (guarded by
-   `ask-ck/tools/guard_framework_readonly.py`); copy a framework file into the run workdir to
-   edit it. See the run-chain reference `ask-ck/functions/test-composer/ART-EXECUTION-CHAIN.md`.
-7. **Validate** — Final Validation = run done + every case PASS + zero failures +
-   exit 0. On failures, **Fix with LLM** revises the script (previous iteration is
-   archived), which un-confirms steps 5-6 (Generate/Run) so the revision is re-reviewed
-   and re-run — the fix path also re-stamps provenance with the corrected sequence remap.
-   On all-PASS, Confirm step 7; promotion into `testsuites_art/` stays manual.
-
-**Testboxes** (sidebar) — stored connection profiles kept in the gitignored
-`secrets.testboxes.json` (0600). Passwords are write-only; the API returns `has_password`
-only. Passwordless sudo on the box is required (probed by check).
-
-*Required* is `name`, `tb_number`, `host` and **`user`** (`PROFILE_REQUIRED` in `pt_exec.py`).
-`user` deliberately has **no default**: it used to default to `st-art`, which is wrong on at
-least one live bench, and because a bad username fails at the SSH layer it presents as a
-network or testbox fault rather than a profile mistake (2026-09-01; TESTBOX-ACCESS §3a).
-Everything else — port, auth method, key path, password, framework path, remote workdir —
-has a working server default and lives under **Advanced** in the panel; a field left blank
-is omitted from the request rather than sent, so a profile never freezes today's default.
-
-`setups` is a **named map**, `{name: remote_path}`, with as many entries as you like and
-**no "default" key**: the panel writes the name its author typed and reproduces it verbatim
-on edit. Before 2026-09-01 the form wrote every setup under the literal key `default`, which
-silently renamed whatever was stored — on a LAN-shared server that let the last person to
-save name everyone else's setup. Setups are **optional**: the Run panel lists every entry and
-also takes a free-text remote path, so requiring one would only make the profile creator's
-file everyone's de-facto default under another name.
+6. **Run**, 7. **Validate** and the **Testboxes** sidebar item — **retired 2026-10-12**
+   (PLAN-test-validation V4). The server no longer connects to a testbox: Validation (Test
+   Composer section) launches device-testing's `/test-mode` on the user's seat through the seat
+   agent, and its bench-runner runs the script with `--noupdate --nodefaultcfg`, shipping
+   `ck_media.py` beside it. Removed with them: `POST /run`, `GET /run_status`, `/profiles` CRUD +
+   check, `POST /validate`, `confirm_step` 7-8, the run-failure input to Fix units and to the
+   whole-script Fix, `pt_exec.py`'s runner/profiles/preflight/read-only guards, `paramiko`, and
+   `ask-ck/tools/guard_framework_readonly.py`. `PtSession.step7`/`step8` stay as fields so stored
+   sessions load. `secrets.testboxes.json` is no longer read (delete it by hand if wanted). The
+   run chain reference is still `ask-ck/functions/test-composer/ART-EXECUTION-CHAIN.md`.
 
 **Building the script index** — ⚠ **Historical / provenance only.** The script index,
 literal source code, code chunks, and framework surface now live in **`ask-ck/db/ck.db`**
@@ -1281,11 +1256,9 @@ Commit `dc2e501`. Each item is Terrence's ruling on the 2026-09-23 open list.
   - **Restoring the setting afterwards.** `_negative_unset_facts` / `_review_negative_unsets`
     give the review prompt a `negative_unsets` list. Terrence's rule: *"have Review check if a
     later case restores it. If restoring isnt required by a latter test case, ignore it."*
-- **Run preflight** (`pt_exec._preflight_gate`). Before upload, Run checks the script against
-  the bench `.setup` with `pt_preflight.preflight_text`. An UN-RUNNABLE verdict stops the run
-  as `preflight_failed`, and the page offers **Run anyway**, which sends `ignore_preflight`
-  and is recorded as `"preflight": "skip"`. An error inside the check itself never blocks: it is
-  a check, not a gate on the check.
+- **Run preflight** — historical: `pt_exec._preflight_gate` went with 6. Run on 2026-10-12. The
+  `/test-mode` session runs `pt_preflight` against the probed `.setup` instead, and the
+  Composer's template counts use it (`tc_projects.templates_with_counts`).
 - **Malformed JSON is an error, not "nothing"** (`llm.extract_json_result` → `(value, status)`,
   status `ok` / `none` / `malformed`). Before this, a broken outer object made the extractor
   walk inward and return its first inner element. Sequence extraction and per-step suggest now
@@ -1586,8 +1559,10 @@ BLOCKs the case.
   `provenance.json`.
 - **Effect:** `case_registry.is_hidden_case` honours that marker, so a finalized case leaves both
   case lists.
+- **The button** turns on when the run is clean: it finished, the review exists, and no repaired
+  copy waits for approval (2026-10-12). The server re-checks the run and the review.
 - **Not live yet:** the version request is unknown until V0, so the endpoint refuses before any
-  write.
+  write, and the page shows that reason.
 
 ## Migration from Original Single-File Tool
 
@@ -1663,11 +1638,9 @@ won and the first person's work vanished with no error. Phase 1 of
   `innerHTML`, so `html_sanitize.sanitize_objective_html` (stdlib allowlist — tags only, no
   attributes, drops `script`/`style`) runs at **every** objective store point (synthesize / save /
   confirm / backfill / export). Defends against stored XSS from prompt-injected or garbage corpus text.
-- **PyTest run command is injection-safe.** The `-s <setup>` remote path is metachar-validated at the
-  `/run` endpoint and every interpolated component of the SSH exec string is `shlex.quote`d
-  (`pt_exec.py`). The **framework-read-only guard** (`_assert_command_allowed`) refuses redirection
-  (`>`), inline interpreters (`python -c`), command substitution, `rsync`/`install`, and
-  `cp --target-directory` whenever the framework dir is referenced — not just a verb denylist.
+- **PyTest run command is injection-safe** — historical: the server's SSH run path (its quoting and
+  the framework-read-only command guard) was removed on 2026-10-12; the server no longer runs
+  anything on a testbox.
 - **No path traversal on writes.** The export `case_key` is validated against `^AWPTCM-T\d+$` at the
   top of the handler (before any write), and generated library filenames are validated as a bare
   basename — so neither can escape `refined-cases/` or `generated/`.
@@ -1812,8 +1785,8 @@ npm test                                    # frontend units only (vitest run)
 npm run e2e                                 # Playwright E2E — sparingly, not the gate
 ```
 
-`./ask-ck/tools/run_tests.sh` runs the two invariant guards (`ask-ck/tools/guard_db_only.py`,
-`ask-ck/tools/guard_framework_readonly.py`), then pytest, then `npm test`; it **fails loudly** if npm is
+`./ask-ck/tools/run_tests.sh` runs the invariant guard (`ask-ck/tools/guard_db_only.py`; the
+framework-read-only guard went with the SSH run path on 2026-10-12), then pytest, then `npm test`; it **fails loudly** if npm is
 present but `node_modules` isn't installed (a partial gate that silently drops a layer would falsely
 read "all green"). There is **no CI runner yet** (`.github/workflows`) — running the gate before a
 commit is the current discipline.

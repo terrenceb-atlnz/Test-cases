@@ -35,15 +35,11 @@ from llm import (run_prompt, run_prompt_text, render_prompt,
 import db as dbx   # aliased: several functions here have a `db` filter parameter
 import gen_assembly
 import locks
-from pt_exec import (
-    load_profiles, save_profiles, redact_profile, normalize_profile,
-    check_profile, parse_framework_log, failure_excerpts, run_manager,
-)
 # Shared with the Generator. These were six underscore-PRIVATE imports out of
 # routers/wizard.py until PLAN-backend-module-split.md commit 8 — a sibling router
 # reaching into another router's internals, so renaming any one of them silently broke
 # a different tool. They now live in leaf modules that both routers import.
-from case_registry import build_case_groups, is_hidden_case, refined_complete_keys
+from case_registry import build_case_groups, is_hidden_case, refined_complete_keys, saved_script_case_keys
 from llm_config import cfg_for_task, effective_llm_config
 
 router = APIRouter(tags=["pytest-creator"])
@@ -59,7 +55,10 @@ META_ROOT = PT_GENERATED_DIR / ".meta"
 # Style anchor embedded in generation prompts: short, complete, has tear_down.
 EXEMPLAR_ID = "art/6011_simul_fail/test-6011.1000.py"
 
-STEP_KEYS = ["step2", "step3", "step4", "step5", "step6", "step7", "step8"]
+# step7 (6. Run) and step8 (7. Validate) were retired 2026-10-12 — running and validating a
+# script is Validation's job (PLAN-test-validation V4). PtSession keeps both fields so stored
+# sessions still load; nothing reads or writes them.
+STEP_KEYS = ["step2", "step3", "step4", "step5", "step6"]
 
 # ---------------------------------------------------------------------------
 # Py2 → Py3 fragment translation (D3, 2026-07-27)
@@ -518,8 +517,6 @@ def _invalidate_from(sess: PtSession, step_num: int) -> None:
                 step["confirmed"] = False
                 step["invalidated_at"] = utc_now().isoformat()
                 setattr(sess, k, step)
-    if step_num < 8 and (sess.step8 or {}).get("validated"):
-        sess.step8 = {**sess.step8, "validated": False}
 
 
 # The internal `stepN` keys and the numbers the UI shows DIVERGED when the old step 4
@@ -536,8 +533,6 @@ _STEP_UI_LABEL = {
     "step4": "4. Fragments (fit decision)",
     "step5": "4. Fragments",
     "step6": "5. Generate",
-    "step7": "6. Run",
-    "step8": "7. Validate",
 }
 
 
@@ -549,31 +544,6 @@ def _step_label(step: object) -> str:
     """
     key = step if isinstance(step, str) and step.startswith("step") else f"step{step}"
     return _STEP_UI_LABEL.get(key, str(step))
-
-
-_LIVE_RUN_STATUSES = ("queued", "connecting", "uploading", "running")
-
-
-def _sweep_stale_runs(sess: PtSession) -> bool:
-    """Re-mark runs orphaned by a server restart as 'stale'. Returns True if changed.
-
-    A run row persists its last status, but the process that owned it does not survive
-    a restart. This sweep used to live only inside load_case, so the polling endpoint
-    (run_status) kept reporting the persisted 'running' forever — the UI spinner never
-    resolved for anyone who did not reload the case first. Shared so every reader of
-    step7.runs sees the same truth.
-    """
-    runs = (sess.step7 or {}).get("runs") or []
-    if not runs:
-        return False
-    changed = False
-    for r in runs:
-        if r.get("status") in _LIVE_RUN_STATUSES and not run_manager.is_running(sess.key):
-            r["status"] = "stale"
-            changed = True
-    if changed:
-        sess.step7 = {**sess.step7, "runs": runs}
-    return changed
 
 
 def _collapse_step_text(step: dict) -> dict:
@@ -1701,11 +1671,6 @@ def _skeleton_bound_devices(skeleton: str, dut: str = "") -> List[str]:
     return names
 
 
-# parents[2]=CK_server (cf. _TEMPLATES_DIR), [3]=CK-main, [4]=ask-ck, [5]=repo root.
-_MEDIA_HELPER_SRC = Path(__file__).resolve().parents[4] / "ask-ck" / "tools" / "pt_media.py"
-# The workdir filename the generated script imports. Must match the template's `import`.
-MEDIA_HELPER_NAME = "ck_media.py"
-
 _FIBRE_HINT_RX = re.compile(
     r"\b(fibre|fiber|optical|optic|single-?mode|multi-?mode|"
     r"\d+base-(?:sx|lx|lh|sr|lr|er|zx|bx|fx))\b", re.I)
@@ -2236,23 +2201,6 @@ def _skeleton_bound_ports(skeleton: str) -> List[dict]:
         far = rehome.get(far, far)
         out.append({"role": role, "near": near, "far": far})
     return out
-
-
-def _media_helper_source() -> str:
-    """The `ck_media.py` shipped alongside a generated script into the run workdir.
-
-    Read from `ask-ck/tools/pt_media.py` rather than duplicated, so the module the testbox executes
-    is byte-identical to the one the in-repo tests cover. Not a corpus read (guard_db_only
-    is about corpora), and the script imports it as a workdir sibling.
-
-    Fails loudly if the path is wrong: shipping a run WITHOUT this helper would make every
-    generated script die on `import ck_media`, so a silent miss is not acceptable.
-    """
-    if not _MEDIA_HELPER_SRC.is_file():
-        raise RuntimeError(
-            f"media helper not found at {_MEDIA_HELPER_SRC} — generated scripts import it as "
-            f"`ck_media`, so a run cannot proceed without it")
-    return _MEDIA_HELPER_SRC.read_text(encoding="utf-8")
 
 
 def _detect_topology(sequence: List[dict], fragments: List[dict]) -> Tuple[List[str], List[str], bool]:
@@ -5298,31 +5246,32 @@ async def status(request: Request):
         "enrichment_pct": meta.get("enrichment_pct", 0.0),
         "index_built_at": meta.get("built_at"),
         "framework_modules": len(data.get("framework_surface") or {}),
-        "profiles": len(load_profiles()),
         "generated_scripts": generated,
         "message": ("Run ask-ck/tools/build_db.py --fresh to build the script index."
                     if not scripts_indexed else None),
     }
 
 
-def _pt_cases_index() -> Tuple[set, Dict[str, dict]]:
-    """(complete_keys, per-case PyTest progress) — the two blocking reads pt_cases
-    needs, paired for a single threadpool hop and named so the event-loop AST
+def _pt_cases_index() -> Tuple[set, Dict[str, dict], frozenset]:
+    """(complete_keys, per-case PyTest progress, saved-script keys) — the blocking reads
+    pt_cases needs, paired for a single threadpool hop and named so the event-loop AST
     invariant can see what is dispatched (a lambda would hide them)."""
     try:
         pt_prog = dbx.list_pt_progress()
     except Exception as e:
         print(f"Warning: reading pt session progress failed: {e}")
         pt_prog = {}
-    return refined_complete_keys(), pt_prog
+    return refined_complete_keys(), pt_prog, saved_script_case_keys()
 
 
 @router.get("/pt_cases")
 async def pt_cases(request: Request):
     """Complete (Generator-exported) cases, split by PyTest Creator work state for the
     two Cases dropdowns:
-      - complete:    step 8 (Final Validation) confirmed + validated in PyTest Creator
-      - in_progress: everything else (not yet fully validated here)
+      - complete:    its script is saved to generated/ (Terrence 2026-10-12: saving is the end
+                     of the PyTest Creator; Validation's Finalize then takes the case off both
+                     lists — is_hidden_case)
+      - in_progress: everything else
     Both lists only contain cases with a refined zephyr_payload.json — i.e. cases the
     PyTest Creator can actually load. Grouped by Zephyr folder leaf for optgroups.
     """
@@ -5333,19 +5282,19 @@ async def pt_cases(request: Request):
                 if c.get("candidates") and c.get("key")
                 and not is_hidden_case(c["key"], zephyr.get(c["key"], {}).get("folder", ""))]
 
-    # Off the event loop: refined_complete_keys rglob's the whole refined-cases tree
-    # and list_pt_progress hits ck.db. Both were bare here — the same blocking-work-in-
-    # an-async-handler bug batch B fixed for the LLM/search sites, missed because the
+    # Off the event loop: refined_complete_keys rglob's the whole refined-cases tree,
+    # list_pt_progress hits ck.db and saved_script_case_keys reads generated/.meta. The
+    # first two were bare here — the same blocking-work-in-an-async-handler bug batch B fixed for the LLM/search sites, missed because the
     # invariant's _BLOCKING list only covered LLM round-trips and embedding entry
     # points, not pure filesystem/DB reads. Widening that list surfaced this.
-    complete_set, pt_prog = await run_in_threadpool(_pt_cases_index)
+    complete_set, pt_prog, saved = await run_in_threadpool(_pt_cases_index)
     refined_keys = [k for k in all_keys if k in complete_set]
 
-    done_keys = [k for k in refined_keys if (pt_prog.get(k) or {}).get("validated")]
+    done_keys = [k for k in refined_keys if k in saved]
     open_keys = [k for k in refined_keys if k not in set(done_keys)]
 
     # Partials-first ordering for the Open/Partial dropdown: cases whose PyTest work has
-    # actually started (a pt session with ≥1 confirmed step, but not yet validated) go in
+    # actually started (a pt session with ≥1 confirmed step, but no saved script yet) go in
     # a single "In progress" optgroup at the TOP; every other not-yet-started case follows,
     # grouped by Zephyr folder. Mirrors the Generator's Step-1 partials-on-top pattern.
     def _num(k: str):
@@ -5364,7 +5313,7 @@ async def pt_cases(request: Request):
         for k in partial_keys:
             title = zephyr.get(k, {}).get("title", k)
             conf = (pt_prog.get(k) or {}).get("confirms", 0)
-            hint = f" [{conf}/7 steps]" if conf else ""
+            hint = f" [{conf}/5 steps]" if conf else ""
             partial_cases.append({"key": k, "title": f"{title}{hint}" if title else f"{k}{hint}"})
         open_grouped.append({"label": f"In progress ({len(partial_cases)})", "cases": partial_cases})
     open_grouped.extend(build_case_groups(not_started_keys, zephyr))
@@ -5382,8 +5331,7 @@ async def load_case(key: str, request: Request, fresh: bool = False):
     data = _data(request)
     # Per-case lock (PLAN-auth-and-case-locking.md Phase 1). If another tab/user holds a
     # LIVE lock, serve a read-only snapshot and touch nothing — pt_sessions is shared
-    # across tabs in this one process, so _sweep_stale_runs here would mutate THEIR live
-    # object, and the hydration _pt_persist would 409.
+    # across tabs in this one process, so the hydration _pt_persist would 409.
     lock = locks.acquire("pt", key)
     if not lock["by_me"]:
         snap = _pt_load(key) or PtSession(key=key)
@@ -5401,7 +5349,7 @@ async def load_case(key: str, request: Request, fresh: bool = False):
 
     if fresh:
         # "Load Case & New Session" (the sibling of "& Continue"). load_case REUSES an
-        # existing session by design — that is what preserves the step2-step8 work across a
+        # existing session by design — that is what preserves the step2-step6 work across a
         # reload — so an upstream objective/steps edit + re-export is NOT picked up by a plain
         # load. This is the explicit opt-in to throw the stored session away and rebuild from
         # the on-disk refined bundle (the same bundle `push` reads). Only reachable holding the
@@ -5421,7 +5369,6 @@ async def load_case(key: str, request: Request, fresh: bool = False):
         if not sess:
             group, payload, trace = _find_refined_case(key)
             sess = PtSession(key=key, group=group, payload=payload, traceability=trace)
-    _sweep_stale_runs(sess)
     # The LLM choice is per seat since 2026-09-10 (X-CK-LLM, resolved at dispatch); nothing
     # is copied onto the case any more. The response field below stays for API compatibility.
     changed = False
@@ -5457,15 +5404,20 @@ async def clear_session(key: str):
 
 @router.post("/confirm_step/{key}/{step}")
 async def confirm_step(key: str, step: int, body: dict = Body(default={})):
-    """Explicit human confirmation gate for steps 2-8 (wizard.confirm_step pattern)."""
-    if step < 2 or step > 8:
-        raise HTTPException(400, "Invalid step (2-8).")
+    """Explicit human confirmation gate for steps 2-6 (wizard.confirm_step pattern).
+
+    Confirming step 6 (5. Generate) is the end of the PyTest Creator (Terrence 2026-10-12): it
+    SAVES the script to generated/ first, so the Cases list's Complete (= saved) and Validation
+    see the code that was confirmed. A refusal a reviewer may override carries `X-CK-Needs:
+    <field>` so the page can ask for it and resend."""
+    if step < 2 or step > 6:
+        raise HTTPException(400, "Invalid step (2-6).")
     sess = _pt_get(key)
     step_key = f"step{step}"
     content = getattr(sess, step_key) or {}
     # Steps must have content before they can be confirmed
     required_field = {2: "sequence", 3: "matches", 4: "decision",
-                      5: "fragments", 6: "files", 7: "runs", 8: "validated"}[step]
+                      5: "fragments", 6: "files"}[step]
     # Steps 3/5 (matches/fragments) are lists where an EMPTY list is a legitimate,
     # already-run answer -- e.g. a case with genuinely no reusable code correctly
     # returns `fragments: []` (verified live on AWPTCM-T33235, Part 2B). A truthiness
@@ -5523,7 +5475,7 @@ async def confirm_step(key: str, step: int, body: dict = Body(default={})):
     if step in (2, 6) and not (body or {}).get("acknowledge_coverage_gap"):
         gap = _coverage_gate_error(sess, step)
         if gap:
-            raise HTTPException(409, gap)
+            raise HTTPException(409, gap, headers={"X-CK-Needs": "acknowledge_coverage_gap"})
 
     # PHASE 7.7/7.8 — CONFIRMING A SCRIPT REQUIRES A CLEAN LINT, with two authorities.
     #
@@ -5562,7 +5514,8 @@ async def confirm_step(key: str, step: int, body: dict = Body(default={})):
                     409, "This script breaks house rules that a reviewer may accept. To "
                          "confirm anyway, resend with {\"acknowledge_lint_policy\": "
                          "\"<why>\"} — the reason is recorded on the session:\n  - "
-                         + "\n  - ".join(str(e) for e in policy[:10]))
+                         + "\n  - ".join(str(e) for e in policy[:10]),
+                    headers={"X-CK-Needs": "acknowledge_lint_policy"})
             step6 = getattr(sess, "step6", None) or {}
             acks = list(step6.get("policy_acknowledgements") or [])
             acks.append({"at": utc_now().isoformat(), "reason": reason[:500],
@@ -5570,10 +5523,16 @@ async def confirm_step(key: str, step: int, body: dict = Body(default={})):
             step6["policy_acknowledgements"] = acks
             sess.step6 = step6
 
+    written: List[str] = []
+    if step == 6:
+        # Save, then confirm: a write that fails (a library-name clash, say) leaves the step
+        # unconfirmed and says why.
+        written = _persist_generated_files(sess)
     _confirm(sess, step_key)
     _invalidate_from(sess, step)
     _pt_persist(sess)
-    return {"session": safe_session_dict(sess)}   # redacts llm_config secrets
+    return {"session": safe_session_dict(sess),   # redacts llm_config secrets
+            "written": written}
 
 
 # ---------------------------------------------------------------------------
@@ -6672,151 +6631,6 @@ async def lint_script(key: str):
 
 
 # ---------------------------------------------------------------------------
-# Step 7 — testbox profiles + execution
-# ---------------------------------------------------------------------------
-
-@router.get("/profiles")
-async def get_profiles():
-    profiles = load_profiles()
-    return {"profiles": {name: redact_profile(p) for name, p in profiles.items()}}
-
-
-@router.post("/profiles")
-async def upsert_profile(body: dict = Body(...)):
-    name = (body.get("name") or "").strip()
-    if not re.match(r"^[A-Za-z0-9][A-Za-z0-9_\-\. ]{0,40}$", name):
-        raise HTTPException(400, "Invalid profile name.")
-    profiles = load_profiles()
-    try:
-        prof = normalize_profile(body)
-    except ValueError as e:
-        raise HTTPException(400, str(e))
-    if not body.get("password") and name in profiles:
-        prof["password"] = profiles[name].get("password")  # keep stored password on edit
-    profiles[name] = prof
-    save_profiles(profiles)
-    return {"saved": name, "profile": redact_profile(prof)}
-
-
-@router.delete("/profiles/{name}")
-async def delete_profile(name: str):
-    profiles = load_profiles()
-    if name not in profiles:
-        raise HTTPException(404, "Profile not found.")
-    del profiles[name]
-    save_profiles(profiles)
-    return {"deleted": name}
-
-
-@router.post("/profiles/{name}/check")
-async def profile_check(name: str):
-    profiles = load_profiles()
-    if name not in profiles:
-        raise HTTPException(404, "Profile not found.")
-    return check_profile(profiles[name])
-
-
-@router.post("/run/{key}")
-async def run_script(key: str, body: dict = Body(...)):
-    sess = _pt_get(key)
-    _require_confirmed(sess, "step6", "Execution")
-    if run_manager.is_running(key):
-        raise HTTPException(409, "A run is already active for this case.")
-
-    profiles = load_profiles()
-    profile_name = body.get("profile") or (sess.step7 or {}).get("profile")
-    if not profile_name or profile_name not in profiles:
-        raise HTTPException(400, "Unknown or missing testbox profile.")
-    profile = profiles[profile_name]
-
-    setup = body.get("setup") or ""
-    if setup in (profile.get("setups") or {}):
-        setup_remote = profile["setups"][setup]
-    elif setup:
-        # Explicit remote path (not a named profile setup). This value is interpolated
-        # into the remote SSH command, so reject anything that isn't a plausible path —
-        # no shell metacharacters, whitespace, or quotes. `pt_exec` also shell-quotes it
-        # (defense in depth), but rejecting here gives a clear 400 instead of a silently
-        # mangled path. Allows POSIX path chars + dot/dash/underscore.
-        if not re.fullmatch(r"[A-Za-z0-9_./\-]+", setup):
-            raise HTTPException(400, "Invalid setup path: only letters, digits, '_', '.', '/', '-' allowed.")
-        setup_remote = setup  # explicit remote path
-    elif profile.get("setups"):
-        setup_remote = next(iter(profile["setups"].values()))
-    else:
-        raise HTTPException(400, "No .setup file: add one to the profile or pass 'setup'.")
-
-    step6 = sess.step6 or {}
-    files = {step6["files"]["test"]["name"]: step6["files"]["test"]["code"]}
-    lib = (step6.get("files") or {}).get("library")
-    if lib and lib.get("code"):
-        files[lib["name"]] = lib["code"]
-    # Every generated script does `import ck_media` inside _ck_discover / _ck_bind_link (fixed
-    # frame), so the helper ships with EVERY run — not only when the reviewer supplied a library.
-    files[MEDIA_HELPER_NAME] = _media_helper_source()
-
-    naming = step6.get("naming") or {}
-    run_id = utc_now().strftime("%Y%m%d-%H%M%S")
-    run = {"run_id": run_id, "case_key": key, "status": "queued",
-           "profile": profile_name, "setup": setup_remote,
-           "test_file": step6["files"]["test"]["name"],
-           "started_at": utc_now().isoformat(),
-           "finished_at": None, "log_file": None, "parsed": None,
-           "exit_code": None, "error": None,
-           # Plan 10.4: the run thread checks the bench before touching it; "run anyway"
-           # (`ignore_preflight`) skips that and the skip is recorded on the run.
-           "preflight": "skip" if body.get("ignore_preflight") else None}
-
-    step7 = sess.step7 or {}
-    step7["profile"] = profile_name
-    step7.setdefault("runs", []).append(run)
-    step7["confirmed"] = False
-    sess.step7 = step7
-    _invalidate_from(sess, 7)
-    _pt_persist(sess)
-
-    local_run_dir = _meta_dir(naming.get("group", "Ungrouped"),
-                              naming.get("name", "unnamed")) / "runs" / run_id
-
-    def on_update(updated_run: dict):
-        cur = pt_sessions.get(key) or _pt_load(key)
-        if not cur:
-            return
-        runs = (cur.step7 or {}).get("runs") or []
-        for i, r in enumerate(runs):
-            if r.get("run_id") == updated_run["run_id"]:
-                runs[i] = updated_run
-                break
-        cur.step7 = {**cur.step7, "runs": runs}
-        pt_sessions[key] = cur
-        _pt_persist(cur)
-
-    try:
-        run_manager.start(key, run, profile, files, setup_remote, local_run_dir, on_update)
-    except RuntimeError as e:
-        raise HTTPException(409, str(e))
-    return {"run_id": run_id, "status": "queued"}
-
-
-@router.get("/run_status/{key}/{run_id}")
-async def run_status(key: str, run_id: str, tail: int = 40):
-    sess = _pt_get(key)
-    # Re-mark restart-orphaned runs here too, not just in load_case — otherwise this
-    # endpoint reports the persisted 'running' forever and the UI polls indefinitely.
-    if _sweep_stale_runs(sess):
-        _pt_persist(sess)
-    runs = (sess.step7 or {}).get("runs") or []
-    run = next((r for r in runs if r.get("run_id") == run_id), None)
-    if not run:
-        raise HTTPException(404, "Run not found.")
-    log_tail = ""
-    if run.get("log_file") and Path(run["log_file"]).exists():
-        lines = Path(run["log_file"]).read_text(encoding="utf-8", errors="replace").splitlines()
-        log_tail = "\n".join(lines[-tail:])
-    return {"run": run, "log_tail": log_tail, "active": run_manager.is_running(key)}
-
-
-# ---------------------------------------------------------------------------
 # Per-unit generation (PLAN-pytest-creator.md §9.5, built 2026-09-02)
 #
 # One LLM call per UNIT of the script — a single TestCase class, or the TestSet's
@@ -7863,15 +7677,15 @@ async def assemble_script(key: str, request: Request, body: dict = Body(default=
 
 def _settleable_units(sess: "PtSession", ctx: dict, code: str, already: set) -> List[str]:
     """R4/D3: the units a settle round may touch — those whose reasons are LINT-ONLY (a lint
-    error mapped to the unit, no review finding, no failed run), present in the frame, not
-    already in flight. A unit with a review or run finding is HELD (guardrails D2) and left for
+    error mapped to the unit, no review finding), present in the frame, not already in
+    flight. A unit with a review finding is HELD (guardrails D2) and left for
     the reviewer; a whole-file error names no unit (`_fix_reasons` puts it in `unmapped`), so it
     can never enter the settle set. Blocking or policy — both are settleable; the reviewer sees
     what survives the rounds."""
     reasons = _fix_reasons(sess, ctx, code)
     in_frame = set(_chunks_from_code(code, ctx))
     return [uid for uid, r in reasons["per_unit"].items()
-            if r["lint"] and not r["review"] and not r["run"]
+            if r["lint"] and not r["review"]
             and uid in in_frame and uid not in already]
 
 
@@ -8393,7 +8207,7 @@ async def generate_units(key: str, request: Request, body: dict = Body(default={
                 turns = 0
                 while res.get("status") == "arrival_refused" and turns < budget:
                     turns += 1
-                    reasons = {"lint": [res.get("reason") or ""], "review": [], "run": None}
+                    reasons = {"lint": [res.get("reason") or ""], "review": []}
                     repair_prompt = await run_in_threadpool(
                         _fix_unit_prompt, key, data, sess, ctx, unit, res.get("code") or "", reasons)
                     res = await run_in_threadpool(_unit_call_and_store, key, uid, repair_prompt,
@@ -8886,16 +8700,16 @@ def _structural_reason(f: dict, uid: Optional[str]) -> Optional[str]:
 
 
 def _fix_reasons(sess: PtSession, ctx: dict, code: str) -> dict:
-    """Every current reason to fix, sorted onto units: lint errors, review findings and the
-    last run's failing cases (with their log excerpts). `unmapped` holds the ones that name
-    no unit — those are the whole-script Fix's job."""
+    """Every current reason to fix, sorted onto units: lint errors and review findings. (Run
+    failures were a third until 2026-10-12 — the bench runs moved to Validation.) `unmapped`
+    holds the ones that name no unit — those are the whole-script Fix's job."""
     step6 = sess.step6 or {}
     code_units = _skeleton_units(code)
     per: Dict[str, dict] = {}
     unmapped: List[str] = []
 
     def slot(uid: str) -> dict:
-        return per.setdefault(uid, {"lint": [], "review": [], "run": None, "excerpt": ""})
+        return per.setdefault(uid, {"lint": [], "review": []})
 
     for e in (step6.get("lint") or {}).get("errors") or []:
         uid = _unit_id_for_text(str(e), code_units)
@@ -8929,25 +8743,6 @@ def _fix_reasons(sess: PtSession, ctx: dict, code: str) -> dict:
             slot(uid)["review"].append(f)
         else:
             unmapped.append(f"review: {f.get('where') or '(script)'} — {f.get('what') or ''}")
-    runs = (sess.step7 or {}).get("runs") or []
-    last = runs[-1] if runs else None
-    parsed = (last or {}).get("parsed") or {}
-    if parsed.get("cases"):
-        excerpts: Dict[str, str] = {}
-        log_file = (last or {}).get("log_file")
-        if log_file and Path(log_file).exists():
-            excerpts = {e["case"]: e["text"] for e in failure_excerpts(
-                Path(log_file).read_text(encoding="utf-8", errors="replace"), parsed)}
-        for c in parsed["cases"]:
-            if c.get("result") in ("PASS", None):
-                continue
-            uid = _unit_id_for_text(c.get("name") or "", code_units)
-            if uid:
-                sl = slot(uid)
-                sl["run"] = c
-                sl["excerpt"] = excerpts.get(c.get("name") or "", "")
-            else:
-                unmapped.append(f"run: {c.get('name')} {c.get('result')}")
     return {"per_unit": per, "unmapped": unmapped, "structural": structural,
             "stale": stale, "code_units": code_units}
 
@@ -9126,8 +8921,6 @@ def _fix_unit_prompt(key: str, data: dict, sess: PtSession, ctx: dict, unit: dic
         "current_code": current_code,
         "lint_errors": reasons.get("lint") or [],
         "review_findings": reasons.get("review") or [],
-        "run_result": reasons.get("run"),
-        "log_excerpt": reasons.get("excerpt") or "",
     })
     return shared + "\n\n" + _PT_PROMPT_SPLIT + "\n\n" + unit_half + "\n\n" + fix_half
 
@@ -9243,9 +9036,9 @@ async def fix_units(key: str, request: Request, body: dict = Body(default={})):
                     "findings": list(reasons["per_unit"][uid]["review"]),
                     "lint_errors": list(reasons["per_unit"][uid]["lint"]),
                     "unit_lo": lo_by_id.get(uid, 1),
-                    # D2: review- or run-driven fixes are HELD for approval (G7); a lint-only
-                    # fix is deterministic and applies itself (D1: it bypasses the gate).
-                    "hold": bool(reasons["per_unit"][uid]["review"]) or bool(reasons["per_unit"][uid]["run"])}
+                    # D2: review-driven fixes are HELD for approval (G7); a lint-only fix is
+                    # deterministic and applies itself (D1: it bypasses the gate).
+                    "hold": bool(reasons["per_unit"][uid]["review"])}
               for uid in targets}
     naming = step6.get("naming") or {}
     group = (naming.get("group") or "").strip()
@@ -9324,8 +9117,7 @@ async def fix_units(key: str, request: Request, body: dict = Body(default={})):
             "unmapped": reasons["unmapped"], "structural": reasons["structural"],
             "stale": reasons["stale"],
             "primed": targets[0] if len(targets) > 1 else None,
-            "counts": {uid: {"lint": len(r["lint"]), "review": len(r["review"]),
-                             "run": bool(r["run"])}
+            "counts": {uid: {"lint": len(r["lint"]), "review": len(r["review"])}
                        for uid, r in reasons["per_unit"].items()}}
 
 
@@ -9572,21 +9364,20 @@ async def review_script(key: str, request: Request):
 
 
 # ---------------------------------------------------------------------------
-# Fix loop + Step 8 validation
+# Whole-script Fix (5. Generate's "Fix whole script (LLM)")
 # ---------------------------------------------------------------------------
 
 @router.post("/fix_script/{key}")
 async def fix_script(key: str, request: Request):
-    """LLM revision from the latest failed run (or lint errors); archives history."""
+    """LLM revision of the whole script from its lint errors and review findings; archives
+    history. (The latest failed run was an input until 2026-10-12, when the bench runs moved
+    to Validation.)"""
     _data(request)  # ensure server ready
     sess = _pt_get(key)
     dry_run = await _dry_run(request)
     step6 = sess.step6 or {}
     if not (step6.get("files") or {}).get("test"):
         raise HTTPException(409, "No script to fix.")
-    runs = (sess.step7 or {}).get("runs") or []
-    last = runs[-1] if runs else None
-    parsed = (last or {}).get("parsed") or {}
     lint = step6.get("lint") or {}
     lint_errors = "\n".join(lint.get("errors", []))
     # Pass C findings are a third, independent reason to fix (§9.6): they name defects
@@ -9594,14 +9385,8 @@ async def fix_script(key: str, request: Request):
     # `verify` text passes lint and passes on the bench, wrongly. Before this, a reviewed
     # script with real findings and a green lint 409'd with "nothing to fix".
     review_findings = ((step6.get("review") or {}).get("findings")) or []
-    if not parsed.get("cases") and not lint_errors and not review_findings:
-        raise HTTPException(409, "Nothing to fix: no failed run results, lint errors or "
-                                 "review findings.")
-
-    excerpts = []
-    if last and last.get("log_file") and Path(last["log_file"]).exists():
-        excerpts = failure_excerpts(
-            Path(last["log_file"]).read_text(encoding="utf-8", errors="replace"), parsed)
+    if not lint_errors and not review_findings:
+        raise HTTPException(409, "Nothing to fix: no lint errors or review findings.")
 
     naming = step6.get("naming") or {}
     meta = await run_in_threadpool(run_prompt, "pt_fix_script.jinja", {
@@ -9611,8 +9396,6 @@ async def fix_script(key: str, request: Request):
         "code": step6["files"]["test"]["code"],
         "lint_errors": lint_errors,
         "review_findings": review_findings,
-        "results": parsed.get("cases", []),
-        "log_excerpts": excerpts,
         **_library_prompt_context(step6),
     }, llm_config=_llm_cfg(sess), timeout=600, dry_run=dry_run,
        system=_CODE_SYSTEM_PROMPT,   # fenced python out, not JSON — see generate_script
@@ -9708,48 +9491,4 @@ async def fix_script(key: str, request: Request):
             "lint": _fixed["lint"], "previous_archived": str(hist_dir)}
 
 
-@router.post("/validate/{key}")
-async def validate(key: str):
-    """Machine half of Final Validation; human confirms via confirm_step/{key}/8."""
-    sess = _pt_get(key)
-    runs = (sess.step7 or {}).get("runs") or []
-    last = runs[-1] if runs else None
-    checks = {"has_run": bool(last), "run_done": False, "cases_parsed": False,
-              "all_pass": False, "no_failures": False, "exit_code_zero": False}
-    if last:
-        parsed = last.get("parsed") or {}
-        cases = parsed.get("cases") or []
-        checks["run_done"] = last.get("status") == "done"
-        checks["cases_parsed"] = len(cases) > 0
-        checks["all_pass"] = bool(cases) and all(c.get("result") == "PASS" for c in cases)
-        checks["no_failures"] = parsed.get("numFailed", 1) == 0 and parsed.get("unparsed_fails", 1) == 0
-        checks["exit_code_zero"] = last.get("exit_code") == 0
-    validated = all(checks.values())
-    sess.step8 = {**(sess.step8 or {}),
-                  "validated": validated,
-                  "validated_at": utc_now().isoformat() if validated else None,
-                  "run_id": (last or {}).get("run_id"),
-                  "checks": checks}
-    if validated:
-        # Stamp provenance with the validation result (no credentials)
-        naming = (sess.step6 or {}).get("naming") or {}
-        meta_dir = _meta_dir(naming.get("group", "Ungrouped"), naming.get("name", "unnamed"))
-        prov_path = meta_dir / "provenance.json"
-        if prov_path.exists():
-            try:
-                prov = json.load(open(prov_path, encoding="utf-8"))
-                prov.update({"validated_at": sess.step8["validated_at"],
-                             "validated_run_id": sess.step8["run_id"],
-                             "validated_profile": (sess.step7 or {}).get("profile")})
-                prov_path.write_text(json.dumps(prov, indent=2), encoding="utf-8")
-            except Exception as e:
-                print(f"Warning: provenance stamp failed: {e}")
-    _pt_persist(sess)
-    promotion = None
-    if validated:
-        naming = (sess.step6 or {}).get("naming") or {}
-        promotion = (f"Validated. To promote: copy generated/{naming.get('group')}/"
-                     f"{naming.get('name')}.py into the appropriate testsuites_art suite "
-                     f"(rename to the suite's test-<suite>.<set>.py convention), then "
-                     f"confirm step 8 to close out this case.")
-    return {"validated": validated, "checks": checks, "promotion": promotion}
+

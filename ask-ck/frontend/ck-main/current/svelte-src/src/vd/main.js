@@ -8,7 +8,7 @@ export function mountVd(target, opts = {}) {
     server: opts.server || httpServer(), agent: opts.agent || httpAgent(opts.agentUrl),
     preselect: opts.preselect || null, openRun: opts.openRun || null,
     ...(opts.saveScript ? { saveScript: opts.saveScript } : {}), ...(opts.pollMs ? { pollMs: opts.pollMs } : {}) } });
-  return { destroy() { unmount(app); } };
+  return { destroy() { unmount(app); }, select: (key) => app.select(key) };
 }
 
 export { flushSync };

@@ -26,8 +26,8 @@ In PyTest Creator the internal `stepN` session keys and the numbers shown on scr
 | step4 | *(folded into Fragments; no panel)* |
 | **step5** | **4. Fragments** |
 | **step6** | **5. Generate** |
-| step7 | 6. Run |
-| step8 | 7. Validate |
+| step7 | *(6. Run — retired 2026-10-12; field kept so old sessions load)* |
+| step8 | *(7. Validate — retired 2026-10-12; same)* |
 
 **Why:** error messages that quoted the raw key were actively misleading — "Generation
 requires step5 to be confirmed first" told a user blocked on *Fragments* to confirm

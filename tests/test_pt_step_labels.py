@@ -41,7 +41,7 @@ def test_step6_is_generate():
 def test_accepts_both_a_key_and_a_bare_number():
     # _require_confirmed passes 'step5'; confirm_step passes the int 5 from the URL.
     assert pt._step_label("step5") == pt._step_label(5)
-    assert pt._step_label(7) == "6. Run"
+    assert pt._step_label(6) == "5. Generate"
 
 
 def test_unmapped_step_degrades_to_the_raw_value():

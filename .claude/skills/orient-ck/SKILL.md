@@ -87,7 +87,8 @@ waste. Instead treat these as standing rules for later in the session:
   `SSH_AUTH_SOCK` gotcha, why a `.setup` console list cannot be trusted, the fix set every
   legacy script needs against the current framework).
 - `/home/st-art/framework` is **read-only**. Never write or edit it; copy locally to change
-  anything. `ask-ck/tools/guard_framework_readonly.py` enforces this and is part of the gate.
+  anything. There is no gate guard since 2026-10-12: Ask-CK has no code path that writes to a
+  testbox (runs go through `/test-mode`), so check any new code that would.
 
 ## 4. Memory — read the index, never a written-down list
 
@@ -162,8 +163,9 @@ The mechanical half of that check is available on demand and is **not** in the g
    APIs, no re-fetch.
 2. **The running server reads corpora only from `ck.db`** (`db.py`); zero runtime JSON.
    Evidence: `ask-ck/tools/guard_db_only.py` (in the gate).
-3. **The testbox framework tree is read-only.** Evidence:
-   `ask-ck/tools/guard_framework_readonly.py` (in the gate).
+3. **The testbox framework tree is read-only.** Evidence: no server code writes to a testbox
+   (`command grep -rnE "import paramiko|SSHClient|open_sftp" ask-ck/CK-main/CK_server` prints
+   nothing).
 4. **The org vLLM is the one live external dependency, and it is core function** — not an
    inter-dependency to be removed. These are *reasoning* models (they emit reasoning content
    before content). The embedding model is bundled and loads offline.

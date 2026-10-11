@@ -38,6 +38,16 @@ export function applyDeepLink(goToPanel, search = window.location.search) {
   return true;
 }
 
+/** Open Validation on one script (`<group>/<name>.py`, or a case key) — the PyTest Creator's
+ *  "test the new script?" pop-up. An island already mounted is told directly; one not mounted
+ *  yet (or still mounting) reads it from `pending` when it mounts. */
+export function openValidation(goToPanel, preselect) {
+  const app = mounted.vd;
+  if (app && typeof app.select === 'function') app.select(preselect);
+  else pending.vd = Object.assign({}, pending.vd, { preselect });
+  goToPanel('panel-vd');
+}
+
 async function mountIsland(name, rootId, load, fn) {
   if (mounted[name]) return;
   const root = document.getElementById(rootId);

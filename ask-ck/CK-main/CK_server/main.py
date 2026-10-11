@@ -231,7 +231,7 @@ async def startup_event():
                       f"first semantic search will load it inline.")
         # context-free: runs at app startup, so there is no request context to inherit and
         # nothing it touches is lock-guarded. Every OTHER background thread must carry the
-        # caller's contextvars.Context — see pt_exec.RunManager.start and Phase 11.0.
+        # caller's contextvars.Context — tests/test_run_thread_context.py and Phase 11.0.
         threading.Thread(target=_warm, name="embed-warmup", daemon=True).start()
 
 app.include_router(wizard_router, prefix="/api/wizard")

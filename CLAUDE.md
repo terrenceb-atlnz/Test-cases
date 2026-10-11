@@ -80,7 +80,9 @@ prompt rules reverted on 2026-08-05 came from a single autonomous commit.
 2. **The server reads corpora only from `ck.db`** — zero runtime JSON. Guard:
    `ask-ck/tools/guard_db_only.py`.
 3. **`/home/st-art/framework` is read-only.** Never write, edit or redirect into it; copy to a
-   local staging path to change anything. Guard: `ask-ck/tools/guard_framework_readonly.py`.
+   local staging path to change anything. No runtime guard since 2026-10-12: Ask-CK has no code path that writes to a testbox — runs go
+   through the seat agent's `/test-mode` session and device-testing's bench-runner, whose own rules
+   carry this (PLAN-test-validation V4).
 4. **The org vLLM is the one live external dependency and it is core function**, not an
    inter-dependency to remove. Its models are *reasoning* models. Embeddings are bundled and
    load offline.

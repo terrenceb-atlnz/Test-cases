@@ -94,7 +94,7 @@ class _Lock:
 
 
 _LOCKS: Dict[str, _Lock] = {}
-_MUTEX = threading.Lock()   # paramiko run-threads + run_in_threadpool both touch _LOCKS
+_MUTEX = threading.Lock()   # background threads + run_in_threadpool both touch _LOCKS
 
 
 def _key(kind: str, case_key: str) -> str:

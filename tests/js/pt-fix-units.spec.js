@@ -28,17 +28,22 @@ function fnBody(name) {
 }
 
 describe('the buttons', () => {
-  it('exist on the Summary and on step 7, and their actions are registered', () => {
+  it('exist on the Summary, and their actions are registered', () => {
     expect(HTML).toMatch(/data-action="ptFixUnits"[^>]*id="pt-fix-units-btn"/);
-    expect(HTML).toMatch(/data-action="ptFixUnitsFromValidate"[^>]*id="pt-fix-units-validate-btn"/);
     const reg = JS.slice(JS.indexOf('registerActions({'));
     expect(reg).toMatch(/\bptFixUnits\b/);
-    expect(reg).toMatch(/\bptFixUnitsFromValidate\b/);
   });
 
   it('keep the whole-script Fix reachable for findings that name no unit', () => {
     expect(HTML).toMatch(/data-action="ptFixFromSummary"/);
-    expect(HTML).toMatch(/data-action="ptFixScript"/);
+  });
+
+  it('the copies on 7. Validate went with that step (2026-10-12)', () => {
+    const reg = JS.slice(JS.indexOf('registerActions({'));
+    for (const gone of ['ptFixUnitsFromValidate', 'ptFixScript\\b', 'ptValidate', 'ptRun\\b']) {
+      expect(HTML).not.toMatch(new RegExp(`data-action="${gone}`));
+      expect(reg).not.toMatch(new RegExp(`\\b${gone}`));
+    }
   });
   it('follow-up #3: the legend names BOTH Fix buttons and both LLM buttons are blue', () => {
     // Ends at the naming row. That row used to be anchored on id="pt-gen-group"; the

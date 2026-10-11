@@ -34,18 +34,6 @@ the specific ways listed. Return a corrected version of THIS unit only.
 {%- endif %}
 {%- endfor %}
 {% endif %}
-{% if run_result %}
-## Bench result for this unit: {{ run_result.result }}{% if run_result.fail_msgs %} — failures: {% for m in run_result.fail_msgs %}{{ m }}; {% endfor %}{% endif %}
-Diagnose from the log: wrong prompt mode, wrong CLI syntax for this platform, insufficient
-wait/settle time, wrong expected string, topology handle misuse (`self.testSet.<name>`), a
-precondition this unit did not establish for itself.
-{% if log_excerpt %}
-### Log excerpt
-```
-{{ log_excerpt }}
-```
-{% endif %}
-{% endif %}
 
 ## Rules for this fix
 - Change only what the findings require; keep every other line of this unit as it is.

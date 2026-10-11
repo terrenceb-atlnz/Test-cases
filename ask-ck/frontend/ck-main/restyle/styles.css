@@ -1555,56 +1555,12 @@ h2 {
   line-height: 1.5;
   color: var(--text-secondary);
 }
-
-/* ---------------------------------------------------------------------------
-   PyTest Creator — Testboxes panel
-   The form was ten unlabelled placeholder boxes in three rows, which gave no
-   way to tell a required field from a defaulted one, and no way to tell what a
-   value was FOR. Labels are explicit, the five fields a run actually needs are
-   on the main form, and everything with a working server-side default is
-   folded into Advanced.
-   --------------------------------------------------------------------------- */
-.tb-instructions { margin: var(--token-space-12) 0 var(--token-space-16); padding: var(--token-space-12) var(--token-space-16); background: var(--bg-tertiary);
-  border: 1px solid var(--border-default); border-left: 3px solid var(--accent-primary);
-  border-radius: var(--token-border-radius-lg); font-size: var(--token-font-size-sm); line-height: 1.55; }
-.tb-instructions-title { font-weight: 600; color: var(--text-primary); margin-bottom: var(--token-space-8); font-size: var(--token-font-size-sm); }
-.tb-instructions ol { margin: 0; padding-left: var(--token-space-20); color: var(--text-secondary); }
-.tb-instructions li { margin-bottom: var(--token-space-4); }
-.tb-instructions li:last-child { margin-bottom: 0; }
-.tb-instructions b { color: var(--text-primary); font-weight: 600; }
-.tb-instructions code { background: var(--bg-primary); border: 1px solid var(--border-subtle);
-  border-radius: var(--token-border-radius-md); padding: 1px var(--token-space-4); font-size: var(--token-font-size-sm); color: var(--text-primary); }
-.tb-note { margin-top: var(--token-space-8); padding-top: var(--token-space-8); border-top: 1px solid var(--border-default);
-  color: var(--text-tertiary); font-size: var(--token-font-size-sm); line-height: 1.5; }
-
-/* Labelled field grid. auto-fit keeps it one row on a wide panel and reflows on a narrow one. */
-.tb-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
-  gap: var(--token-space-12) var(--token-space-16); margin-bottom: var(--token-space-12); }
-.tb-field { display: flex; flex-direction: column; min-width: 0; }
-.tb-field .form-input, .tb-field .form-select { width: 100%; box-sizing: border-box; }
-.tb-label { font-size: var(--token-font-size-sm); font-weight: 600; color: var(--text-primary); margin-bottom: var(--token-space-4); }
-.tb-req { color: var(--status-critical); margin-left: var(--token-space-2); }
-.tb-hint { font-size: var(--token-font-size-xs); color: var(--text-tertiary); margin-top: var(--token-space-4); line-height: 1.4; }
-.tb-field .form-input.tb-invalid { border-color: var(--status-critical); }
-
-.tb-advanced { margin-bottom: var(--token-space-12); border: 1px solid var(--border-subtle); border-radius: var(--token-border-radius-lg);
-  padding: var(--token-space-8) var(--token-space-12); background: var(--bg-secondary); }
-.tb-advanced > summary { cursor: pointer; font-size: var(--token-font-size-sm); font-weight: 600;
-  color: var(--text-secondary); user-select: none; }
-.tb-advanced[open] > summary { margin-bottom: var(--token-space-12); color: var(--text-primary); }
-.tb-advanced-note { font-size: var(--token-font-size-xs); color: var(--text-tertiary); margin: 0 0 var(--token-space-12); line-height: 1.5; }
-
-/* Setups editor: a testbox holds a NAMED MAP of .setup files, one per person or
-   purpose, and the Run panel lists them all. There is deliberately no "default" —
-   on a shared LAN server that would let whoever saved last name everyone's setup. */
-.tb-setups { margin-bottom: var(--token-space-12); padding: var(--token-space-12); border: 1px solid var(--border-subtle);
-  border-radius: var(--token-border-radius-lg); background: var(--bg-secondary); }
-.tb-setups-head { display: flex; align-items: baseline; gap: var(--token-space-8); }
-.tb-optional { font-size: var(--token-font-size-xs); color: var(--text-tertiary); font-weight: 400; }
-.tb-setup-row { display: flex; gap: var(--token-space-8); margin-bottom: var(--token-space-8); align-items: center; }
-.tb-setup-row .tb-setup-name { flex: 0 0 190px; min-width: 0; }
-.tb-setup-row .tb-setup-path { flex: 1 1 auto; min-width: 0; }
-.tb-setups-empty { font-size: var(--token-font-size-sm); color: var(--text-tertiary); margin-bottom: var(--token-space-8); }
+.update-actions { display: flex; justify-content: flex-end; gap: 8px; }
+/* Confirm Step 5's acknowledgement dialog (pytest.js ptAskAcknowledgement): the server's
+   refusal can list several findings, so it is wider and scrolls. */
+.pt-ack-dialog { max-width: 560px; }
+.pt-ack-message { max-height: 240px; overflow: auto; white-space: pre-wrap; font-family: var(--font-mono); font-size: 12px; }
+.pt-ack-dialog textarea { width: 100%; margin-bottom: 12px; }
 
 /* Seat setup one-liners on the splash page (agent.js fills the origin at load). */
 .seat-setup-cmd { display: inline-block; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
@@ -1620,8 +1576,6 @@ td.pt-seq-claim { font-family: var(--font-mono, monospace); white-space: normal;
 /* Phase 4b: the sequence row's remove button is "✕ Remove" on ATUI (W8), not Classic's bare ✕, so its
    column outgrows the JS's inline 30px. Only !important beats an inline width; scoped to that one column. */
 #pt-seq-list .table th:last-child { width: 92px !important; }
-/* Same for the testbox row's actions: Edit, Check and "✕ Delete" (W9, W14) outgrow the inline 150px. */
-#pt-tb-list .table th:last-child { width: 196px !important; }
 
 /* ========================================
    UI swap — Classic (current/) and ATUI (restyle/), side by side.
@@ -1897,9 +1851,7 @@ button:not(.btn) { border-radius: var(--token-button-radius); font-size: var(--t
 .form-input:disabled, .form-select:disabled, .form-input[readonly] { background-color: var(--token-surface-1); border-color: transparent;
   color: var(--token-text-disabled); }
 .form-input::placeholder { color: var(--token-text-muted); }
-.tb-field .form-input.tb-invalid { border-color: var(--token-border-error); }
-.tb-field .form-input.tb-invalid:focus { box-shadow: 0 0 0 3px color-mix(in srgb, var(--token-state-error-accent) 50%, transparent); }
-.form-label, .tb-label { font-size: var(--token-font-size-xs); font-weight: var(--token-font-weight-med); }
+.form-label { font-size: var(--token-font-size-xs); font-weight: var(--token-font-weight-med); }
 
 /* -- Step pills and states (at-badge, rounded): base font, feedback colours, 30% edge ---------------- */
 .pt-pill-row button.pt-pill, .pt-pill-row .pt-state { font-family: var(--font-sans); font-weight: var(--token-font-weight-med);
@@ -1919,27 +1871,3 @@ button:not(.btn) { border-radius: var(--token-button-radius); font-size: var(--t
 /* -- The step-nav bar ------------------------------------------------------------------------------ */
 .pt-stepnav { border-color: var(--token-border-muted); border-radius: var(--token-border-radius-md); background: var(--token-surface-1); }
 
-/* ========================================
-   Colour + type specimen on the Test Composer TBD page — Classic vs ATUI 1-to-1
-   (Terrence, 2026-09-30; ask-ck/plans/PLAN-atui-restyle.md). Same rules in both stylesheets.
-   ======================================== */
-.ck-specimen { margin-top: 16px; display: flex; flex-direction: column; gap: 10px; }
-.ck-spec-title { font-weight: 600; font-size: 15px; color: var(--text-primary); }
-.ck-spec-note { font-size: 12px; color: var(--text-secondary); }
-.ck-spec-group { margin-top: 10px; font-size: 12px; font-weight: 600; color: var(--text-tertiary); }
-.ck-spec-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 8px; }
-.ck-spec-row { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 8px; }
-.ck-spec-pills { margin-left: 0; }
-.ck-sw { display: flex; align-items: center; gap: 8px; min-width: 0; padding: 6px 8px; border: 1px solid var(--border-default); border-radius: 6px; background: var(--bg-secondary); }
-.ck-sw-chip { flex: 0 0 32px; height: 32px; border-radius: 4px; background: var(--sw); border: 1px solid var(--border-strong); }
-.ck-sw-text { display: flex; flex-direction: column; min-width: 0; font-size: 11px; color: var(--text-secondary); }
-.ck-sw-text code { font-family: var(--font-mono); font-size: 11px; color: var(--text-primary); overflow: hidden; text-overflow: ellipsis; }
-.ck-sev { display: inline-flex; padding: 2px 10px; border-radius: 9999px; border: 1px solid var(--c); color: var(--c); background: var(--m); font-size: 12px; font-weight: 500; }
-.ck-shadow { display: flex; align-items: center; justify-content: center; width: 140px; height: 56px; border-radius: 6px; background: var(--bg-elevated); box-shadow: var(--sw); font-family: var(--font-mono); font-size: 11px; color: var(--text-secondary); }
-.ck-spec-table { border-collapse: collapse; font-size: 13px; }
-.ck-spec-table td { padding: 4px 10px; border-bottom: 1px solid var(--border-default); }
-.ck-spec-p { margin: 0; color: var(--text-primary); }
-.ck-spec-p.ck-t2 { color: var(--text-secondary); }
-.ck-spec-p.ck-t3 { color: var(--text-tertiary); }
-.ck-spec-p code, .ck-spec-table code { font-family: var(--font-mono); font-size: 12px; }
-.ck-spec-pre { margin: 0; padding: 10px 12px; border: 1px solid var(--border-default); border-radius: 6px; background: var(--bg-tertiary); font-family: var(--font-mono); font-size: 12px; color: var(--text-primary); overflow-x: auto; }

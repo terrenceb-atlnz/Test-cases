@@ -207,8 +207,8 @@ def test_try_rechunk_reports_instead_of_raising():
 
 def _body(start):
     i = _CODE.index(start)
-    j = re.compile(r"\n(async def |def |@router\.)").search(_CODE, i + 10).start()
-    return _CODE[i:j]
+    m = re.compile(r"\n(async def |def |@router\.)").search(_CODE, i + 10)
+    return _CODE[i:m.start() if m else len(_CODE)]       # fix_script is the file's last function
 
 
 @pytest.mark.parametrize("fn", ["async def assemble_script(", "async def assemble_and_settle(",

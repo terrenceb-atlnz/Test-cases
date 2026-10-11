@@ -20,6 +20,10 @@ verified: 2026-10-09
 > **Not built:** Accept results' deletion of work/ (needs device-testing). §8 decisions are still
 > open.
 >
+> **2026-10-12 (Terrence):** the sidebar's Test Composer section now holds **Validate a Script**
+> then **Compose a Run** (Validation's own section is gone), and the colour specimen panel
+> (`panel-tc-tbd`) is removed.
+>
 > Rewritten 2026-10-09 from Terrence's design in that day's conversation. It is the third of three plans:
 > 1. [`PLAN-agent-sessions.md`](PLAN-agent-sessions.md) (A, first): how Ask-CK starts and talks
 >    to a `/test-mode` session.

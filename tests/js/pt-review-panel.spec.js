@@ -55,8 +55,9 @@ describe('review panel wiring', () => {
 
   it('re-seeds the findings from the session on panel render', () => {
     // A reload must not discard findings the reviewer paid an LLM call for.
-    const panel = JS.slice(JS.indexOf('export function renderPtGenPanel'),
-                           JS.indexOf('export async function renderPtRunPanel'));
+    const start = JS.indexOf('export function renderPtGenPanel');
+    const panel = JS.slice(start, JS.indexOf('\nexport ', start + 10));
+    expect(panel.length).toBeGreaterThan(200);       // the slice found its end
     expect(panel).toContain('ptRenderReview');
     expect(panel).toContain('s6.review');
   });
@@ -96,7 +97,7 @@ describe('rendering', () => {
   });
 
   it('points the reviewer at where a finding gets acted on', () => {
-    expect(RENDER).toMatch(/step 7|Validate/);
+    expect(RENDER).toMatch(/Fix buttons/);          // 5. Generate's Fix units / Fix whole script
   });
 
   it('has a severity style for each level the backend can emit', () => {

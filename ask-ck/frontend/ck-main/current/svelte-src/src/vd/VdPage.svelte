@@ -68,13 +68,36 @@
     const setA = new Set(A), setB = new Set(B);
     return { removed: A.filter(x => !setB.has(x)).length, added: B.filter(x => !setA.has(x)).length };
   }
+  // A clean run turns Finalize on (Terrence 2026-10-12; PLAN-test-validation §6): it finished,
+  // the review exists, and no repaired copy waits for approval. The server re-checks all of it,
+  // and refuses before any write while V0 (the Zephyr new-version capture) is open.
   const finalizeBlockers = $derived([
     !run && 'no run yet',
     run && runState !== 'done' && 'the latest run has not finished cleanly',
     repaired.some(r => !(compare[r.path] && compare[r.path].saved)) && 'a repaired copy is waiting for your approval',
     !reviewed && 'the review has not been written yet (test-mode §11.2)',
-    'Zephyr\'s "new version" request is not captured yet (V0) — Finalize writes nothing until it is',
   ].filter(Boolean));
+  let finalizing = $state(false);
+  let finalized = $state(null);
+
+  async function finalize() {
+    if (finalizeBlockers.length || finalizing) return;
+    finalizing = true;
+    const c = reviews[0].case;
+    try {
+      finalized = await server(`/runs/${encodeURIComponent(run.runId)}/finalize/${encodeURIComponent(c)}`, { method: 'POST' });
+      setStatus(`${c} finalized: it has left the PyTest Creator and the Objective / Test Case lists.`);
+      loadScripts();
+    } catch (e) {
+      setStatus(`Finalize did not run for ${c}: ${e.message}`, true);
+    } finally { finalizing = false; }
+  }
+
+  /** The PyTest Creator's "test the new script?" pop-up opens this page on one script. */
+  export function select(key) {
+    preselect = key;
+    return loadScripts();
+  }
 
   function setStatus(msg, bad = false) { status = { msg, bad }; }
 
@@ -100,6 +123,7 @@
       if (!started.ok) throw new Error(started.error || 'the seat agent refused the session');
       run = { runId: created.run_id, sessionId: started.session_id };
       markers = [];
+      finalized = null;
       refreshKey += 1;
       setStatus(`Launched ${created.run_id} on ${body.testbox}.`);
     } catch (e) {
@@ -194,11 +218,13 @@
 
     <div class="tc-step"><span class="tc-step-n">7</span> Finalize</div>
     <div class="tc-line">
-      <button type="button" id="vd-finalize" class="btn btn-primary" disabled>Finalize</button>
-      <ul class="tc-blockers">{#each finalizeBlockers as b}<li>{b}</li>{/each}</ul>
+      <button type="button" id="vd-finalize" class="btn btn-primary" disabled={finalizeBlockers.length > 0 || finalizing || !!finalized} onclick={finalize}>{finalizing ? 'Finalizing…' : 'Finalize'}</button>
+      {#if finalized}<span class="tc-check">✓ finalized {String(finalized.finalized_at || '').slice(0, 16)}</span>
+      {:else if finalizeBlockers.length}<ul class="tc-blockers">{#each finalizeBlockers as b}<li>{b}</li>{/each}</ul>
+      {:else}<span class="tc-small">Writes Zephyr first (step 1's note, then version 3.0), then takes the case off the lists. Zephyr's "new version" request is not captured yet (V0), so for now the server says so and writes nothing.</span>{/if}
     </div>
   {/if}
 
   <div class="tc-step">Earlier Validation runs</div>
-  <RunsList {server} kind="validation" {refreshKey} onopen={(id) => { run = { runId: id, sessionId: null }; markers = []; }} />
+  <RunsList {server} kind="validation" {refreshKey} onopen={(id) => { run = { runId: id, sessionId: null }; markers = []; finalized = null; }} />
 </div>

@@ -80,13 +80,25 @@ def test_swap_control_points_each_way():
     assert "/" in _parse(RESTYLE).links, "restyle's swap control must link back to / (Classic)"
 
 
-def test_colour_specimen_is_identical_in_both_pages():
-    # The Test Composer TBD page carries a Classic-vs-ATUI specimen (Terrence 2026-09-30). It is
-    # only a 1-to-1 comparison if the markup is the same in both pages.
-    pat = re.compile(r"<!-- ck-specimen:start.*?<!-- ck-specimen:end -->", re.S)
-    cur = pat.findall(CURRENT.read_text(encoding="utf-8"))
-    rs = pat.findall(RESTYLE.read_text(encoding="utf-8"))
-    assert len(cur) == 1 and cur == rs, "the specimen differs between current/ and restyle/"
+def _sidebar_sections(path):
+    """[(section label, [data-panel of each item, in order])] from the sidebar's top level."""
+    html = path.read_text(encoding="utf-8")
+    nav = html[html.index('<nav class="sidebar'):html.index("</nav>")]
+    out = []
+    for chunk in re.split(r'<div class="sidebar-section-label', nav)[1:]:
+        label = re.sub(r"<[^>]+>", " ", chunk.split("</div>", 1)[0].split(">", 1)[1])
+        out.append((" ".join(label.split()), re.findall(r'class="sidebar-nav-item[^"]*" data-panel="([^"]+)"', chunk)))
+    return out
+
+
+def test_validation_lives_inside_test_composer_in_both_pages():
+    # Terrence 2026-10-12: Validation moved INTO the Test Composer section, Validate before
+    # Compose, and the colour specimen panel removed.
+    for page in (CURRENT, RESTYLE):
+        sections = dict(_sidebar_sections(page))
+        assert sections.get("Test Composer") == ["panel-vd", "panel-tc"], (page, sections.get("Test Composer"))
+        assert "Validation" not in sections, page
+        assert "panel-tc-tbd" not in page.read_text(encoding="utf-8"), page
 
 
 def test_restyle_route_serves_the_restyle_page(client):

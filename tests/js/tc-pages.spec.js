@@ -5,7 +5,8 @@
 //   * the window shows the stream, denied tools, markers and a not-waited-for question (D5), and
 //     relays every event to the server's record;
 //   * the results table groups by cycle, marks PyScript / Manual, keeps a re-grade BESIDE the verdict;
-//   * Finalize stays disabled and says why (V0 not captured);
+//   * Finalize stays disabled and says why until the run is clean, then posts (the server re-checks
+//     and refuses while V0 is open); the PyTest Creator's pop-up selects a script on a mounted page;
 //   * the Composer reads a project link's variants, offers templates with runnable counts, filters the
 //     live tree to runnable cases, tags Previously Run, and Starts exactly the ticked cases.
 import { describe, it, expect, afterEach } from 'vitest';
@@ -136,7 +137,7 @@ describe('Validation', () => {
     expect(JSON.parse(localStorage.getItem('ck.tc.setup')).testbox).toBe('tb470');
   });
 
-  it('shows results by cycle with the type marker, and Finalize disabled with its reasons', async () => {
+  it('shows results by cycle with the type marker, and Finalize disabled until the run is clean', async () => {
     await page();
     $('input[name="vd-script"]').click(); flushSync();
     type($('#tc-testbox'), 'tb470'); type($('#tc-consoles'), 'u0-u5');
@@ -147,7 +148,21 @@ describe('Validation', () => {
     expect($('.tc-readout').textContent).toContain('1 UNSUPPORTED');
     expect($('.tc-readout').textContent).toContain('tokens 1.5k');
     expect($('#vd-finalize').disabled).toBe(true);
-    expect($('.tc-blockers').textContent).toContain('not captured yet (V0)');
+    expect($('.tc-blockers').textContent).toContain('the review has not been written yet');
+  });
+
+  it('select() — the PyTest Creator\'s "test the new script?" — picks a script on a mounted page', async () => {
+    const f = fakeServer(vdRoutes({ 'GET /scripts': { scripts: [
+      { path: '9001_Port/test-9001.33234.py', case_key: 'AWPTCM-T33234' },
+      { path: '9001_Port/test-9001.33235.py', case_key: 'AWPTCM-T33235' }] } }));
+    root = document.createElement('div'); document.body.appendChild(root);
+    app = mountVd(root, { server: f.server, agent: fakeAgent() });
+    await until(() => $$('.tc-script-row').length === 2);
+    expect($$('input[name="vd-script"]').some(r => r.checked)).toBe(false);
+    await app.select('9001_Port/test-9001.33235.py'); flushSync();
+    expect($$('input[name="vd-script"]').find(r => r.checked).value).toBe('9001_Port/test-9001.33235.py');
+    await app.select('AWPTCM-T33234'); flushSync();
+    expect($$('input[name="vd-script"]').find(r => r.checked).value).toBe('9001_Port/test-9001.33234.py');
   });
 
   it('refuses to launch when the seat agent cannot run sessions, and says why', async () => {
@@ -280,6 +295,7 @@ describe('Validation: the review and a repaired copy (test-mode §11)', () => {
       [`GET /runs/${RID}/events`]: { events: MARKED },
       [`GET /runs/${RID}/repaired`]: { case: 'AWPTCM-T33234', path: REP, code: 'a\nb2\nc\n', original: 'a\nb\nc\n' },
       [`GET /runs/${RID}/file`]: { data: '# Review\n(a) no false positives' },
+      [`POST /runs/${RID}/finalize/AWPTCM-T33234`]: () => { throw new Error('V0 open'); },
     }));
     root = document.createElement('div'); document.body.appendChild(root);
     app = mountVd(root, { server: f.server, agent: fakeAgent(MARKED), pollMs: 20, saveScript: async (k, code) => { saved.push([k, code]); return {}; } });
@@ -294,10 +310,16 @@ describe('Validation: the review and a repaired copy (test-mode §11)', () => {
     await until(() => $('.vd-approve'));
     expect(root.textContent).toContain('1 line(s) removed, 1 added.');
     expect($('.tc-blockers').textContent).toContain('waiting for your approval');
+    expect($('#vd-finalize').disabled).toBe(true);
     await click($('.vd-approve'));
     await until(() => saved.length);
     expect(saved).toEqual([['AWPTCM-T33234', 'a\nb2\nc\n']]);
-    await until(() => !$('.tc-blockers').textContent.includes('waiting for your approval'));
+    // Clean: done, reviewed, nothing waiting — Finalize turns on and posts for the reviewed case.
+    await until(() => !$('.tc-blockers') && !$('#vd-finalize').disabled);
+    await click($('#vd-finalize'));
+    await until(() => /Finalize did not run for AWPTCM-T33234: V0 open/.test(root.textContent));
+    expect(f.calls.filter(c => c.key === `POST /runs/${RID}/finalize/AWPTCM-T33234`).length).toBe(1);
+    expect($('#vd-finalize').disabled).toBe(false);   // a refusal leaves it pressable
   });
 });
 
