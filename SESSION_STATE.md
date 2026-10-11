@@ -5020,3 +5020,39 @@ only) passed end to end from the page. Detail, commits and the apply steps: PROG
    `e334e89`, `da37c2d`, plus the E2E's records. Push it with the rest.
 4. **Optional, before applying.** Browse the branch at http://10.33.22.17:8123/ (the scratch
    server on a live-data snapshot). It reads only; launching needs a 1.3.0 seat agent.
+
+## Session Close / Handoff (2026-10-12) — the PyTest Creator ends at a saved script; Run, Validate and Testboxes retired; LIVE
+
+Terrence asked to remove the PyTest Creator's 7. Validate and to move the Validation section into
+Test Composer. Over four rounds of questions he settled the rest:
+- saving to `generated/` makes a case Complete;
+- Confirm Step 5 saves first, then pops up "Do you want to test the new script?" (Yes →
+  Validation, No → 1. Cases);
+- a clean Validation run enables Finalize;
+- 6. Run, 7. Validate and Testboxes: audit, then remove, front end AND server; drop step 7's
+  Fix whole script;
+- keep the log parser and drop the framework read-only guards, with invariant 3 restated;
+- fix Confirm's acknowledgements, which the page could never send;
+- edit TESTBOX-ACCESS here; remove the colour specimen.
+
+An Explore audit mapped every caller before anything was deleted. Built on `tc-build` in the
+scratch worktree as `549e21c`. Terrence merged it to `main` and pushed it the same day. The live
+server reloaded and serves it: `main.js?v=42`, `/api/pytest-create/profiles` returns 404.
+
+Gate: pytest 2073 / 2 skipped, vitest 395; 28 mutations red. The detail is in PROGRESS 2026-10-12.
+
+Corrected in my own questions: I first said step 7 was the only place with "Fix whole script".
+5. Generate has the same button on the same endpoint, so `/fix_script` stays. The audit caught a
+bug in my first pop-up: it preselected `Port/…` while the directory on disk is `9001_Port/`.
+Fixed by selecting by case key, with a spec that checks the mounted page.
+
+Open:
+- device-testing's `TESTBOX-ACCESS.md` edit is uncommitted there;
+- `secrets.testboxes.json` is unread (delete by hand if wanted);
+- the whole-script Fix prompt's wording still talks about a failed bench run (a prompt change,
+  asked, not made);
+- saving a script rewrites `provenance.json` and would drop a `finalized_at`;
+- 4 non-Ask-CK memory slugs fail `check_memory_links` (two stranded in home sessions, two empty;
+  one of the empty ones is this session's P0 scratch slug) — left for Terrence;
+- V0 and the other items carried from 2026-10-09.
+

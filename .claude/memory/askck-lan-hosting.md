@@ -66,7 +66,8 @@ it. Related: [[ask-ck-admin-restart]], [[ckdb-wal-and-test-isolation]].
 Known caveats, all accepted explicitly by Terrence on 2026-08-26:
 - **No auth, no firewall** (ufw inactive, INPUT policy ACCEPT): the whole 10.33.22.0/24 can
   push to live Zephyr (JIRA key on disk in `secrets.md`), SSH-drive testboxes
-  (`secrets.testboxes.json`), and — since Option A — select "Claude Code CLI (this server)"
+  (`secrets.testboxes.json` — NO LONGER since 2026-10-12: the server's SSH run path and its
+  profiles were removed; runs go through each user's own seat agent), and — since Option A — select "Claude Code CLI (this server)"
   and spend this box's Claude seat. Narrowings live in PLAN-llm-mode-selection.md §5.
 - **10.33.22.17 is a DHCP lease** (`dynamic` on enp0s31f6); the 0.0.0.0 bind doesn't care,
   bookmarks do. A DHCP reservation would pin it.

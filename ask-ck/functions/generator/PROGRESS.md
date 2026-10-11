@@ -5,7 +5,7 @@ verified: 2026-09-28
 
 **Purpose**: This file exists so future sessions can quickly understand exactly where we are, what has been built, what the priorities are, and how to continue seamlessly.
 
-**Last Updated**: 2026-10-12 (by Claude, with Terrence; the PyTest Creator ends at a saved script; Run/Validate/Testboxes retired; Validation moved into Test Composer — on branch tc-build)
+**Last Updated**: 2026-10-12 (by Claude, with Terrence; the PyTest Creator ends at a saved script; Run/Validate/Testboxes retired; Validation moved into Test Composer — LIVE, 549e21c)
 
 > **Reading note (2026-09-23 doc sweep).** Entries are frozen as written. Where an entry's
 > claim has since stopped being true, a ⚠ line under its heading says what changed.
@@ -48,8 +48,10 @@ acknowledgements; edit TESTBOX-ACCESS here; remove the colour specimen.
 **Gate:** pytest 2073 / 2 skipped, vitest 395; 28 mutations red (one survivor was dead code, removed). Scratch smoke on :8123:
 both pages load v42 with no removed panel, `/run` `/profiles` `/validate` 404, `confirm_step/7` 400.
 
+**LIVE (2026-10-12):** Terrence merged `549e21c` to `main` and pushed. The live server reloaded
+(`main.js?v=42`; `/api/pytest-create/profiles` → 404).
+
 **Pending (Terrence):**
-- apply `tc-build` (ff-only; a backend change, so the merge restarts the live server);
 - commit device-testing's `TESTBOX-ACCESS.md`;
 - delete the now-unread `secrets.testboxes.json` if wanted;
 - the whole-script Fix prompt still opens "fixing a script that failed when executed on a real

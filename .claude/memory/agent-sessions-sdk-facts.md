@@ -28,7 +28,8 @@ metadata:
   denied ("Auto-Mode Bypass"). Don't try it.
 - The fix (D6) is a launcher-passed `--settings` profile: narrow `Bash(tools/tb <action> *)`
   allow rules resolve BEFORE the classifier.
-  - Project `.claude/settings.json` allow rules are ignored by `-p` unless the folder is trusted.
+  - A project's own settings-file allow rules (the generic Claude Code mechanism, not a file in
+    this repo) are ignored by `-p` unless the folder is trusted.
   - `autoMode` is never read from project settings.
   - Allow rules don't match past `VAR=` prefixes.
   - Consequence: hard_deny prose doesn't guard commands run through an allowed wrapper.
