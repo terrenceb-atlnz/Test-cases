@@ -1,0 +1,54 @@
+{
+  "AWPTCM-T44191": {
+    "objective": "<ul>\n  <li>An IPv6 trace route to a reachable destination lists each intermediate hop in order, ending at the destination with round-trip times.</li>\n  <li>An IPv6 trace route to a destination given by hostname resolves to an IPv6 address and runs as it would for a literal address.</li>\n  <li>Default trace route parameters in effect when no options are given, with the hop limit, probe count and timeout applied as documented.</li>\n  <li>User-specified hop limit, probe count, timeout and source address used by the trace and shown in its output.</li>\n  <li>Hops that do not respond within the timeout shown as unanswered while the trace continues to later hops.</li>\n  <li>An unreachable destination or missing route stops the trace with an unreachable indication and no false hop entries.</li>\n  <li>An invalid destination or out-of-range parameter value rejected with a clear error and no probes sent.</li>\n  <li>Time-exceeded replies dropped by an intermediate firewall policy shown as unanswered hops, with traffic not blocked by the policy unaffected.</li>\n  <li>A running trace can be interrupted by the user, ending cleanly with the hops already discovered still shown.</li>\n</ul>",
+    "testScript": {
+      "type": "steps",
+      "steps": [
+        {
+          "description": "Note: Related ART Tests linked in Traceability.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Build a multi-hop IPv6 topology with the DUT, at least two intermediate routers and a destination host, with routing converged end to end. Run a trace route from the DUT to the destination's IPv6 address and confirm each intermediate hop is listed in path order, ending at the destination with round-trip times reported for each probe.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Configure name resolution on the DUT so that a hostname maps to the destination's IPv6 address. Run a trace route using the hostname and compare it against a trace to the literal address. Confirm the hostname resolves to the IPv6 address and the trace follows the same path and reports the same hops.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Run a trace route to the destination without specifying any options, and observe the probe traffic arriving at an intermediate router or capture point. Confirm the hop limit, probe count per hop and per-probe timeout match the documented defaults.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Repeat the trace with a non-default hop limit, probe count and timeout, including values at the minimum and maximum of each supported range. Confirm the trace stops at the configured hop limit when it is shorter than the path, sends the configured number of probes per hop and waits for the configured timeout.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Assign more than one IPv6 address to the DUT and run the trace with a specified source address. Confirm that probes leave with the chosen source, that replies return to it, and that the trace output reflects it. Repeat with a source address that is not configured on the DUT.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Configure one intermediate router in the path so that it does not send ICMPv6 time-exceeded replies, while it continues to forward traffic. Run the trace through it and confirm that hop is shown as unanswered after the timeout and the trace continues to discover later hops and the destination.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Apply a firewall policy on an intermediate device that discards ICMPv6 time-exceeded messages generated for trace probes, and leave other traffic permitted. Run the trace through the device and confirm the affected hops are shown as unanswered. While the policy is in place, pass other traffic across the same device and confirm it is forwarded unaffected. Then remove the policy and confirm the trace again reports those hops.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Trace to a destination that is unreachable from the DUT: first with no route to the prefix, then with an intermediate router that returns a destination-unreachable for the destination. Confirm the trace terminates with an unreachable indication and does not list hops that do not exist.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Attempt traces with invalid input: a malformed IPv6 address, a hostname that cannot be resolved, and hop limit, probe count and timeout values below and above their supported ranges. Monitor the egress link while doing this. Confirm each attempt is rejected with a clear error and that no probes are sent.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Start a trace to a distant or partially unresponsive destination so that it runs for an extended period, and interrupt it partway through from the user session. Confirm the trace stops promptly and the hops already discovered remain displayed. Confirm the session returns to normal operation and a new trace can be started straight away.",
+          "expectedResult": ""
+        }
+      ]
+    }
+  }
+}

@@ -200,10 +200,9 @@
     gap: 16px;
     padding: 24px;
     margin-bottom: 12px;
-    border: 1px solid var(--color-border-surface);
+    /* border: 1px solid var(--color-border-surface); */
     border-radius: 8px;
     background: var(--color-bg-surface);
-    width: 100%;
     flex: 1;
     min-height: 0;
   }
@@ -211,7 +210,7 @@
   .objectives-html {
     color: var(--color-text);
     font-size: 0.94rem;
-    line-height: 1.5;
+    font-weight: 500;
   }
 
   .objectives-html :global(ul) {
@@ -219,7 +218,7 @@
     padding-left: 20px;
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 24px;
   }
 
   .objectives-edit-note {
@@ -237,7 +236,8 @@
     background: var(--color-bg-content);
     color: var(--color-text);
     font: inherit;
-    font-size: 0.94rem;
+    font-size: 0.9rem;
+    line-height: 3;
     resize: vertical;
     flex: 1;
     min-height: 0;

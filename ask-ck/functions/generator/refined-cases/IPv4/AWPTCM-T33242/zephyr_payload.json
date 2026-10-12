@@ -1,0 +1,46 @@
+{
+  "AWPTCM-T33242": {
+    "objective": "<ul>\n<li>An ICMP Echo Reply returned for each unicast Echo Request addressed to the device, with identifier, sequence number and payload unchanged.</li>\n<li>The Echo Reply source address identical to the destination address of the corresponding Echo Request, on every interface that holds an address.</li>\n<li>On an interface with multiple addresses, each reply sourced from the specific address that the matching request was sent to.</li>\n<li>Replies sourced from the requested address even when the reply leaves through a different interface from the one owning that address.</li>\n<li>The Echo Reply source address following the requested address in a virtualised management-fabric node as on a physical device.</li>\n<li>No Echo Reply sent for a request addressed to an address the device does not own, and no reply sourced from an unrelated local address.</li>\n<li>Correct reply source selection maintained across address changes, with replies sourced only from addresses currently configured.</li>\n</ul>",
+    "testScript": {
+      "type": "steps",
+      "steps": [
+        {
+          "description": "Note: Related ART Tests linked in Traceability.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify Echo Reply generation for unicast Echo Requests sent from a test endpoint to an address configured on the DUT, using a range of payload sizes and patterns. Confirm a reply is returned for each request and that the identifier, sequence number and payload in each reply match the corresponding request.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Configure an address on every DUT interface type that can hold one (e.g. switch ports, VLAN interfaces, loopback and management interfaces). Send Echo Requests to each address in turn and capture the replies. Confirm that the source address of each reply matches the destination address of its request.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Configure multiple addresses on a single DUT interface, including both primary and secondary addresses. Send interleaved Echo Requests to each of those addresses from the same test endpoint. Confirm that each reply is sourced from the specific address the matching request targeted, not from the interface's primary address.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Using a topology with at least two links between the DUT and its partner, send Echo Requests to an address owned by one DUT interface, with routing arranged so that the reply leaves through a different interface. Repeat with a loopback address as the target. Confirm that the replies are sourced from the requested address and not from the egress interface's address.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Repeat the single-address, multi-address and asymmetric-path scenarios against a virtualised management-fabric node hosted within the fabric, targeting its fabric and non-fabric addresses. Confirm that the reply source address behaves the same as it does on a physical device.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Send Echo Requests to an address in a DUT-connected subnet that no device owns, and to an address that belongs to a different device. Confirm that the DUT sends no Echo Reply for these requests and does not answer from any of its own local addresses.",
+          "expectedResult": ""
+        },
+        {
+          "description": "While continuous Echo Requests are being sent to DUT addresses, add a new address, remove an existing address and change an address on an interface. Confirm that requests to the new address get replies sourced from it, that requests to a removed or replaced address get no reply, and that the remaining addresses keep sourcing their replies correctly.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Bring an addressed interface down and back up, then restart the DUT with the address configuration saved. Send Echo Requests to each configured address again. Confirm that the reply source still matches the request destination and that no reply uses a stale address.",
+          "expectedResult": ""
+        }
+      ]
+    }
+  }
+}
