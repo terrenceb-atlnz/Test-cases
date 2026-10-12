@@ -10,7 +10,7 @@
   code {
     font-family: 'Roboto Mono Variable', 'Roboto Mono', monospace;
     font-size: 0.9em;
-  }
+  };
 
   --color-text: #1d2a36;
   --color-text-heading: #101820;
@@ -75,6 +75,9 @@
   --color-arrow-step-review-bg: #fbdeb8;
   --color-arrow-step-review-text: #ed8a00;
   --color-arrow-step-review-border: #ffbc5e;
+  --color-arrow-step-error-bg: #ffb7b7;
+  --color-arrow-step-error-text: #ff5050;
+  --color-arrow-step-error-border: #ffcccc;
 
   --arrow-filter-hover: brightness(1.05);
 
@@ -146,6 +149,9 @@
   --color-arrow-step-review-bg: #9c5b00;
   --color-arrow-step-review-text: #fb8e00;
   --color-arrow-step-review-border: #fb8e00;
+  --color-arrow-step-error-bg: #8e0000;
+  --color-arrow-step-error-text: #ff6565;
+  --color-arrow-step-error-border: #ff6565;
 
   --arrow-filter-hover: brightness(1.25);
   --color-arrow-text-hover: #fff;
@@ -215,6 +221,10 @@
   --color-arrow-step-review-bg: #9c5b00;
   --color-arrow-step-review-text: #fb8e00;
   --color-arrow-step-review-border: #fb8e00;
+  --color-arrow-step-error-bg: #680101;
+  --color-arrow-step-error-text: #ff6565;
+  --color-arrow-step-error-border: #ff6565;
+
 
   --arrow-filter-hover: brightness(1.25);
   --color-arrow-text-hover: #fff;

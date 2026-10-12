@@ -1,5 +1,3 @@
-import { mockDelay } from '../mockDelay.js';
-
 const PT_API = '/api/pytest-create';
 
 // Every unit with its prompt rendered server-side — ids are the server's own ("setup",
@@ -103,9 +101,86 @@ export function toLintResults(lint) {
   ];
 }
 
+// Pushes the on-screen script into the session before a review — save_script persists the
+// edit (and, as in current/, writes the file under generated/), so the review describes the
+// code the user can see rather than a stale session copy.
+export async function pushCodeEdits(key, group, name, code) {
+  const res = await fetch(`${PT_API}/save_script/${encodeURIComponent(key)}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ group, name, code }),
+  });
+  if (!res.ok) throw new Error(await errorDetail(res));
+  return await res.json();   // {written, lint, naming}
+}
+
+// Pass C — the holistic review. Returns FINDINGS, never a rewrite. 409s with a message
+// starting "review round cap:" once the script's free review rounds are used; resending
+// with extraRound = true is the reviewer's explicit "send another round anyway".
+export async function reviewScript(key, headers, extraRound = false) {
+  const res = await fetch(`${PT_API}/review_script/${encodeURIComponent(key)}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...headers },
+    body: JSON.stringify(extraRound ? { extra_round: true } : {}),
+  });
+  if (!res.ok) throw new Error(await errorDetail(res));
+  return await res.json();   // {findings, at, review_rounds, review_rounds_free, counts}
+}
+
+// One LLM call that rewrites the WHOLE script from the session's own reasons (lint errors,
+// review findings, the last failed run) — no body needed. Archives the previous version and
+// clears the review. A following Assemble re-splices the units and would discard it.
+export async function fixScript(key, headers) {
+  const res = await fetch(`${PT_API}/fix_script/${encodeURIComponent(key)}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...headers },
+    body: '{}',
+  });
+  if (!res.ok) throw new Error(await errorDetail(res));
+  return await res.json();   // {files, iterations, lint, previous_archived}
+}
+
+// Re-generates ONLY the units the current reasons name, and returns at once — progress comes
+// from the same units_status poll as Generate. Reasons it did NOT dispatch come back named:
+// `unmapped` (no unit — the whole-script fix's job), `structural` (a design decision, never
+// sent to a model) and `stale` (the unit changed since the review). `units` limits the run to
+// those unit ids (each still gets ALL of its own current reasons).
+export async function fixUnits(key, units) {
+  const res = await fetch(`${PT_API}/fix_units/${encodeURIComponent(key)}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(units ? { units } : {}),
+  });
+  if (!res.ok) throw new Error(await errorDetail(res));
+  return await res.json();   // {dispatched, already_running, unmapped, structural, stale, primed}
+}
+
+// A review- or run-driven unit fix is HELD on its unit, never spliced on arrival (G7/D2):
+// the unit's own code is untouched until this promotes the held fix of the named units
+// (omitted = all), then re-assembles and re-lints.
+export async function applyHeldFixes(key, units) {
+  const res = await fetch(`${PT_API}/apply_held/${encodeURIComponent(key)}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(units ? { units } : {}),
+  });
+  if (!res.ok) throw new Error(await errorDetail(res));
+  return await res.json();   // {applied, assembled, lint_ok, lint_errors, previous_archived}
+}
+
+// FastAPI errors arrive as {"detail": "..."}; callers match on the message itself (e.g. the
+// review round cap), so unwrap it rather than passing the raw JSON text through.
+async function errorDetail(res) {
+  const t = await res.text();
+  try {
+    const d = JSON.parse(t).detail;
+    if (typeof d === 'string') return d;
+  } catch (_) { /* not JSON — fall through to the raw text */ }
+  return t.slice(0, 300) || `HTTP ${res.status}`;
+}
+
 export async function saveScript() {
   // TODO: replace with a real save API call
-  await mockDelay();
   const saveSucceeded = true;
   return saveSucceeded
     ? { status: 'success', message: 'Your PyTest script has been saved.' }

@@ -8,58 +8,43 @@
   import ErrorBanner from '../ErrorBanner.svelte';
   import { scrollToCasesIntro, scrollToBottom } from '../../utils/scroll.js';
 
-  // Array of column definitions for the summary table
+  // --- Props: data ------------------------------------------------------------------
   export let summaryColumns = [];
-
-  // Array of rows for the summary table, each row representing a summary of chosen candidates
   export let summaryRows = [];
 
-  // Array of chosen candidates that are used to generate the objective
+  /** The candidates chosen in the review steps — synthesis is gated on there being any. */
   export let chosenForObjectives = [];
 
-  // The generated objective text that can be reviewed and edited by the user
+  /** The objective as HTML (a <ul> of <li> lines). Edited as plain lines, stored back as HTML. */
   export let objective = '';
 
-  // Function to handle the synthesis of objectives using an LLM
+  // --- Props: callbacks -------------------------------------------------------------
+  /** @type {() => Promise<any>} Run by the LLM button. */
   export let onSynthesize = async () => null;
 
-  // Function to handle the saving of the edited objective
+  /** @type {(html: string) => Promise<void>} */
   export let onSaveObjective = async () => {};
 
-  // Function to handle the confirmation of the reviewed objective
+  /** @type {(() => Promise<void>) | null} null = no confirm action; the button does nothing. */
   export let onConfirm = null;
 
-  // Flag to indicate whether the user is currently editing the objective
+  // --- Local state ------------------------------------------------------------------
   let isEditing = false;
-
-  // The draft text of the objective that the user is currently editing
   let draft = '';
-
-  // Flag to indicate whether the user is currently saving the edited objective
-  let showNoCandidatesModal = false;
-
-  // Variable to hold the resolve function for the modal confirmation promise
-  let gateResolve = null;
-
-  // Flag to indicate whether the user is currently saving the edited objective
+  let isSaving = false;
+  let saveError = '';
   let isConfirming = false;
-
-  // Variable to hold any error message that occurs during the saving process
   let confirmError = '';
 
-  // Flag to indicate whether the user is currently saving the edited objective
-  let isSaving = false;
-
-  // Variable to hold any error message that occurs during the saving process
-  let saveError = '';
-
-  // Reactive statement to determine if the user can review the generated objective based on its content
   $: canReviewObjectives = !!(objective && objective.trim());
-
-  // Reactive statement to calculate the number of rows for the textarea based on the draft content
   $: draftRows = Math.max(draft.split('\n').length, 4);
 
- // Function to gate the synthesis of objectives, ensuring that there are chosen candidates before proceeding
+  // --- No-candidates gate -----------------------------------------------------------
+  // The LLM button awaits onBeforeRun before it starts. With nothing chosen, the gate parks
+  // that promise here and opens the modal; the modal's answer resolves it (true = run anyway).
+  let showNoCandidatesModal = false;
+  let gateResolve = null;
+
   function gateBeforeRun() {
     if (chosenForObjectives.length > 0) return Promise.resolve(true);
     return new Promise((resolve) => {
@@ -68,20 +53,19 @@
     });
   }
 
-  // Function to handle the confirmation of the modal dialog, resolving the promise with a true value
   function handleModalConfirm() {
     gateResolve && gateResolve(true);
     gateResolve = null;
   }
 
-  // Function to handle the cancellation of the modal dialog, resolving the promise with a false value
   function handleModalCancel() {
     gateResolve && gateResolve(false);
     gateResolve = null;
   }
 
-  // Utility function to convert HTML content into an array of text lines. It extracts text from <li> elements 
-  // if present, or returns the entire text content as a single line if no <li> elements are found.
+  // --- HTML <-> editable lines ------------------------------------------------------
+  // The editor works on one objective per line; the stored form is a <ul>. Text with no
+  // <li> at all comes back as a single line rather than being lost.
   function htmlToLines(html) {
     if (!html) return [];
     const doc = new DOMParser().parseFromString(html, 'text/html');
@@ -91,33 +75,28 @@
     return text ? [text] : [];
   }
 
-  // Utility function to escape HTML special characters in a string to prevent XSS attacks when rendering user input.
+  // Edited lines are typed by the user and later rendered with {@html}, so they are escaped.
   function escapeHtml(s) {
     return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   }
 
-  // Utility function to convert a string with line breaks into an HTML unordered list. Each line is wrapped in <li> tags.
   function linesToHtml(text) {
     const items = text.split('\n').map((l) => l.trim()).filter(Boolean);
     if (!items.length) return '';
     return '<ul>\n' + items.map((l) => `<li>${escapeHtml(l)}</li>`).join('\n') + '\n</ul>';
   }
 
-  // Function to initiate the editing of the generated objective. It converts the current objective HTML into a draft text 
-  // format for editing.
+  // --- Editing ------------------------------------------------------------------------
   function startEdit() {
     draft = htmlToLines(objective).join('\n');
     isEditing = true;
   }
 
-  // Function to cancel the editing of the generated objective, discarding any changes made in the draft and reverting to 
-  // the original objective.
+  // The draft is simply abandoned — `objective` was never touched while editing.
   function cancelEdit() {
     isEditing = false;
   }
 
-  // Function to save the edited objective. It converts the draft text back into HTML format and calls the onSaveObjective 
-  // prop to persist the changes.
   async function saveDraft() {
     isSaving = true;
     saveError = '';
@@ -131,8 +110,7 @@
     }
   }
 
-  // Function to handle the confirmation of the reviewed objective. It calls the onConfirm prop and manages the isConfirming
-  // and confirmError state variables to provide feedback to the user during the confirmation process.
+  // --- Confirm ------------------------------------------------------------------------
   async function handleConfirm() {
     if (!onConfirm) return;
     isConfirming = true;

@@ -67,6 +67,9 @@
   // after calls that don't return it directly (extract_sequence/save_sequence return
   // {sequence,...} only, not {session}).
   let session = null;
+  // The server's derived Generate state (review staleness, review round counts) — returned
+  // beside the session by load_case and GET session, never stored on it.
+  let genState = null;
   let readOnly = false;
   let lockMessage = '';
   let lockInfo = null;
@@ -98,6 +101,7 @@
       return;
     }
     session = result.session;
+    genState = result.gen_state || null;
     readOnly = !!result.read_only;
     lockInfo = result.lock || null;
     lockMessage = readOnly ? lockService.formatLockMessage('pt', caseId, lockInfo) : '';
@@ -109,10 +113,24 @@
     // keep alive.
     if (!readOnly) stopLockLifecycle = lockService.startLockLifecycle('pt', session.key);
 
-    // The real app always lands on Sequence after a non-read-only load, regardless of how
-    // far along the session already is — it has no per-step "resume" logic the way the
-    // Generator does.
-    if (!readOnly) currentStep = 1;
+    // Resume where the session is up to: every step the server already has confirmed is
+    // unlocked, and the page opens on the furthest one — no re-confirming Sequence → Fragments
+    // just to get back to Generate.
+    if (!readOnly) {
+      const furthest = furthestUnlockedStep(session);
+      maxStepReached = furthest;
+      currentStep = furthest;
+    }
+  }
+
+  // Stepper index of the furthest step a session may open on: each confirmed server step
+  // unlocks the next one. Internal step keys diverge from the stepper (step5 is Fragments,
+  // step6 is Generate — the old step4 was folded into Fragments).
+  function furthestUnlockedStep(sess) {
+    if (sess?.step5?.confirmed) return 4;   // Fragments confirmed → Generate
+    if (sess?.step3?.confirmed) return 3;   // Script Search confirmed → Fragments
+    if (sess?.step2?.confirmed) return 2;   // Sequence confirmed → Script Search
+    return 1;                               // Sequence
   }
 
   // Unlike the Generator, this page is destroyed/recreated on every navigation away (it's
@@ -213,6 +231,7 @@
       onViewSource={scriptSearchService.getScriptSource}
       initialSelections={session?.step3?.selections || {}}
       initialRecords={session?.step3?.records || {}}
+      stepAlreadyConfirmed={!!session?.step3?.confirmed}
       onConfirm={async () => {
         const result = await sequenceService.confirmStep(session.key, 3);
         session = result.session;
@@ -230,6 +249,7 @@
       initialFragments={session?.step5?.fragments || []}
       initialAccounting={session?.step5?.accounting || {}}
       initialSelected={session?.step5?.selected || []}
+      stepAlreadyConfirmed={!!session?.step5?.confirmed}
       onGatherFragments={async (headers) => {
         const result = await fragmentsService.gatherFragments(session.key, headers);
         const sessResult = await casesService.getSession(session.key);
@@ -268,7 +288,33 @@
         const result = await generateService.assembleScript(session.key, group, name);
         const sessResult = await casesService.getSession(session.key);
         session = sessResult.session;
+        genState = sessResult.gen_state || null;
         return result;
+      }}
+      initialReview={session?.step6?.review || null}
+      {genState}
+      onPushCodeEdits={(group, name, code) => generateService.pushCodeEdits(session.key, group, name, code)}
+      onReview={async (headers, extraRound) => {
+        const result = await generateService.reviewScript(session.key, headers, extraRound);
+        const sessResult = await casesService.getSession(session.key);
+        session = sessResult.session;
+        genState = sessResult.gen_state || null;
+        return result;
+      }}
+      onFixScript={(headers) => generateService.fixScript(session.key, headers)}
+      onFixUnits={(units) => generateService.fixUnits(session.key, units)}
+      onApplyHeld={(units) => generateService.applyHeldFixes(session.key, units)}
+      onRefreshStep6={async () => {
+        const sessResult = await casesService.getSession(session.key);
+        session = sessResult.session;
+        genState = sessResult.gen_state || null;
+        const step6 = session?.step6 || {};
+        return {
+          code: step6.files?.test?.code || '',
+          lintResults: generateService.toLintResults(step6.lint),
+          review: step6.review || null,
+          fixUnits: step6.fix_units || {},
+        };
       }}
       onSave={generateService.saveScript}
       {onNavigate}
