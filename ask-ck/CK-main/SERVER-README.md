@@ -1525,6 +1525,10 @@ is the broker, exactly as for `claude_agent` jobs:
    The seat agent lifts them only from the **main** session's own text (`ck_agent.MARKERS`), never
    from a tester's message to it, so `/test-mode` §7 has the sentinel echo each `RESULT`.
    Agents before 1.3.2 dropped `PROBE`/`REPAIRED`/`REVIEWED`, so Finalize could never turn on.
+   `update` events (agent 1.3.3) are the sentinel's running commentary, written by its Haiku
+   narrator rather than the session (device-testing orient-dt §10). The page shows them, one that
+   carries `attention` highlighted. The record keeps their cost apart as `updates_cost_usd`, and
+   the page adds it to the session's `cost_usd`.
 5. **Mail (D5, C-D4).** Notices that arrive together go in one informative mail, and the finish
    goes in another. Both go through this host's postfix (`smtplib` → `localhost:25` →
    `int-smtp.atlnz.lc`, from `do-not-reply@alliedtelesis.co.nz`), and only when the run asked

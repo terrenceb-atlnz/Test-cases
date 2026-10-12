@@ -36,7 +36,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 # Bump when the contract changes; the setup script compares this against the served
 # manifest to decide whether a running agent is stale and must be replaced.
-AGENT_VERSION = "1.3.2"
+AGENT_VERSION = "1.3.3"
 
 # Thinking and the answer share ONE MESSAGE's output budget (`maxOutputTokens`, 32,000 on
 # the CLI and not raisable). These are reasoning models, so uncapped thinking silently
@@ -686,6 +686,11 @@ class AgentSession:
         # Named <run_id>.json: device-testing's /test-mode takes the run id from the hand-off's
         # basename until it reads the JSON (its 83c0880 stopgap), so the name must BE the id.
         self.handoff_path = os.path.join(self.dir, f"{run_id}.json")
+        # The sentinel's running updates (device-testing orient-dt §10, 2026-10-13): written by its
+        # Haiku narrator to this file, NOT printed into the session, so the session is not woken
+        # (and its whole conversation re-read) once per update. pump_updates() relays them.
+        self.updates_path = os.path.join(self.dir, "sentinel-updates.jsonl")
+        self._updates_off = 0
         self._loop = None
         self._client = None
         self.thread = None
@@ -702,6 +707,34 @@ class AgentSession:
         except OSError:
             pass
         return ev
+
+    def pump_updates(self):
+        """Relay new complete lines of the sentinel's updates file as `update` events; a partial
+        last line waits for the next call. Never raises."""
+        try:
+            with open(self.updates_path, "rb") as fh:
+                fh.seek(self._updates_off)
+                chunk = fh.read()
+        except OSError:
+            return 0
+        end = chunk.rfind(b"\n")
+        if end < 0:
+            return 0
+        self._updates_off += end + 1
+        n = 0
+        for line in chunk[:end].decode("utf-8", "replace").splitlines():
+            try:
+                u = json.loads(line)
+            except ValueError:
+                continue
+            if not isinstance(u, dict) or not (u.get("text") or u.get("attention")):
+                continue
+            cost = u.get("cost_usd")
+            self.emit({"kind": "update", "text": _short(str(u.get("text") or ""), 1000),
+                       "attention": _short(str(u["attention"]), 1000) if u.get("attention") else None,
+                       "cost_usd": cost if isinstance(cost, (int, float)) else 0, "at": u.get("t")})
+            n += 1
+        return n
 
     def set_state(self, state, error=None):
         self.state = state
@@ -793,6 +826,7 @@ class AgentSession:
         opts = sdk.ClaudeAgentOptions(
             cwd=dt, cli_path=_find_claude() or None, settings=os.path.join(dt, SESSION_SETTINGS_REL),
             permission_mode="auto", setting_sources=["user", "project", "local"],
+            env={"CK_SENTINEL_UPDATES": self.updates_path},
             can_use_tool=self._can_use_tool)
         self._loop = asyncio.get_running_loop()
         async with sdk.ClaudeSDKClient(options=opts) as client:
@@ -800,6 +834,7 @@ class AgentSession:
             self.set_state("running")
             await client.query(self.prompt())
             reader = asyncio.ensure_future(self._read(client))
+            next_pump = time.monotonic() + 2.0
             while not reader.done():
                 if self.stop_requested:
                     reader.cancel()
@@ -810,11 +845,15 @@ class AgentSession:
                         msg = self.inbox.pop(0)
                 if msg:
                     await client.query(msg)
+                if time.monotonic() >= next_pump:
+                    self.pump_updates()
+                    next_pump = time.monotonic() + 2.0
                 await asyncio.sleep(0.2)
             try:
                 await reader
             except (asyncio.CancelledError, Exception):  # noqa: BLE001
                 pass
+            self.pump_updates()
 
     async def _read(self, client):
         async for msg in client.receive_messages():
@@ -831,7 +870,9 @@ class AgentSession:
     def start(self):
         os.makedirs(self.dir, exist_ok=True)
         with open(self.handoff_path, "w", encoding="utf-8") as fh:
-            json.dump(self.handoff, fh, indent=2)
+            # sentinel_updates: where /test-mode points the sentinel's UPDATES (the env var
+            # CK_SENTINEL_UPDATES says the same; the hand-off makes it explicit).
+            json.dump(dict(self.handoff, sentinel_updates=self.updates_path), fh, indent=2)
 
         def target():
             import asyncio  # noqa: PLC0415

@@ -140,6 +140,18 @@ def test_results_come_from_marker_lines_only_and_relays_are_idempotent(env):
     assert r["state"] == "running" and r["started"]
 
 
+def test_the_sentinels_update_cost_is_kept_apart_and_counted_once(env):
+    rid = tc_runs.create_run(body(), seat="s")["run_id"]
+    evs = _events({"kind": "update", "text": "TestCase_12 started.", "attention": None, "cost_usd": 0.0015},
+                  {"kind": "update", "text": "x", "cost_usd": "free"},
+                  {"kind": "result", "total_cost_usd": 3.97, "num_turns": 6},
+                  {"kind": "update", "text": "TestCase_12 passed.", "attention": None, "cost_usd": 0.0025})
+    tc_runs.apply_events(rid, evs)
+    r = tc_runs.apply_events(rid, evs)["record"]              # relayed twice: nothing doubles
+    assert r["cost_usd"] == 3.97 and r["updates_cost_usd"] == 0.004
+    assert [x["updates_cost_usd"] for x in tc_runs.list_runs() if x["run_id"] == rid] == [0.004]
+
+
 def test_the_api_relays_events_and_mails_a_notice_once_and_the_finish_once(env, client):
     rid = client.post("/api/test-composer/runs", json=body()).json()["run_id"]
     evs = _events({"kind": "state", "state": "running"},

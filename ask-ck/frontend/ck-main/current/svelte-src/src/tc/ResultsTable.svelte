@@ -63,7 +63,7 @@
     <span class="tc-spacer"></span>
     <span class="tc-small">time <b>{fmtDuration(duration)}</b></span>
     <span class="tc-small">tokens <b>{fmtTokens(rec.tokens)}</b></span>
-    <span class="tc-small">{rec.cost_usd != null ? `$${rec.cost_usd.toFixed(2)} (list)` : ''}</span>
+    <span class="tc-small">{rec.cost_usd != null || rec.updates_cost_usd ? `$${((rec.cost_usd || 0) + (rec.updates_cost_usd || 0)).toFixed(2)} (list)` : ''}</span>
     <span class="tc-badge tc-state-{rec.state}">{rec.state}</span>
   </div>
   {#each groups as g}

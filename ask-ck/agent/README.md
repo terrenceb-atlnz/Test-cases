@@ -113,8 +113,13 @@ Ask-CK's Validation and Test Composer pages (`ask-ck/plans/PLAN-agent-sessions.m
 - **Routes:** `POST /session/start {run_id, handoff, mode}`;
   `GET /session/{id}/events?after=N&wait=20`, a long-poll; `POST /session/{id}/answer`,
   `/message` and `/stop`; `GET /sessions`. All POSTs require `application/json`.
-- **Files:** `~/.local/share/ck-agent/runs/<run_id>/` (`CK_AGENT_RUNS`) holds the hand-off and
-  `events.jsonl`.
+- **Files:** `~/.local/share/ck-agent/runs/<run_id>/` (`CK_AGENT_RUNS`) holds the hand-off,
+  `events.jsonl` and `sentinel-updates.jsonl`.
+- **Running updates (1.3.3):** the session gets `CK_SENTINEL_UPDATES=<run dir>/sentinel-updates.jsonl`,
+  and the hand-off carries the same path as `sentinel_updates`. device-testing's sentinel writes
+  its Haiku narrator's updates there instead of printing them into the session (orient-dt §10),
+  so the session is not woken once per update. The agent relays each new line as an `update`
+  event (`text`, `attention`, `cost_usd`, `at`) every 2 s and once more when the session ends.
 - **Campaigns never wait for an answer** (D5): a question is answered "nobody is waiting" at
   once.
 - **Windows:** not yet. `ck-agent.ps1` reports `sessions.available = false` (D1).

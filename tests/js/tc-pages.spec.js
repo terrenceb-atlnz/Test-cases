@@ -137,6 +137,23 @@ describe('Validation', () => {
     expect(JSON.parse(localStorage.getItem('ck.tc.setup')).testbox).toBe('tb470');
   });
 
+  it('shows the sentinel\'s updates, flags one that needs a look, and adds their cost', async () => {
+    // device-testing orient-dt §10 (2026-10-13): the updates come from a Haiku narrator through the
+    // seat agent, not from the session, so the session is not woken once per update.
+    const evs = [...EVENTS.slice(0, 7),
+      { seq: 7, t: 7, kind: 'update', text: 'TestCase_12 started on the fibre link.', attention: null, cost_usd: 0.25, at: '06:57:31' },
+      { seq: 8, t: 8, kind: 'update', text: 'stk_a power-cycled.', attention: '!!FAIL: stk_a (member-3) contains 5 exceptions', cost_usd: 0.25, at: '06:58:13' },
+      { ...EVENTS[7], seq: 9 }, { ...EVENTS[8], seq: 10 }];
+    await page(vdRoutes(), fakeAgent(evs));
+    $('input[name="vd-script"]').click(); flushSync();
+    type($('#tc-testbox'), 'tb470'); type($('#tc-consoles'), 'u0-u5');
+    await click($('#vd-launch'));
+    await until(() => $$('.tc-update').length === 2 && /\$1\.75/.test($('.tc-stream').parentNode.textContent));
+    expect($$('.tc-update').map(u => u.textContent)).toEqual(['06:57:31 TestCase_12 started on the fibre link.',
+      '06:58:13 stk_a power-cycled.Needs a look: !!FAIL: stk_a (member-3) contains 5 exceptions']);
+    expect($$('.tc-update.tc-attn').length).toBe(1);
+  });
+
   it('shows results by cycle with the type marker, and Finalize disabled until the run is clean', async () => {
     await page();
     $('input[name="vd-script"]').click(); flushSync();

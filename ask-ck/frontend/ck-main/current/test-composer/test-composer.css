@@ -40,6 +40,9 @@
 .tc-page .tc-ev { margin: 3px 0; }
 .tc-page .tc-sub { margin-left: 22px; border-left: 2px solid var(--border-subtle); padding-left: 8px; }
 .tc-page .tc-text { color: var(--text-primary); white-space: pre-wrap; }
+.tc-page .tc-update { color: var(--text-secondary); font-size: 12px; }
+.tc-page .tc-update.tc-attn { color: var(--text-primary); border-left: 3px solid var(--status-high); padding-left: 6px; }
+.tc-page .tc-attn-why { color: var(--status-high); }
 .tc-page .tc-tool-row { display: flex; gap: 6px; align-items: baseline; width: 100%; border: 0; background: none; padding: 1px 0; cursor: pointer;
   color: var(--text-secondary); font: inherit; text-align: left; }
 .tc-page .tc-tool-status { margin-left: auto; font-size: 11px; }

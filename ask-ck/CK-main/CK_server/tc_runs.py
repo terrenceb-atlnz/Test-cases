@@ -269,7 +269,7 @@ def list_runs(limit: int = 50, kind: Optional[str] = None) -> List[Dict[str, Any
         if kind and r.get("kind") != kind:
             continue
         out.append({k: r.get(k) for k in ("run_id", "kind", "testbox", "state", "created", "started", "ended",
-                                          "cost_usd", "tokens")}
+                                          "cost_usd", "updates_cost_usd", "tokens")}
                    | {"counts": verdict_counts(r), "cases": [c["key"] for c in r.get("cases") or []]})
         if len(out) >= limit:
             break
@@ -367,6 +367,11 @@ def apply_events(run_id: str, events: List[Dict[str, Any]], session_id: Optional
                         new_notices.append(n)
                     if line.startswith("ASKCK-DONE"):
                         record["done_marker"] = True
+                elif k == "update":
+                    # the sentinel's Haiku narrator, billed apart from the session's own cost
+                    c = e.get("cost_usd")
+                    if isinstance(c, (int, float)) and c > 0:
+                        record["updates_cost_usd"] = round(float(record.get("updates_cost_usd") or 0) + c, 6)
                 elif k == "result":
                     if e.get("total_cost_usd") is not None:
                         record["cost_usd"] = e["total_cost_usd"]

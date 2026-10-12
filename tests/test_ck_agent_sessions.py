@@ -187,7 +187,10 @@ def test_a_campaign_runs_test_mode_in_the_checkout_with_the_profile_and_ends_on_
     assert o.permission_mode == "auto" and o.cli_path == "/usr/bin/claude"
     hp = Path(s.handoff_path)
     assert hp.name == "r1.json"            # /test-mode's stopgap reads the run id from the basename
-    assert json.loads(hp.read_text()) == HANDOFF
+    # the hand-off as sent, plus where the sentinel's updates go (also in the session's env)
+    assert json.loads(hp.read_text()) == dict(HANDOFF, sentinel_updates=s.updates_path)
+    assert Path(s.updates_path).parent == hp.parent
+    assert o.env == {"CK_SENTINEL_UPDATES": s.updates_path}
     # the agent builds the command; the page's cwd/prompt fields are ignored; bad keys dropped
     assert state["queries"][0] == f"/test-mode --from-ask-ck {hp} AWPTCM-T33234"
     kinds = [e["kind"] for e in s.events]
@@ -403,6 +406,38 @@ def test_no_server_origin_means_no_lookup(seat, monkeypatch):
 
 
 # ---------------------------------------------------------------- parsing
+
+# ---------------------------------------------------------------- the sentinel's updates
+
+def test_sentinel_updates_reach_the_page_without_waking_the_session(dt, monkeypatch):
+    """device-testing's sentinel writes its Haiku updates to CK_SENTINEL_UPDATES instead of printing
+    them into the session (run val-fbe9: 331 wake-ups, $35); the agent relays them as events."""
+    async def script(client):
+        path = client.options.env["CK_SENTINEL_UPDATES"]
+        yield SystemMessage("init", {"session_id": "S", "model": "opus", "permissionMode": "auto", "cwd": "x"})
+        with open(path, "w", encoding="utf-8") as fh:
+            fh.write(json.dumps({"t": "06:57:31", "text": "TestCase_12 started on the fibre link.",
+                                 "attention": None, "cost_usd": 0.0015}) + "\n")
+            fh.write("not json\n")
+            fh.write(json.dumps({"t": "06:58:01", "text": "", "attention": None, "cost_usd": 0.001}) + "\n")
+            fh.write(json.dumps({"t": "06:58:13", "text": "stk_a power-cycled.", "attention":
+                                 "[fw:test.log] !!FAIL: stk_a (member-3) contains 5 exceptions", "cost_usd": 0.002}) + "\n")
+            fh.write('{"t": "06:58:40", "text": "half a li')          # still being written
+        yield AssistantMessage([TextBlock("ASKCK-DONE r1")])
+        yield ResultMessage("done")
+    use(monkeypatch, script)
+    s = ck_agent.get_session(ck_agent.start_session({"run_id": "r1", "handoff": HANDOFF})["session_id"])
+    wait_state(s, ("done", "error", "stopped"))
+    ups = [e for e in s.events if e["kind"] == "update"]
+    assert [(u["text"], u["attention"], u["at"]) for u in ups] == [
+        ("TestCase_12 started on the fibre link.", None, "06:57:31"),
+        ("stk_a power-cycled.", "[fw:test.log] !!FAIL: stk_a (member-3) contains 5 exceptions", "06:58:13")]
+    assert [u["cost_usd"] for u in ups] == [0.0015, 0.002]
+    with open(s.updates_path, "a", encoding="utf-8") as fh:      # the partial line, finished
+        fh.write('ne", "attention": null, "cost_usd": 0.001}\n')
+    assert s.pump_updates() == 1 and s.events[-1]["text"] == "half a line"
+    assert s.pump_updates() == 0
+
 
 def test_marker_lines_take_only_line_starts():
     text = "intro\n  RESULT T1 PASS -- ok -- w.log\nsays RESULT inside\n`NOTIFY campaign -- x -- y`\nASKCK-DONE r9"

@@ -13,6 +13,11 @@ verified: 2026-10-09
 > **2026-10-13:** agent 1.3.2 also lifts `PROBE`, `REPAIRED` and `REVIEWED` (1.3.1 dropped them, so
 > Validation's Finalize never turned on), and device-testing `/test-mode` §7 now has the sentinel
 > echo the tester's `RESULT` line (it never did, so the first three Validation runs read NOT TESTED).
+> **2026-10-13 (agent 1.3.3):** running updates no longer cost an Opus wake each. Run val-fbe9 cost
+> $35.11 for one automated script, nearly all of it the session re-reading a conversation that raw
+> console batches grew from 125k to 553k tokens over 331 wake-ups. device-testing's sentinel now has
+> a Haiku narrator and writes its updates to `CK_SENTINEL_UPDATES`, and the agent relays them as
+> `update` events. The session wakes only for ATTENTION, alarms and its own subagents.
 > - **Seat agent 1.3.0:** an Agent SDK session job (`/session/*`). The PowerShell agent reports
 >   sessions unavailable (D1).
 > - **Server:** `/api/test-composer` runs (hand-off schema 1, records as files, D5 notice and finish

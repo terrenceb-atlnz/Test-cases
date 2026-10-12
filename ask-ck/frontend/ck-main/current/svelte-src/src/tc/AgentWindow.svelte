@@ -24,7 +24,9 @@
 
   const results = $derived(new Map(events.filter(e => e.kind === 'tool_result').map(e => [e.id, e])));
   const lastResult = $derived([...events].reverse().find(e => e.kind === 'result'));
-  const cost = $derived(lastResult ? lastResult.total_cost_usd : null);
+  // The session's own cost plus the sentinel's Haiku updates (billed apart, device-testing orient-dt §10).
+  const updatesCost = $derived(events.reduce((a, e) => a + (e.kind === 'update' && typeof e.cost_usd === 'number' ? e.cost_usd : 0), 0));
+  const cost = $derived(lastResult || updatesCost ? ((lastResult && lastResult.total_cost_usd) || 0) + updatesCost : null);
   const tokens = $derived(lastResult ? tokensOf(lastResult.model_usage) : null);
   const elapsed = $derived(events.length ? Math.round((events[events.length - 1].t || 0) * 1000) : null);
   const pendingIds = $derived(new Set(events.filter(e => e.kind === 'answered').map(e => e.request_id)));
@@ -128,7 +130,7 @@
     <span class="tc-spacer"></span>
     <span class="tc-small" title="wall clock since the session's first event">time {fmtDuration(elapsed)}</span>
     <span class="tc-small" title="all models, subagents included">tokens {fmtTokens(tokens)}</span>
-    <span class="tc-small" title="list-price estimate">{cost != null ? `$${cost.toFixed(2)}` : ''}</span>
+    <span class="tc-small" title={`list-price estimate${updatesCost ? `, including $${updatesCost.toFixed(2)} for the running updates` : ''}`}>{cost != null ? `$${cost.toFixed(2)}` : ''}</span>
     <label class="tc-small"><input type="checkbox" bind:checked={follow}> Follow</label>
     {#if live}<button type="button" class="btn btn-secondary btn-compact-small tc-stop" onclick={stop}>Stop</button>{/if}
   </div>
@@ -148,6 +150,8 @@
         </div>
       {:else if e.kind === 'task'}
         <div class="tc-ev tc-task">subagent {e.subagent_type || ''} {e.description || ''} — {e.subtype.replace('task_', '')}{e.status ? ` (${e.status})` : ''}{e.usage && e.usage.total_tokens ? ` · ${fmtTokens(e.usage.total_tokens)} tokens` : ''}</div>
+      {:else if e.kind === 'update'}
+        <div class="tc-ev tc-update" class:tc-attn={!!e.attention}>{e.at ? `${e.at} ` : ''}{e.text}{#if e.attention}<div class="tc-attn-why">Needs a look: {e.attention}</div>{/if}</div>
       {:else if e.kind === 'marker'}
         <div class="tc-ev tc-marker {markerClass(e.line)}">{e.line}</div>
       {:else if e.kind === 'question'}
