@@ -410,6 +410,17 @@ def test_marker_lines_take_only_line_starts():
         "RESULT T1 PASS -- ok -- w.log", "NOTIFY campaign -- x -- y", "ASKCK-DONE r9"]
 
 
+def test_marker_lines_take_the_validation_markers():
+    # Verbatim from run 2026-10-13T0626-val-fbe9: Finalize waits on REVIEWED, and the 1.3.1 agent
+    # dropped it, so the page said "the review has not been written" after a clean PASS.
+    text = ("REVIEWED AWPTCM-T33235 tb470/IE520/port-2026-10-13T0626/33235/review.md\n\n"
+            "Now §8: `/create-logs --auto` (T33235 is a script case, so it should be skipped).")
+    assert [(m["marker"], m["line"]) for m in ck_agent.marker_lines(text)] == [
+        ("REVIEWED", "REVIEWED AWPTCM-T33235 tb470/IE520/port-2026-10-13T0626/33235/review.md")]
+    more = "REPAIRED AWPTCM-T1 tb470/x/work/t.py\nPROBE MATCH tb470.static\nthe REPAIRED copy is final"
+    assert [m["marker"] for m in ck_agent.marker_lines(more)] == ["REPAIRED", "PROBE"]
+
+
 def test_the_powershell_agent_says_sessions_are_not_available_on_windows():
     ps = (_REPO / "ask-ck" / "agent" / "ck-agent.ps1").read_text(encoding="utf-8")
     assert "sessions = [ordered]@{ available = $false" in ps

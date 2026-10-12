@@ -36,7 +36,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 # Bump when the contract changes; the setup script compares this against the served
 # manifest to decide whether a running agent is stale and must be replaced.
-AGENT_VERSION = "1.3.1"
+AGENT_VERSION = "1.3.2"
 
 # Thinking and the answer share ONE MESSAGE's output budget (`maxOutputTokens`, 32,000 on
 # the CLI and not raisable). These are reasoning models, so uncapped thinking silently
@@ -647,13 +647,18 @@ def normalize_message(msg) -> list:
     return out
 
 
+# test-mode: RESULT (logged-output §2, echoed by the sentinel), NOTIFY (§10), PROBE (§1),
+# REPAIRED and REVIEWED (§11, Validation's Finalize reads REVIEWED), ASKCK-DONE (§8).
+MARKERS = ("RESULT ", "NOTIFY ", "PROBE ", "REPAIRED ", "REVIEWED ", SESSION_DONE_MARKER)
+
+
 def marker_lines(text: str) -> list:
-    """`RESULT …` / `NOTIFY …` / `ASKCK-DONE …` lines in assistant text (logged-output.md §2,
-    test-mode §10) — the page and the server read results from these, never from prose."""
+    """Marker lines (MARKERS) in assistant text — the page and the server read results from
+    these, never from prose."""
     out = []
     for line in (text or "").splitlines():
         s = line.strip().strip("`").strip()
-        for m in ("RESULT ", "NOTIFY ", SESSION_DONE_MARKER):
+        for m in MARKERS:
             if s.startswith(m):
                 out.append({"kind": "marker", "marker": m.strip(), "line": s})
                 break

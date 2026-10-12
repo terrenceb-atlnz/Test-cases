@@ -10,6 +10,9 @@ verified: 2026-10-09
 > **2026-10-12:** the seat agent (1.3.1) finds its device-testing checkout through the server's
 > pointer (`/api/test-composer/status` → `dt_root`) when no `dt_root` is set. That only helps seats
 > that can see the server's path — **D8 (open)** is the question for everyone else.
+> **2026-10-13:** agent 1.3.2 also lifts `PROBE`, `REPAIRED` and `REVIEWED` (1.3.1 dropped them, so
+> Validation's Finalize never turned on), and device-testing `/test-mode` §7 now has the sentinel
+> echo the tester's `RESULT` line (it never did, so the first three Validation runs read NOT TESTED).
 > - **Seat agent 1.3.0:** an Agent SDK session job (`/session/*`). The PowerShell agent reports
 >   sessions unavailable (D1).
 > - **Server:** `/api/test-composer` runs (hand-off schema 1, records as files, D5 notice and finish
