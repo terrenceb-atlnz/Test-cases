@@ -39,7 +39,8 @@ import locks
 # routers/wizard.py until PLAN-backend-module-split.md commit 8 — a sibling router
 # reaching into another router's internals, so renaming any one of them silently broke
 # a different tool. They now live in leaf modules that both routers import.
-from case_registry import build_case_groups, is_hidden_case, refined_complete_keys, saved_script_case_keys
+from case_registry import (PT_CREATOR_HIDDEN_KEYS, build_case_groups, is_hidden_case, refined_complete_keys,
+                           saved_script_case_keys)
 from llm_config import cfg_for_task, effective_llm_config
 
 router = APIRouter(tags=["pytest-creator"])
@@ -5271,6 +5272,8 @@ async def pt_cases(request: Request):
       - complete:    its script is saved to generated/ (Terrence 2026-10-12: saving is the end
                      of the PyTest Creator; Validation's Finalize then takes the case off both
                      lists — is_hidden_case)
+    Neither list shows PT_CREATOR_HIDDEN_KEYS (a case in Validation whose script was reworked
+    outside the Creator).
       - in_progress: everything else
     Both lists only contain cases with a refined zephyr_payload.json — i.e. cases the
     PyTest Creator can actually load. Grouped by Zephyr folder leaf for optgroups.
@@ -5280,6 +5283,7 @@ async def pt_cases(request: Request):
     cands = data.get("candidates", []) or []
     all_keys = [c["key"] for c in cands
                 if c.get("candidates") and c.get("key")
+                and c["key"] not in PT_CREATOR_HIDDEN_KEYS
                 and not is_hidden_case(c["key"], zephyr.get(c["key"], {}).get("folder", ""))]
 
     # Off the event loop: refined_complete_keys rglob's the whole refined-cases tree,

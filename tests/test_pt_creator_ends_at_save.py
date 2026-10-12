@@ -136,6 +136,25 @@ def test_the_cases_panel_puts_saved_cases_in_complete(monkeypatch):
     assert out["in_progress"]["grouped"][0]["cases"][0]["title"].endswith("[2/5 steps]")
 
 
+def test_a_case_hidden_from_the_creator_leaves_both_its_lists_and_only_those(monkeypatch):
+    """Terrence 2026-10-13: T33235's script was reworked outside the Creator while it is in
+    Validation, so the Creator must not offer it for re-generation; Finalize removes it later."""
+    keys = ["AWPTCM-T99991", "AWPTCM-T99992"]
+    data = {"zephyr_master": {k: {"title": k, "folder": "/X/Port"} for k in keys},
+            "candidates": [{"key": k, "candidates": [1]} for k in keys]}
+    monkeypatch.setattr(pc, "_data", lambda request: data)
+    monkeypatch.setattr(pc, "refined_complete_keys", lambda: set(keys))
+    monkeypatch.setattr(pc, "saved_script_case_keys", lambda: frozenset(keys))
+    monkeypatch.setattr(pc.dbx, "list_pt_progress", lambda: {})
+    monkeypatch.setattr(pc, "PT_CREATOR_HIDDEN_KEYS", frozenset({"AWPTCM-T99992"}))
+    out = asyncio.run(pc.pt_cases(None))
+    flat = lambda groups: [c["key"] for g in groups for c in g["cases"]]
+    assert flat(out["complete"]["grouped"]) == ["AWPTCM-T99991"]
+    assert flat(out["in_progress"]["grouped"]) == []
+    assert "AWPTCM-T33235" in case_registry.PT_CREATOR_HIDDEN_KEYS
+    assert not case_registry.is_hidden_case("AWPTCM-T33235", "/New Platform Test (MASTER)/Port")
+
+
 def test_progress_counts_only_the_creators_five_steps(monkeypatch):
     import db
     payload = {"key": KEY, **{f"step{n}": {"confirmed": True} for n in range(2, 9)}}   # an old session

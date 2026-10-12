@@ -46,6 +46,15 @@ HIDDEN_CASE_KEYS = frozenset({
     "AWPTCM-T41263", "AWPTCM-T41264", "AWPTCM-T41265", "AWPTCM-T41266",
 })
 
+# Hidden from the PyTest Creator's two Cases lists ONLY (every other list still shows them):
+# a case whose saved script was reworked outside the Creator while it is in Validation, so a
+# re-generate there cannot overwrite it. Validation's Finalize then removes it everywhere
+# (finalized_case_keys). Terrence 2026-10-13, for T33235 alone: its script now runs 33 steps as
+# 14 TestCases (ef53cea), which the Creator's stored session does not hold.
+PT_CREATOR_HIDDEN_KEYS = frozenset({
+    "AWPTCM-T33235",
+})
+
 # Whole categories (Zephyr folders) hidden from the case lists — out of scope. Matched
 # by exact folder path, so every case in the folder is hidden regardless of its (non-
 # contiguous) test-id, and any future case added to the folder is hidden too.
