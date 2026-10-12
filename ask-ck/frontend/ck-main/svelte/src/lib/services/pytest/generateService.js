@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 const PT_API = '/api/pytest-create';
 
 // Every unit with its prompt rendered server-side — ids are the server's own ("setup",
@@ -101,14 +103,16 @@ export function toLintResults(lint) {
   ];
 }
 
-// Pushes the on-screen script into the session before a review — save_script persists the
-// edit (and, as in current/, writes the file under generated/), so the review describes the
-// code the user can see rather than a stale session copy.
-export async function pushCodeEdits(key, group, name, code) {
+// Pushes the on-screen script into the session before a review or fix, so it judges the
+// code the user can see rather than a stale session copy. Code only, and write_files: false —
+// as current/'s ptPushCodeEdits(false): only Save writes generated/ (a review after a bad fix
+// must not overwrite the last good copy on disk), and omitting group/name leaves the
+// session's naming exactly as it is.
+export async function pushCodeEdits(key, code) {
   const res = await fetch(`${PT_API}/save_script/${encodeURIComponent(key)}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ group, name, code }),
+    body: JSON.stringify({ code, write_files: false }),
   });
   if (!res.ok) throw new Error(await errorDetail(res));
   return await res.json();   // {written, lint, naming}
@@ -179,10 +183,36 @@ async function errorDetail(res) {
   return t.slice(0, 300) || `HTTP ${res.status}`;
 }
 
-export async function saveScript() {
-  // TODO: replace with a real save API call
-  const saveSucceeded = true;
-  return saveSucceeded
-    ? { status: 'success', message: 'Your PyTest script has been saved.' }
-    : { status: 'error', message: 'Something went wrong while saving your PyTest script. Please try again.' };
+// Save and Finish = current/'s "Save to generated/" then "Confirm step 5", in one go:
+//  1. save_script with the on-screen code + naming and write_files: true — the one path that
+//     writes generated/<group>/<name>.py; it re-lints and un-confirms Generate.
+//  2. confirm_step/6 with an empty body, exactly as current/'s ptConfirm(6). The server refuses
+//     on blocking lint errors, unacknowledged policy errors or a coverage gap — its own message
+//     is returned as the failure (no acknowledgement prompt, same as current/).
+// Never throws: the result is always {status, message} for the save modal.
+export async function saveAndFinish(key, group, name, code) {
+  let saved;
+  try {
+    const res = await fetch(`${PT_API}/save_script/${encodeURIComponent(key)}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ group, name, code, write_files: true }),
+    });
+    if (!res.ok) throw new Error(await errorDetail(res));
+    saved = await res.json();   // {written, lint, naming, gen_state}
+  } catch (e) {
+    return { status: 'error', message: `Save failed: ${(e && e.message) || e}` };
+  }
+  const written = (saved.written || []).join(', ') || '(no files written)';
+  try {
+    const res = await fetch(`${PT_API}/confirm_step/${encodeURIComponent(key)}/6`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: '{}',
+    });
+    if (!res.ok) throw new Error(await errorDetail(res));
+  } catch (e) {
+    return { status: 'error', message: `Saved (${written}), but Generate could not be confirmed: ${(e && e.message) || e}` };
+  }
+  return { status: 'success', message: `Saved ${written} and confirmed Generate.` };
 }

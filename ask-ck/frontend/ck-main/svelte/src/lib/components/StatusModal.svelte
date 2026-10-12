@@ -14,6 +14,9 @@
   export let message = '';
 
   /** @type {string} */
+  export let caseTitle = '';
+
+  /** @type {string} */
   export let closeText = 'Close';
 
   /** @type {(() => void) | null} */
@@ -55,7 +58,13 @@
         {:else}
           <span class="modal-status-badge modal-status-badge-error" aria-hidden="true">!</span>
         {/if}
-        <p id="status-modal-title" class="modal-title" class:error={status === 'error'}>{title}</p>
+        <div class="case-box">
+
+          <p id="status-modal-title" class="modal-title" class:error={status === 'error'}>{title}</p>
+          {#if caseTitle}
+              <p class="case-title">{caseTitle}</p>
+          {/if}
+        </div>
       </div>
       {#if message}
         <p class="modal-message">{message}</p>
@@ -78,13 +87,14 @@
     justify-content: center;
     z-index: 1000;
     padding: 16px;
+    padding-bottom: 10vh
   }
 
   .modal-dialog {
     width: 100%;
     min-width: 420px;
     max-width: 500px;
-    padding: 24px;
+    padding: 32px;
     border-radius: 12px;
     border: 1px solid var(--color-border-surface);
     background: var(--color-bg-surface);
@@ -103,8 +113,8 @@
     align-items: center;
     justify-content: center;
     flex: 0 0 auto;
-    width: 24px;
-    height: 24px;
+    width: 32px;
+    height: 32px;
     border-radius: 50%;
     color: #fff;
     font-weight: 700;
@@ -122,8 +132,7 @@
 
   .modal-title {
     margin: 0;
-    font-size: 1.2rem;
-    margin-bottom: 8px;
+    font-size: 1.4rem;
     font-weight: 700;
     color: var(--color-success);
   }
@@ -132,10 +141,22 @@
     color: var(--color-error);
   }
 
+  .case-box {
+    display: flex;
+    flex-direction: column;
+  }
+  .case-title {
+    font-weight: 800;
+    font-size: 0.9rem;
+    color: var(--color-text-muted);
+    margin: 0;
+    margin-top: 4px;
+  }
+
   .modal-message {
     margin: 0 0 20px;
     color: var(--color-text-muted);
-    font-size: 0.92rem;
+    font-size: 0.88rem;
     font-style: italic;
   }
 

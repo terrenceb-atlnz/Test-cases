@@ -274,6 +274,7 @@
       {title}
       initialGroup={session?.step6?.naming?.group || caseInfo?.groupDisplay || ''}
       initialName={session?.step6?.naming?.name || ''}
+      caseTitle={title}
       initialAssembledCode={session?.step6?.files?.test?.code || ''}
       initialLintResults={generateService.toLintResults(session?.step6?.lint)}
       onSaveNaming={async (group, name) => {
@@ -293,7 +294,7 @@
       }}
       initialReview={session?.step6?.review || null}
       {genState}
-      onPushCodeEdits={(group, name, code) => generateService.pushCodeEdits(session.key, group, name, code)}
+      onPushCodeEdits={(code) => generateService.pushCodeEdits(session.key, code)}
       onReview={async (headers, extraRound) => {
         const result = await generateService.reviewScript(session.key, headers, extraRound);
         const sessResult = await casesService.getSession(session.key);
@@ -316,7 +317,13 @@
           fixUnits: step6.fix_units || {},
         };
       }}
-      onSave={generateService.saveScript}
+      onSave={async (group, name, code) => {
+        const result = await generateService.saveAndFinish(session.key, group, name, code);
+        const sessResult = await casesService.getSession(session.key);
+        session = sessResult.session;
+        genState = sessResult.gen_state || null;
+        return result;
+      }}
       {onNavigate}
       {onCreateAnother}
       onFinished={() => (stepperCompleted = true)}

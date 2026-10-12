@@ -19,6 +19,9 @@
   /** @type {string} Already-saved session.step6.naming.name, if any. */
   export let initialName = '';
 
+  /** @type {string} For Save Modal*/
+  export let caseTitle = '';
+
   /** @type {string} The session's already-assembled script (step6.files.test.code), if any —
       restored so the Summary doesn't start blank after a reload. */
   export let initialAssembledCode = '';
@@ -65,8 +68,8 @@
   export let onAssemble = async () => ({ assembledCode: '', lintResults: [] });
 
   // --- Props: callbacks — Review/Fix --------------------------------------------------
-  /** @type {(group: string, name: string, code: string) => Promise<any>} Persists the
-      on-screen script (save_script) — run before every review. */
+  /** @type {(code: string) => Promise<any>} Persists the on-screen script into the session
+      (save_script, no disk write) — run before every review and fix. */
   export let onPushCodeEdits = async () => ({});
 
   /** @type {(headers: Record<string, string>, extraRound: boolean) => Promise<{ findings: Array, at: string }>}
@@ -90,7 +93,9 @@
       fix results, the refreshed script/lint and the (cleared) review are read off it. */
   export let onRefreshStep6 = async () => ({});
 
-  /** @type {() => Promise<{ status: string, message: string }>} */
+  /** @type {(group: string, name: string, code: string) => Promise<{ status: string, message: string }>}
+      Save and Finish: writes generated/ with this naming + code, then confirms Generate. Never
+      throws — a refusal comes back as status 'error' with the server's reason. */
   export let onSave = async () => ({ status: 'success', message: '' });
 
   /** @type {(() => void) | null} Called once the save succeeds — parent marks the stepper finished */
@@ -489,7 +494,7 @@
   async function runReview(headers) {
     // Push edits first — reviewing the session copy while the editor holds something else
     // reports findings against a script the reviewer cannot see.
-    await onPushCodeEdits(group.trim(), name.trim(), assembledCode);
+    await onPushCodeEdits(assembledCode);
     try {
       return await onReview(headers, false);
     } catch (e) {
@@ -529,7 +534,7 @@
   // Fix whole script: one LLM call that rewrites the file. A following Assemble re-splices
   // the units and would discard it — so this one stays on Review/Fix.
   async function runFixScript(headers) {
-    await onPushCodeEdits(group.trim(), name.trim(), assembledCode);
+    await onPushCodeEdits(assembledCode);
     const d = await onFixScript(headers);
     fixesUnlocked = false;
     const s = await onRefreshStep6();
@@ -545,37 +550,34 @@
   // Fix units: re-generates ONLY the red units (a high-severity finding in the current
   // review) — each with all of its own current reasons. A review-driven fix comes back HELD:
   // the unit's code is untouched and it turns orange until Confirm Unit applies the fix.
-  let isFixingUnits = false;
-
-  async function fixUnits() {
-    isFixingUnits = true;
-    fixError = '';
-    try {
-      await onPushCodeEdits(group.trim(), name.trim(), assembledCode);
-      const d = await onFixUnits([...criticalUnitIds]);
-      const dispatched = d.dispatched || [];
-      for (const id of dispatched) runningUnitIds[id] = true;
-      runningUnitIds = runningUnitIds;
-      const unmapped = (d.unmapped || []).length;
-      const structural = d.structural || [];
-      const stale = d.stale || [];
-      runStatus = `${dispatched.length} unit(s) being fixed` +
-        (d.primed ? ` — ${unitTitle(d.primed)} first, alone, to warm the prompt cache` : '') + '.' +
-        (unmapped ? ` ${unmapped} finding(s) name no unit — use "Fix Whole Script" for those.` : '') +
-        // A structural finding is a design decision: never sent to a model, its reason shown.
-        (structural.length ? ` ${structural.length} structural finding(s) need a design decision, not a fix: ${structural.join(' · ')}` : '') +
-        // Findings about a unit edited since the review are not re-fixed.
-        (stale.length ? ` ${stale.length} review finding(s) skipped — their unit changed since the review: ${stale.join(' · ')}` : '');
-      if (dispatched.length) {
-        fixesUnlocked = false;
-        onRunSettled = afterFixUnitsSettled;
-        startPolling();
-      }
-    } catch (e) {
-      fixError = (e && e.message) || String(e);
-    } finally {
-      isFixingUnits = false;
-    }
+  // Run by an LlmButton that stays busy until the fixed units have landed and the result has
+  // been read — the unit calls run server-side after the dispatch returns, so the button's
+  // click-to-stop cannot cancel them.
+  async function runFixUnits() {
+    await onPushCodeEdits(assembledCode);
+    const d = await onFixUnits([...criticalUnitIds]);
+    const dispatched = d.dispatched || [];
+    for (const id of dispatched) runningUnitIds[id] = true;
+    runningUnitIds = runningUnitIds;
+    const unmapped = (d.unmapped || []).length;
+    const structural = d.structural || [];
+    const stale = d.stale || [];
+    runStatus = `${dispatched.length} unit(s) being fixed` +
+      (d.primed ? ` — ${unitTitle(d.primed)} first, alone, to warm the prompt cache` : '') + '.' +
+      (unmapped ? ` ${unmapped} finding(s) name no unit — use "Fix Whole Script" for those.` : '') +
+      // A structural finding is a design decision: never sent to a model, its reason shown.
+      (structural.length ? ` ${structural.length} structural finding(s) need a design decision, not a fix: ${structural.join(' · ')}` : '') +
+      // Findings about a unit edited since the review are not re-fixed.
+      (stale.length ? ` ${stale.length} review finding(s) skipped — their unit changed since the review: ${stale.join(' · ')}` : '');
+    if (!dispatched.length) return d;
+    fixesUnlocked = false;
+    await new Promise((resolve) => {
+      onRunSettled = async () => {
+        try { await afterFixUnitsSettled(); } finally { resolve(); }
+      };
+      startPolling();
+    });
+    return d;
   }
 
   async function afterFixUnitsSettled() {
@@ -744,7 +746,7 @@
   async function saveAndFinish() {
     isSaving = true;
     try {
-      const result = await onSave();
+      const result = await onSave(group.trim(), name.trim(), assembledCode);
       saveStatus = result.status;
       saveStatusMessage = result.message;
       showSaveModal = true;
@@ -852,18 +854,6 @@
       />
     </div>
 
-    <p class="step-table-label">Script Naming</p>
-    <div class="naming-fields">
-      <label class="naming-field">
-        <span>Group</span>
-        <input class="step-field" bind:value={group} on:blur={saveNaming} placeholder="e.g. AMF_Cluster" />
-      </label>
-      <label class="naming-field">
-        <span>Script name</span>
-        <input class="step-field" bind:value={name} on:blur={saveNaming} placeholder="e.g. test_amf_master" />
-      </label>
-    </div>
-
     {#if assembled}
       <p class="step-table-label">Lint Results</p>
       <ul class="lint-results">
@@ -900,18 +890,28 @@
           title={fixesUnlocked ? '' : FIX_LOCKED_HINT}
           onRun={runFixScript}
         />
-        <Button
-          variant="primary"
-          sparkle
-          loading={isFixingUnits}
+        <LlmButton
+          label="Fix Units"
+          verb="Fixing units…"
           disabled={!fixesUnlocked || criticalUnitIds.size === 0 || Object.keys(runningUnitIds).length > 0}
           title={!fixesUnlocked
             ? FIX_LOCKED_HINT
             : criticalUnitIds.size === 0 ? 'No red units — Fix Units fixes units with a high-severity review finding' : ''}
-          on:click={fixUnits}
-        >Fix Units</Button>
+          onRun={runFixUnits}
+        />
       </div>
     {/if}
+    <p class="step-table-label">Script Naming</p>
+    <div class="naming-fields">
+      <label class="naming-field">
+        <span>Group</span>
+        <input class="step-field" bind:value={group} on:blur={saveNaming} placeholder="e.g. AMF_Cluster" />
+      </label>
+      <label class="naming-field">
+        <span>Script name</span>
+        <input class="step-field" bind:value={name} on:blur={saveNaming} placeholder="e.g. test_amf_master" />
+      </label>
+    </div>
     <div class="step-actions">
       <Button variant="success" disabled={!assembled} loading={isSaving} on:click={saveAndFinish}>Save and Finish</Button>
     </div>
@@ -981,8 +981,9 @@
     <StatusModal
       bind:open={showSaveModal}
       status={saveStatus}
-      title={saveStatus === 'success' ? 'Save successful' : 'Save failed'}
+      title={saveStatus === 'success' ? 'Script saved successfully' : 'Save failed'}
       message={saveStatusMessage}
+      caseTitle={caseTitle}
       closeText="Close"
     >
       <svelte:fragment slot="actions">
@@ -1065,7 +1066,7 @@
   .naming-fields {
     display: flex;
     gap: 16px;
-    margin: 0 0 20px;
+    margin: 10px 0 20px;
   }
 
   .naming-field {
@@ -1111,7 +1112,7 @@
 
   /* Review with LLM, then the two fixes, stacked tight above Save and Finish. */
   .review-fix-row {
-    margin: 12px 0 0;
+    margin: 12px 0 24px;
   }
 
   .arrow-step-row {

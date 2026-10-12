@@ -15,6 +15,8 @@
   /** Shown in the push confirmation; identifies the Zephyr case being pushed. */
   export let caseKey = '';
 
+  export let caseTitle = '';
+
   /** The confirmed objective the steps are synthesized from. */
   export let objective = '';
 
@@ -220,9 +222,11 @@
       </div>
       <ErrorBanner message={saveError && `Save failed: ${saveError}`} />
       <div class="objectives-window-actions">
+        <Button variant="outline" on:click={addStep}>+ Add step</Button>
+      </div>
+      <div class="objectives-window-actions">
         <Button variant="primary" loading={isSaving} on:click={saveChanges}>Save Changes</Button>
         <Button variant="outline" on:click={cancelEdit}>Cancel</Button>
-        <Button variant="outline" on:click={addStep}>+ Add step</Button>
       </div>
     {:else}
       <ol class="steps-list">
@@ -267,6 +271,7 @@
   status={exportStatus}
   title={exportTitle}
   message={exportMessage}
+  caseTitle ={caseTitle}
 />
 
 <style>
@@ -296,10 +301,9 @@
     gap: 16px;
     padding: 24px;
     margin-bottom: 12px;
-    border: 1px solid var(--color-border-surface);
+    /* border: 1px solid var(--color-border-surface); */
     border-radius: 8px;
     background: var(--color-bg-surface);
-    width: 100%;
     flex: 1;
     min-height: 0;
   }
@@ -307,9 +311,8 @@
   .objectives-html {
     color: var(--color-text);
     font-size: 0.94rem;
-    line-height: 1.5;
-    flex: 1;
-    min-height: 0;
+    font-weight: 500;
+    line-height: 2;
   }
 
   .objectives-html :global(ul) {
@@ -325,11 +328,12 @@
     padding-left: 20px;
     display: flex;
     flex-direction: column;
-    gap: 10px;
     color: var(--color-text);
     font-size: 0.94rem;
+    font-weight: 500;
     flex: 1;
     min-height: 0;
+    gap: 24px;
   }
 
   .step-expected {

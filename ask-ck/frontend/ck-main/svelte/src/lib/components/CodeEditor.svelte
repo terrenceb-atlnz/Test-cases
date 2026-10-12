@@ -7,7 +7,7 @@
   import { basicSetup } from 'codemirror';
   import { syntaxHighlighting, defaultHighlightStyle } from '@codemirror/language';
   import { python } from '@codemirror/lang-python';
-  import { oneDarkHighlightStyle } from '@codemirror/theme-one-dark';
+  import { vscodeDark, vscodeLight } from '@uiw/codemirror-theme-vscode';
   import { resolvedTheme } from '../theme.js';
 
   /** @type {string} Bindable document text */
@@ -34,41 +34,29 @@
   const baseTheme = EditorView.theme({
     '&': {
       height,
-      fontSize: '0.88rem',
+      fontSize: '12px',
       border: '1px solid var(--color-border-surface)',
       borderRadius: '10px',
-      backgroundColor: 'var(--color-bg-surface)',
-      color: 'var(--color-text)'
+      overflow: 'hidden'          // keeps VS Code's background inside the rounded corners
     },
     '.cm-content': {
-      fontFamily: "'SFMono-Regular', Consolas, monospace",
+      fontFamily: "Consolas, 'Courier New', monospace",   // VS Code's default font
       padding: '10px 0'
     },
     '.cm-scroller': {
       overflow: 'auto'
     },
     '.cm-gutters': {
-      backgroundColor: 'var(--color-bg-surface)',
-      color: 'var(--color-text-muted)',
       border: 'none'
     },
     '&.cm-focused': {
       outline: 'none'
-    },
-    // CodeMirror's own active-line highlight defaults to hardcoded light colors that clash with
-    // dark mode — override with a theme-aware accent tint instead.
-    '.cm-activeLine': {
-      backgroundColor: 'color-mix(in srgb, var(--color-accent) 8%, transparent)'
-    },
-    '.cm-activeLineGutter': {
-      backgroundColor: 'color-mix(in srgb, var(--color-accent) 14%, transparent)'
     }
   });
 
+
   function highlightExtensionFor(themeName) {
-    return themeName === 'dark'
-      ? syntaxHighlighting(oneDarkHighlightStyle, { fallback: true })
-      : syntaxHighlighting(defaultHighlightStyle, { fallback: true });
+    return themeName === 'dark' ? vscodeDark : vscodeLight;
   }
 
   onMount(() => {

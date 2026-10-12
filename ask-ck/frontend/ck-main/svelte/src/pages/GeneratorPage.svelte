@@ -359,6 +359,7 @@
   {:else if currentStep === 5}
     <TestStepsStep
       caseKey={session?.key || ''}
+      caseTitle={title}
       {objective}
       steps={testSteps}
       onSynthesize={async (headers) => {
