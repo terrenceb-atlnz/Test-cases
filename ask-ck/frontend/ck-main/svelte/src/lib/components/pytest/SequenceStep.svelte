@@ -7,6 +7,7 @@
   import LlmButton from '../LlmButton.svelte';
   import ErrorBanner from '../ErrorBanner.svelte';
 
+  // --- Props: data ------------------------------------------------------------------
   /** @type {Array<{description: string, expectedResult: string}>} The refined case's
       original test steps (the "before") — read-only, from load_case's `steps` field. */
   export let refinedSteps = [];
@@ -16,6 +17,7 @@
       a fresh extract result), not bound here. */
   export let sequence = [];
 
+  // --- Props: callbacks -------------------------------------------------------------
   /** @type {(headers: Record<string, string>) => Promise<any>} Parent-owned closure —
       calls extract_sequence and updates `sequence`/session itself. */
   export let onSynthesize = async () => null;
@@ -27,6 +29,7 @@
   /** @type {(() => Promise<void>) | null} Confirm Step 2. */
   export let onConfirm = null;
 
+  // --- The "before" table -----------------------------------------------------------
   const manualColumns = [
     { key: 'stepNumber', label: '#', width: 1 },
     { key: 'description', label: 'Description', width: 36 }
@@ -34,6 +37,7 @@
 
   $: manualRows = refinedSteps.map((s, i) => ({ id: `refined-${i}`, stepNumber: i + 1, description: s.description }));
 
+  // --- The "after" table: editable sequence rows ------------------------------------
   // SequenceTable's own row shape ({id, from, action, verify}) <-> the API's
   // ({n, action, verify, zephyr_step_idx}). Kept as plain functions (not a service) since
   // this is pure UI-row shaping, not a network call.
@@ -71,13 +75,18 @@
     }
   }
 
+  $: hasRows = rows.length > 0;
+
+  // --- Extract (LLM) ----------------------------------------------------------------
+  let notes = '';
+
   function handleSynthesizeResult(result) {
     // onSynthesize already updated the parent's `sequence`/session; the fingerprint check
     // above re-seeds `rows` from the new prop value on next tick.
     if (result?.notes) notes = result.notes;
   }
 
-  let notes = '';
+  // --- Save edits ---------------------------------------------------------------------
   let isSaving = false;
   let saveError = '';
   let saveMessage = '';
@@ -96,6 +105,7 @@
     }
   }
 
+  // --- Confirm ------------------------------------------------------------------------
   let isConfirming = false;
   let confirmError = '';
 
@@ -111,8 +121,6 @@
       isConfirming = false;
     }
   }
-
-  $: hasRows = rows.length > 0;
 </script>
 
 <p class="step-intro">The refined case's test steps are shown first (the "before"). Extract Sequence asks the LLM to convert them into a prescriptive, runnable execution order (the "after") — the From column links each extracted row back to its source step so any re-sequencing is visible. Review/edit, then confirm.</p>

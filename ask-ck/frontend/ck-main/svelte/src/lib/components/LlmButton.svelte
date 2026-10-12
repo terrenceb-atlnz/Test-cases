@@ -8,6 +8,7 @@
 // LLM-triggering button (Objectives/Test Steps synthesis, Zephyr/ATP suggest) should use
 // this instead of re-wiring the same five functions inline.
 import Button from './Button.svelte';
+import ErrorBanner from './ErrorBanner.svelte';
 import {
   startLlmProgress,
   cancelLlmCall,
@@ -39,6 +40,13 @@ export let onResult = null;
     exactly as if this prop weren't set. Runs before `isBusy` flips so a confirm dialog never
     races the progress ticker. */
 export let onBeforeRun = null;
+
+/** @type {boolean} Blocks starting a call. Never blocks the click-to-stop of a call already
+    in flight. */
+export let disabled = false;
+
+/** @type {string} Tooltip while idle (the busy state shows its own stop hint). */
+export let title = '';
 
 let isBusy = false;
 let callId = null;
@@ -80,8 +88,9 @@ async function handleClick() {
     variant="primary"
     sparkle={!isBusy}
     busy={isBusy}
+    disabled={disabled && !isBusy}
     on:click={handleClick}
-    title={isBusy ? 'Click to stop this LLM call — nothing will be kept' : ''}
+    title={isBusy ? 'Click to stop this LLM call — nothing will be kept' : title}
   >{isBusy ? progressLabel : label}</Button>
   {#if usage && !usage.error}
     <span
@@ -95,7 +104,9 @@ async function handleClick() {
 </span>
 
 {#if error}
-  <p class="llm-button-error">{label} failed: {error}</p>
+  <ErrorBanner
+    message="{label} failed: {error}"
+  ></ErrorBanner>
 {/if}
 
 <style>

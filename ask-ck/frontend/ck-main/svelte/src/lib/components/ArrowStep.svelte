@@ -1,5 +1,5 @@
 <script>
-  /** @type {'none' | 'review' | 'covered'} */
+  /** @type {'none' | 'review' | 'covered' | 'error'} */
   export let status = 'none';
 
   /** @type {boolean} */
@@ -43,6 +43,8 @@
       ? 'var(--color-arrow-step-complete-border)'
       : status === 'review'
       ? 'var(--color-arrow-step-review-border)'
+      : status === 'error'
+      ? 'var(--color-arrow-step-error-border)'
       : active
       ? 'var(--color-accent)'
       : 'var(--color-arrow-step-border)';
@@ -55,6 +57,7 @@
   class:arrow-none={status === 'none'}
   class:arrow-review={status === 'review'}
   class:arrow-covered={status === 'covered'}
+  class:arrow-error={status === 'error'}
   class:arrow-step-active={active}
   aria-pressed={active}
   aria-busy={loading}
@@ -144,6 +147,10 @@
     color: var(--color-arrow-step-complete-bg);
   }
 
+  .arrow-error {
+    color: var(--color-arrow-step-error-bg);
+  }
+
   .arrow-label {
     position: relative;
     z-index: 1;
@@ -175,6 +182,10 @@
 
   .arrow-covered .arrow-label {
     color: var(--color-arrow-step-complete-text);
+  }
+
+  .arrow-error .arrow-label {
+    color: var(--color-arrow-step-error-text);
   }
 
   /* The active step always shows the "active" palette, overriding its own status color. */

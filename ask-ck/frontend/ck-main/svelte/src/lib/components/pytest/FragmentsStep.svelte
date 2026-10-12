@@ -7,22 +7,10 @@
   import { scrollToTop, scrollToStepIntro } from '../../utils/scroll.js';
   import { newCallId, cancelLlmCall } from '../../services/llmProgressService.js';
 
-  /** @type {Array<{ id: string, action: string, verify: string }>} Read-only */
+  // --- Props: data ------------------------------------------------------------------
+  /** @type {Array<{ n: number, action: string, verify: string }>} Read-only. Steps are keyed
+      by `.n` throughout this component. */
   export let sequencedTestSteps = [];
-
-  /** @type {(headers: Record<string, string>) => Promise<{fragments: Array, selected: Array, accounting: Object}>}
-      Whole-case call — gather_fragments has no step-id concept, it gathers against every script
-      chosen in Script Search at once. `headers` carries X-CK-LLM-Call so a second click can
-      cancel the real, in-flight server-side call. */
-  export let onGatherFragments = async () => ({});
-
-  /** @type {(keep: Array<{source_id: string, symbol: string}>) => Promise<void>} Persists the
-      selected fragments — called once, from the Summary panel's Review & Confirm (matches
-      ScriptSearchStep's onSaveMatches: save once at the end, not on every per-step advance). */
-  export let onSaveFragments = async () => {};
-
-  /** @type {(() => void) | null}  */
-  export let onConfirm = null;
 
   // Already-saved session.step5 state — this component is destroyed/recreated every time
   // PyTestPage switches away from it, so these are what let it repopulate on remount instead
@@ -34,12 +22,30 @@
   /** @type {Array<{source_id: string, symbol: string}>} session.step5.selected. */
   export let initialSelected = [];
 
-  const FRAGMENTS_SUMMARY_STEP_ID = '__fragments_summary__';
+  /** @type {boolean} The server already has Fragments confirmed (session.step5.confirmed) —
+      every step's arrow then starts confirmed, so a resumed case isn't re-confirmed step by step. */
+  export let stepAlreadyConfirmed = false;
+
+  // --- Props: callbacks -------------------------------------------------------------
+  /** @type {(headers: Record<string, string>) => Promise<{fragments: Array, selected: Array, accounting: Object}>}
+      Whole-case call — gather_fragments has no step-id concept, it gathers against every script
+      chosen in Script Search at once. `headers` carries X-CK-LLM-Call so a second click can
+      cancel the real, in-flight server-side call. */
+  export let onGatherFragments = async () => ({});
+
+  /** @type {(keep: Array<{source_id: string, symbol: string}>) => Promise<void>} Persists the
+      selected fragments — at every per-step confirm and again from the Summary's Review &
+      Confirm, always the full selection (same pattern as ScriptSearchStep's onSaveMatches). */
+  export let onSaveFragments = async () => {};
+
+  /** @type {(() => void) | null} Called after the Summary's Review & Confirm has saved. */
+  export let onConfirm = null;
+
+  // --- The fragment pool and selection ----------------------------------------------
+  // All three are seeded once at mount from the initial* props — plain `let` initializers,
+  // not reactive blocks, since a later prop change must not overwrite the user's work.
 
   // Flat pool — one entry per unique (source_id, symbol), same shape gather_fragments returns.
-  // Seeded once at mount from initialFragments — a plain `let` initializer, not a reactive
-  // block, since this only needs to run once when the component is created, same moment any
-  // prop value is first read.
   let fragmentPool = initialFragments;
 
   // Flat list of selected fragment keys ("source_id||symbol") — global, not per-step, since
@@ -55,43 +61,34 @@
   // change depending on which step you're viewing it from.
   let expandedKeys = [];
 
+  // --- Fragment lookup ----------------------------------------------------------------
   // PORTED FROM current/pytest-creator/pytest.js's _fragKey/_keyOf — fragment identity is the
   // composite (source_id, symbol), not a flat id.
   function fragKey(f) {
     return `${f.source_id}||${f.symbol}`;
   }
 
-  // Fragments mapping to step n via maps_to (the "leftover, not in accounting" case — legacy/
+  function fragByKey(key) {
+    return fragmentPool.find((f) => fragKey(f) === key);
+  }
+
+  // Step n's accounting entries, exactly as the server built them.
+  function entriesForStep(n) {
+    return accounting[String(n)] || [];
+  }
+
+  // Fragments mapping to step n via maps_to — the "leftover, not in accounting" case (legacy/
   // stale gathers with no accounting entry, or manually-relevant fragments).
   function fragmentsForStep(n) {
     return fragmentPool.filter((f) => (f.maps_to || []).includes(n));
   }
 
-  // Everything shown under step n: accounting's chosen+redundant entries, plus any maps_to
-  // fragment the accounting didn't place at all. PORTED FROM current/'s _fragKeysForStep (minus
-  // the flattening to a Set of keys — the render pass in a later step needs the chosen/redundant
-  // structure intact, not just a flat key list).
-  function entriesForStep(n) {
-    return accounting[String(n)] || [];
-  }
-
-  function fragByKey(key) {
-    return fragmentPool.find((f) => fragKey(f) === key);
-  }
-
-  // Resolve step n's accounting entries + maps_to leftovers into actual fragment objects, in
-  // the same order current/'s ptRenderFragSteps renders them: each chosen fragment immediately
+  // --- What each step shows -----------------------------------------------------------
+  // Step n's accounting entries + maps_to leftovers resolved into fragment objects, in the
+  // same order current/'s ptRenderFragSteps renders them: each chosen fragment immediately
   // followed by its own nested redundant alternatives, then any leftover maps_to fragment the
-  // accounting never placed.
-  //
-  // CORRECTION: a comment here used to claim calling this directly from the template meant it
-  // "re-resolves on every render" without needing fragmentPool/accounting as explicit
-  // dependencies. That was wrong — Svelte tracks a template expression's dependencies the same
-  // way it tracks a `$:` block's: only identifiers textually present in that exact expression.
-  // `cardsForStep(fragmentActiveStepId)` only exposes `fragmentActiveStepId` to the compiler, so
-  // a gather that changes fragmentPool/accounting without changing the active step was silently
-  // not re-rendering the card list until the user switched steps and back. See activeStepCards
-  // below, which exists specifically to force the same dependency Svelte can't see otherwise.
+  // accounting never placed. Read through activeStepCards, never straight from the template —
+  // see there for why.
   function cardsForStep(n) {
     const cards = [];
     const shown = new Set();
@@ -155,8 +152,18 @@
     return [...fragKeysForStep(n)].filter((k) => selectedKeys.includes(k));
   }
 
+  // --- Step navigation, statuses and progress ---------------------------------------
+  const FRAGMENTS_SUMMARY_STEP_ID = '__fragments_summary__';
+
   let fragmentActiveStepId = null;
   let confirmedFragmentSteps = [];
+
+  // Seeded once, as soon as the steps are known — later navigation must not re-add them.
+  let confirmedSeeded = false;
+  $: if (!confirmedSeeded && sequencedTestSteps.length > 0) {
+    if (stepAlreadyConfirmed) confirmedFragmentSteps = sequencedTestSteps.map((s) => s.n);
+    confirmedSeeded = true;
+  }
 
   $: {
     if (!fragmentActiveStepId && sequencedTestSteps.length > 0) {
@@ -167,12 +174,15 @@
   $: fragmentActiveStep = sequencedTestSteps.find((s) => s.n === fragmentActiveStepId) ?? null;
   $: fragmentActiveStepIndex = sequencedTestSteps.findIndex((s) => s.n === fragmentActiveStepId);
 
-  // The active step's cards, recomputed whenever EITHER the active step changes OR a gather
-  // updates fragmentPool/accounting/selectedKeys — cardsForStep() reads all three, but only
-  // inside its own function body, which Svelte's dependency tracker can't see into (same gap
-  // fragmentStepStatuses below works around with its own `void` references). Without the
-  // `void` line here, this would silently stay on the pre-gather card list until the user
-  // switched to a different step and back.
+  function selectFragmentStep(stepId) {
+    fragmentActiveStepId = stepId;
+  }
+
+  // Svelte only tracks identifiers written directly in a reactive statement (or template
+  // expression), never ones read inside a called function. cardsForStep() and
+  // selectedKeysForStep() read fragmentPool/accounting/selectedKeys only inside their bodies,
+  // so the two blocks below name them with `void` — without that, a gather would leave the
+  // cards and statuses stale until the user switched steps and back.
   $: activeStepCards = (() => {
     void fragmentPool; void accounting; void selectedKeys;
     return cardsForStep(fragmentActiveStepId);
@@ -180,9 +190,6 @@
 
   let fragmentStepStatuses = {};
   $: {
-    // Referenced directly so this block re-runs when any of them change — selectedKeysForStep()
-    // reads all three, but only inside a function body, which Svelte's dependency tracker can't
-    // see into (it only tracks identifiers written directly in this reactive statement).
     void selectedKeys; void accounting; void fragmentPool;
     const next = {};
     for (const step of sequencedTestSteps) {
@@ -209,10 +216,7 @@
           (Object.values(fragmentStepStatuses).filter((s) => s === 'covered').length / sequencedTestSteps.length) * 100
         );
 
-  function selectFragmentStep(stepId) {
-    fragmentActiveStepId = stepId;
-  }
-
+  // --- Gather (LLM) -------------------------------------------------------------------
   let isGatheringFragments = false;
   let currentGatherCallId = null;
 
@@ -221,9 +225,10 @@
   // is a single whole-case call (no per-step count to show), so this is just a plain busy label.
   $: gatherLabel = isGatheringFragments ? 'Gathering… (click to stop)' : 'Gather Fragments';
 
+  // A second click while gathering is the Stop button (a true server-side cancel).
   async function gatherFragments() {
     if (isGatheringFragments) {
-      cancelLlmCall(currentGatherCallId);   // true server-side cancel of the in-flight call
+      cancelLlmCall(currentGatherCallId);
       return;
     }
     isGatheringFragments = true;
@@ -234,13 +239,14 @@
       selectedKeys = (result.selected || []).map(fragKey);
       accounting = result.accounting || {};
     } catch (e) {
-      // alert(`Gather Fragments failed: ${(e && e.message) || String(e)}`);
+      // Swallowed — the previous pool stays as it was. (Nothing surfaces the failure yet.)
     } finally {
       isGatheringFragments = false;
       currentGatherCallId = null;
     }
   }
 
+  // --- Ticking and expanding fragments ----------------------------------------------
   function toggleFragmentSelected(fragmentKey) {
     selectedKeys = selectedKeys.includes(fragmentKey)
       ? selectedKeys.filter((k) => k !== fragmentKey)
@@ -253,6 +259,7 @@
       : [...expandedKeys, fragmentKey];
   }
 
+  // --- Confirming a step, saving, and the Summary confirm ---------------------------
   function buildKeepPayload() {
     return selectedKeys
       .map(fragByKey)
@@ -276,6 +283,7 @@
       alert(`Failed to save fragment selections: ${(e && e.message) || String(e)}`);
     }
 
+    // Next unconfirmed step, not just the next in order; Summary once all are confirmed.
     const nextUnconfirmed = sequencedTestSteps.find((s) => !updatedConfirmed.includes(s.n));
     fragmentActiveStepId = nextUnconfirmed ? nextUnconfirmed.n : FRAGMENTS_SUMMARY_STEP_ID;
     scrollToStepIntro();

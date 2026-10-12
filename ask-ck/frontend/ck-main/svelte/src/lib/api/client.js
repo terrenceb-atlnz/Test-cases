@@ -1,12 +1,3 @@
-/** Author: Trent Morgan
- *  Contact: trent.morgan@alliedtelesis.co.nz
- *  Date Last Modified: 8/10/2024
- *
- *  Description: Client-side API utilities for Svelte frontend. This file is loaded
- *               once at app startup, and patches window.fetch to inject per-tab session
- *               id + X-CK-Session / X-CK-LLM headers on every /api call.
- */
-
  // @ts-nocheck
 
  // List of auth methods that are considered "seat LLM" methods. These are used to determine

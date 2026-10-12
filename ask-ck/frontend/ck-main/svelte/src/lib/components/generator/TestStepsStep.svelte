@@ -7,26 +7,47 @@
   import LlmButton from '../LlmButton.svelte';
   import ErrorBanner from '../ErrorBanner.svelte';
   import UploadIcon from '../../../assets/icons/upload.svg';
+  import trashIcon from '../../../assets/icons/trash.svg';
+
   import { scrollToBottom } from '../../utils/scroll.js';
 
+  // --- Props: data ------------------------------------------------------------------
+  /** Shown in the push confirmation; identifies the Zephyr case being pushed. */
   export let caseKey = '';
 
+  /** The confirmed objective the steps are synthesized from. */
   export let objective = '';
 
+  /** @type {Array<{ description: string, expectedResult?: string }>} */
   export let steps = [];
 
+  // --- Props: callbacks -------------------------------------------------------------
+  /** @type {() => Promise<any>} Run by the LLM button. */
   export let onSynthesize = async () => null;
 
+  /** @type {(steps: Array<{ description: string, expectedResult: string }>) => Promise<void>} */
   export let onSaveSteps = async () => {};
 
+  /** @type {() => Promise<{ wrote_bundle?: boolean, message?: string, saved_to?: string,
+      saved_files?: string[], validation?: { issues?: string[], warnings?: string[] } }>} */
   export let onExport = async () => ({});
 
+  /** @type {(opts: { dryRun: boolean }) => Promise<{ ok?: boolean, returncode?: number, output?: string }>} */
   export let onPushToZephyr = async () => ({});
 
+  /** @type {(() => void) | null} Called after a successful export — the parent marks the
+      stepper finished. */
   export let onFinished = null;
 
+  $: hasSteps = steps.length > 0;
+
+  // --- Editing ------------------------------------------------------------------------
+  // Edits happen on a copy; `steps` itself only changes once onSaveSteps succeeds and the
+  // parent passes the saved list back down.
   let isEditing = false;
   let draftSteps = [];
+  let isSaving = false;
+  let saveError = '';
 
   function startEdit() {
     draftSteps = steps.map((s) => ({ description: s.description || '', expectedResult: s.expectedResult || '' }));
@@ -45,9 +66,6 @@
     draftSteps = draftSteps.filter((_, i) => i !== idx);
   }
 
-  let isSaving = false;
-  let saveError = '';
-
   async function saveChanges() {
     isSaving = true;
     saveError = '';
@@ -63,11 +81,13 @@
       isSaving = false;
     }
   }
-  // Function to handle the confirmation of the reviewed test steps. It calls the onConfirm prop and manages the isConfirming
-  // and confirmError state variables to provide feedback to the user during the confirmation process.
+
+  // --- Export -------------------------------------------------------------------------
+  // The server can answer 200 and still refuse to write (`wrote_bundle: false` when the
+  // bundle fails validation), so success is read from the body, not from the request.
   let isExporting = false;
   let showExportModal = false;
-  let exportStatus = 'success';
+  let exportStatus = 'success';   // 'success' | 'error'
   let exportTitle = '';
   let exportMessage = '';
 
@@ -100,10 +120,21 @@
     }
   }
 
+  // --- Push to Zephyr -----------------------------------------------------------------
+  // Two paths share one output pane: a dry-run preview (no writes) and the real push, which
+  // writes to the LIVE Zephyr server and so goes through a confirm modal first.
   let isPushingPreview = false;
   let isPushingExecute = false;
   let pushOutput = '';
   let showPushConfirmModal = false;
+
+  $: pushConfirmMessage = `Push ${caseKey} to the LIVE Zephyr server?\n\n`
+    + 'This will:\n'
+    + '  1. Strip a leading "(N)" group from the test-case title\n'
+    + '  2. Create a NEW version (e.g. 1.0 → 2.0)\n'
+    + '  3. Upload the objective + test steps onto the new version\n'
+    + '  4. Attach traceability.md + web links\n\n'
+    + 'Tip: run "Preview Push (dry-run)" first. Continue?';
 
   function formatPushOutput(data, execute) {
     const header = data.ok === false
@@ -141,16 +172,6 @@
       isPushingExecute = false;
     }
   }
-
-  $: pushConfirmMessage = `Push ${caseKey} to the LIVE Zephyr server?\n\n`
-    + 'This will:\n'
-    + '  1. Strip a leading "(N)" group from the test-case title\n'
-    + '  2. Create a NEW version (e.g. 1.0 → 2.0)\n'
-    + '  3. Upload the objective + test steps onto the new version\n'
-    + '  4. Attach traceability.md + web links\n\n'
-    + 'Tip: run "Preview Push (dry-run)" first. Continue?';
-
-  $: hasSteps = steps.length > 0;
 </script>
 
 <p class="cases-intro">Generate verification steps from the finalized objective plus review context. The first step is always the server-built traceability note. Export the repeatable bundle when ready.</p>
@@ -185,7 +206,15 @@
               <input class="step-field" bind:value={step.description} placeholder="Step description" />
               <input class="step-field" bind:value={step.expectedResult} placeholder="Expected result (optional)" />
             </div>
-            <Button variant="outline" on:click={() => removeStep(i)}>Remove</Button>
+            <!-- <Button variant="outline" on:click={() => removeStep(i)}>Remove</Button> -->
+            <button
+              type="button"
+              class="row-icon-btn row-icon-btn-danger"
+              on:click={() => removeStep(i)}
+              aria-label="Remove step"
+            >
+              <img class="row-icon" src={trashIcon} alt="" aria-hidden="true" />
+            </button>
           </div>
         {/each}
       </div>
@@ -381,5 +410,33 @@
     font-size: 0.85rem;
     white-space: pre-wrap;
     word-break: break-word;
+  }
+
+  .row-icon-btn {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    transition: background-color 0.15s ease;
+  }
+
+  .row-icon-btn:hover {
+    background: color-mix(in srgb, var(--color-accent) 10%, transparent);
+  }
+
+  .row-icon-btn-danger:hover {
+    background: color-mix(in srgb, var(--color-error) 12%, transparent);
+  }
+
+  .row-icon {
+    width: 16px;
+    height: 16px;
+    filter: brightness(0) var(--icon-filter-muted);
   }
 </style>
