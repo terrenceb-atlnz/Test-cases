@@ -104,8 +104,10 @@ Ask-CK's Validation and Test Composer pages (`ask-ck/plans/PLAN-agent-sessions.m
   approved permission profile. The page supplies only the hand-off JSON.
 - **Needs:**
   - the SDK in the agent's venv (the seat setup installs `claude-agent-sdk==0.2.165`);
-  - a device-testing checkout at `dt_root=` in `ck-agent.conf`, or `CK_DT_ROOT`, default
-    `~/claude/device-testing`, containing `.claude/ask-ck-campaign.settings.json`.
+  - a device-testing checkout containing `.claude/ask-ck-campaign.settings.json`, found in this order:
+    `CK_DT_ROOT`, `dt_root=` in `ck-agent.conf`, the server's checkout (`/api/test-composer/status` →
+    `dt_root`, used only when this seat sees that path; PLAN-agent-sessions D8), then
+    `~/claude/device-testing`. The setup writes `dt_root=` only when `CK_DT_ROOT` is set.
 
   `/health` → `sessions.reason` says what is missing.
 - **Routes:** `POST /session/start {run_id, handoff, mode}`;

@@ -5,8 +5,11 @@ verified: 2026-10-09
 
 > ## Status (read first)
 >
-> **P1 BUILT on branch `tc-build` (scratchpad worktree, NOT live) — 2026-10-09, autonomous run while
-> Terrence was away.**
+> **LIVE since Terrence merged `tc-build` (2026-10-09 build, merged by 2026-10-12).** P1 was built
+> 2026-10-09 in an autonomous run while Terrence was away.
+> **2026-10-12:** the seat agent (1.3.1) finds its device-testing checkout through the server's
+> pointer (`/api/test-composer/status` → `dt_root`) when no `dt_root` is set. That only helps seats
+> that can see the server's path — **D8 (open)** is the question for everyone else.
 > - **Seat agent 1.3.0:** an Agent SDK session job (`/session/*`). The PowerShell agent reports
 >   sessions unavailable (D1).
 > - **Server:** `/api/test-composer` runs (hand-off schema 1, records as files, D5 notice and finish
@@ -481,6 +484,31 @@ branch-and-merge procedure (SERVER-README, "Changing the backend of the hosted s
       `end` (back to `awplus#`) and `terminal no monitor`, and closing u0 cleanly. Both sessions
       wrongly reported u0 "left in config-if mode", because they read only the tail of `qmark`'s
       stdout. When reporting a console's final state, read the transcript.
+
+- **D8 — OPEN (raised by Terrence, 2026-10-12): how does a seat that is not the server host get a
+  device-testing checkout?** Terrence: *"the other users accessing this wont have the dt repo
+  pathed, so we need to make an intelligent pointer for the server to know that its going to be
+  at THIS location (unless we deploy the server elsewhere)"*.
+  - **Built now — the pointer.** The server advertises the checkout it reads campaign logs from
+    (`tc_campaign.dt_root()`, in `/api/test-composer/status`). The agent uses it when it is not
+    told otherwise and the seat can see that path. Order: `CK_DT_ROOT`, `dt_root=`, the server's
+    path, then `~/claude/device-testing`. The setup reports which one, and writes `dt_root=` only
+    when `CK_DT_ROOT` is set.
+  - **Why that is not enough.** The pointer names a path on the server host. A seat sees it only
+    if it mounts the lab share at the same path. Three more gaps:
+    1. The server reads a campaign's queue and logs from *its* checkout, so a session in any other
+       copy writes logs the server never sees; only the relayed markers arrive.
+    2. The session drives benches from the seat (`tools/tb`, SSH keys to the testboxes, the
+       lab-home files the bench gates read).
+    3. Several users in one shared checkout would write and commit into the same repo at once.
+  - **Options (the same ground as §5's Windows working-copy problem):**
+    - mount the share on every seat at a known path;
+    - a local clone whose logs the agent uploads to the run record (the server then reads the
+      record, not its own checkout);
+    - each user's own Linux account on a lab host as their "seat" (§5 option 3);
+    - remote mode (§5 route R, D1).
+  - **Still to decide (Terrence):** which option, and whether D1's "everything else first" applies
+    to Linux seats too.
 
 ## 11. Invariants
 

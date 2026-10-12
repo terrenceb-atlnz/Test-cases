@@ -36,7 +36,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 # Bump when the contract changes; the setup script compares this against the served
 # manifest to decide whether a running agent is stale and must be replaced.
-AGENT_VERSION = "1.3.0"
+AGENT_VERSION = "1.3.1"
 
 # Thinking and the answer share ONE MESSAGE's output budget (`maxOutputTokens`, 32,000 on
 # the CLI and not raisable). These are reasoning models, so uncapped thinking silently
@@ -490,7 +490,9 @@ def run_claude(prompt: str, model: str = "default", timeout: int = DEFAULT_TIMEO
 # job and a seat without the SDK still serves /run; /health says whether sessions are possible.
 #
 # Where things come from — the page never chooses a directory or a settings file:
-#   device-testing root   CK_DT_ROOT, else `dt_root=` in ck-agent.conf, else ~/claude/device-testing
+#   device-testing root   CK_DT_ROOT, else `dt_root=` in ck-agent.conf, else the path the Ask-CK
+#                         server advertises (its own checkout, /api/test-composer/status) when this
+#                         seat can see it, else ~/claude/device-testing
 #   permission profile    <dt root>/.claude/ask-ck-campaign.settings.json (D6; refused if absent)
 #   hand-off file         written HERE from the page's JSON: <runs dir>/<run_id>/<run_id>.json
 #   runs dir              CK_AGENT_RUNS, else `runs_dir=`, else ~/.local/share/ck-agent/runs
@@ -506,9 +508,49 @@ _RUN_ID_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,80}$")
 _CASE_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,40}$")
 
 
+_SERVER_DT = {"at": None, "path": None}
+_SERVER_DT_TTL = 300.0          # re-ask the server at most every 5 min (a failure: every 30 s)
+
+
+def _fetch_server_status(origin: str) -> dict:
+    """GET <origin>/api/test-composer/status. A seam: the specs swap in a fake."""
+    import urllib.request  # noqa: PLC0415
+    with urllib.request.urlopen(origin.rstrip("/") + "/api/test-composer/status", timeout=3) as r:
+        return json.loads(r.read().decode("utf-8"))
+
+
+def _server_dt_root():
+    """The device-testing checkout the Ask-CK server reads campaign logs from. A session must write
+    THERE for the server to see its logs, so it is the first place to look (Terrence 2026-10-12) —
+    usable only when this seat sees the same path (the server host itself, or a seat mounting the
+    share at that path). Cached; any failure is None."""
+    now = time.monotonic()
+    at = _SERVER_DT["at"]
+    if at is not None and now - at < (_SERVER_DT_TTL if _SERVER_DT["path"] else 30.0):
+        return _SERVER_DT["path"]
+    origin = os.environ.get("CK_AGENT_ORIGIN") or _CONF.get("origin") or ""
+    path = None
+    if origin.startswith(("http://", "https://")):
+        try:
+            path = _fetch_server_status(origin).get("dt_root") or None
+        except Exception:  # noqa: BLE001 — offline, old server, bad JSON: no pointer
+            path = None
+    _SERVER_DT.update(at=now, path=path)
+    return path
+
+
+def _has_profile(root: str) -> bool:
+    return bool(root) and os.path.isfile(os.path.join(root, SESSION_SETTINGS_REL))
+
+
 def session_dt_root() -> str:
-    return (os.environ.get("CK_DT_ROOT") or _CONF.get("dt_root")
-            or os.path.join(os.path.expanduser("~"), "claude", "device-testing"))
+    explicit = os.environ.get("CK_DT_ROOT") or _CONF.get("dt_root")
+    if explicit:
+        return explicit
+    server = _server_dt_root()
+    if server and _has_profile(server):
+        return server
+    return os.path.join(os.path.expanduser("~"), "claude", "device-testing")
 
 
 def session_runs_dir() -> str:
@@ -531,9 +573,12 @@ def session_capability() -> dict:
     except Exception as e:  # noqa: BLE001
         out["reason"] = f"Claude Agent SDK not installed ({type(e).__name__}); re-run the seat setup."
         return out
-    if not os.path.isfile(os.path.join(out["dt_root"], SESSION_SETTINGS_REL)):
+    if not _has_profile(out["dt_root"]):
+        server = _server_dt_root()
+        seen = (f"; the Ask-CK server's checkout ({server}) is not visible from this seat" if server
+                and server != out["dt_root"] else "")
         out["reason"] = (f"No device-testing checkout with the Ask-CK permission profile at "
-                         f"{out['dt_root']} (set dt_root= in ck-agent.conf).")
+                         f"{out['dt_root']}{seen} (set dt_root= in ck-agent.conf).")
         return out
     out["available"] = True
     return out

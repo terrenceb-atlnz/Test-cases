@@ -1551,6 +1551,10 @@ BLOCKs the case.
 - **Routes:** `/session/start`, `/session/{id}/events?after=&wait=`, `/answer`, `/message`, `/stop`,
   `/sessions`. All POSTs are JSON-only.
 - **Health:** `/health` reports `sessions: {available, sdk_version, dt_root, reason}`.
+- **Which device-testing (2026-10-12):** `GET /api/test-composer/status` advertises `dt_root`, the
+  checkout this server reads campaign logs from. The agent uses it when no `CK_DT_ROOT` /
+  `dt_root=` is set and the seat can see that path; else `~/claude/device-testing`. Seats that
+  cannot see it have no sessions yet (PLAN-agent-sessions D8, open).
 - **Install:** the Linux seat setup puts `claude-agent-sdk==0.2.165` in a venv beside the agent.
 - **Windows:** the PowerShell agent reports sessions unavailable (D1: Windows is deferred).
 

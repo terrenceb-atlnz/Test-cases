@@ -169,16 +169,34 @@ if [ -x "${AGENT_DIR}/venv/bin/python" ]; then
   fi
   AGENT_PY="${AGENT_DIR}/venv/bin/python"
 fi
-# The seat's device-testing checkout — the session's working directory (its skills, its D6 profile).
-DT_ROOT="${CK_DT_ROOT:-$HOME/claude/device-testing}"
+# The session's working directory (its skills, its D6 profile) is a device-testing checkout. The
+# agent finds it at run time: CK_DT_ROOT / dt_root=, else the checkout the server advertises (the
+# one it reads campaign logs from) when this seat can see it, else ~/claude/device-testing. Only an
+# explicit CK_DT_ROOT is written here, so a re-run never pins a path over the server's pointer.
+PROFILE_REL=".claude/ask-ck-campaign.settings.json"
+SERVER_DT="$(curl -fsS -m 5 "${CK_SERVER}/api/test-composer/status" 2>/dev/null \
+  | python3 -c 'import json,sys; print(json.load(sys.stdin).get("dt_root") or "")' 2>/dev/null)"
+if [ -n "${CK_DT_ROOT:-}" ]; then DT_USE="$CK_DT_ROOT"
+elif [ -n "$SERVER_DT" ] && [ -f "${SERVER_DT}/${PROFILE_REL}" ]; then DT_USE="$SERVER_DT"
+else DT_USE="$HOME/claude/device-testing"
+fi
 
 # Config beside the agent: the agent reads it when the environment does not say otherwise.
 {
   echo "origin=${CK_SERVER}"
   echo "port=${AGENT_PORT}"
-  [ -d "$DT_ROOT" ] && echo "dt_root=${DT_ROOT}"
+  [ -n "${CK_DT_ROOT:-}" ] && echo "dt_root=${CK_DT_ROOT}"
   if [ -f "$CONF" ] && grep -q '^autostart=' "$CONF"; then grep '^autostart=' "$CONF"; fi
 } > "${CONF}.new" && mv -f "${CONF}.new" "$CONF"
+
+if [ -f "${DT_USE}/${PROFILE_REL}" ]; then
+  ok "Sessions (Validation, Test Composer) will run in ${DT_USE}"
+else
+  note "No device-testing checkout with the Ask-CK permission profile is visible from this seat"
+  [ -n "$SERVER_DT" ] && note "(looked at ${DT_USE} and at the checkout the server uses, ${SERVER_DT})" \
+    || note "(looked at ${DT_USE})"
+  note "Validation and Test Composer sessions will be unavailable here. Set CK_DT_ROOT=<checkout> and re-run if you have one."
+fi
 
 # Autostart is the user's choice (plan D6): ask once, remember, honour flags.
 AUTOSTART_CHOICE="$(grep -s '^autostart=' "$CONF" | cut -d= -f2)"

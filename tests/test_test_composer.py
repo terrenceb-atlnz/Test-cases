@@ -401,3 +401,10 @@ def test_a_due_run_is_offered_only_to_its_own_seat_and_claimed_once(env, client)
     other = tc_runs.create_run(b, seat="10.0.0.9")["run_id"]
     tc_runs.mark(other, start_at="2000-01-01T00:00:00+13:00")
     assert client.post(f"/api/test-composer/runs/{other}/claim").status_code == 409   # another seat's
+
+
+def test_status_advertises_the_device_testing_checkout_the_server_reads(client, monkeypatch, tmp_path):
+    """The seat agent's first place to look for its session's working directory (2026-10-12)."""
+    monkeypatch.setenv("CK_DT_ROOT_SERVER", str(tmp_path / "dt"))
+    assert client.get("/api/test-composer/status").json()["dt_root"] == str(tmp_path / "dt")
+

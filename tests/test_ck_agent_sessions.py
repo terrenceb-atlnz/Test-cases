@@ -319,6 +319,89 @@ def test_health_reports_session_capability(dt, monkeypatch):
     assert h["sessions"]["available"] is True and h["sessions"]["sdk_version"] == "0.0.test"
 
 
+# ---------------------------------------------------------------- where the session runs
+
+@pytest.fixture
+def seat(tmp_path, monkeypatch):
+    """A seat with no explicit dt_root: HOME is a temp dir, the agent's conf names only the server."""
+    monkeypatch.delenv("CK_DT_ROOT", raising=False)
+    monkeypatch.delenv("CK_AGENT_ORIGIN", raising=False)
+    monkeypatch.setenv("HOME", str(tmp_path / "home"))
+    monkeypatch.setattr(ck_agent, "_CONF", {"origin": "http://srv:8000"})
+    monkeypatch.setattr(ck_agent, "_SERVER_DT", {"at": None, "path": None})
+    fetched = []
+    state = {"reply": {}}
+
+    def fetch(origin):
+        fetched.append(origin)
+        if isinstance(state["reply"], Exception):
+            raise state["reply"]
+        return state["reply"]
+    monkeypatch.setattr(ck_agent, "_fetch_server_status", fetch)
+    return types.SimpleNamespace(tmp=tmp_path, fetched=fetched, state=state)
+
+
+def _checkout(path):
+    (path / ".claude").mkdir(parents=True)
+    (path / ".claude" / "ask-ck-campaign.settings.json").write_text("{}")
+    return path
+
+
+def test_the_servers_checkout_is_used_when_this_seat_can_see_it(seat):
+    """Terrence 2026-10-12: the server's own device-testing is the first place to look — it is the
+    one the server reads campaign logs from."""
+    srv = _checkout(seat.tmp / "mnt" / "testbox_home" / "claude" / "device-testing")
+    _checkout(seat.tmp / "home" / "claude" / "device-testing")        # a home checkout loses to it
+    seat.state["reply"] = {"dt_root": str(srv)}
+    assert ck_agent.session_dt_root() == str(srv)
+    assert seat.fetched == ["http://srv:8000"]
+
+
+def test_an_explicit_dt_root_wins_and_the_server_is_not_asked(seat, monkeypatch):
+    monkeypatch.setenv("CK_DT_ROOT", "/explicit")
+    assert ck_agent.session_dt_root() == "/explicit"
+    monkeypatch.delenv("CK_DT_ROOT")
+    monkeypatch.setattr(ck_agent, "_CONF", {"origin": "http://srv:8000", "dt_root": "/conf"})
+    assert ck_agent.session_dt_root() == "/conf"
+    assert seat.fetched == []
+
+
+def test_a_server_path_this_seat_cannot_see_falls_back_and_says_so(seat, monkeypatch):
+    home = _checkout(seat.tmp / "home" / "claude" / "device-testing")
+    seat.state["reply"] = {"dt_root": "/media/someone/mnt/testbox_home/claude/device-testing"}
+    assert ck_agent.session_dt_root() == str(home)
+    home_profile = home / ".claude" / "ask-ck-campaign.settings.json"
+    home_profile.unlink()
+    monkeypatch.setattr(ck_agent, "_sdk_loader", lambda: types.SimpleNamespace(__version__="0.0.test"))
+    cap = ck_agent.session_capability()
+    assert cap["available"] is False
+    assert "/media/someone/mnt/testbox_home/claude/device-testing) is not visible from this seat" in cap["reason"]
+
+
+def test_a_failed_lookup_is_retried_after_30_s_and_a_good_one_after_5_min(seat, monkeypatch):
+    clock = [1000.0]
+    monkeypatch.setattr(ck_agent.time, "monotonic", lambda: clock[0])
+    seat.state["reply"] = OSError("server down")
+    ck_agent.session_dt_root(); ck_agent.session_dt_root()
+    assert len(seat.fetched) == 1                       # cached, not hammered
+    clock[0] += 31
+    seat.state["reply"] = {"dt_root": "/somewhere"}
+    ck_agent.session_dt_root()
+    assert len(seat.fetched) == 2
+    clock[0] += 299
+    ck_agent.session_dt_root()
+    assert len(seat.fetched) == 2
+    clock[0] += 2
+    ck_agent.session_dt_root()
+    assert len(seat.fetched) == 3
+
+
+def test_no_server_origin_means_no_lookup(seat, monkeypatch):
+    monkeypatch.setattr(ck_agent, "_CONF", {"origin": "*"})
+    assert ck_agent.session_dt_root().endswith("claude/device-testing")
+    assert seat.fetched == []
+
+
 # ---------------------------------------------------------------- parsing
 
 def test_marker_lines_take_only_line_starts():
@@ -337,7 +420,7 @@ def test_the_seat_setup_installs_the_pinned_sdk_in_a_private_venv_and_runs_the_a
     assert 'SDK_PIN="0.2.165"' in sh and '"claude-agent-sdk==${SDK_PIN}"' in sh
     assert 'python3 -m venv "${AGENT_DIR}/venv"' in sh
     assert "ExecStart=${AGENT_PY} ${AGENT_DIR}/ck_agent.py" in sh and 'exec setsid nohup "$AGENT_PY" ck_agent.py' in sh
-    assert 'echo "dt_root=${DT_ROOT}"' in sh
+    assert 'echo "dt_root=${CK_DT_ROOT}"' in sh     # only an explicit one (2026-10-12)
     import subprocess
     assert subprocess.run(["bash", "-n", str(_REPO / "ask-ck" / "agent" / "setup.sh")]).returncode == 0
 

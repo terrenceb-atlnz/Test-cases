@@ -83,3 +83,14 @@ def test_setup_scripts_verify_downloads_against_the_manifest():
     # and both refuse to run as the wrong user / ask before autostart (D6)
     assert "Do not run this as root" in sh
     assert "automatically when you log in" in sh and "automatically when you log in" in ps
+
+
+def test_setup_writes_dt_root_only_when_asked():
+    """The agent finds device-testing at run time (an explicit setting, then the server's checkout,
+    then ~/claude). If setup wrote whatever it found, a re-run would pin a path over the server's
+    pointer (2026-10-12)."""
+    src = (_REPO / "ask-ck" / "agent" / "setup.sh").read_text(encoding="utf-8")
+    writes = [ln.strip() for ln in src.splitlines() if 'echo "dt_root=' in ln]
+    assert writes == ['[ -n "${CK_DT_ROOT:-}" ] && echo "dt_root=${CK_DT_ROOT}"']
+    assert "/api/test-composer/status" in src          # it reports the server's checkout
+

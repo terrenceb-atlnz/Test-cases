@@ -41,8 +41,11 @@ def _bad(e: Exception, code: int = 422):
 
 @router.get("/status")
 async def status():
+    # dt_root: the device-testing checkout this server reads campaign logs from. A seat agent
+    # runs its session there when the seat can see that path (ck_agent.session_dt_root).
     return {"tool": "test-composer", "status": "ok",
-            "message": "Validation and Test Composer: runs launch on your seat's ck-agent (PLAN-agent-sessions)."}
+            "message": "Validation and Test Composer: runs launch on your seat's ck-agent (PLAN-agent-sessions).",
+            "dt_root": str(tc_campaign.dt_root())}
 
 
 # ------------------------------------------------------------------ inputs
