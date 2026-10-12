@@ -1,0 +1,29 @@
+{
+  "run_id": "2026-10-13T0626-val-fbe9",
+  "kind": "validation",
+  "testbox": "tb470",
+  "seat": "10.33.22.17",
+  "created": "2026-10-13T06:26:06+13:00",
+  "state": "done",
+  "last_seq": 1739,
+  "results": {},
+  "notices": [],
+  "regrades": {},
+  "cost_usd": 35.1051166,
+  "tokens": 120636747,
+  "turns": 1,
+  "started": "2026-10-13T06:26:06+13:00",
+  "ended": "2026-10-13T07:40:28+13:00",
+  "session_id": "s1791825966-2",
+  "cases": [
+    {
+      "key": "AWPTCM-T33235",
+      "kind": "script",
+      "cycle": null,
+      "script": "/media/terrenceb/mnt/testbox_home/claude/Test-cases/ask-ck/functions/pytest-creator/generated/9001_Port/test-9001.33235.py"
+    }
+  ],
+  "mailed": [],
+  "start_at": null,
+  "done_marker": true
+}

@@ -1,0 +1,35 @@
+{
+  "run_id": "2026-10-12T1537-val-9f45",
+  "kind": "validation",
+  "testbox": "tb470",
+  "seat": "10.33.22.17",
+  "created": "2026-10-12T15:37:17+13:00",
+  "state": "done",
+  "last_seq": 1232,
+  "results": {},
+  "notices": [
+    {
+      "scope": "T33235",
+      "needed": "framework exception-log check failed TestCase 1 (stk_a member 3 holds 5 exceptions, at least two from 2026-10-04/07, before the run); six-unit PDU cycle at 15:58:14",
+      "did": "run 1 stops after this cycle, the tester checks whether any exception is new, and run 2 waits until 18:00"
+    }
+  ],
+  "regrades": {},
+  "cost_usd": 11.353202600000012,
+  "tokens": 30130934,
+  "turns": 3,
+  "started": "2026-10-12T15:37:17+13:00",
+  "ended": "2026-10-12T17:51:29+13:00",
+  "session_id": "s1791772637-1",
+  "cases": [
+    {
+      "key": "AWPTCM-T33235",
+      "kind": "script",
+      "cycle": null,
+      "script": "/media/terrenceb/mnt/testbox_home/claude/Test-cases/ask-ck/functions/pytest-creator/generated/9001_Port/test-9001.33235.py"
+    }
+  ],
+  "mailed": [],
+  "start_at": null,
+  "done_marker": true
+}

@@ -1,0 +1,31 @@
+{
+  "schema": 1,
+  "run_id": "2026-10-12T1537-val-9f45",
+  "kind": "validation",
+  "seat": "10.33.22.17",
+  "created": "2026-10-12T15:37:17+13:00",
+  "testbox": "tb470",
+  "consoles": "all",
+  "pdu": {
+    "ip": "10.36.150.14",
+    "outlets": {}
+  },
+  "constraints": "none",
+  "template": null,
+  "template_setup_rel": null,
+  "project": null,
+  "cases": [
+    {
+      "key": "AWPTCM-T33235",
+      "kind": "script",
+      "script": "/media/terrenceb/mnt/testbox_home/claude/Test-cases/ask-ck/functions/pytest-creator/generated/9001_Port/test-9001.33235.py",
+      "script_rel": "ask-ck/functions/pytest-creator/generated/9001_Port/test-9001.33235.py",
+      "case_payload_rel": "ask-ck/functions/generator/refined-cases/Port/AWPTCM-T33235/zephyr_payload.json"
+    }
+  ],
+  "options": {
+    "email": null,
+    "start_after": null
+  },
+  "start_at": null
+}
