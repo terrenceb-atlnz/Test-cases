@@ -63,13 +63,28 @@ def mark_cases_unsupported(testCase, caseNames, why):
     in its marking pass after TestSet.configure(), so a mark made here survives until that case
     runs. Each marked case keeps its own check in main() as the fallback for a run where it comes
     first (run-priority sampling). Module-level for the same lint reason as assert_role_media_now.
+
+    `caseNames` are STEP classes (TestCase_<n> below). A registered TestCase that groups several
+    steps (_StepGroup, at the end of the file) is marked only when ALL its steps are named, so a
+    step that does not apply never hides inside a group's verdict; the groups are built so that
+    every mark this script makes covers whole groups.
     """
     wanted = set(caseNames)
     for tc in testCase.testSet.testCaseList:
-        name = type(tc).__name__
-        if name in wanted and not getattr(tc, 'hasBeenRun', False):
-            tc.supported = False
+        steps = getattr(type(tc), 'STEP_NAMES', [type(tc).__name__])
+        hit = [name for name in steps if name in wanted]
+        if not hit or getattr(tc, 'hasBeenRun', False):
+            continue
+        if len(hit) < len(steps):
+            testCase.log('INFO: {} would be marked unsupported ({}), but {} also runs {}; '
+                         'each step reports for itself'.format(', '.join(hit), why, type(tc).__name__,
+                                                               ', '.join(n for n in steps if n not in hit)))
+            continue
+        tc.supported = False
+        for name in steps:
             testCase.log('INFO: {} marked unsupported before it runs: {}'.format(name, why))
+        if steps != [type(tc).__name__]:
+            testCase.log('INFO: so {} ({}) will not run'.format(type(tc).__name__, ', '.join(steps)))
 
 
 # The cases whose main() applies the working fixed speed S that step 14 (TestCase_13) finds.
@@ -6301,39 +6316,141 @@ class TestCase_33(ATTestCase.TestCase):
             dut.cmd('y')
         dut.mode('#')
 
+# ==== Fewer, larger TestCases (Terrence, 2026-10-13) ===========================================
+# The framework isolates every TestCase: before main() it saves each device's running config and
+# makes it the boot config, and after tear_down() it restores and compares it. On the tb470 stack
+# that costs about 55 s per TestCase (Ask-CK run 2026-10-13T0626-val-fbe9: 33 TestCases, 53
+# minutes, 13.7 of them in the tests themselves). So consecutive steps that share the same
+# skip-before-run gates run as ONE TestCase: each step's own configure(), main() and tear_down()
+# run in order inside it, so every step starts from, and leaves, the state it always did, and the
+# framework's save and compare happen once per group. The step classes above are unchanged; a
+# step in a group is no longer registered on its own (see __main__ below).
+#   - A group only holds steps whose gates are identical (skipIfExcl, the platform property, and
+#     every mark_cases_unsupported() list), so a step that does not apply never hides inside a
+#     group's verdict. TestCase_13 (picks S; it gates what follows), 19 (also gated by step 8's
+#     record), 20 and 21 (gated by step 4 and each other), 25 (no gate), 28 (read-only), 29 (two
+#     gates) and 30 (finds its own S2) stay on their own.
+#   - A group's TestCase number is its first step's, so `9001.33235.14` in a run log is still
+#     where step 15 starts.
+#   - The cost: the framework's verdict covers the group; each step's PASS/FAIL lines are still
+#     in the log, under that step's STEP line. A FAIL anywhere in a group power-cycles the bench
+#     once, at the group's end, as it did per step.
+#   - An exception in a step is logged and fails the group, that step's tear_down() still runs,
+#     and the group goes on to its next step, as the next TestCase used to.
+
+# What a step leaves on `self` for its own later methods; cleared between steps, because the
+# steps of a group share one TestCase object.
+_STEP_STATE = ('baseline', 'baselineSpeed', 'baselineDuplex', 'baselineSource', 'testSpeed',
+               'speedRejected', 'fixedSpeed', 'fixedSpeedOk', 'fixedDuplexOk')
+_FRAMEWORK_ATTRS = ('testCaseDesc', 'testCaseRef', 'testCaseMethod', 'skipIfExcl',
+                    'testCasePlatformWithPropertyIncl')
+
+
+class _StepGroup(ATTestCase.TestCase):
+    """Runs STEPS (step classes, in order) as one framework TestCase. Subclasses name STEPS only."""
+    STEPS = ()
+    # Filled in per group by __init_subclass__ from its steps (the framework requires all three).
+    testCaseDesc = ''
+    testCaseRef = ''
+    testCaseMethod = ''
+
+    def __init_subclass__(cls, **kwargs):
+        super().__init_subclass__(**kwargs)
+        steps = cls.STEPS
+        for attr in ('skipIfExcl', 'testCasePlatformWithPropertyIncl'):
+            values = {repr(getattr(step, attr, None)) for step in steps}
+            if len(values) != 1:
+                raise TypeError('{}: its steps disagree on {} ({}); they cannot share a TestCase'.format(
+                    cls.__name__, attr, ', '.join(sorted(values))))
+            if hasattr(steps[0], attr):
+                setattr(cls, attr, getattr(steps[0], attr))
+        cls.STEP_NAMES = [step.__name__ for step in steps]
+        numbers = [int(step.__name__.split('_')[1]) + 1 for step in steps]     # TestCase_<n> is step n+1
+        cls.testCaseRef = 'AWPTCM-T33235, 9001.33235.{}'.format(cls.__name__.split('_')[1])
+        cls.testCaseDesc = 'Steps {}-{}, as one TestCase: {}'.format(
+            numbers[0], numbers[-1], ' | '.join('STEP {}: {}'.format(n, step.testCaseDesc)
+                                                for n, step in zip(numbers, steps)))
+        cls.testCaseMethod = ''.join('STEP {}: {}'.format(n, step.testCaseMethod)
+                                     for n, step in zip(numbers, steps))
+
+    def configure(self):
+        pass      # each step configures itself, in main(), just before it runs
+
+    def main(self):
+        for step in self.STEPS:
+            self._run_step(step)
+
+    def tear_down(self):
+        pass      # each step's tear_down() ran straight after its main()
+
+    def _run_step(self, step):
+        for name in _STEP_STATE:
+            self.__dict__.pop(name, None)
+        for name, value in vars(step).items():   # a step's own class-level defaults (fixedSpeed)
+            if not name.startswith('_') and name not in _FRAMEWORK_ATTRS and not callable(value):
+                setattr(self, name, value)
+        supported = self.supported
+        self.log('==== {} (in {}) ===='.format(step.__name__, type(self).__name__))
+        if self._run_phase(step, 'configure'):
+            self._run_phase(step, 'main')
+        self._run_phase(step, 'tear_down')
+        if supported and not self.supported:
+            self.log('NOTE: {} found it does not apply here; {} now reports UNSUPPORTED, and its other '
+                     'steps\' results are in this log'.format(step.__name__, type(self).__name__))
+        for name in _STEP_STATE:
+            self.__dict__.pop(name, None)
+
+    def _run_phase(self, step, phase):
+        try:
+            getattr(step, phase)(self)
+            return True
+        except Exception:
+            import traceback
+            self.log(traceback.format_exc())
+            self.failed('exception in {}.{}(); that step was cut short'.format(step.__name__, phase))
+            return False
+
+
+class TestCase_1_to_7(_StepGroup):          # steps 2-8: the copper baseline and the copper sweep
+    STEPS = (TestCase_1, TestCase_2, TestCase_3, TestCase_4, TestCase_5, TestCase_6, TestCase_7)
+
+
+class TestCase_8_to_12(_StepGroup):         # steps 9-13: the fibre sweep (needs a fibre link)
+    STEPS = (TestCase_8, TestCase_9, TestCase_10, TestCase_11, TestCase_12)
+
+
+class TestCase_14_to_18(_StepGroup):        # steps 15-19: speed S read back, invalid values
+    STEPS = (TestCase_14, TestCase_15, TestCase_16, TestCase_17, TestCase_18)
+
+
+class TestCase_22_to_24(_StepGroup):        # steps 23-25: speed S, shutdown, no shutdown
+    STEPS = (TestCase_22, TestCase_23, TestCase_24)
+
+
+class TestCase_26_to_27(_StepGroup):        # steps 27-28: re-force S, back to auto
+    STEPS = (TestCase_26, TestCase_27)
+
+
+class TestCase_31_to_33(_StepGroup):        # steps 32-34: speed S, save, reload
+    STEPS = (TestCase_31, TestCase_32, TestCase_33)
+
+
 if __name__ == '__main__':
     ts = TestSet()
-    ts.add_testCase(TestCase_1())
-    ts.add_testCase(TestCase_2())
-    ts.add_testCase(TestCase_3())
-    ts.add_testCase(TestCase_4())
-    ts.add_testCase(TestCase_5())
-    ts.add_testCase(TestCase_6())
-    ts.add_testCase(TestCase_7())
-    ts.add_testCase(TestCase_8())
-    ts.add_testCase(TestCase_9())
-    ts.add_testCase(TestCase_10())
-    ts.add_testCase(TestCase_11())
-    ts.add_testCase(TestCase_12())
+    ts.add_testCase(TestCase_1_to_7())
+    ts.add_testCase(TestCase_8_to_12())
     ts.add_testCase(TestCase_13())
-    ts.add_testCase(TestCase_14())
-    ts.add_testCase(TestCase_15())
-    ts.add_testCase(TestCase_16())
-    ts.add_testCase(TestCase_17())
-    ts.add_testCase(TestCase_18())
+    ts.add_testCase(TestCase_14_to_18())
     ts.add_testCase(TestCase_19())
     ts.add_testCase(TestCase_20())
     ts.add_testCase(TestCase_21())
-    ts.add_testCase(TestCase_22())
-    ts.add_testCase(TestCase_23())
-    ts.add_testCase(TestCase_24())
+    ts.add_testCase(TestCase_22_to_24())
     ts.add_testCase(TestCase_25())
-    ts.add_testCase(TestCase_26())
-    ts.add_testCase(TestCase_27())
-    ts.add_testCase(TestCase_28())
+    ts.add_testCase(TestCase_26_to_27())
+    # Read-only (show commands; configure() and tear_down() do nothing): no config to save or
+    # compare, so the framework's confCheck is off for it.
+    ts.add_testCase(TestCase_28(confCheck=False))
     ts.add_testCase(TestCase_29())
     ts.add_testCase(TestCase_30())
-    ts.add_testCase(TestCase_31())
-    ts.add_testCase(TestCase_32())
-    ts.add_testCase(TestCase_33())
+    ts.add_testCase(TestCase_31_to_33())
     ts.run(sys.argv)
