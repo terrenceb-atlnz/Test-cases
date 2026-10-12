@@ -1,0 +1,36 @@
+{
+  "run_id": "2026-10-13T0954-val-01c5",
+  "kind": "validation",
+  "testbox": "tb470",
+  "seat": "10.33.22.17",
+  "created": "2026-10-13T09:54:07+13:00",
+  "state": "done",
+  "last_seq": 341,
+  "results": {},
+  "notices": [
+    {
+      "scope": "campaign",
+      "needed": "console precheck FOUND process 787356 (another session's x230 campaign) holding /dev/u0, outside this run's consoles",
+      "did": "went ahead on u2-u5, which are all free; u0, u1 and PDU outlets 1/7 will not be touched"
+    }
+  ],
+  "regrades": {},
+  "cost_usd": 1.4869861999999998,
+  "tokens": 1273124,
+  "turns": 19,
+  "started": "2026-10-13T09:54:08+13:00",
+  "ended": "2026-10-13T10:03:52+13:00",
+  "session_id": "s1791838448-0",
+  "cases": [
+    {
+      "key": "AWPTCM-T33235",
+      "kind": "script",
+      "cycle": null,
+      "script": "/media/terrenceb/mnt/testbox_home/claude/Test-cases/ask-ck/functions/pytest-creator/generated/9001_Port/test-9001.33235.py"
+    }
+  ],
+  "mailed": [],
+  "start_at": null,
+  "updates_cost_usd": 0.007029,
+  "done_marker": true
+}
