@@ -44,7 +44,7 @@ $ErrorActionPreference = 'Stop'
 $Lib = {
   # Bump when the contract changes; the setup script compares this against the served
   # manifest to decide whether a running agent is stale and must be replaced.
-  $script:AGENT_VERSION = '1.3.3'
+  $script:AGENT_VERSION = '1.3.4'
   # Thinking shares one message's output budget with the answer; cap it on LONG calls only
   # (passing the flag turns extended thinking on, and the 30s health ping must stay fast).
   # Mirrors ck_agent.py; "long" is decided by the job's timeout, which the server floors.

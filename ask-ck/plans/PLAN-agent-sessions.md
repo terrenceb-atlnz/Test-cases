@@ -18,6 +18,9 @@ verified: 2026-10-09
 > console batches grew from 125k to 553k tokens over 331 wake-ups. device-testing's sentinel now has
 > a Haiku narrator and writes its updates to `CK_SENTINEL_UPDATES`, and the agent relays them as
 > `update` events. The session wakes only for ATTENTION, alarms and its own subagents.
+> **2026-10-13 (agent 1.3.4):** recorded run costs were low. The agent closed the session on `ASKCK-DONE`
+> and dropped that turn's result, the one carrying the final total, so every run missed its last turn
+> (run 0954-val-01c5 showed $1.49 without the tester's whole triage). It now closes on that result.
 > - **Seat agent 1.3.0:** an Agent SDK session job (`/session/*`). The PowerShell agent reports
 >   sessions unavailable (D1).
 > - **Server:** `/api/test-composer` runs (hand-off schema 1, records as files, D5 notice and finish

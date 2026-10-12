@@ -120,6 +120,10 @@ Ask-CK's Validation and Test Composer pages (`ask-ck/plans/PLAN-agent-sessions.m
   its Haiku narrator's updates there instead of printing them into the session (orient-dt §10),
   so the session is not woken once per update. The agent relays each new line as an `update`
   event (`text`, `attention`, `cost_usd`, `at`) every 2 s and once more when the session ends.
+- **Closing (1.3.4):** `ASKCK-DONE` does not close the session by itself. The agent waits for that
+  turn's result, which carries the session's final cost (subagents included), then closes, or after
+  120 s without one. Up to 1.3.3 it closed on the marker, so every run's recorded cost missed its
+  last turn.
 - **Campaigns never wait for an answer** (D5): a question is answered "nobody is waiting" at
   once.
 - **Windows:** not yet. `ck-agent.ps1` reports `sessions.available = false` (D1).

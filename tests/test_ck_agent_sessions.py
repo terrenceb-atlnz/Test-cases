@@ -143,6 +143,7 @@ async def _campaign(client):
                                       "NOTIFY campaign -- consoles logged in -- left them")])
     yield ResultMessage("Triage done.")
     yield AssistantMessage([TextBlock("`ASKCK-DONE r1`")])
+    yield ResultMessage("Stood down.", cost=2.75)    # the turn's result: the session's FINAL cost
 
 
 # ---------------------------------------------------------------- capability and refusals
@@ -223,6 +224,7 @@ def test_an_interactive_session_waits_and_passes_the_pages_answer_through(dt, mo
         verdict = await client.ask("AskUserQuestion", {"questions": [{"question": "Which PDU?"}]})
         got["v"] = verdict
         yield AssistantMessage([TextBlock("ASKCK-DONE r1")])
+        yield ResultMessage("done")
 
     use(monkeypatch, script)
     s = ck_agent.get_session(ck_agent.start_session(
@@ -406,6 +408,33 @@ def test_no_server_origin_means_no_lookup(seat, monkeypatch):
 
 
 # ---------------------------------------------------------------- parsing
+
+# ---------------------------------------------------------------- closing: the final cost
+
+def test_the_session_closes_on_the_result_after_askck_done_so_the_final_cost_is_kept(dt, monkeypatch):
+    """1.3.3 and older closed on the marker and dropped the turn's result, so every run's recorded cost
+    missed its last turn (run 0954-val-01c5: $1.49 without the tester's whole triage)."""
+    use(monkeypatch, _campaign)
+    s = ck_agent.get_session(ck_agent.start_session({"run_id": "r1", "handoff": HANDOFF})["session_id"])
+    wait_state(s, ("done", "error", "stopped"))
+    assert s.state == "done"
+    kinds = [e["kind"] for e in s.events]
+    done = next(i for i, e in enumerate(s.events) if e.get("marker") == "ASKCK-DONE")
+    last = max(i for i, k in enumerate(kinds) if k == "result")
+    assert last > done and s.events[last]["total_cost_usd"] == 2.75
+
+
+def test_a_session_whose_final_result_never_comes_still_closes(dt, monkeypatch):
+    async def script(client):
+        yield AssistantMessage([TextBlock("ASKCK-DONE r1")])
+        await asyncio.sleep(30)                          # no ResultMessage
+        yield ResultMessage("too late")
+    use(monkeypatch, script)
+    monkeypatch.setattr(ck_agent, "DONE_RESULT_GRACE", 0.5)
+    s = ck_agent.get_session(ck_agent.start_session({"run_id": "r1", "handoff": HANDOFF})["session_id"])
+    wait_state(s, ("done", "error", "stopped"), timeout=5)
+    assert s.state == "done" and "result" not in [e["kind"] for e in s.events]
+
 
 # ---------------------------------------------------------------- the sentinel's updates
 

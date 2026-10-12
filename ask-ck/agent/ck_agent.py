@@ -36,7 +36,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 # Bump when the contract changes; the setup script compares this against the served
 # manifest to decide whether a running agent is stale and must be replaced.
-AGENT_VERSION = "1.3.3"
+AGENT_VERSION = "1.3.4"
 
 # Thinking and the answer share ONE MESSAGE's output budget (`maxOutputTokens`, 32,000 on
 # the CLI and not raisable). These are reasoning models, so uncapped thinking silently
@@ -499,6 +499,11 @@ def run_claude(prompt: str, model: str = "default", timeout: int = DEFAULT_TIMEO
 
 SESSION_SETTINGS_REL = os.path.join(".claude", "ask-ck-campaign.settings.json")
 SESSION_DONE_MARKER = "ASKCK-DONE"        # /test-mode prints `ASKCK-DONE <run_id>` when stood down
+# After ASKCK-DONE the session still owes the turn's ResultMessage, which carries the session's
+# final cost total (subagents included). Stopping on the marker dropped it: every run's recorded
+# cost missed its last turn (run 0954-val-01c5 showed $1.49 without the tester's whole triage).
+# So the session closes on that result, or after this many seconds without one.
+DONE_RESULT_GRACE = 120.0
 D5_QUESTION_REPLY = ("Ask-CK campaign (Driver: ask-ck): no one is waiting to answer questions. "
                      "Follow /test-mode §10 (D5): send a NOTIFY, work past it, or BLOCK the case.")
 HOST_PROMPT_REPLY = ("Ask-CK session: permission prompts are not answered here. The approved "
@@ -691,6 +696,7 @@ class AgentSession:
         # (and its whole conversation re-read) once per update. pump_updates() relays them.
         self.updates_path = os.path.join(self.dir, "sentinel-updates.jsonl")
         self._updates_off = 0
+        self._done_at = None       # monotonic time ASKCK-DONE was seen; the turn's result still to come
         self._loop = None
         self._client = None
         self.thread = None
@@ -836,6 +842,8 @@ class AgentSession:
             reader = asyncio.ensure_future(self._read(client))
             next_pump = time.monotonic() + 2.0
             while not reader.done():
+                if self._done_at is not None and time.monotonic() - self._done_at > DONE_RESULT_GRACE:
+                    self.stop_requested = True     # the final result never came; close anyway
                 if self.stop_requested:
                     reader.cancel()
                     break
@@ -862,8 +870,10 @@ class AgentSession:
                 if ev["kind"] == "text":
                     for m in marker_lines(ev["text"]):
                         self.emit(m)
-                        if m["marker"] == SESSION_DONE_MARKER:
-                            self.stop_requested = True
+                        if m["marker"] == SESSION_DONE_MARKER and self._done_at is None:
+                            self._done_at = time.monotonic()
+                elif ev["kind"] == "result" and self._done_at is not None:
+                    self.stop_requested = True     # the final cost is in; close the session
             if self.stop_requested:
                 return
 
