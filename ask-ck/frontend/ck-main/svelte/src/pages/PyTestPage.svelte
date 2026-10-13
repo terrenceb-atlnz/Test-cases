@@ -295,6 +295,14 @@
       initialReview={session?.step6?.review || null}
       {genState}
       onPushCodeEdits={(code) => generateService.pushCodeEdits(session.key, code)}
+      onRelint={async (code) => {
+        await generateService.pushCodeEdits(session.key, code);
+        const lint = await generateService.lintScript(session.key);
+        const sessResult = await casesService.getSession(session.key);
+        session = sessResult.session;
+        genState = sessResult.gen_state || null;
+        return generateService.toLintResults(lint);
+      }}
       onReview={async (headers, extraRound) => {
         const result = await generateService.reviewScript(session.key, headers, extraRound);
         const sessResult = await casesService.getSession(session.key);

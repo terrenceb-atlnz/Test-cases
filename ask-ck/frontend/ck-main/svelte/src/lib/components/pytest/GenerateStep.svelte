@@ -9,7 +9,7 @@
   import LlmButton from '../LlmButton.svelte';
   import ErrorBanner from '../ErrorBanner.svelte';
   import { onMount, onDestroy } from 'svelte';
-  import { scrollToStepIntro } from '../../utils/scroll.js';
+  import { scrollToSection } from '../../utils/scroll.js';
 
   // --- Props: data (all seeded once at mount from the session) ----------------------
   /** @type {string} Default Group — saved session.step6.naming.group if there is one, else
@@ -71,6 +71,10 @@
   /** @type {(code: string) => Promise<any>} Persists the on-screen script into the session
       (save_script, no disk write) — run before every review and fix. */
   export let onPushCodeEdits = async () => ({});
+
+  /** @type {(code: string) => Promise<Array<{ level: string, message: string }>>} Re-lint: pushes
+      the on-screen script, re-runs the server's lint on it and returns the new results. */
+  export let onRelint = async () => [];
 
   /** @type {(headers: Record<string, string>, extraRound: boolean) => Promise<{ findings: Array, at: string }>}
       review_script — throws "review round cap: …" once the free rounds are used. */
@@ -205,6 +209,13 @@
     generateUnitStatuses = next;
   }
 
+  // Summary shows counts, not a per-unit list. 'error' (a high-severity review finding) is
+  // counted apart so the counts always add up to the number of units.
+  $: summaryCounts = Object.values(generateUnitStatuses).reduce(
+    (acc, st) => ({ ...acc, [st]: (acc[st] || 0) + 1 }),
+    { covered: 0, review: 0, none: 0, error: 0 }
+  );
+
   $: generateSummaryStatus =
     generateUnits.length > 0 && generateUnits.every((u) => confirmedGenerateUnits.includes(u.id))
       ? 'covered'
@@ -226,7 +237,7 @@
 
     const nextUnconfirmed = generateUnits.find((u) => !updatedConfirmed.includes(u.id));
     generateActiveUnitId = nextUnconfirmed ? nextUnconfirmed.id : GENERATE_SUMMARY_STEP_ID;
-    scrollToStepIntro();
+    scrollToSection('.step-intro');
   }
 
   // --- Generation: one dispatch request, then one status poll ------------------------
@@ -419,6 +430,23 @@
   let isAssembling = false;
   let assembleError = '';
 
+  // Re-lint: re-checks the script AS EDITED on screen — Assemble would re-splice the units and
+  // discard hand edits, so this is the way to lint a hand repair.
+  let isRelinting = false;
+  let relintError = '';
+
+  async function relint() {
+    isRelinting = true;
+    relintError = '';
+    try {
+      lintResults = await onRelint(assembledCode);
+    } catch (e) {
+      relintError = (e && e.message) || String(e);
+    } finally {
+      isRelinting = false;
+    }
+  }
+
   async function assembleAndLint() {
     isAssembling = true;
     assembleError = '';
@@ -427,6 +455,7 @@
       assembledCode = result.assembledCode;
       lintResults = result.lintResults;
       assembled = true;
+      scrollToSection('.assembled-script-label')
     } catch (e) {
       assembleError = (e && e.message) || String(e);
     } finally {
@@ -734,7 +763,7 @@
 
   function goToReviewFix() {
     generateActiveUnitId = GENERATE_REVIEW_STEP_ID;
-    scrollToStepIntro();
+    scrollToSection('.step-intro');
   }
 
   // --- Review/Fix: save and finish ----------------------------------------------------
@@ -818,25 +847,26 @@
 <div class="step-frame">
   {#if generateActiveUnitId === GENERATE_SUMMARY_STEP_ID}
     <p class="step-table-label summary-title">Sequence Step Summary</p>
-    <div class="script-summary">
-      {#each generateUnits as unit (unit.id)}
-        <div class="script-summary-section">
-          <div class="sequence-step-summary">
-            <span
-              class="step-status-badge"
-              class:covered={generateUnitStatuses[unit.id] === 'covered'}
-              class:review={generateUnitStatuses[unit.id] === 'review'}
-              class:none={generateUnitStatuses[unit.id] === 'none'}
-              aria-hidden="true"
-            >
-              {generateUnitStatuses[unit.id] === 'covered' ? '✓' : generateUnitStatuses[unit.id] === 'review' ? '!' : '–'}
-            </span>
-            <p><strong>{unit.title}</strong> - {unit.detail}</p>
-          </div>
-        </div>
-      {/each}
+    <div class="summary-counts">
+      <p class="sequence-step-summary">
+        <span class="step-status-badge covered" aria-hidden="true">✓</span>
+        <span><strong>{summaryCounts.covered}</strong> Confirmed</span>
+      </p>
+      <p class="sequence-step-summary">
+        <span class="step-status-badge review" aria-hidden="true">!</span>
+        <span><strong>{summaryCounts.review}</strong> In Review</span>
+      </p>
+      <p class="sequence-step-summary">
+        <span class="step-status-badge none" aria-hidden="true">–</span>
+        <span><strong>{summaryCounts.none}</strong> Not started</span>
+      </p>
+      {#if summaryCounts.error}
+        <p class="sequence-step-summary">
+          <span class="step-status-badge critical" aria-hidden="true">✗</span>
+          <span><strong>{summaryCounts.error}</strong> Critical</span>
+        </p>
+      {/if}
     </div>
-
 
     <ErrorBanner message={assembleError && `Assemble failed: ${assembleError}`} />
 
@@ -844,7 +874,7 @@
       <Button variant="primary" disabled={generateSummaryStatus !== 'covered'} loading={isAssembling} on:click={assembleAndLint}>Assemble &amp; Lint</Button>
     </div>
 
-    <p class="step-table-label">Assembled Script</p>
+    <p class="step-table-label assembled-script-label">Assembled Script</p>
     <div class="generate-assembled-editor">
       <EditableField
         type="code"
@@ -859,8 +889,15 @@
       <ul class="lint-results">
         {#each lintResults as result}
           <li class="lint-result" class:lint-pass={result.level === 'pass'} class:lint-warn={result.level === 'warn'} class:lint-error={result.level === 'error'}>{result.message}</li>
+        {:else}
+          <!-- No errors and no warnings — say so, or a clean lint looks like nothing happened. -->
+          <li class="lint-result lint-pass">✓ Lint clean — no errors or warnings.</li>
         {/each}
       </ul>
+      <ErrorBanner message={relintError && `Re-lint failed: ${relintError}`} />
+      <div class="step-actions relint-row">
+        <Button variant="outline" loading={isRelinting} on:click={relint}>Re-lint</Button>
+      </div>
     {/if}
 
     <div class="step-actions">
@@ -1100,7 +1137,7 @@
   }
 
   .summary-title {
-    margin-bottom: 22px;
+    margin-bottom: 12px;
   }
 
   .step-actions {
@@ -1111,6 +1148,10 @@
   }
 
   /* Review with LLM, then the two fixes, stacked tight above Save and Finish. */
+  .relint-row {
+    margin: 0 0 16px;
+  }
+
   .review-fix-row {
     margin: 12px 0 24px;
   }
@@ -1172,13 +1213,13 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    margin: 0;
     width: 22px;
     height: 22px;
     border-radius: 50%;
     color: #fff;
     font-size: 0.75rem;
     font-weight: 700;
-    margin-top: 2px;
   }
 
   .step-status-badge.covered {
@@ -1187,6 +1228,18 @@
 
   .step-status-badge.review {
     background: var(--color-warning);
+  }
+
+  .step-status-badge.critical {
+    background: var(--color-error);
+  }
+
+  .summary-counts {
+    display: flex;
+    flex-direction: column;
+    margin: 0;
+    gap: 0;
+    font-size: 0.94rem;
   }
 
   .step-status-badge.none {
