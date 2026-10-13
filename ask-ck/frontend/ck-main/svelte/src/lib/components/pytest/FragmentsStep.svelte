@@ -4,7 +4,7 @@
   import ArrowStep from '../ArrowStep.svelte';
   import Button from '../Button.svelte';
   import FragmentCard from '../FragmentCard.svelte';
-  import { scrollToTop, scrollToStepIntro } from '../../utils/scroll.js';
+  import { scrollToTop, scrollToSection } from '../../utils/scroll.js';
   import { newCallId, cancelLlmCall } from '../../services/llmProgressService.js';
 
   // --- Props: data ------------------------------------------------------------------
@@ -223,7 +223,7 @@
   // PORTED FROM current/pytest-creator/pytest.js's ptGatherFragments busyLabel, plus the
   // click-to-stop affordance already added to Script Search's Suggest All Steps — gather_fragments
   // is a single whole-case call (no per-step count to show), so this is just a plain busy label.
-  $: gatherLabel = isGatheringFragments ? 'Gathering… (click to stop)' : 'Gather Fragments';
+  $: gatherLabel = isGatheringFragments ? 'Gathering…' : 'Gather Fragments';
 
   // A second click while gathering is the Stop button (a true server-side cancel).
   async function gatherFragments() {
@@ -286,7 +286,7 @@
     // Next unconfirmed step, not just the next in order; Summary once all are confirmed.
     const nextUnconfirmed = sequencedTestSteps.find((s) => !updatedConfirmed.includes(s.n));
     fragmentActiveStepId = nextUnconfirmed ? nextUnconfirmed.n : FRAGMENTS_SUMMARY_STEP_ID;
-    scrollToStepIntro();
+    scrollToSection('.step-intro');
   }
 
   async function handleConfirm() {

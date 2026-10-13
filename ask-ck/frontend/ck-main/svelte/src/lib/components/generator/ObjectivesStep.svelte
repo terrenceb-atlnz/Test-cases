@@ -6,7 +6,7 @@
   import ConfirmModal from '../ConfirmModal.svelte';
   import LlmButton from '../LlmButton.svelte';
   import ErrorBanner from '../ErrorBanner.svelte';
-  import { scrollToCasesIntro, scrollToBottom } from '../../utils/scroll.js';
+  import { scrollToSection, scrollToBottom } from '../../utils/scroll.js';
 
   // --- Props: data ------------------------------------------------------------------
   export let summaryColumns = [];

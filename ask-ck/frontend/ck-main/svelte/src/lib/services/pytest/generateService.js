@@ -118,6 +118,15 @@ export async function pushCodeEdits(key, code) {
   return await res.json();   // {written, lint, naming}
 }
 
+// Re-runs the same offline lint Assemble runs (py_compile, structure, house rules, coverage,
+// PEP 8) on the session's CURRENT script — push the on-screen edits first (pushCodeEdits), as
+// current/'s ptLintScript does, so it judges what the user sees. No LLM.
+export async function lintScript(key) {
+  const res = await fetch(`${PT_API}/lint_script/${encodeURIComponent(key)}`, { method: 'POST' });
+  if (!res.ok) throw new Error(await errorDetail(res));
+  return await res.json();   // the lint dict: {ok, errors, warnings, pep8, coverage, ...}
+}
+
 // Pass C — the holistic review. Returns FINDINGS, never a rewrite. 409s with a message
 // starting "review round cap:" once the script's free review rounds are used; resending
 // with extraRound = true is the reviewer's explicit "send another round anyway".

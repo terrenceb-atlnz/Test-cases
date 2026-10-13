@@ -77,7 +77,7 @@
   --color-arrow-step-review-border: #ffbc5e;
   --color-arrow-step-error-bg: #ffb7b7;
   --color-arrow-step-error-text: #ff5050;
-  --color-arrow-step-error-border: #ffcccc;
+  --color-arrow-step-error-border: #ff7f7f;
 
   --arrow-filter-hover: brightness(1.05);
 
@@ -223,7 +223,6 @@
   --color-arrow-step-error-bg: #680101;
   --color-arrow-step-error-text: #ff6565;
   --color-arrow-step-error-border: #ff6565;
-
 
   --arrow-filter-hover: brightness(1.25);
   --color-arrow-text-hover: #fff;

@@ -6,7 +6,7 @@
   import SearchBox from '../SearchBox.svelte';
   import LlmButton from '../LlmButton.svelte';
   import ErrorBanner from '../ErrorBanner.svelte';
-  import { scrollToCasesIntro, scrollToBottom } from '../../utils/scroll.js';
+  import { scrollToSection, scrollToBottom } from '../../utils/scroll.js';
 
   // --- Props: display text ---------------------------------------------------------
   export let introText = '';
@@ -63,13 +63,13 @@
   async function handleSearch() {
     candidates = excludeChosen(await onSearch(search));
     selectedCandidateIds = [];
-    scrollToCasesIntro();
+    scrollToSection('.cases-intro');
   }
 
   function handleSuggestResult(result) {
     candidates = excludeChosen(result);
     selectedCandidateIds = [];
-    scrollToCasesIntro();
+    scrollToSection('.cases-intro');
   }
 
   // --- Moving rows between the two tables -------------------------------------------
@@ -88,14 +88,14 @@
     candidates = [...candidates, ...moving];
     chosen = chosen.filter((c) => !selectedChosenIds.includes(c.id));
     selectedChosenIds = [];
-    scrollToCasesIntro();
+    scrollToSection('.cases-intro');
   }
 
   function clearAll() {
     candidates = [...candidates, ...chosen];
     chosen = [];
     selectedChosenIds = [];
-    scrollToCasesIntro();
+    scrollToSection('.cases-intro');
   }
 
   // --- Confirm ------------------------------------------------------------------------

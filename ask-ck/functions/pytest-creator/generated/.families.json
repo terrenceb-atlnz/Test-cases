@@ -4,6 +4,7 @@
     "9000": "libraries — never allocated to a group"
   },
   "families": {
-    "Port": 9001
+    "Port": 9001,
+    "IPv4": 9002
   }
 }

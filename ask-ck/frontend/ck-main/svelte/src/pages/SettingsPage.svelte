@@ -7,12 +7,15 @@
   import wrenchIcon from '../assets/icons/wrench.svg';
   import chartIcon from '../assets/icons/chart-column.svg';
   import eyeIcon from '../assets/icons/eye.svg';
+  import sunIcon from '../assets/icons/sun.svg'
+  import moonIcon from '../assets/icons/moon.svg'
+  import sunMoonIcon from '../assets/icons/sun-moon.svg'
   import { theme, setTheme, resolvedTheme } from '../lib/theme.js';
   import localLlmIconDark from '../assets/local-llm.png';
   import localLlmIconLight from '../assets/local-llm-light.png';
   import claudeLlmIconDark from '../assets/claude-llm.png';
   import claudeLlmIconLight from '../assets/claude-llm-light.png';
-import UnderConstruction from '../lib/components/UnderConstruction.svelte';
+  import UnderConstruction from '../lib/components/UnderConstruction.svelte';
   import { onMount } from 'svelte';
   import { applyConfig, loadConfig, checkHealth, describeLLMStatus, seatLlmRetiredNotice } from '../lib/services/llmConfigService.js';
   import { checkLocalAgent as probeLocalAgent, describeAgentStatus, ckBrokerLoop } from '../lib/services/agentService.js';
@@ -141,36 +144,30 @@ import UnderConstruction from '../lib/components/UnderConstruction.svelte';
       <h3>Display configuration</h3>
         <p>Configure your display preferences.</p>
         <div class="theme-options">
-          <label class="theme-option">
-            <input
-              type="radio"
-              name="theme"
-              value="light"
-              checked={$theme === 'light'}
-              on:change={() => setTheme('light')}
-            />
-            Light
-          </label>
-          <label class="theme-option">
-            <input
-              type="radio"
-              name="theme"
-              value="dark"
-              checked={$theme === 'dark'}
-              on:change={() => setTheme('dark')}
-            />
-            Dark
-          </label>
-          <label class="theme-option">
-            <input
-              type="radio"
-              name="theme"
-              value="system"
-              checked={$theme === 'system'}
-              on:change={() => setTheme('system')}
-            />
-            System
-          </label>
+          <div class="option-label"> 
+            <Button 
+              class="theme-option {$theme === 'light' ? 'selected' : ''}"
+              on:click={() => setTheme('light')}
+              ><img class="display-icon" src={sunIcon} alt=sun-icon/>
+            </Button>
+            <p class="option-type-label">Light</p>
+          </div>
+          <div class="option-label">
+            <Button 
+              class="theme-option {$theme === 'dark' ? 'selected' : ''}"
+              on:click={() => setTheme('dark')}
+              ><img class="display-icon" src={moonIcon} alt=moon-icon/>
+            </Button>
+            <p class="option-type-label">Dark</p>
+          </div>
+          <div class="option-label">
+            <Button 
+              class="theme-option {$theme === 'system' ? 'selected' : ''}"
+              on:click={() => setTheme('system')}
+              ><img class="display-icon" src={sunMoonIcon} alt=sun-moon-icon/>
+            </Button>
+            <p class="option-type-label">System</p>
+          </div>
         </div>
       </div>
 
@@ -359,6 +356,17 @@ import UnderConstruction from '../lib/components/UnderConstruction.svelte';
     filter: var(--icon-filter-heading);
   }
 
+  .display-icon {
+    height: 2rem;
+    width: auto;
+    filter: var(--icon-filter-heading);
+    filter: invert(100%)
+  }
+
+  .option-type-label {
+    font-weight: 600;
+  }
+
   .settings-tab:hover {
     background: rgba(0, 83, 143, 0.06);
   }
@@ -409,21 +417,22 @@ import UnderConstruction from '../lib/components/UnderConstruction.svelte';
     margin-top: 16px;
   }
 
-  .theme-option {
+  /* Scoped under .theme-options so it outranks Button's own .btn-primary background (two
+     classes there, three here) — a bare :global(.theme-option) loses that cascade. */
+  .theme-options :global(.theme-option) {
     display: flex;
     align-items: center;
+    justify-content: center; 
+    width: 80px;
+    height: 50px;
     gap: 8px;
-    color: var(--color-text);
-    font-size: 0.94rem;
-    font-weight: 600;
+    background-color: #767676;
     cursor: pointer;
   }
 
-  .theme-option input {
-    accent-color: var(--color-accent);
-    width: 16px;
-    height: 16px;
-    cursor: pointer;
+  /* The theme currently chosen (the theme store's value: light / dark / system). */
+  .theme-options :global(.theme-option.selected) {
+    background-color: var(--color-accent);
   }
 
   .llm-section {
@@ -432,6 +441,12 @@ import UnderConstruction from '../lib/components/UnderConstruction.svelte';
     border-radius: 10px;
     padding: 20px;
     transition: background-color 0.2s ease, border-color 0.2s ease;
+  }
+
+  .option-label {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
   }
 
   .llm-section h3 {

@@ -10,7 +10,7 @@
   import LlmButton from '../LlmButton.svelte';
 
   import { newCallId, cancelLlmCall } from '../../services/llmProgressService.js';
-  import { scrollToTop, scrollToStepIntro, scrollToBottom } from '../../utils/scroll.js';
+  import { scrollToTop, scrollToSection, scrollToBottom } from '../../utils/scroll.js';
 
   // --- Props: data ------------------------------------------------------------------
   /** @type {Array<{ n: number, action: string, verify: string }>} Read-only — reactive to
@@ -156,7 +156,7 @@
     ? 'Suggest All Steps'
     : stopRequested
     ? 'Suggesting stopped…'
-    : `Suggesting step ${Math.min(suggestAllDone + 1, sequencedTestSteps.length)}/${sequencedTestSteps.length}… (click to stop)`;
+    : `Suggesting step ${Math.min(suggestAllDone + 1, sequencedTestSteps.length)}/${sequencedTestSteps.length}…`;
 
   // A tab Chromium treats as backgrounded can suspend a pending `await fetch` indefinitely
   // (see agentService.js's ckBrokerLoop comment — same phenomenon, different fetch): the
@@ -336,7 +336,7 @@
     // confirmed, land on the Summary arrow instead.
     const nextUnconfirmed = sequencedTestSteps.find((s) => !updatedConfirmed.includes(s.n));
     activeStepId = nextUnconfirmed ? nextUnconfirmed.n : SUMMARY_STEP_ID;
-    scrollToStepIntro();
+    scrollToSection('.step-intro');
   }
 
   async function handleConfirm() {
