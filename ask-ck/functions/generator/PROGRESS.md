@@ -5,11 +5,31 @@ verified: 2026-09-28
 
 **Purpose**: This file exists so future sessions can quickly understand exactly where we are, what has been built, what the priorities are, and how to continue seamlessly.
 
-**Last Updated**: 2026-10-14 (by Claude, with Terrence; Project 3301 FRER strategy/plan/cycle/43 cases in Zephyr; new `zt_create.py`)
+**Last Updated**: 2026-10-14 (by Claude, with Terrence; Project 3301 FRER in Zephyr, `zt_create.py`, FRER topology configs in docs/frer-topologies/)
 
 > **Reading note (2026-09-23 doc sweep).** Entries are frozen as written. Where an entry's
 > claim has since stopped being true, a ⚠ line under its heading says what changed.
 > Newest first. Paths in older entries predate these moves (the same as in CHANGELOG): `tool/` → `ask-ck/tools/`, `ask-ck/var/` → `ask-ck/db/`, `objective-drafting/` → `ask-ck/functions/generator/`, `pytest-create/` → `ask-ck/functions/pytest-creator/`, `js-tests/` → `tests/js/`, `ask-ck/ck-facelift/` → `ask-ck/plans/`, root reports → `docs/`, and completed plans `ask-ck/plans/` → `archive/plans/` (2026-09-11, 2026-09-23). Also retired 2026-09-23: the demo notes → `archive/plans/demo-2026-09-11/`, and `HANDOFF-generate-token-efficiency.md` + `Fragments_prompt.md` → `archive/records/`.
+
+## Latest session (2026-10-14, later) — FRER topology configs T1–T4 written (`docs/frer-topologies/`)
+
+Supersedes the "T1–T4 device configs are not written" open item in the entry below.
+
+Terrence chose: keep them in the repo, use FOG port numbering, make T4 3 paths and 2 listeners,
+and have T2 transit switches that support `spanning-tree vlan-exclude`. There are 12 `.cfg` files
+(one per switch) and a README with cabling tables, MACs, VLANs and the cases that use each topology.
+- **T1–T3 are the FOG examples**, checked block by block against the FOG text. The only additions
+  are `hostname` and `mru 1506` on FRER ports: the FOG's limitations section requires it for
+  1500-byte payloads, but its examples omit it. T2's wiring is read from the FOG diagram. A's port
+  numbers aren't in the diagram, so they were taken from A's egress list.
+- **T4 is new**: a unicast stream and a multicast stream (`0300.0000.0101`, deliberately not an
+  IP-multicast MAC), each with its own FRER VLAN.
+- **Not loaded on hardware.** Untried CLI forms: `tsn-stream-id add 1-2` and
+  `egress interface port1.0.1,port1.0.5`.
+- The strategy's Testing Artifacts line still says the configs are "still to be written". I gave
+  Terrence replacement text; he edits the wiki.
+
+Gate: pytest 2097 / 1 skipped, vitest 396.
 
 ## Latest session (2026-10-14) — Project 3301 FRER: test strategy, plan, cycle and 43 cases authored and in Zephyr; new tool `zt_create.py`
 

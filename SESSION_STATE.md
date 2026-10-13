@@ -5070,3 +5070,11 @@ Afterwards the 28GHX left scope (28GSX is the board on hand), and with it 100M S
 line; the plan's Resources line was updated in Zephyr to match, and the live cases and cycle were
 re-read and found clean. Detail and open items: PROGRESS 2026-10-14. Gate: pytest 2097 / 1 skipped,
 vitest 396.
+
+## Session Close / Handoff (2026-10-14, later) — FRER topology configs
+
+Terrence asked for the T1–T4 device configs. They are in `docs/frer-topologies/`: 12 per-switch
+`.cfg` files and a README. T1–T3 are the FOG's examples with `hostname` and `mru 1506` added; T4
+is new (3 paths, 2 listeners, unicast and multicast streams). None has been loaded on hardware.
+This closes the open item in the entry above. Detail: PROGRESS 2026-10-14 (later). Gate: pytest
+2097 / 1 skipped, vitest 396.
