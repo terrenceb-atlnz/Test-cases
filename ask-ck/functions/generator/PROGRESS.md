@@ -5,11 +5,55 @@ verified: 2026-09-28
 
 **Purpose**: This file exists so future sessions can quickly understand exactly where we are, what has been built, what the priorities are, and how to continue seamlessly.
 
-**Last Updated**: 2026-10-12 (by Claude, with Terrence; the PyTest Creator ends at a saved script; Run/Validate/Testboxes retired; Validation moved into Test Composer — LIVE, 549e21c)
+**Last Updated**: 2026-10-14 (by Claude, with Terrence; Project 3301 FRER strategy/plan/cycle/43 cases in Zephyr; new `zt_create.py`)
 
 > **Reading note (2026-09-23 doc sweep).** Entries are frozen as written. Where an entry's
 > claim has since stopped being true, a ⚠ line under its heading says what changed.
 > Newest first. Paths in older entries predate these moves (the same as in CHANGELOG): `tool/` → `ask-ck/tools/`, `ask-ck/var/` → `ask-ck/db/`, `objective-drafting/` → `ask-ck/functions/generator/`, `pytest-create/` → `ask-ck/functions/pytest-creator/`, `js-tests/` → `tests/js/`, `ask-ck/ck-facelift/` → `ask-ck/plans/`, root reports → `docs/`, and completed plans `ask-ck/plans/` → `archive/plans/` (2026-09-11, 2026-09-23). Also retired 2026-09-23: the demo notes → `archive/plans/demo-2026-09-11/`, and `HANDOFF-generate-token-efficiency.md` + `Fragments_prompt.md` → `archive/records/`.
+
+## Latest session (2026-10-14) — Project 3301 FRER: test strategy, plan, cycle and 43 cases authored and in Zephyr; new tool `zt_create.py`
+
+Content work for Terrence (Tomahawk), plus one new tool. Nothing in the server or the pages changed.
+
+**Done:**
+- **Test strategy** — [Test:3301 Test Strategy - Frame Replication and Elimination for Reliability](https://wiki.atlnz.lc/awpwiki/index.php/Test:3301_Test_Strategy_-_Frame_Replication_and_Elimination_for_Reliability),
+  modelled on the MACsec ER-6888 strategy. Drafted here; Terrence pasted v0.1 and then v0.2 (current
+  state: plan, cycle and cases authored) himself — **no session can write the wiki** (reads need no
+  login; there is no wiki credential and `zt_wiki.py` is read-only). After v0.2 Terrence made the
+  IE570-28GSX the only platform (the 28GHX is not on hand and is not supported until 5.5.7-2),
+  dropped 100M SFP and removed the IE580 line (IE580-28GSX is a 2027 roadmap product).
+- **Zephyr (AWPTCM)** — plan **AWPTCM-P3275** in `/5.5.6-2/Tomahawk/Project 3301: FRER`; cycle
+  **AWPTCM-C8502** (43 items, linked to the plan) in the same folder; cases **AWPTCM-T51103 – T51145**
+  under `/5.5.6-2/Tomahawk/FRER/<sub-folder>` (the case folder is named for the feature, not the
+  project, so later feature testing reuses it). Condensed over four rounds (112 → 50 → 44 → 43);
+  8–12 steps per case; house format (objective = `<ul>` of end states, empty expected results,
+  step 0 = notes/traceability).
+- **Cases and cycles are feature-specific** (Terrence, new memory `test-cases-are-feature-specific`):
+  no models, platform lists, port types or chip notes in a case or a cycle; the plan and strategy
+  may carry them. Re-checked against the live Zephyr objects after the GHX change: no case or the
+  cycle names a copper/PoE/GHX check.
+- **Plan P3275 Resources line** updated in place (one PUT of `objective`, read back, nothing else
+  changed): "at least three IE570-28GSX DUTs … 1G SFP and 10G SFP+ pluggables".
+- **New tool `ask-ck/tools/zt_create.py`** — creates new cases, one plan and one cycle from a draft
+  JSON (the existing writers only update cases or clone templates). Reads everything first; the
+  plan/cycle folders must exist; missing case folders only beneath an existing folder ≥3 deep;
+  same-name case/plan reused (re-runnable after a stop), existing cycle stops; `--confirm-plan-folder`
+  and `--confirm-cases` required; audit line to `ask-ck/db/zt-create-audit.jsonl` (gitignored)
+  before every write; stops at the first failure; reads everything back. CLI only — not wired to a
+  page, and not part of PLAN-zephyr-templating. Tests: `tests/test_zt_create.py` (10, offline fake
+  Zephyr); 9 safety mutations went red.
+
+Gate: pytest 2097 / 1 skipped, vitest 396, ck.db untouched.
+
+**Open:**
+- T1–T4 device configs for the FRER topologies are not written (the strategy says so).
+- Terrence owns: the TFS release target (5.5.7-0 vs 5.5.6-2) and the Feature Complete "Y"
+  (5.5.6-2 Feature Complete was 25-Sep-2026).
+- Left uncommitted, not this session's: two Validation run records from 2026-10-13
+  (`runs/2026-10-13/…T1223-val-3ede`, `…T1454-val-43dd`; the second's `run.json` still says
+  `running`) and `docs/AN1185-SW_Configuration_Guide_TSN.pdf` (Terrence's copy of the Microchip
+  guide; commit only if he wants it in the repo).
+- `check_memory_links` still FAILs the same 4 non-Ask-CK slugs as 2026-10-12 — left for Terrence.
 
 ## Latest session (2026-10-12) — the PyTest Creator ends at a saved script; Run, Validate and Testboxes retired; Validation moved into Test Composer (branch `tc-build`)
 

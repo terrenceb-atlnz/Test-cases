@@ -5056,3 +5056,17 @@ Open:
   one of the empty ones is this session's P0 scratch slug) — left for Terrence;
 - V0 and the other items carried from 2026-10-09.
 
+
+## Session Close / Handoff (2026-10-14) — Project 3301 FRER authored into Zephyr; `zt_create.py`
+
+Terrence asked for a test strategy for Project 3301 FRER (IEEE 802.1CB) on IE570, modelled on the
+MACsec ER-6888 strategy, then for one test plan, one test cycle and the cases it needs. Drafted
+here from the FOG, TFS, AIS, IE570 TPS and Microchip AN1185; Terrence pasted the strategy into the
+wiki himself (v0.1, then v0.2). The cases went 112 → 50 → 44 → 43 over four condensing rounds, then
+lost every platform-specific check on Terrence's ruling that cases and cycles are feature-specific
+(memory `test-cases-are-feature-specific`). Uploaded with a new reusable tool,
+`ask-ck/tools/zt_create.py`: plan AWPTCM-P3275, cycle AWPTCM-C8502, cases AWPTCM-T51103 – T51145.
+Afterwards the 28GHX left scope (28GSX is the board on hand), and with it 100M SFP and the IE580
+line; the plan's Resources line was updated in Zephyr to match, and the live cases and cycle were
+re-read and found clean. Detail and open items: PROGRESS 2026-10-14. Gate: pytest 2097 / 1 skipped,
+vitest 396.

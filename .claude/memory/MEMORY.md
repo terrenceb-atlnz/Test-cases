@@ -20,6 +20,7 @@
 - [Scoped directives stay scoped](scoped-directives-stay-scoped.md) — a one-line ruling binds to the layer under discussion, not every layer it could touch; name the others instead of assuming
 - [Checks must not match their own advice](checks-must-not-match-their-own-advice.md) — a grep for a bad pattern finds it in the text forbidding it; use the tests/_prose.py helpers
 - [Scripts must be hardware-agnostic](scripts-must-be-hardware-agnostic.md) — run on ALL platforms; don't pass `product=` to grounding; .setup binding is two layers, locals not self. in init()
+- [Test cases are feature-specific](test-cases-are-feature-specific.md) — Terrence 2026-10-14: Zephyr cases AND cycles carry no platform-specific checks (no models, platform lists, port types, chip notes, even in traceability); platforms belong in the test plan / strategy only
 - [AlliedWare Plus CLI docs](atlnz-docs-cli-reference.md) — docs.atlnz.lc/preview/; ck.db CLI built from ONE combined zip (ss-on-<product>) since 2026-09-08; renewable, stop→load→start
 - [ck.db cli command hyphen collapse](ckdb-cli-command-hyphen-collapse.md) — `cli_commands.command` mangles hyphenated tokens, so a PRESENT cmd reads MISSING; trust syntax/examples or device `?`
 - [Opus for per-unit Fix](opus-for-per-unit-fix.md) — Terrence 2026-09-09: Fix units on Opus (unit dropdown drives generate+fix); a wrong Sonnet fix costs a re-review; verify fixes at attribute level

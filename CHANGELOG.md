@@ -21,6 +21,23 @@ current working thread see
 > `ask-ck/ck-facelift/`, `pytest-create/` and `CK-main/` plan paths moved to `ask-ck/plans/` on 2026-09-11 and, once complete, to `archive/plans/`.
 > `js-tests/` → `tests/js/`, `e2e/` → `tests/e2e/`, `static/js/` → `ask-ck/frontend/ck-main/current/<page>/` (2026-09-11).
 
+## 2026-10-14 — `zt_create.py`: create a feature's new cases, plan and cycle in Zephyr
+
+**What.** `ask-ck/tools/zt_create.py` (CLI, `--dry-run` / `--apply`) creates new test cases, one
+test plan and one test cycle from a draft JSON file: missing case folders first (parent first),
+then the cases, the plan, and the cycle created linked to the plan with the cases as its items.
+First used for Project 3301 FRER (43 cases, AWPTCM-P3275 / C8502).
+
+**Why.** The existing Zephyr writers only change what exists — `upload_refined.py` updates cases,
+`zt_upload.py` clones template plans and cycles — and a new feature has neither cases nor a
+template to clone. Terrence asked for the uploader to be a reusable tool rather than a one-off.
+It carries `zt_upload.py`'s safety model (§5b of PLAN-zephyr-templating): every read before any
+write, typed confirmations, an audit line before each write, stop at the first failure, read back.
+Two rules are new: a case folder may be created only beneath an existing folder at least three
+levels deep, so a typo cannot create a version or team folder; and a same-name case or plan is
+reused, so a stopped run can simply be re-run (a same-name cycle stops it instead). Tested offline
+against a fake Zephyr (`tests/test_zt_create.py`); each safety rule was mutated and went red.
+
 ## 2026-10-12 — The PyTest Creator ends at a saved script; Run, Validate and Testboxes retired (branch tc-build)
 
 **What.** The Creator is 5 steps. Confirm Step 5 saves the script to `generated/`, confirms, and
