@@ -5078,3 +5078,11 @@ Terrence asked for the T1–T4 device configs. They are in `docs/frer-topologies
 is new (3 paths, 2 listeners, unicast and multicast streams). None has been loaded on hardware.
 This closes the open item in the entry above. Detail: PROGRESS 2026-10-14 (later). Gate: pytest
 2097 / 1 skipped, vitest 396.
+
+## Session Close / Handoff (2026-10-14, close) — FRER plan and strategy brought in line with the configs
+
+Test plan AWPTCM-P3275 updated in Zephyr: T2 transit switches need spanning-tree vlan-exclude; T4
+starts at 3 paths and 2 listeners; a new pointer to `docs/frer-topologies/`; Resources to match.
+Terrence pasted the matching strategy edits (lines 98, 172 and 338), and they were checked live.
+Terrence: ignore the TFS release-target mismatch (it is no longer open). Detail: PROGRESS
+2026-10-14 (close). Gate: pytest 2097 / 1 skipped, vitest 396.

@@ -11,6 +11,27 @@ verified: 2026-09-28
 > claim has since stopped being true, a ⚠ line under its heading says what changed.
 > Newest first. Paths in older entries predate these moves (the same as in CHANGELOG): `tool/` → `ask-ck/tools/`, `ask-ck/var/` → `ask-ck/db/`, `objective-drafting/` → `ask-ck/functions/generator/`, `pytest-create/` → `ask-ck/functions/pytest-creator/`, `js-tests/` → `tests/js/`, `ask-ck/ck-facelift/` → `ask-ck/plans/`, root reports → `docs/`, and completed plans `ask-ck/plans/` → `archive/plans/` (2026-09-11, 2026-09-23). Also retired 2026-09-23: the demo notes → `archive/plans/demo-2026-09-11/`, and `HANDOFF-generate-token-efficiency.md` + `Fragments_prompt.md` → `archive/records/`.
 
+## Latest session (2026-10-14, close) — FRER plan, strategy and configs agree
+
+These items supersede two lines in the 2026-10-14 entries below.
+- **Test plan P3275 updated in Zephyr** (one update of `objective`, every old phrase checked to
+  appear exactly once, read back, no other field changed):
+  - T2 transit switches must support `spanning-tree vlan-exclude` (IE220/IE340/IE360/IE560/IE570
+    on 5.5.6-2);
+  - T4 starts at three paths and two listener ports, and cases add paths up to the
+    egress-interface maximum;
+  - a new "Device configs" line points to `docs/frer-topologies/` and notes MRU 1506;
+  - Resources asks for three transit switches that support vlan-exclude.
+- **Strategy wiki**: Terrence pasted the matching edits (line 98 points to the configs; lines 172
+  and 338 now require vlan-exclude on transit switches). All were re-fetched and checked against
+  the text supplied.
+- **The TFS release-target mismatch (5.5.7-0 vs 5.5.6-2) is to be ignored** (Terrence,
+  2026-10-14). It is no longer an open item, so don't raise it again.
+
+Still open: the topology configs are not yet loaded on hardware (and T4's two untried CLI forms
+are unchecked); the Feature Complete "Y" is Terrence's; the two 2026-10-13 run records and the
+AN1185 PDF stay untracked, as before.
+
 ## Latest session (2026-10-14, later) — FRER topology configs T1–T4 written (`docs/frer-topologies/`)
 
 Supersedes the "T1–T4 device configs are not written" open item in the entry below.
