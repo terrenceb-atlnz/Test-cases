@@ -24,6 +24,11 @@ verified: 2026-10-09
 > then **Compose a Run** (Validation's own section is gone), and the colour specimen panel
 > (`panel-tc-tbd`) is removed.
 >
+> **2026-10-15 (Terrence):** a third Test Composer page is planned, not built: **Run Scripts**,
+> in [`PLAN-run-scripts.md`](PLAN-run-scripts.md). It runs finalized scripts, several at once,
+> with no repair, review or Finalize. Its run kind is `scripts`. It has a shareable link and a
+> one-off start time.
+>
 > Rewritten 2026-10-09 from Terrence's design in that day's conversation. It is the third of three plans:
 > 1. [`PLAN-agent-sessions.md`](PLAN-agent-sessions.md) (A, first): how Ask-CK starts and talks
 >    to a `/test-mode` session.

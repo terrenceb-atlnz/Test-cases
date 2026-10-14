@@ -209,8 +209,9 @@ poll, and manual checks generate a `yesNo()`.
 **Test Composer** — two pages, both launching device-testing's `/test-mode` through your seat's
 agent: **Validate a Script** (one saved script, run on a bench, repaired on a copy until the run
 is clean, reviewed, then Finalized) and **Compose a Run** (a project's runnable cases on a
-template bench, with results by cycle). Plans: `ask-ck/plans/PLAN-test-validation.md`,
-`PLAN-test-composer.md`, `PLAN-agent-sessions.md`. **Zephyr Templating Tool** — one page (**Organize Templates**): paste a project's wiki page, the model trims the template plans/cycles/cases citing the TPS and Test Strategy, you review the ticks; API Upload is a dry run for now (`ask-ck/plans/PLAN-zephyr-templating.md`).
+template bench, with results by cycle). A third page, **Run Scripts** (finalized scripts, several
+at once, from a shareable link), is planned, not built. Plans: `ask-ck/plans/PLAN-test-validation.md`,
+`PLAN-test-composer.md`, `PLAN-agent-sessions.md`, `PLAN-run-scripts.md`. **Zephyr Templating Tool** — one page (**Organize Templates**): paste a project's wiki page, the model trims the template plans/cycles/cases citing the TPS and Test Strategy, you review the ticks; API Upload is a dry run for now (`ask-ck/plans/PLAN-zephyr-templating.md`).
 
 Before touching lab hardware, read [`TESTBOX-ACCESS.md`](TESTBOX-ACCESS.md) in full.
 
