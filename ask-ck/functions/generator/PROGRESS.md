@@ -5,13 +5,59 @@ verified: 2026-09-28
 
 **Purpose**: This file exists so future sessions can quickly understand exactly where we are, what has been built, what the priorities are, and how to continue seamlessly.
 
-**Last Updated**: 2026-10-14 (by Claude, with Terrence; agent 1.3.5 — the session window shows reasoning and marks the reply)
+**Last Updated**: 2026-10-14 (by Claude, with Terrence; the session window reattaches to a reopened run, task rows labelled)
 
 > **Reading note (2026-09-23 doc sweep).** Entries are frozen as written. Where an entry's
 > claim has since stopped being true, a ⚠ line under its heading says what changed.
 > Newest first. Paths in older entries predate these moves (the same as in CHANGELOG): `tool/` → `ask-ck/tools/`, `ask-ck/var/` → `ask-ck/db/`, `objective-drafting/` → `ask-ck/functions/generator/`, `pytest-create/` → `ask-ck/functions/pytest-creator/`, `js-tests/` → `tests/js/`, `ask-ck/ck-facelift/` → `ask-ck/plans/`, root reports → `docs/`, and completed plans `ask-ck/plans/` → `archive/plans/` (2026-09-11, 2026-09-23). Also retired 2026-09-23: the demo notes → `archive/plans/demo-2026-09-11/`, and `HANDOFF-generate-token-efficiency.md` + `Fragments_prompt.md` → `archive/records/`.
 
+## Latest session (2026-10-14, late afternoon) — reattach a reopened run; task rows labelled; 43dd repair left to the page
+
+Terrence: "1. yes 2. yes 3. yes 4. erase them if they're not useful".
+- **Reattach** (AgentWindow `attach()`):
+  - **What it does:** when a run is opened without a session id (runs list, deep link, reload), the
+    window asks this seat's agent `GET /sessions` and matches on `run_id`. On a match it goes live,
+    replays from event 0 and relays everything; the server's record dedups by `seq`.
+  - **Otherwise:** no match, or no agent, means view-only from the record, as before.
+- **Task rows** (`taskLabel`):
+  - `subagent <type>` only with a `subagent_type`; a monitor or detached command is a
+    `background task`;
+  - foreground-command tasks, `task_progress` and `task_updated` are hidden, because each repeats a
+    row the window already shows (43dd had 52 progress rows, all from the tester);
+  - a notification takes its description from the task's start.
+- **Tests:** 3 vitest cases, each mutated and red. The PLAN-agent-sessions header is updated. No
+  agent or server change: the window is live on reload.
+- **Scratch directories:** the ten test-session directories under `~/.claude/projects/` are deleted.
+  Their findings are in the entry below, the CHANGELOG and the `agent-sessions-sdk-facts` memory.
+  `check_memory_links` is back to the four older non-Ask-CK problems.
+- **43dd repair: blocked, then routed through the page.**
+  - **What was tried:** folding events 210–467 from the seat agent's copy into the record with
+    `tc_runs.apply_events`, out of process, with `_now` pinned to 15:08:37 on 2026-10-13.
+  - **Why it stopped:** the auto-mode classifier denied it ("Modify Shared Resources"). It was not
+    retried another way.
+  - **The way now:** the seat agent (1.3.4, up since 2026-10-13 12:07) still holds the session
+    (`s1791856486-1`, 468 events). Reload Ask-CK, then open 43dd from the Validation runs list:
+    the window reattaches and relays the rest.
+  - **Do it BEFORE reinstalling agent 1.3.5:** the restart loses the session.
+  - **Known side effects:** the record's `ended` becomes the time it is opened, not 15:08 on the
+    13th (`apply_events` stamps `_now()`). Its results table stays empty: the run never printed a
+    `RESULT` line, even in the agent's copy. Finalize needs only `done` + REVIEWED.
+  - **Every other run record** matches the agent's copy.
+- **Terrence committed both 2026-10-13 run records** (`0775bfe`, 43dd still cut off at event 209)
+  and pushed `8a07f4d`.
+
+**Open:**
+- The 43dd repair, done in the page as above (Terrence).
+- Reinstall agent 1.3.5 on each seat, after the repair on this seat.
+- The `/test-mode` line about replying to the user (device-testing): deferred until the reasoning
+  display has been seen in use.
+
+Gate: pytest 2098 / 1 skipped, vitest 402.
+
 ## Latest session (2026-10-14, afternoon) — agent 1.3.5: the window shows the sentinel's reasoning and marks its reply
+
+> ⚠ Its open items on reattaching, the "subagent" rows and the scratch directories were closed the
+> same day; see the 2026-10-14 (late afternoon) entry above. The 43dd repair is still open.
 
 Terrence messaged the session in Validation run 2026-10-13T1454-val-43dd and saw no reply.
 - **Diagnosis:**

@@ -30,8 +30,14 @@ verified: 2026-10-09
 > after a user message (text or reasoning) is marked **reply**; the window's **Verbose** checkbox adds
 > the subagents'. Most reasoning blocks carry no text at all (20 of 23 in that run); the few that do
 > are short lines addressed to the user.
-> Still open from that run: a run reopened from the list does not reattach to the seat session
-> (§8 says it should), so the page's relay stops when you open another run.
+> **Reattach (§8) built the same day:** a run opened from the list, a deep link or a reload asks
+> this seat's agent for its sessions (`GET /sessions`) and, when one has the run's `run_id`, goes
+> live: it replays the agent's buffer and relays what the record missed. The match is on `run_id`
+> because session ids are per-agent counters that can repeat across seats. The agent keeps
+> sessions in memory only, so a run whose agent has since restarted stays view-only. Also fixed:
+> task rows are labelled by kind (`subagent <type>` only with a `subagent_type`, otherwise
+> `background task`); foreground-command tasks, subagent progress and `task_updated` are hidden,
+> because each repeats a row the window already shows.
 > - **Seat agent 1.3.0:** an Agent SDK session job (`/session/*`). The PowerShell agent reports
 >   sessions unavailable (D1).
 > - **Server:** `/api/test-composer` runs (hand-off schema 1, records as files, D5 notice and finish

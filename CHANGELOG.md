@@ -21,6 +21,29 @@ current working thread see
 > `ask-ck/ck-facelift/`, `pytest-create/` and `CK-main/` plan paths moved to `ask-ck/plans/` on 2026-09-11 and, once complete, to `archive/plans/`.
 > `js-tests/` → `tests/js/`, `e2e/` → `tests/e2e/`, `static/js/` → `ask-ck/frontend/ck-main/current/<page>/` (2026-09-11).
 
+## 2026-10-14 — The session window reattaches to a reopened run; task rows say what they are
+
+**What.**
+- **Reattach (PLAN-agent-sessions §8).** A run opened from the runs list, a deep link or a reload
+  asks this seat's agent for its sessions (`GET /sessions`). If one has the run's `run_id`, the
+  window goes live: it replays the agent's buffer, relays what the server's record missed (the
+  record dedups by `seq`), and offers the message box and Stop while the run is going.
+- **Task rows.** Only a task with a `subagent_type` is labelled `subagent <type>`; a monitor or a
+  detached command is a `background task`. Hidden, because each repeats a row the window already
+  shows: a foreground command's task rows, a subagent's progress rows, and `task_updated`.
+  Notifications take their description from the task's start.
+
+**Why.**
+- **Reattach.** In run 2026-10-13T1454-val-43dd the relay lived only in the on-screen window. When
+  Terrence opened another run, the record stopped at event 209 while the session ran on to 467.
+  Reopening the run only read the record, so even a reply made after that could never have been
+  seen. The match is on `run_id` because session ids (`s<seconds>-<n>`) are per-agent counters and
+  can repeat across seats. The agent holds sessions in memory only, so a run whose agent has
+  restarted stays view-only.
+- **Task rows.** Claude Code 2.1.29x reports shell commands as tasks. The window labelled every
+  task "subagent", so each Bash command added two misleading rows, and the tester's 52 progress
+  rows in 43dd each repeated one of its tool calls.
+
 ## 2026-10-14 — Agent 1.3.5: the session window shows the sentinel's reasoning and marks its reply
 
 **What.** The seat agent now passes each reasoning block's text to the page (capped at 4,000

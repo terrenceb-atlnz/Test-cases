@@ -425,3 +425,64 @@ describe('Composer: the probe verdict comes from the PROBE line', () => {
     }
   });
 });
+
+describe('the agent window: a run opened later reattaches to this seat\'s session (PLAN-agent-sessions §8)', () => {
+  // Run 2026-10-13T1454-val-43dd: opening another run ended the relay, and reopening this one only
+  // read the record, so the record stopped at event 209 while the session ran on to 467.
+  function open(agent, events = EVENTS.slice(0, 3)) {
+    const f = fakeServer(vdRoutes({ [`GET /runs/${RID}/events`]: { events } }));
+    root = document.createElement('div'); document.body.appendChild(root);
+    app = mountVd(root, { server: f.server, agent, openRun: RID });
+    return f;
+  }
+  const withSessions = (list, agent = fakeAgent()) => Object.assign(agent, { sessions: async () => ({ ok: true, sessions: list }) });
+
+  it('reattaches by run id, replays the agent\'s buffer and relays what the record missed', async () => {
+    const agent = withSessions([{ session_id: 's1', run_id: 'some-other-run', state: 'running', started: 5 },
+                                { session_id: 's9', run_id: RID, state: 'running', started: 1 }]);
+    const f = open(agent);
+    await until(() => $$('.tc-marker').length === 2 && $$('.tc-turn').length === 1);
+    expect(root.textContent).toContain('live from this seat');
+    expect(agent.calls.filter(c => c[0] === 'events').map(c => c[1])).toEqual(expect.arrayContaining(['s9']));
+    expect(agent.calls.filter(c => c[0] === 'events').every(c => c[1] === 's9')).toBe(true);
+    await until(() => f.calls.some(c => c.key === `POST /runs/${RID}/events`));
+    const posts = f.calls.filter(c => c.key === `POST /runs/${RID}/events`);
+    expect(posts.flatMap(c => c.body.events.map(e => e.seq))).toEqual(EVENTS.map(e => e.seq));
+    expect(posts.every(c => c.body.session_id === 's9')).toBe(true);
+  });
+
+  it('stays on the record when this seat has no session for the run, or no agent', async () => {
+    for (const agent of [withSessions([{ session_id: 's1', run_id: 'some-other-run', state: 'running', started: 5 }]),
+                         Object.assign(fakeAgent(), { sessions: async () => { throw new Error('connection refused'); } })]) {
+      const f = open(agent);
+      await until(() => /Starting triage\./.test(root.textContent));
+      expect(root.textContent).toContain('from the run record');
+      expect(agent.calls.some(c => c[0] === 'events')).toBe(false);
+      expect(f.calls.some(c => c.key === `POST /runs/${RID}/events`)).toBe(false);
+      app.destroy(); app = null; root.remove(); root = null;
+    }
+  });
+
+  it('labels tasks by what they are: a foreground command\'s and a subagent\'s progress rows are hidden', async () => {
+    // Verbatim shapes from run 43dd: Claude Code reports shell commands and the sentinel's monitor as tasks.
+    const evs = [EVENTS[0],
+      { seq: 1, t: 1, kind: 'task', subtype: 'task_started', task_id: 'b1', description: 'Bare-CR peek on each session console', subagent_type: null, background: false },
+      { seq: 2, t: 2, kind: 'task', subtype: 'task_notification', task_id: 'b1', description: null, subagent_type: null, background: null, status: 'completed' },
+      { seq: 3, t: 3, kind: 'task', subtype: 'task_started', task_id: 'm1', description: 'sentinel: T33234 validation', subagent_type: null, background: true },
+      { seq: 4, t: 4, kind: 'task', subtype: 'task_started', task_id: 'a1', description: 'TRIAGE T33234 on tb470', subagent_type: 'bench-runner', background: true },
+      { seq: 5, t: 5, kind: 'task', subtype: 'task_progress', task_id: 'a1', description: 'Running Read the queue file', subagent_type: null, background: null },
+      { seq: 6, t: 6, kind: 'task', subtype: 'task_updated', task_id: 'a1', description: null, subagent_type: null, background: null, status: 'completed' },
+      { seq: 7, t: 7, kind: 'task', subtype: 'task_notification', task_id: 'a1', description: null, subagent_type: null, background: null, status: 'completed', usage: { total_tokens: 98991 } },
+      { seq: 8, t: 8, kind: 'task', subtype: 'task_notification', task_id: 'm1', description: null, subagent_type: null, background: null, status: 'stopped' },
+      { seq: 9, t: 9, kind: 'state', state: 'done' }];
+    open(fakeAgent(), evs);
+    await until(() => $$('.tc-task').length === 4);
+    const rows = $$('.tc-task').map(e => e.textContent);
+    expect(rows.slice(0, 3)).toEqual(['background task sentinel: T33234 validation — started',
+      'subagent bench-runner TRIAGE T33234 on tb470 — started',
+      expect.stringMatching(/^subagent bench-runner TRIAGE T33234 on tb470 — completed · .+ tokens$/)]);
+    expect(rows[3]).toBe('background task sentinel: T33234 validation — stopped');
+    expect(root.textContent).not.toContain('Bare-CR peek');
+    expect(root.textContent).not.toContain('Running Read the queue file');
+  });
+});

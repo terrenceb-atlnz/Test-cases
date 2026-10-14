@@ -1,6 +1,6 @@
 /* Built from ask-ck/frontend/ck-main/current/svelte-src/ — do not edit; run `npm run build` there.
-* source-sha256:d8f5a2f8ae5544ec78e35e4ebf402c33b2c83f125ebe06f80d863f15e5596e06 */
-import { A as event, B as proxy, E as from_html, G as pop, H as state, I as child, J as reset, K as push, L as first_child, M as untrack, N as template_effect, O as delegate, P as user_effect, R as only_child, S as set_text, T as comment, V as set, W as user_derived, _ as each, a as bind_checked, b as if_block, c as remove_input_defaults, d as bind_select_value, f as init_select, g as clsx, h as set_class, i as bind_this, j as get, k as delegated, l as set_attribute, n as onMount, p as select_option, q as next, r as prop, s as bind_value, t as onDestroy, u as set_checked, v as index, w as append, z as sibling } from "./disclose-version-rpmQQ5dj.js";
+* source-sha256:b6e9e10e1afb636e68b3c321dd3f52483f4377276ee8bb34822d2c2656a60b3e */
+import { A as event, B as proxy, E as from_html, G as pop, H as state, I as child, J as reset, K as push, L as first_child, M as untrack, N as template_effect, O as delegate, P as user_effect, R as only_child, S as set_text, T as comment, V as set, W as user_derived, _ as each, a as bind_checked, b as if_block, c as remove_input_defaults, d as bind_select_value, f as init_select, g as clsx, h as set_class, i as bind_this, j as get, k as delegated, l as set_attribute, n as onMount, p as select_option, q as next, r as prop, s as bind_value, t as onDestroy, u as set_checked, v as index, w as append, z as sibling } from "./disclose-version-DSaNGfAt.js";
 //#region src/tc/api.js
 var TC_API = "/api/test-composer";
 async function json(r) {
@@ -167,6 +167,7 @@ function AgentWindow($$anchor, $$props) {
 	let sessionId = prop($$props, "sessionId", 3, null), onstate = prop($$props, "onstate", 3, () => {}), compact = prop($$props, "compact", 3, false);
 	let events = state(proxy([]));
 	const liveAtStart = untrack(() => !!sessionId());
+	let sid = untrack(() => sessionId());
 	let state$1 = state(proxy(liveAtStart ? "starting" : "viewing"));
 	let error = state(null);
 	let mode = state(proxy(liveAtStart ? "live" : "server"));
@@ -188,6 +189,16 @@ function AgentWindow($$anchor, $$props) {
 		}
 		return out;
 	});
+	const taskStarts = user_derived(() => new Map(get(events).filter((e) => e.kind === "task" && e.subtype === "task_started").map((e) => [e.task_id, e])));
+	function taskLabel(e) {
+		if (e.subtype === "task_updated" || e.subtype === "task_progress") return null;
+		const s = (e.subtype === "task_started" ? e : get(taskStarts).get(e.task_id)) || e;
+		if (!s.subagent_type && !s.background) return null;
+		const what = s.subagent_type ? `subagent ${s.subagent_type}` : "background task";
+		const how = e.subtype === "task_started" ? "started" : e.status || e.subtype.replace("task_", "");
+		const toks = e.usage && e.usage.total_tokens ? ` · ${fmtTokens(e.usage.total_tokens)} tokens` : "";
+		return `${what} ${s.description || ""} — ${how}${toks}`;
+	}
 	const results = user_derived(() => new Map(get(events).filter((e) => e.kind === "tool_result").map((e) => [e.id, e])));
 	const lastResult = user_derived(() => [...get(events)].reverse().find((e) => e.kind === "result"));
 	const updatesCost = user_derived(() => get(events).reduce((a, e) => a + (e.kind === "update" && typeof e.cost_usd === "number" ? e.cost_usd : 0), 0));
@@ -223,7 +234,7 @@ function AgentWindow($$anchor, $$props) {
 				method: "POST",
 				body: JSON.stringify({
 					events: unsent,
-					session_id: sessionId()
+					session_id: sid
 				})
 			});
 			unsent = [];
@@ -247,7 +258,7 @@ function AgentWindow($$anchor, $$props) {
 	async function pollAgent() {
 		let after = 0;
 		while (!stopped && get(mode) === "live") try {
-			const d = await $$props.agent.events(sessionId(), after, 20);
+			const d = await $$props.agent.events(sid, after, 20);
 			take(d.events);
 			await relay(d.events);
 			after = d.next;
@@ -288,7 +299,7 @@ function AgentWindow($$anchor, $$props) {
 		const answers = {};
 		answers[q.question] = label;
 		try {
-			await $$props.agent.answer(sessionId(), {
+			await $$props.agent.answer(sid, {
 				request_id: ev.request_id,
 				answers
 			});
@@ -302,7 +313,7 @@ function AgentWindow($$anchor, $$props) {
 	}
 	async function approve(ev, allow) {
 		try {
-			await $$props.agent.answer(sessionId(), {
+			await $$props.agent.answer(sid, {
 				request_id: ev.request_id,
 				allow,
 				message: allow ? "" : "Denied in Ask-CK."
@@ -319,7 +330,7 @@ function AgentWindow($$anchor, $$props) {
 		const text = get(draft).trim();
 		if (!text) return;
 		try {
-			await $$props.agent.message(sessionId(), text);
+			await $$props.agent.message(sid, text);
 			set(draft, "");
 		} catch (e) {
 			set(error, e.message, true);
@@ -327,7 +338,7 @@ function AgentWindow($$anchor, $$props) {
 	}
 	async function stop() {
 		try {
-			await $$props.agent.stop(sessionId());
+			await $$props.agent.stop(sid);
 		} catch (e) {
 			set(error, e.message, true);
 		}
@@ -338,9 +349,22 @@ function AgentWindow($$anchor, $$props) {
 		const v = (line.split(/\s+/)[2] || "").toUpperCase();
 		return v === "PASS" ? "tc-m-pass" : ["FAIL", "ERROR"].includes(v) ? "tc-m-fail" : "tc-m-other";
 	}
+	async function attach() {
+		try {
+			const mine = ((await $$props.agent.sessions()).sessions || []).filter((x) => x.run_id === $$props.runId).sort((a, b) => (b.started || 0) - (a.started || 0))[0];
+			if (mine && !stopped) {
+				sid = mine.session_id;
+				set(mode, "live");
+				set(state$1, mine.state, true);
+				pollAgent();
+				return;
+			}
+		} catch (_) {}
+		if (!stopped) pollServer();
+	}
 	onMount(() => {
 		if (get(mode) === "live") pollAgent();
-		else pollServer();
+		else attach();
 	});
 	onDestroy(() => {
 		stopped = true;
@@ -487,25 +511,34 @@ function AgentWindow($$anchor, $$props) {
 			}, true));
 			append($$anchor, div_6);
 		};
-		var consequent_9 = ($$anchor) => {
-			var div_7 = root_6$2();
-			var text_14 = only_child(div_7);
-			template_effect(($0, $1) => set_text(text_14, `subagent ${(get(e).subagent_type || "") ?? ""} ${(get(e).description || "") ?? ""} — ${$0 ?? ""}${get(e).status ? ` (${get(e).status})` : ""}${$1 ?? ""}`), [() => get(e).subtype.replace("task_", ""), () => get(e).usage && get(e).usage.total_tokens ? ` · ${fmtTokens(get(e).usage.total_tokens)} tokens` : ""]);
-			append($$anchor, div_7);
+		var consequent_10 = ($$anchor) => {
+			const label = user_derived(() => taskLabel(get(e)));
+			var fragment_2 = comment();
+			var node_8 = first_child(fragment_2);
+			var consequent_9 = ($$anchor) => {
+				var div_7 = root_6$2();
+				var text_14 = only_child(div_7, true);
+				template_effect(() => set_text(text_14, get(label)));
+				append($$anchor, div_7);
+			};
+			if_block(node_8, ($$render) => {
+				if (get(label)) $$render(consequent_9);
+			});
+			append($$anchor, fragment_2);
 		};
-		var consequent_11 = ($$anchor) => {
+		var consequent_12 = ($$anchor) => {
 			var div_8 = root_8$2();
 			let classes_4;
 			var text_15 = child(div_8);
-			var node_8 = sibling(text_15);
-			var consequent_10 = ($$anchor) => {
+			var node_9 = sibling(text_15);
+			var consequent_11 = ($$anchor) => {
 				var div_9 = root_7$2();
 				var text_16 = only_child(div_9);
 				template_effect(() => set_text(text_16, `Needs a look: ${get(e).attention ?? ""}`));
 				append($$anchor, div_9);
 			};
-			if_block(node_8, ($$render) => {
-				if (get(e).attention) $$render(consequent_10);
+			if_block(node_9, ($$render) => {
+				if (get(e).attention) $$render(consequent_11);
 			});
 			reset(div_8);
 			template_effect(() => {
@@ -514,7 +547,7 @@ function AgentWindow($$anchor, $$props) {
 			});
 			append($$anchor, div_8);
 		};
-		var consequent_12 = ($$anchor) => {
+		var consequent_13 = ($$anchor) => {
 			var div_10 = root_9$1();
 			var text_17 = only_child(div_10, true);
 			template_effect(($0) => {
@@ -523,18 +556,18 @@ function AgentWindow($$anchor, $$props) {
 			}, [() => markerClass(get(e).line)]);
 			append($$anchor, div_10);
 		};
-		var consequent_14 = ($$anchor) => {
+		var consequent_15 = ($$anchor) => {
 			var div_11 = root_14$1();
-			var node_9 = sibling(child(div_11), 2);
-			each(node_9, 17, () => get(e).input && get(e).input.questions || [], index, ($$anchor, q) => {
-				var fragment_2 = root_13$1();
-				var div_12 = first_child(fragment_2);
+			var node_10 = sibling(child(div_11), 2);
+			each(node_10, 17, () => get(e).input && get(e).input.questions || [], index, ($$anchor, q) => {
+				var fragment_3 = root_13$1();
+				var div_12 = first_child(fragment_3);
 				var text_18 = only_child(div_12, true);
-				var node_10 = sibling(div_12, 2);
-				var consequent_13 = ($$anchor) => {
+				var node_11 = sibling(div_12, 2);
+				var consequent_14 = ($$anchor) => {
 					var div_13 = root_11$1();
-					var node_11 = child(div_13);
-					each(node_11, 17, () => get(q).options || [], index, ($$anchor, o) => {
+					var node_12 = child(div_13);
+					each(node_12, 17, () => get(q).options || [], index, ($$anchor, o) => {
 						var button_2 = root_10$1();
 						var text_19 = only_child(button_2, true);
 						template_effect(() => {
@@ -544,7 +577,7 @@ function AgentWindow($$anchor, $$props) {
 						delegated("click", button_2, () => answerQuestion(get(e), get(q), get(o).label));
 						append($$anchor, button_2);
 					});
-					var input_2 = sibling(node_11, 2);
+					var input_2 = sibling(node_12, 2);
 					remove_input_defaults(input_2);
 					var button_3 = sibling(input_2, 2);
 					reset(div_13);
@@ -559,30 +592,30 @@ function AgentWindow($$anchor, $$props) {
 					template_effect(() => set_text(text_20, get(answered)[get(e).request_id] ? "Answered here." : get(e).waits ? "Waiting for an answer…" : "Not waited for: the campaign carries on (D5)."));
 					append($$anchor, div_14);
 				};
-				if_block(node_10, ($$render) => {
-					if (get(d_3)) $$render(consequent_13);
+				if_block(node_11, ($$render) => {
+					if (get(d_3)) $$render(consequent_14);
 					else $$render(alternate, -1);
 				});
 				template_effect(() => set_text(text_18, get(q).question));
-				append($$anchor, fragment_2);
+				append($$anchor, fragment_3);
 			});
 			reset(div_11);
 			append($$anchor, div_11);
 		};
-		var consequent_16 = ($$anchor) => {
+		var consequent_17 = ($$anchor) => {
 			var div_15 = root_16();
 			var div_16 = child(div_15);
 			var text_21 = only_child(div_16);
 			var pre_1 = sibling(div_16, 2);
 			var text_22 = only_child(pre_1, true);
-			var node_12 = sibling(pre_1, 2);
-			var consequent_15 = ($$anchor) => {
-				var fragment_3 = root_15();
-				var button_4 = first_child(fragment_3);
+			var node_13 = sibling(pre_1, 2);
+			var consequent_16 = ($$anchor) => {
+				var fragment_4 = root_15();
+				var button_4 = first_child(fragment_4);
 				var button_5 = sibling(button_4, 2);
 				delegated("click", button_4, () => approve(get(e), true));
 				delegated("click", button_5, () => approve(get(e), false));
-				append($$anchor, fragment_3);
+				append($$anchor, fragment_4);
 			};
 			var d_4 = user_derived(() => get(e).waits && get(live) && !get(pendingIds).has(get(e).request_id) && !get(answered)[get(e).request_id]);
 			var alternate_1 = ($$anchor) => {
@@ -591,8 +624,8 @@ function AgentWindow($$anchor, $$props) {
 				template_effect(() => set_text(text_23, get(answered)[get(e).request_id] ? "Answered here." : "Not approved: outside the session's permission profile (D6)."));
 				append($$anchor, div_17);
 			};
-			if_block(node_12, ($$render) => {
-				if (get(d_4)) $$render(consequent_15);
+			if_block(node_13, ($$render) => {
+				if (get(d_4)) $$render(consequent_16);
 				else $$render(alternate_1, -1);
 			});
 			reset(div_15);
@@ -602,25 +635,25 @@ function AgentWindow($$anchor, $$props) {
 			});
 			append($$anchor, div_15);
 		};
-		var consequent_17 = ($$anchor) => {
+		var consequent_18 = ($$anchor) => {
 			var div_18 = root_17();
 			var text_24 = only_child(div_18);
 			template_effect(($0, $1) => set_text(text_24, `turn finished · ${get(e).num_turns ?? ""} turns · ${$0 ?? ""}${$1 ?? ""}`), [() => fmtDuration(get(e).duration_ms), () => get(e).total_cost_usd != null ? ` · $${get(e).total_cost_usd.toFixed(2)}` : ""]);
 			append($$anchor, div_18);
 		};
-		var consequent_18 = ($$anchor) => {
+		var consequent_19 = ($$anchor) => {
 			var div_19 = root_18();
 			var text_25 = only_child(div_19, true);
 			template_effect(() => set_text(text_25, get(e).text));
 			append($$anchor, div_19);
 		};
-		var consequent_19 = ($$anchor) => {
+		var consequent_20 = ($$anchor) => {
 			var div_20 = root_19();
 			var text_26 = only_child(div_20);
 			template_effect(() => set_text(text_26, `session ${get(e).state ?? ""}${get(e).error ? ": " + get(e).error : ""}`));
 			append($$anchor, div_20);
 		};
-		var consequent_20 = ($$anchor) => {
+		var consequent_21 = ($$anchor) => {
 			var div_21 = root_19();
 			var text_27 = only_child(div_21);
 			template_effect(() => set_text(text_27, `session started · ${(get(e).model || "") ?? ""} · permission mode ${(get(e).permission_mode || "?") ?? ""} · Claude Code ${(get(e).cli_version || "?") ?? ""}`));
@@ -630,30 +663,30 @@ function AgentWindow($$anchor, $$props) {
 			if (get(e).kind === "text") $$render(consequent_3);
 			else if (get(e).kind === "thinking") $$render(consequent_6, 1);
 			else if (get(e).kind === "tool_use") $$render(consequent_8, 2);
-			else if (get(e).kind === "task") $$render(consequent_9, 3);
-			else if (get(e).kind === "update") $$render(consequent_11, 4);
-			else if (get(e).kind === "marker") $$render(consequent_12, 5);
-			else if (get(e).kind === "question") $$render(consequent_14, 6);
-			else if (get(e).kind === "approval") $$render(consequent_16, 7);
-			else if (get(e).kind === "result") $$render(consequent_17, 8);
-			else if (get(e).kind === "user_message") $$render(consequent_18, 9);
-			else if (get(e).kind === "state") $$render(consequent_19, 10);
-			else if (get(e).kind === "init") $$render(consequent_20, 11);
+			else if (get(e).kind === "task") $$render(consequent_10, 3);
+			else if (get(e).kind === "update") $$render(consequent_12, 4);
+			else if (get(e).kind === "marker") $$render(consequent_13, 5);
+			else if (get(e).kind === "question") $$render(consequent_15, 6);
+			else if (get(e).kind === "approval") $$render(consequent_17, 7);
+			else if (get(e).kind === "result") $$render(consequent_18, 8);
+			else if (get(e).kind === "user_message") $$render(consequent_19, 9);
+			else if (get(e).kind === "state") $$render(consequent_20, 10);
+			else if (get(e).kind === "init") $$render(consequent_21, 11);
 		});
 		append($$anchor, fragment);
 	});
-	var node_13 = sibling(node_2, 2);
-	var consequent_21 = ($$anchor) => {
+	var node_14 = sibling(node_2, 2);
+	var consequent_22 = ($$anchor) => {
 		var div_22 = root_20();
 		append($$anchor, div_22);
 	};
-	if_block(node_13, ($$render) => {
-		if (!get(events).length) $$render(consequent_21);
+	if_block(node_14, ($$render) => {
+		if (!get(events).length) $$render(consequent_22);
 	});
 	reset(div_3);
 	bind_this(div_3, ($$value) => box = $$value, () => box);
-	var node_14 = sibling(div_3, 2);
-	var consequent_22 = ($$anchor) => {
+	var node_15 = sibling(div_3, 2);
+	var consequent_23 = ($$anchor) => {
 		var div_23 = root_21();
 		var input_3 = child(div_23);
 		remove_input_defaults(input_3);
@@ -666,8 +699,8 @@ function AgentWindow($$anchor, $$props) {
 		delegated("click", button_6, send);
 		append($$anchor, div_23);
 	};
-	if_block(node_14, ($$render) => {
-		if (get(live)) $$render(consequent_22);
+	if_block(node_15, ($$render) => {
+		if (get(live)) $$render(consequent_23);
 	});
 	reset(div);
 	template_effect(($0, $1, $2, $3) => {

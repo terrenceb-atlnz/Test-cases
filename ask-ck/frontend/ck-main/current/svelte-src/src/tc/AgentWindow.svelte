@@ -11,6 +11,7 @@
   let events = $state([]);
   // The window is re-created per run ({#key runId}), so the INITIAL sessionId is what matters.
   const liveAtStart = untrack(() => !!sessionId);
+  let sid = untrack(() => sessionId);                 // the seat session this window talks to, if any
   let state = $state(liveAtStart ? 'starting' : 'viewing');
   let error = $state(null);
   let mode = $state(liveAtStart ? 'live' : 'server');   // live = from the agent; server = the record
@@ -37,6 +38,19 @@
     }
     return out;
   });
+  // Claude Code reports shell commands and monitors as tasks too, so only a task with a subagent_type
+  // is a subagent. A foreground command's task rows repeat its tool row, and a subagent's progress
+  // rows repeat its tool rows, so both are hidden; task_updated repeats the notification.
+  const taskStarts = $derived(new Map(events.filter(e => e.kind === 'task' && e.subtype === 'task_started').map(e => [e.task_id, e])));
+  function taskLabel(e) {
+    if (e.subtype === 'task_updated' || e.subtype === 'task_progress') return null;
+    const s = (e.subtype === 'task_started' ? e : taskStarts.get(e.task_id)) || e;
+    if (!s.subagent_type && !s.background) return null;
+    const what = s.subagent_type ? `subagent ${s.subagent_type}` : 'background task';
+    const how = e.subtype === 'task_started' ? 'started' : (e.status || e.subtype.replace('task_', ''));
+    const toks = e.usage && e.usage.total_tokens ? ` · ${fmtTokens(e.usage.total_tokens)} tokens` : '';
+    return `${what} ${s.description || ''} — ${how}${toks}`;
+  }
   const results = $derived(new Map(events.filter(e => e.kind === 'tool_result').map(e => [e.id, e])));
   const lastResult = $derived([...events].reverse().find(e => e.kind === 'result'));
   // The session's own cost plus the sentinel's Haiku updates (billed apart, device-testing orient-dt §10).
@@ -66,7 +80,7 @@
     unsent = unsent.concat(evs);
     if (!unsent.length) return;
     try {
-      await server(`/runs/${encodeURIComponent(runId)}/events`, { method: 'POST', body: JSON.stringify({ events: unsent, session_id: sessionId }) });
+      await server(`/runs/${encodeURIComponent(runId)}/events`, { method: 'POST', body: JSON.stringify({ events: unsent, session_id: sid }) });
       unsent = [];
       if (error && error.startsWith('Could not save')) error = null;
     } catch (e) { error = `Could not save ${unsent.length} event(s) to the run record (will retry): ${e.message}`; }
@@ -86,7 +100,7 @@
     let after = 0;
     while (!stopped && mode === 'live') {
       try {
-        const d = await agent.events(sessionId, after, 20);
+        const d = await agent.events(sid, after, 20);
         take(d.events);
         await relay(d.events);
         after = d.next;
@@ -116,23 +130,23 @@
   async function answerQuestion(ev, q, label) {
     const answers = {};
     answers[q.question] = label;
-    try { await agent.answer(sessionId, { request_id: ev.request_id, answers }); answered = { ...answered, [ev.request_id]: true }; }
+    try { await agent.answer(sid, { request_id: ev.request_id, answers }); answered = { ...answered, [ev.request_id]: true }; }
     catch (e) { error = e.message; }
   }
 
   async function approve(ev, allow) {
-    try { await agent.answer(sessionId, { request_id: ev.request_id, allow, message: allow ? '' : 'Denied in Ask-CK.' }); answered = { ...answered, [ev.request_id]: true }; }
+    try { await agent.answer(sid, { request_id: ev.request_id, allow, message: allow ? '' : 'Denied in Ask-CK.' }); answered = { ...answered, [ev.request_id]: true }; }
     catch (e) { error = e.message; }
   }
 
   async function send() {
     const text = draft.trim();
     if (!text) return;
-    try { await agent.message(sessionId, text); draft = ''; } catch (e) { error = e.message; }
+    try { await agent.message(sid, text); draft = ''; } catch (e) { error = e.message; }
   }
 
   async function stop() {
-    try { await agent.stop(sessionId); } catch (e) { error = e.message; }
+    try { await agent.stop(sid); } catch (e) { error = e.message; }
   }
 
   function markerClass(line) {
@@ -142,7 +156,20 @@
     return v === 'PASS' ? 'tc-m-pass' : ['FAIL', 'ERROR'].includes(v) ? 'tc-m-fail' : 'tc-m-other';
   }
 
-  onMount(() => { if (mode === 'live') pollAgent(); else pollServer(); });
+  // A run opened from the list, a deep link or a reload starts from the record. If THIS seat's agent
+  // still holds the run's session (PLAN-agent-sessions §8), reattach: replay the agent's buffer and
+  // relay what the record missed (it is idempotent by seq). Matched by run_id, which is unique;
+  // session ids are per-agent counters and can repeat across seats.
+  async function attach() {
+    try {
+      const d = await agent.sessions();
+      const mine = (d.sessions || []).filter(x => x.run_id === runId).sort((a, b) => (b.started || 0) - (a.started || 0))[0];
+      if (mine && !stopped) { sid = mine.session_id; mode = 'live'; state = mine.state; pollAgent(); return; }
+    } catch (_) { /* no agent here, or it cannot list sessions: the record is all there is */ }
+    if (!stopped) pollServer();
+  }
+
+  onMount(() => { if (mode === 'live') pollAgent(); else attach(); });
   onDestroy(() => { stopped = true; });
 </script>
 
@@ -175,7 +202,8 @@
           {#if open[e.id]}<pre class="tc-pre">{e.input}{r ? '\n— result —\n' + r.excerpt : ''}</pre>{/if}
         </div>
       {:else if e.kind === 'task'}
-        <div class="tc-ev tc-task">subagent {e.subagent_type || ''} {e.description || ''} — {e.subtype.replace('task_', '')}{e.status ? ` (${e.status})` : ''}{e.usage && e.usage.total_tokens ? ` · ${fmtTokens(e.usage.total_tokens)} tokens` : ''}</div>
+        {@const label = taskLabel(e)}
+        {#if label}<div class="tc-ev tc-task">{label}</div>{/if}
       {:else if e.kind === 'update'}
         <div class="tc-ev tc-update" class:tc-attn={!!e.attention}>{e.at ? `${e.at} ` : ''}{e.text}{#if e.attention}<div class="tc-attn-why">Needs a look: {e.attention}</div>{/if}</div>
       {:else if e.kind === 'marker'}

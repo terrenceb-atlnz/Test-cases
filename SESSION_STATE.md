@@ -5098,3 +5098,13 @@ first thing said after a message as **reply**. Seats must reinstall the agent. O
 reopened run, repairing 43dd's record, the "subagent" rows on Bash commands, and the scratch
 session directories. Detail: PROGRESS 2026-10-14 (afternoon). Gate: pytest 2098 / 1 skipped,
 vitest 399.
+
+## Session Close / Handoff (2026-10-14, late afternoon) — reattach, task rows, scratch cleanup
+
+Closes three open items from the entry above. The session window now reattaches to this seat's
+live session when a run is reopened (matched by `run_id`, relaying what the record missed). Task
+rows are labelled by kind, with the duplicates hidden. The ten scratch test-session directories
+are deleted. The 43dd record repair was blocked by the auto-mode classifier as a direct write; it
+is now done by opening the run in the page, while the seat agent still holds the session (before
+reinstalling 1.3.5). Detail: PROGRESS 2026-10-14 (late afternoon). Gate: pytest 2098 / 1 skipped,
+vitest 402.
