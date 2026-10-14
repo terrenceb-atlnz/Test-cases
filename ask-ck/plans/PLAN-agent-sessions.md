@@ -38,6 +38,12 @@ verified: 2026-10-09
 > task rows are labelled by kind (`subagent <type>` only with a `subagent_type`, otherwise
 > `background task`); foreground-command tasks, subagent progress and `task_updated` are hidden,
 > because each repeats a row the window already shows.
+> **2026-10-13 (Windows facts for D1/D8, nothing decided):** `testbox_home` is the NFS v4 export
+> `tbhome.st.atlnz.lc:/home/<user>`, one per person. It has no drive letter; the lettered drives
+> are the CIFS shares on `svr-chch-cifs1.atlnz.lc`. Windows' NFS client speaks only v2/v3.
+> Terrence is checking whether a Windows seat can reach the share; per-user testbox accounts are
+> also undecided. The D8 gap applies: a session in its own user's `testbox_home` writes logs the
+> server, which reads its own `dt_root`, does not see.
 > - **Seat agent 1.3.0:** an Agent SDK session job (`/session/*`). The PowerShell agent reports
 >   sessions unavailable (D1).
 > - **Server:** `/api/test-composer` runs (hand-off schema 1, records as files, D5 notice and finish

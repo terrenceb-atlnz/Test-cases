@@ -5108,3 +5108,25 @@ are deleted. The 43dd record repair was blocked by the auto-mode classifier as a
 is now done by opening the run in the page, while the seat agent still holds the session (before
 reinstalling 1.3.5). Detail: PROGRESS 2026-10-14 (late afternoon). Gate: pytest 2098 / 1 skipped,
 vitest 402.
+
+## Session Close / Handoff (2026-10-13 work, wrapped 2026-10-15) — agent 1.3.2–1.3.4, T33235 regrouped, tb470 link M
+
+Logs the 2026-10-13 commits `fb7375b` … `588cb37`, which reached `origin` before the 2026-10-14
+entries above. Here is what they did:
+- **Agent 1.3.2:** lifts Validation's markers.
+- **Agent 1.3.3:** the sentinel's updates come from Haiku and are relayed without waking Opus.
+  The cost case was $35.11 for val-fbe9; the next run cost $12.14 + $0.10.
+- **Agent 1.3.4:** the session closes on the final result, so the run's cost is complete.
+- **T33235:** 33 TestCases run as 14, and the case is hidden from the PyTest Creator during
+  Validation.
+
+On the bench, tb470 link M (stack port1.0.6 – IE520-sa port1.0.14) is in VLAN 106, saved to both
+units' `tb470-bench.cfg`. Run 1223-val-3ede then passed T33235 first time in 67 min.
+
+Open:
+- Neither 3ede nor 43dd carries a `RESULT` marker.
+- `bench-state.md` has not been regenerated.
+- Windows seats: Terrence is checking whether `testbox_home` (NFS v4, per user) is reachable;
+  the D8 gap applies.
+
+Detail: PROGRESS 2026-10-13 (wrapped 2026-10-15).

@@ -5,11 +5,72 @@ verified: 2026-09-28
 
 **Purpose**: This file exists so future sessions can quickly understand exactly where we are, what has been built, what the priorities are, and how to continue seamlessly.
 
-**Last Updated**: 2026-10-14 (by Claude, with Terrence; the session window reattaches to a reopened run, task rows labelled)
+**Last Updated**: 2026-10-15 (by Claude, with Terrence; the 2026-10-13 work logged: agent 1.3.2–1.3.4, T33235 regrouped, tb470 link M, Windows-seat facts)
 
 > **Reading note (2026-09-23 doc sweep).** Entries are frozen as written. Where an entry's
 > claim has since stopped being true, a ⚠ line under its heading says what changed.
 > Newest first. Paths in older entries predate these moves (the same as in CHANGELOG): `tool/` → `ask-ck/tools/`, `ask-ck/var/` → `ask-ck/db/`, `objective-drafting/` → `ask-ck/functions/generator/`, `pytest-create/` → `ask-ck/functions/pytest-creator/`, `js-tests/` → `tests/js/`, `ask-ck/ck-facelift/` → `ask-ck/plans/`, root reports → `docs/`, and completed plans `ask-ck/plans/` → `archive/plans/` (2026-09-11, 2026-09-23). Also retired 2026-09-23: the demo notes → `archive/plans/demo-2026-09-11/`, and `HANDOFF-generate-token-efficiency.md` + `Fragments_prompt.md` → `archive/records/`.
+
+## Latest session (2026-10-13, wrapped 2026-10-15) — agent 1.3.2–1.3.4, T33235 regrouped and hidden from the Creator, tb470 link M, Windows seats
+
+Written late: the work shipped on 2026-10-13 (`fb7375b` … `588cb37`, all pushed) and the 2026-10-14
+entries below build on it. Terrence: "review the validate runs", then "the price climbing … It cost
+$35.11 to run this one script, How?", "implement A and B", "i want the run cost to be as accurate
+as possible", "Implement both for this test script", "just hide it from pytest creator".
+- **Agent 1.3.2:** lifts the `PROBE`, `REPAIRED` and `REVIEWED` markers (1.3.1 dropped them, so
+  Finalize never turned on). device-testing `/test-mode` §7 has the sentinel echo `RESULT`.
+- **Agent 1.3.3 — the cost fix.** Run val-fbe9 cost $35.11: 331 Opus wakes, each re-reading a
+  conversation that grew from 125k to 553k tokens. device-testing's sentinel now has a Haiku
+  narrator (`narrate.sh`) that writes the updates to `CK_SENTINEL_UPDATES`. The agent relays them as
+  `update` events, and the session wakes only for ATTENTION and the alarms. Their cost is kept as
+  `updates_cost_usd` and added once in the window and the runs table.
+- **Agent 1.3.4:** the session closes on the result after `ASKCK-DONE` (grace 120 s), so the run's
+  final cost is no longer dropped.
+- **T33235 script (`ef53cea`):**
+  - **Change:** 33 TestCases became 14. Steps with the same gates run as one `_StepGroup`
+    TestCase, and step 28 (`TestCase_28`) runs with `confCheck=False`.
+  - **Why:** the framework's per-TestCase save and config check (~55 s each) was about 3/4 of the
+    run time.
+  - **Original:** kept in the session scratchpad only (sha1 b044d695).
+- **Hidden from the Creator (`588cb37`):** `case_registry.PT_CREATOR_HIDDEN_KEYS` holds
+  AWPTCM-T33235 while it is in Validation. Only the Creator's case lists filter it, and Finalize
+  removes it later.
+- **The result, run 2026-10-13T1223-val-3ede:**
+  - T33235 PASSED on the first run, with no repairs.
+  - It took 67 min (12:23–13:30); the regrouping estimate was 60–65.
+  - Cost: $12.14 for the session plus $0.10 for the Haiku updates, against $35.11 for val-fbe9.
+- **Correction:** `ef53cea`'s message says "step 29 without confCheck". The script runs
+  `TestCase_28(confCheck=False)`, and that is step 28 (ref `9001.33235.28`).
+- **⚠ Neither 3ede nor 43dd carries a `RESULT` marker.** 3ede's tester reported a pass in text,
+  but `run.json` has `results: {}`; its markers are NOTIFY, REVIEWED and ASKCK-DONE only. So the
+  1.3.2 sentinel echo of `RESULT` has not yet worked in a real run. Raised with Terrence, not
+  investigated.
+- **tb470 link M (device-testing side, Terrence 2026-10-13):**
+  - **Cabling:** stack port1.0.10–IE520-sa port1.0.2 is link C (VLAN 1); stack port1.0.6–IE520-sa
+    port1.0.14 is link M.
+  - **VLAN 106:** M is in VLAN 106 `link-m` at both ends, so C and M don't loop.
+  - **Saved:** both units' running config is saved to `tb470-bench.cfg` (Terrence chose a full
+    save). That also made the stack's swi_f VLAN 103/104 split permanent, and brought u3's
+    `security-password` lines in line with the stack's.
+  - **Not done:** `bench-state.md` has not been regenerated (device-testing's job; a full u0–u5
+    probe).
+  - **3ede's probe:** it flagged only `tb-swi_c eth1` NEEDS-CHECK.
+- **Windows seats — facts gathered for PLAN-agent-sessions D1/D8, nothing decided:**
+  - **Sessions:** the PowerShell agent reports sessions unavailable.
+  - **What a seat needs:** the session needs the device-testing folder as its working directory on
+    the seat (`ck_agent.py`, `cwd=dt`).
+  - **The share:** `testbox_home` is the NFS v4 export `tbhome.st.atlnz.lc:/home/<user>`, one per
+    person, with no drive letter. The lettered drives are the CIFS shares on
+    `svr-chch-cifs1.atlnz.lc`. Windows' Client for NFS only speaks v2/v3.
+  - **Terrence is checking** whether Windows can reach it.
+  - **The D8 gap still applies:** a user's session in their own `testbox_home` writes logs the
+    server, which reads Terrence's `dt_root`, never sees.
+
+**Open:**
+- No `RESULT` marker in real runs (above).
+- Whether a Windows seat can reach `testbox_home`, and per-user testbox accounts (Terrence).
+- Regenerate tb470 `bench-state.md` for the recable (device-testing).
+- Restore T33235 to the Creator: Finalize does it once Validation approves the script.
 
 ## Latest session (2026-10-14, late afternoon) — reattach a reopened run; task rows labelled; 43dd repair left to the page
 

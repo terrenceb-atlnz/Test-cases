@@ -82,6 +82,32 @@ levels deep, so a typo cannot create a version or team folder; and a same-name c
 reused, so a stopped run can simply be re-run (a same-name cycle stops it instead). Tested offline
 against a fake Zephyr (`tests/test_zt_create.py`); each safety rule was mutated and went red.
 
+## 2026-10-13 — Agent 1.3.2–1.3.4: Validation's markers, a cheaper sentinel, the final cost kept; T33235 hidden from the Creator
+
+*(Logged 2026-10-15, after the 2026-10-14 entries above, which build on it.)*
+
+**What.**
+- **1.3.2:** the agent lifts `PROBE`, `REPAIRED` and `REVIEWED` from the main session's text.
+- **1.3.3:** the sentinel's running updates are written by Haiku (device-testing `narrate.sh`) to
+  a file the agent relays as `update` events. The session wakes only for ATTENTION and the
+  alarms. The updates' cost is recorded apart (`updates_cost_usd`) and counted once.
+- **1.3.4:** the session closes on the result that follows `ASKCK-DONE`, not on the marker itself
+  (grace 120 s).
+- **`PT_CREATOR_HIDDEN_KEYS`:** keeps a case out of the PyTest Creator's lists while it is in
+  Validation. It holds T33235 only.
+
+**Why.**
+- **1.3.2:** 1.3.1 dropped those three markers, so Finalize could never turn on.
+- **1.3.3:** run val-fbe9 cost $35.11 for one fully automated script. Every line the sentinel
+  printed woke Opus, which re-read its whole conversation (125k → 553k tokens, 331 times) to
+  write one line. Terrence liked the commentary and wanted it kept, so the commentary moved to a
+  small model rather than going away. The next run, val-3ede, cost $12.14 + $0.10 and passed.
+- **1.3.4:** closing on the marker dropped the turn that carries the final total, so every
+  recorded cost was low (01c5 showed $1.49 without its whole triage).
+- **Hiding T33235:** its script was reworked by hand (33 TestCases into 14, to cut the framework's
+  ~55 s per-TestCase overhead). The Creator must not offer to regenerate it over that; Finalize
+  removes it everywhere once Validation approves.
+
 ## 2026-10-12 — The PyTest Creator ends at a saved script; Run, Validate and Testboxes retired (branch tc-build)
 
 **What.** The Creator is 5 steps. Confirm Step 5 saves the script to `generated/`, confirms, and
