@@ -1,0 +1,43 @@
+{
+  "run_id": "2026-10-13T1223-val-3ede",
+  "kind": "validation",
+  "testbox": "tb470",
+  "seat": "10.33.22.17",
+  "created": "2026-10-13T12:23:26+13:00",
+  "state": "done",
+  "last_seq": 1054,
+  "results": {},
+  "notices": [
+    {
+      "scope": "T33235",
+      "needed": "run timing during office hours (Tue 12:35); triage estimates 1 stack reload and 0-2 four-unit PDU cycles (outlets 4,5,6,8)",
+      "did": "Assumed: run now, not reboot-heavy (memory reboot-heavy-runs-after-hours); repair loop capped at 5 runs"
+    }
+  ],
+  "regrades": {
+    "AWPTCM-T33235": {
+      "verdict": "PASS",
+      "note": "Nothing was untested, it all passed (or unsupported, which is ok too)",
+      "by": "10.33.21.16",
+      "at": "2026-10-13T14:04:43+13:00"
+    }
+  },
+  "cost_usd": 12.135110800000005,
+  "tokens": 21784518,
+  "turns": 22,
+  "started": "2026-10-13T12:23:26+13:00",
+  "ended": "2026-10-13T13:30:01+13:00",
+  "session_id": "s1791847406-0",
+  "cases": [
+    {
+      "key": "AWPTCM-T33235",
+      "kind": "script",
+      "cycle": null,
+      "script": "/media/terrenceb/mnt/testbox_home/claude/Test-cases/ask-ck/functions/pytest-creator/generated/9001_Port/test-9001.33235.py"
+    }
+  ],
+  "mailed": [],
+  "start_at": null,
+  "updates_cost_usd": 0.103769,
+  "done_marker": true
+}
