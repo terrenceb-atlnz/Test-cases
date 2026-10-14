@@ -21,6 +21,27 @@ current working thread see
 > `ask-ck/ck-facelift/`, `pytest-create/` and `CK-main/` plan paths moved to `ask-ck/plans/` on 2026-09-11 and, once complete, to `archive/plans/`.
 > `js-tests/` → `tests/js/`, `e2e/` → `tests/e2e/`, `static/js/` → `ask-ck/frontend/ck-main/current/<page>/` (2026-09-11).
 
+## 2026-10-14 — Agent 1.3.5: the session window shows the sentinel's reasoning and marks its reply
+
+**What.** The seat agent now passes each reasoning block's text to the page (capped at 4,000
+characters; 1.3.4 sent an empty `thinking` event). The window shows the sentinel's reasoning inline,
+italic but as bright as its text. A **Verbose** checkbox, remembered per browser, adds the tester's
+(subagents') reasoning in grey. The first thing the sentinel says after a user message, in text or
+reasoning, is marked **reply**. Markers (`RESULT`, `ASKCK-DONE`, …) are still read from text only.
+
+**Why.** In Validation run 2026-10-13T1454-val-43dd Terrence asked "how long will this take?" and
+saw no answer. Claude Code's transcript shows the message was delivered and absorbed mid-turn; the
+session worked out an estimate only in its reasoning ("30–45 minutes"; the run took 13 min 50 s),
+which 1.3.4 dropped, and gave a time only later in its triage report. Terrence's aim: the window
+should respond as the sentinel does in a Claude Code session. A scratch test on this seat (ten SDK
+sessions, the same mid-turn question) answered in text 8 times and only in reasoning twice, and
+switching the session to Claude Code's own system prompt made no difference (2 of 3 either way),
+so the system prompt was left as it is. Most reasoning blocks carry no text at all (20 of 23 in
+that run); the few that do are short lines addressed to the user, so showing them does not flood
+the window. Rendered side by side, an answer in grey italic reasoning was hard to tell from the
+tool rows, hence the brighter style and the reply mark. The mark labels what came next, not what
+answered: the window cannot tell an answer from a remark.
+
 ## 2026-10-14 — `zt_create.py`: create a feature's new cases, plan and cycle in Zephyr
 
 **What.** `ask-ck/tools/zt_create.py` (CLI, `--dry-run` / `--apply`) creates new test cases, one

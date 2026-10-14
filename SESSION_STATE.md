@@ -5086,3 +5086,15 @@ starts at 3 paths and 2 listeners; a new pointer to `docs/frer-topologies/`; Res
 Terrence pasted the matching strategy edits (lines 98, 172 and 338), and they were checked live.
 Terrence: ignore the TFS release-target mismatch (it is no longer open). Detail: PROGRESS
 2026-10-14 (close). Gate: pytest 2097 / 1 skipped, vitest 396.
+
+## Session Close / Handoff (2026-10-14, afternoon) — agent 1.3.5: reasoning shown, reply marked
+
+Terrence's message in run 1454-val-43dd was delivered (absorbed mid-turn) but answered only in the
+session's reasoning, which agent 1.3.4 dropped. The page's relay then stopped at event 209 when
+another run was opened, so the server's record still says `running`. A ten-session SDK test showed
+the empty system prompt is not the cause. Agent 1.3.5 passes reasoning text through; the window
+shows the sentinel's reasoning (bright italic), adds the subagents' under **Verbose**, and marks the
+first thing said after a message as **reply**. Seats must reinstall the agent. Open: reattaching a
+reopened run, repairing 43dd's record, the "subagent" rows on Bash commands, and the scratch
+session directories. Detail: PROGRESS 2026-10-14 (afternoon). Gate: pytest 2098 / 1 skipped,
+vitest 399.

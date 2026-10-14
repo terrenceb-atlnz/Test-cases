@@ -37,6 +37,8 @@ class TextBlock:
     def __init__(self, text): self.text = text
 class ToolUseBlock:
     def __init__(self, id, name, input): self.id, self.name, self.input = id, name, input
+class ThinkingBlock:
+    def __init__(self, thinking, signature="sig"): self.thinking, self.signature = thinking, signature
 class ToolResultBlock:
     def __init__(self, tool_use_id, content, is_error=False):
         self.tool_use_id, self.content, self.is_error = tool_use_id, content, is_error
@@ -434,6 +436,28 @@ def test_a_session_whose_final_result_never_comes_still_closes(dt, monkeypatch):
     s = ck_agent.get_session(ck_agent.start_session({"run_id": "r1", "handoff": HANDOFF})["session_id"])
     wait_state(s, ("done", "error", "stopped"), timeout=5)
     assert s.state == "done" and "result" not in [e["kind"] for e in s.events]
+
+
+def test_the_reasoning_text_reaches_the_page_and_is_never_read_for_markers(dt, monkeypatch):
+    """1.3.4 dropped the text: run 2026-10-13T1454-val-43dd answered "how long will this take?" only
+    in its reasoning ("This should take 30–45 minutes"), so the window showed nothing. The tester's
+    reasoning travels too (its parent set); the window's Verbose option decides what is shown."""
+    async def script(client):
+        yield AssistantMessage([ThinkingBlock("This should take 30-45 minutes.\nRESULT AWPTCM-T1 PASS -- x -- y"),
+                                TextBlock("Arming the sentinel.")])
+        yield AssistantMessage([ThinkingBlock("x" * 5000)], parent="toolu_tester")
+        yield AssistantMessage([ThinkingBlock("")])
+        yield AssistantMessage([TextBlock("ASKCK-DONE r1")])
+        yield ResultMessage("done")
+    use(monkeypatch, script)
+    s = ck_agent.get_session(ck_agent.start_session({"run_id": "r1", "handoff": HANDOFF})["session_id"])
+    wait_state(s, ("done", "error", "stopped"))
+    th = [e for e in s.events if e["kind"] == "thinking"]
+    assert th[0]["text"].startswith("This should take 30-45 minutes.") and th[0]["parent"] is None
+    assert th[1]["parent"] == "toolu_tester" and th[1]["text"].startswith("x" * ck_agent.THINKING_SHOW_MAX)
+    assert len(th[1]["text"]) < 5000 and th[1]["text"].endswith(f"(+{5000 - ck_agent.THINKING_SHOW_MAX})")
+    assert th[2]["text"] == ""
+    assert [e["marker"] for e in s.events if e["kind"] == "marker"] == ["ASKCK-DONE"]
 
 
 # ---------------------------------------------------------------- the sentinel's updates

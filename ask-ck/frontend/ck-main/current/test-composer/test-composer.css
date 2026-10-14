@@ -40,6 +40,10 @@
 .tc-page .tc-ev { margin: 3px 0; }
 .tc-page .tc-sub { margin-left: 22px; border-left: 2px solid var(--border-subtle); padding-left: 8px; }
 .tc-page .tc-text { color: var(--text-primary); white-space: pre-wrap; }
+.tc-page .tc-thinking { color: var(--text-primary); font-style: italic; white-space: pre-wrap; }
+.tc-page .tc-thinking.tc-sub { color: var(--text-secondary); }
+.tc-page .tc-reply { border-left: 3px solid var(--accent-primary); padding-left: 6px; }
+.tc-page .tc-reply-tag { font-style: normal; font-size: 11px; color: var(--accent-primary); margin-right: 6px; }
 .tc-page .tc-update { color: var(--text-secondary); font-size: 12px; }
 .tc-page .tc-update.tc-attn { color: var(--text-primary); border-left: 3px solid var(--status-high); padding-left: 6px; }
 .tc-page .tc-attn-why { color: var(--status-high); }

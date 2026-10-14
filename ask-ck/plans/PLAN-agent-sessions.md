@@ -21,6 +21,17 @@ verified: 2026-10-09
 > **2026-10-13 (agent 1.3.4):** recorded run costs were low. The agent closed the session on `ASKCK-DONE`
 > and dropped that turn's result, the one carrying the final total, so every run missed its last turn
 > (run 0954-val-01c5 showed $1.49 without the tester's whole triage). It now closes on that result.
+> **2026-10-14 (agent 1.3.5):** the window shows the session's reasoning. In run 1454-val-43dd a
+> message ("how long will this take?") was delivered and absorbed mid-turn, but the session answered
+> it only in its reasoning, which 1.3.4 dropped. A six-session SDK test on this host (empty system
+> prompt vs Claude Code's preset, 3 each) answered in text 2 of 3 times and only in reasoning 1 of 3
+> **in both arms**, so the system prompt was ruled out as the cause and left as it is. The
+> sentinel's reasoning is always shown, italic but as bright as its text, and the first thing it says
+> after a user message (text or reasoning) is marked **reply**; the window's **Verbose** checkbox adds
+> the subagents'. Most reasoning blocks carry no text at all (20 of 23 in that run); the few that do
+> are short lines addressed to the user.
+> Still open from that run: a run reopened from the list does not reattach to the seat session
+> (§8 says it should), so the page's relay stops when you open another run.
 > - **Seat agent 1.3.0:** an Agent SDK session job (`/session/*`). The PowerShell agent reports
 >   sessions unavailable (D1).
 > - **Server:** `/api/test-composer` runs (hand-off schema 1, records as files, D5 notice and finish

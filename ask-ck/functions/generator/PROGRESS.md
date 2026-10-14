@@ -5,11 +5,61 @@ verified: 2026-09-28
 
 **Purpose**: This file exists so future sessions can quickly understand exactly where we are, what has been built, what the priorities are, and how to continue seamlessly.
 
-**Last Updated**: 2026-10-14 (by Claude, with Terrence; Project 3301 FRER in Zephyr, `zt_create.py`, FRER topology configs in docs/frer-topologies/)
+**Last Updated**: 2026-10-14 (by Claude, with Terrence; agent 1.3.5 — the session window shows reasoning and marks the reply)
 
 > **Reading note (2026-09-23 doc sweep).** Entries are frozen as written. Where an entry's
 > claim has since stopped being true, a ⚠ line under its heading says what changed.
 > Newest first. Paths in older entries predate these moves (the same as in CHANGELOG): `tool/` → `ask-ck/tools/`, `ask-ck/var/` → `ask-ck/db/`, `objective-drafting/` → `ask-ck/functions/generator/`, `pytest-create/` → `ask-ck/functions/pytest-creator/`, `js-tests/` → `tests/js/`, `ask-ck/ck-facelift/` → `ask-ck/plans/`, root reports → `docs/`, and completed plans `ask-ck/plans/` → `archive/plans/` (2026-09-11, 2026-09-23). Also retired 2026-09-23: the demo notes → `archive/plans/demo-2026-09-11/`, and `HANDOFF-generate-token-efficiency.md` + `Fragments_prompt.md` → `archive/records/`.
+
+## Latest session (2026-10-14, afternoon) — agent 1.3.5: the window shows the sentinel's reasoning and marks its reply
+
+Terrence messaged the session in Validation run 2026-10-13T1454-val-43dd and saw no reply.
+- **Diagnosis:**
+  - **The message was delivered.** The Claude Code transcript (device-testing slug, session
+    `678ae477…`) shows it was absorbed mid-turn.
+  - **The session never replied in text.** It answered only in its reasoning ("30–45 minutes"),
+    and gave "15–20 minutes from now" later in its triage report. Both estimates were about double:
+    the run took 13 min 50 s.
+  - **The page's relay stopped at event 209** when the page opened run 1223-val-3ede at 14:59:56,
+    so the server's record of 43dd still says `running`. The seat agent's own copy
+    (`~/.local/share/ck-agent/runs/2026-10-13T1454-val-43dd/`) finished `done` at 15:08 with 468
+    events.
+- **System-prompt test (scratchpad, about $1.40 in all).**
+  - **Setup:** ten SDK sessions on the seat agent's venv, each sent the same question mid-task.
+    The agent passes no `system_prompt`, so SDK 0.2.165 launches with `--system-prompt ""`
+    (423 characters, no Claude Code prompt).
+  - **Result:** empty prompt vs Claude Code's preset, 3 each: 2 of 3 answered in text and 1 of 3
+    only in reasoning, in both arms. The four later sessions on the 1.3.5 code all answered in text.
+  - **Outcome:** the system prompt was ruled out and left unchanged. Terrence was not sure a
+    preset was a good plan; the test settled it.
+- **Shipped (uncommitted until this wrap):**
+  - **Agent 1.3.5** ([ck_agent.py](../../agent/ck_agent.py) `normalize_message`): `thinking`
+    events carry `text`, capped by `THINKING_SHOW_MAX` (4000).
+  - **AgentWindow:**
+    - the sentinel's reasoning is shown italic and bright;
+    - a **Verbose** checkbox (`ckAgentVerbose` in localStorage) adds the subagents';
+    - a **reply** mark goes on the first sentinel text or reasoning after a user message.
+  - **Rebuilt files and tests:** the islands, 1 pytest and 3 vitest cases, each mutated and red.
+  - **Docs:** the agent README and the PLAN-agent-sessions header.
+- **To see it:** each seat re-runs the splash setup one-liner (this seat still ran 1.3.4 at wrap
+  time) and reloads the page. Older runs have no reasoning text, so they look as before.
+
+**Open (Terrence's call):**
+- **A reopened run doesn't reattach** to its live seat session, though PLAN-agent-sessions §8 says
+  it should: `VdPage`/`TcPage` open a list run with `sessionId: null`. This is why 43dd's record
+  stopped.
+- **Repair 43dd's server record** from the seat agent's copy (events 210–467), so it shows
+  `done` and Finalize can see REVIEWED.
+- **The "subagent … started / notification (completed)" rows** appear for every Bash command,
+  because Claude Code reports shell commands as tasks. That is two misleading rows per command.
+- **The `/test-mode` line about replying to the user** (device-testing) was deferred: "let's see
+  what it does first".
+- **Ten scratch test-session directories** under `~/.claude/projects/-tmp-claude-1971-…-midturn-*`
+  (three with empty `memory/`, which `check_memory_links` flags EMPTY_DIR). Keep or remove?
+- **`docs/AN1185-SW_Configuration_Guide_TSN.pdf`** has gone from the working tree (it was never
+  committed). This session did not touch it.
+
+Gate: pytest 2098 / 1 skipped, vitest 399.
 
 ## Latest session (2026-10-14, close) — FRER plan, strategy and configs agree
 

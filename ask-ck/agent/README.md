@@ -124,6 +124,13 @@ Ask-CK's Validation and Test Composer pages (`ask-ck/plans/PLAN-agent-sessions.m
   turn's result, which carries the session's final cost (subagents included), then closes, or after
   120 s without one. Up to 1.3.3 it closed on the marker, so every run's recorded cost missed its
   last turn.
+- **Reasoning (1.3.5):** `thinking` events carry the block's text (capped at 4,000 characters),
+  the sentinel's and the subagents' alike (`parent` set). Up to 1.3.4 the text was dropped, so a
+  session that answered the user only in its reasoning showed nothing (run
+  2026-10-13T1454-val-43dd). The window always shows the sentinel's reasoning, italic but as bright
+  as its text; its **Verbose** checkbox adds the subagents', remembered per browser. The first thing
+  the sentinel says after a user message, in text or reasoning, is marked **reply** (what came next,
+  not a judgement that it answers). Markers are never read from reasoning.
 - **Campaigns never wait for an answer** (D5): a question is answered "nobody is waiting" at
   once.
 - **Windows:** not yet. `ck-agent.ps1` reports `sessions.available = false` (D1).

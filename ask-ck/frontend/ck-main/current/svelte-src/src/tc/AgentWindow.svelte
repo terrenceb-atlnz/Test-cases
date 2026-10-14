@@ -17,11 +17,26 @@
   let follow = $state(true);
   let open = $state({});                              // tool_use id → expanded
   let draft = $state('');
+  // Reasoning (agent 1.3.5): the sentinel's is always shown, since it sometimes answers the user only
+  // there (run 2026-10-13T1454-val-43dd); Verbose adds the tester's (subagents'). Remembered per browser.
+  let verbose = $state(readVerbose());
   let other = $state({});                             // request_id → typed "Other" answer
   let answered = $state({});                          // request_id → true once answered here
   let stopped = false;
   let box;
 
+  // The first thing the sentinel says after each user message, in text or reasoning, is marked as
+  // its reply: it may answer only in its reasoning (run 2026-10-13T1454-val-43dd). The window cannot
+  // tell an answer from a remark, so this marks what came next, not what answered.
+  const replies = $derived.by(() => {
+    const out = new Set();
+    let waiting = false;
+    for (const e of events) {
+      if (e.kind === 'user_message') waiting = true;
+      else if (waiting && !e.parent && (e.kind === 'text' || e.kind === 'thinking') && e.text) { out.add(e.seq); waiting = false; }
+    }
+    return out;
+  });
   const results = $derived(new Map(events.filter(e => e.kind === 'tool_result').map(e => [e.id, e])));
   const lastResult = $derived([...events].reverse().find(e => e.kind === 'result'));
   // The session's own cost plus the sentinel's Haiku updates (billed apart, device-testing orient-dt §10).
@@ -31,6 +46,14 @@
   const elapsed = $derived(events.length ? Math.round((events[events.length - 1].t || 0) * 1000) : null);
   const pendingIds = $derived(new Set(events.filter(e => e.kind === 'answered').map(e => e.request_id)));
   const live = $derived(['starting', 'running'].includes(state) && mode === 'live');
+
+  function readVerbose() {
+    try { return localStorage.getItem('ckAgentVerbose') === '1'; } catch { return false; }
+  }
+  function setVerbose(v) {
+    verbose = v;
+    try { localStorage.setItem('ckAgentVerbose', v ? '1' : '0'); } catch { /* not remembered; still applies */ }
+  }
 
   function scroll() {
     if (follow && box) queueMicrotask(() => { box.scrollTop = box.scrollHeight; });
@@ -132,13 +155,16 @@
     <span class="tc-small" title="all models, subagents included">tokens {fmtTokens(tokens)}</span>
     <span class="tc-small" title={`list-price estimate${updatesCost ? `, including $${updatesCost.toFixed(2)} for the running updates` : ''}`}>{cost != null ? `$${cost.toFixed(2)}` : ''}</span>
     <label class="tc-small"><input type="checkbox" bind:checked={follow}> Follow</label>
+    <label class="tc-small" title="Also show the tester's (subagents') reasoning"><input type="checkbox" class="tc-verbose" checked={verbose} onchange={(ev) => setVerbose(ev.currentTarget.checked)}> Verbose</label>
     {#if live}<button type="button" class="btn btn-secondary btn-compact-small tc-stop" onclick={stop}>Stop</button>{/if}
   </div>
   {#if error}<div class="tc-problem">{error}</div>{/if}
   <div class="tc-stream" bind:this={box} onscroll={() => { if (box) follow = box.scrollHeight - box.scrollTop - box.clientHeight < 40; }}>
     {#each events as e (e.seq)}
       {#if e.kind === 'text'}
-        <div class="tc-ev tc-text" class:tc-sub={e.parent}>{e.text}</div>
+        <div class="tc-ev tc-text" class:tc-sub={e.parent} class:tc-reply={replies.has(e.seq)}>{#if replies.has(e.seq)}<span class="tc-reply-tag">reply</span>{/if}{e.text}</div>
+      {:else if e.kind === 'thinking'}
+        {#if e.text && (!e.parent || verbose)}<div class="tc-ev tc-thinking" class:tc-sub={e.parent} class:tc-reply={replies.has(e.seq)}>{#if replies.has(e.seq)}<span class="tc-reply-tag">reply</span>{/if}{e.text}</div>{/if}
       {:else if e.kind === 'tool_use'}
         {@const r = results.get(e.id)}
         <div class="tc-ev tc-tool" class:tc-sub={e.parent}>

@@ -1,6 +1,6 @@
 ---
 name: agent-sessions-sdk-facts
-description: Measured 2026-10-09 (P0 + E2E) — how Ask-CK drives a full-tools Claude session from a page — stream-json control protocol (= what the VS Code extension uses), the classifier never reads tool results so a hand-off FILE authorizes nothing, Claude writing authorization in the user's name is blocked ("Auto-Mode Bypass"), `--bg` sessions are not drivable, a TRIAGE costs ~$2–4 list
+description: Measured 2026-10-09 (P0 + E2E), extended 2026-10-14 (mid-turn messages, reasoning text, empty system prompt) — how Ask-CK drives a full-tools Claude session from a page — stream-json control protocol (= what the VS Code extension uses), the classifier never reads tool results so a hand-off FILE authorizes nothing, Claude writing authorization in the user's name is blocked ("Auto-Mode Bypass"), `--bg` sessions are not drivable, a TRIAGE costs ~$2–4 list
 metadata:
   type: project
   verified: 2026-10-09
@@ -40,5 +40,18 @@ denied by company policy (D2).
 
 **Costs measured:** P0 TRIAGE $3.97 list (9 min); E2E Validation TRIAGE $2.07, 2.85M tokens
 (5m50s); composer-validate with an empty template 48 s.
+
+**Talking to a running session (measured 2026-10-14, SDK 0.2.165, Claude Code 2.1.296).**
+- **A message sent mid-turn is delivered:** the transcript logs `queue-operation … absorbed_mid_turn`,
+  and the model sees it as a system-reminder telling it to address the message. It may still answer
+  only in its reasoning (2 of 10 scratch sessions, and run 2026-10-13T1454-val-43dd).
+- **Reasoning text is mostly absent:** most `ThinkingBlock`s arrive with `thinking == ""` and only a
+  signature (20 of 23 in that run). The few with text are short lines addressed to the user. Agent
+  1.3.5 passes them to the window; 1.3.4 dropped them.
+- **No `system_prompt` means none at all:** the SDK then launches with `--system-prompt ""`
+  (423 characters), not Claude Code's prompt. The preset (`{"type": "preset", "preset":
+  "claude_code"}`) made no difference to replying (3 vs 3 sessions), so it was left unset.
+- **A session started from a scratch cwd** leaves a `~/.claude/projects/<slug>/` directory, often with
+  an empty `memory/` that `check_memory_links` reports as EMPTY_DIR.
 
 Plans: [[tb470-runs-go-through-test-mode]], `ask-ck/plans/PLAN-agent-sessions.md` §9a/§10.

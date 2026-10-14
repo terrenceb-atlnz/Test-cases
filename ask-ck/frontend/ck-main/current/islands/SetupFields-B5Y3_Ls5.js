@@ -1,6 +1,6 @@
 /* Built from ask-ck/frontend/ck-main/current/svelte-src/ — do not edit; run `npm run build` there.
-* source-sha256:d6125a8475f20bf65e18fbbdbb61c4d67b6b2a8c9d0721abd3a8a6b653dc47e1 */
-import { A as event, B as proxy, E as from_html, G as pop, H as state, I as child, J as reset, K as push, L as first_child, M as untrack, N as template_effect, O as delegate, P as user_effect, R as only_child, S as set_text, T as comment, V as set, W as user_derived, _ as each, a as bind_checked, b as if_block, c as remove_input_defaults, d as bind_select_value, f as init_select, g as clsx, h as set_class, i as bind_this, j as get, k as delegated, l as set_attribute, n as onMount, p as select_option, q as next, r as prop, s as bind_value, t as onDestroy, v as index, w as append, z as sibling } from "./disclose-version-BPj7E1q6.js";
+* source-sha256:d8f5a2f8ae5544ec78e35e4ebf402c33b2c83f125ebe06f80d863f15e5596e06 */
+import { A as event, B as proxy, E as from_html, G as pop, H as state, I as child, J as reset, K as push, L as first_child, M as untrack, N as template_effect, O as delegate, P as user_effect, R as only_child, S as set_text, T as comment, V as set, W as user_derived, _ as each, a as bind_checked, b as if_block, c as remove_input_defaults, d as bind_select_value, f as init_select, g as clsx, h as set_class, i as bind_this, j as get, k as delegated, l as set_attribute, n as onMount, p as select_option, q as next, r as prop, s as bind_value, t as onDestroy, u as set_checked, v as index, w as append, z as sibling } from "./disclose-version-rpmQQ5dj.js";
 //#region src/tc/api.js
 var TC_API = "/api/test-composer";
 async function json(r) {
@@ -141,25 +141,27 @@ function tokensOf(modelUsage) {
 //#region src/tc/AgentWindow.svelte
 var root$4 = from_html(`<button type="button" class="btn btn-secondary btn-compact-small tc-stop">Stop</button>`);
 var root_1$3 = from_html(`<div class="tc-problem"> </div>`);
-var root_2$3 = from_html(`<div> </div>`);
-var root_3$3 = from_html(`<pre class="tc-pre"> </pre>`);
-var root_4$2 = from_html(`<div><button type="button" class="tc-tool-row"><span> </span> <b> </b> <span class="tc-small"> </span> <span> </span></button> <!></div>`);
-var root_5$2 = from_html(`<div class="tc-ev tc-task"> </div>`);
-var root_6$2 = from_html(`<div class="tc-attn-why"> </div>`);
-var root_7$2 = from_html(`<div> <!></div>`);
-var root_8$2 = from_html(`<button type="button" class="btn btn-secondary btn-compact-small"> </button>`);
-var root_9$1 = from_html(`<div class="tc-opts"><!> <input class="form-input tc-other" placeholder="Other…"/> <button type="button" class="btn btn-primary btn-compact-small">Send</button></div>`);
-var root_10$1 = from_html(`<div class="tc-small"> </div>`);
-var root_11$1 = from_html(`<div class="tc-q"> </div> <!>`, 1);
-var root_12$1 = from_html(`<div class="tc-ev tc-card"><div class="tc-card-head">The session asks</div> <!></div>`);
-var root_13$1 = from_html(`<button type="button" class="btn btn-primary btn-compact-small">Allow</button> <button type="button" class="btn btn-secondary btn-compact-small">Deny</button>`, 1);
-var root_14$1 = from_html(`<div class="tc-ev tc-card"><div class="tc-card-head"> </div> <pre class="tc-pre"> </pre> <!></div>`);
-var root_15 = from_html(`<div class="tc-ev tc-turn"> </div>`);
-var root_16 = from_html(`<div class="tc-ev tc-user"> </div>`);
-var root_17 = from_html(`<div class="tc-ev tc-statechg"> </div>`);
-var root_18 = from_html(`<div class="tc-empty">Waiting for the session's first event…</div>`);
-var root_19 = from_html(`<div class="tc-say"><input class="form-input" placeholder="Message the session (e.g. “don’t touch u3”)"/> <button type="button" class="btn btn-secondary">Send</button></div>`);
-var root_20 = from_html(`<div><div class="tc-window-head"><span> </span> <span class="tc-small"> </span> <span class="tc-spacer"></span> <span class="tc-small" title="wall clock since the session's first event"> </span> <span class="tc-small" title="all models, subagents included"> </span> <span class="tc-small"> </span> <label class="tc-small"><input type="checkbox"/> Follow</label> <!></div> <!> <div class="tc-stream"><!> <!></div> <!></div>`);
+var root_2$3 = from_html(`<span class="tc-reply-tag">reply</span>`);
+var root_3$3 = from_html(`<div><!> </div>`);
+var root_4$2 = from_html(`<pre class="tc-pre"> </pre>`);
+var root_5$2 = from_html(`<div><button type="button" class="tc-tool-row"><span> </span> <b> </b> <span class="tc-small"> </span> <span> </span></button> <!></div>`);
+var root_6$2 = from_html(`<div class="tc-ev tc-task"> </div>`);
+var root_7$2 = from_html(`<div class="tc-attn-why"> </div>`);
+var root_8$2 = from_html(`<div> <!></div>`);
+var root_9$1 = from_html(`<div> </div>`);
+var root_10$1 = from_html(`<button type="button" class="btn btn-secondary btn-compact-small"> </button>`);
+var root_11$1 = from_html(`<div class="tc-opts"><!> <input class="form-input tc-other" placeholder="Other…"/> <button type="button" class="btn btn-primary btn-compact-small">Send</button></div>`);
+var root_12$1 = from_html(`<div class="tc-small"> </div>`);
+var root_13$1 = from_html(`<div class="tc-q"> </div> <!>`, 1);
+var root_14$1 = from_html(`<div class="tc-ev tc-card"><div class="tc-card-head">The session asks</div> <!></div>`);
+var root_15 = from_html(`<button type="button" class="btn btn-primary btn-compact-small">Allow</button> <button type="button" class="btn btn-secondary btn-compact-small">Deny</button>`, 1);
+var root_16 = from_html(`<div class="tc-ev tc-card"><div class="tc-card-head"> </div> <pre class="tc-pre"> </pre> <!></div>`);
+var root_17 = from_html(`<div class="tc-ev tc-turn"> </div>`);
+var root_18 = from_html(`<div class="tc-ev tc-user"> </div>`);
+var root_19 = from_html(`<div class="tc-ev tc-statechg"> </div>`);
+var root_20 = from_html(`<div class="tc-empty">Waiting for the session's first event…</div>`);
+var root_21 = from_html(`<div class="tc-say"><input class="form-input" placeholder="Message the session (e.g. “don’t touch u3”)"/> <button type="button" class="btn btn-secondary">Send</button></div>`);
+var root_22 = from_html(`<div><div class="tc-window-head"><span> </span> <span class="tc-small"> </span> <span class="tc-spacer"></span> <span class="tc-small" title="wall clock since the session's first event"> </span> <span class="tc-small" title="all models, subagents included"> </span> <span class="tc-small"> </span> <label class="tc-small"><input type="checkbox"/> Follow</label> <label class="tc-small" title="Also show the tester's (subagents') reasoning"><input type="checkbox" class="tc-verbose"/> Verbose</label> <!></div> <!> <div class="tc-stream"><!> <!></div> <!></div>`);
 function AgentWindow($$anchor, $$props) {
 	push($$props, true);
 	let sessionId = prop($$props, "sessionId", 3, null), onstate = prop($$props, "onstate", 3, () => {}), compact = prop($$props, "compact", 3, false);
@@ -171,10 +173,21 @@ function AgentWindow($$anchor, $$props) {
 	let follow = state(true);
 	let open = state(proxy({}));
 	let draft = state("");
+	let verbose = state(proxy(readVerbose()));
 	let other = proxy({});
 	let answered = state(proxy({}));
 	let stopped = false;
 	let box;
+	const replies = user_derived(() => {
+		const out = /* @__PURE__ */ new Set();
+		let waiting = false;
+		for (const e of get(events)) if (e.kind === "user_message") waiting = true;
+		else if (waiting && !e.parent && (e.kind === "text" || e.kind === "thinking") && e.text) {
+			out.add(e.seq);
+			waiting = false;
+		}
+		return out;
+	});
 	const results = user_derived(() => new Map(get(events).filter((e) => e.kind === "tool_result").map((e) => [e.id, e])));
 	const lastResult = user_derived(() => [...get(events)].reverse().find((e) => e.kind === "result"));
 	const updatesCost = user_derived(() => get(events).reduce((a, e) => a + (e.kind === "update" && typeof e.cost_usd === "number" ? e.cost_usd : 0), 0));
@@ -183,6 +196,19 @@ function AgentWindow($$anchor, $$props) {
 	const elapsed = user_derived(() => get(events).length ? Math.round((get(events)[get(events).length - 1].t || 0) * 1e3) : null);
 	const pendingIds = user_derived(() => new Set(get(events).filter((e) => e.kind === "answered").map((e) => e.request_id)));
 	const live = user_derived(() => ["starting", "running"].includes(get(state$1)) && get(mode) === "live");
+	function readVerbose() {
+		try {
+			return localStorage.getItem("ckAgentVerbose") === "1";
+		} catch {
+			return false;
+		}
+	}
+	function setVerbose(v) {
+		set(verbose, v, true);
+		try {
+			localStorage.setItem("ckAgentVerbose", v ? "1" : "0");
+		} catch {}
+	}
 	function scroll() {
 		if (get(follow) && box) queueMicrotask(() => {
 			box.scrollTop = box.scrollHeight;
@@ -319,7 +345,7 @@ function AgentWindow($$anchor, $$props) {
 	onDestroy(() => {
 		stopped = true;
 	});
-	var div = root_20();
+	var div = root_22();
 	let classes;
 	var div_1 = child(div);
 	var span = child(div_1);
@@ -337,7 +363,12 @@ function AgentWindow($$anchor, $$props) {
 	remove_input_defaults(input);
 	next();
 	reset(label_1);
-	var node = sibling(label_1, 2);
+	var label_2 = sibling(label_1, 2);
+	var input_1 = child(label_2);
+	remove_input_defaults(input_1);
+	next();
+	reset(label_2);
+	var node = sibling(label_2, 2);
 	var consequent = ($$anchor) => {
 		var button = root$4();
 		delegated("click", button, stop);
@@ -362,236 +393,281 @@ function AgentWindow($$anchor, $$props) {
 	each(node_2, 17, () => get(events), (e) => e.seq, ($$anchor, e) => {
 		var fragment = comment();
 		var node_3 = first_child(fragment);
-		var consequent_2 = ($$anchor) => {
-			var div_4 = root_2$3();
+		var consequent_3 = ($$anchor) => {
+			var div_4 = root_3$3();
 			let classes_1;
-			var text_7 = only_child(div_4, true);
-			template_effect(() => {
-				classes_1 = set_class(div_4, 1, "tc-ev tc-text", null, classes_1, { "tc-sub": get(e).parent });
-				set_text(text_7, get(e).text);
+			var node_4 = child(div_4);
+			var consequent_2 = ($$anchor) => {
+				var span_5 = root_2$3();
+				append($$anchor, span_5);
+			};
+			var d_1 = user_derived(() => get(replies).has(get(e).seq));
+			if_block(node_4, ($$render) => {
+				if (get(d_1)) $$render(consequent_2);
 			});
+			var text_7 = sibling(node_4, 1, true);
+			reset(div_4);
+			template_effect(($0) => {
+				classes_1 = set_class(div_4, 1, "tc-ev tc-text", null, classes_1, {
+					"tc-sub": get(e).parent,
+					"tc-reply": $0
+				});
+				set_text(text_7, get(e).text);
+			}, [() => get(replies).has(get(e).seq)]);
 			append($$anchor, div_4);
 		};
-		var consequent_4 = ($$anchor) => {
+		var consequent_6 = ($$anchor) => {
+			var fragment_1 = comment();
+			var node_5 = first_child(fragment_1);
+			var consequent_5 = ($$anchor) => {
+				var div_5 = root_3$3();
+				let classes_2;
+				var node_6 = child(div_5);
+				var consequent_4 = ($$anchor) => {
+					var span_6 = root_2$3();
+					append($$anchor, span_6);
+				};
+				var d_2 = user_derived(() => get(replies).has(get(e).seq));
+				if_block(node_6, ($$render) => {
+					if (get(d_2)) $$render(consequent_4);
+				});
+				var text_8 = sibling(node_6, 1, true);
+				reset(div_5);
+				template_effect(($0) => {
+					classes_2 = set_class(div_5, 1, "tc-ev tc-thinking", null, classes_2, {
+						"tc-sub": get(e).parent,
+						"tc-reply": $0
+					});
+					set_text(text_8, get(e).text);
+				}, [() => get(replies).has(get(e).seq)]);
+				append($$anchor, div_5);
+			};
+			if_block(node_5, ($$render) => {
+				if (get(e).text && (!get(e).parent || get(verbose))) $$render(consequent_5);
+			});
+			append($$anchor, fragment_1);
+		};
+		var consequent_8 = ($$anchor) => {
 			const r = user_derived(() => get(results).get(get(e).id));
-			var div_5 = root_4$2();
-			let classes_2;
-			var button_1 = child(div_5);
-			var span_5 = child(button_1);
-			var text_8 = only_child(span_5, true);
-			var b_1 = sibling(span_5, 2);
-			var text_9 = only_child(b_1, true);
-			var span_6 = sibling(b_1, 2);
-			var text_10 = only_child(span_6, true);
-			var span_7 = sibling(span_6, 2);
-			var text_11 = only_child(span_7, true);
+			var div_6 = root_5$2();
+			let classes_3;
+			var button_1 = child(div_6);
+			var span_7 = child(button_1);
+			var text_9 = only_child(span_7, true);
+			var b_1 = sibling(span_7, 2);
+			var text_10 = only_child(b_1, true);
+			var span_8 = sibling(b_1, 2);
+			var text_11 = only_child(span_8, true);
+			var span_9 = sibling(span_8, 2);
+			var text_12 = only_child(span_9, true);
 			reset(button_1);
-			var node_4 = sibling(button_1, 2);
-			var consequent_3 = ($$anchor) => {
-				var pre = root_3$3();
-				var text_12 = only_child(pre);
-				template_effect(() => set_text(text_12, `${get(e).input ?? ""}${get(r) ? "\n— result —\n" + get(r).excerpt : ""}`));
+			var node_7 = sibling(button_1, 2);
+			var consequent_7 = ($$anchor) => {
+				var pre = root_4$2();
+				var text_13 = only_child(pre);
+				template_effect(() => set_text(text_13, `${get(e).input ?? ""}${get(r) ? "\n— result —\n" + get(r).excerpt : ""}`));
 				append($$anchor, pre);
 			};
-			if_block(node_4, ($$render) => {
-				if (get(open)[get(e).id]) $$render(consequent_3);
+			if_block(node_7, ($$render) => {
+				if (get(open)[get(e).id]) $$render(consequent_7);
 			});
-			reset(div_5);
+			reset(div_6);
 			template_effect(() => {
-				classes_2 = set_class(div_5, 1, "tc-ev tc-tool", null, classes_2, { "tc-sub": get(e).parent });
+				classes_3 = set_class(div_6, 1, "tc-ev tc-tool", null, classes_3, { "tc-sub": get(e).parent });
 				set_attribute(button_1, "aria-expanded", !!get(open)[get(e).id]);
-				set_text(text_8, get(open)[get(e).id] ? "▾" : "▸");
-				set_text(text_9, get(e).name);
-				set_text(text_10, get(e).summary);
-				set_class(span_7, 1, `tc-tool-status ${get(r) ? get(r).denied ? "is-denied" : get(r).is_error ? "is-error" : "is-ok" : "is-running"}`);
-				set_text(text_11, get(r) ? get(r).denied ? "denied" : get(r).is_error ? "error" : "ok" : "…");
+				set_text(text_9, get(open)[get(e).id] ? "▾" : "▸");
+				set_text(text_10, get(e).name);
+				set_text(text_11, get(e).summary);
+				set_class(span_9, 1, `tc-tool-status ${get(r) ? get(r).denied ? "is-denied" : get(r).is_error ? "is-error" : "is-ok" : "is-running"}`);
+				set_text(text_12, get(r) ? get(r).denied ? "denied" : get(r).is_error ? "error" : "ok" : "…");
 			});
 			delegated("click", button_1, () => set(open, {
 				...get(open),
 				[get(e).id]: !get(open)[get(e).id]
 			}, true));
-			append($$anchor, div_5);
-		};
-		var consequent_5 = ($$anchor) => {
-			var div_6 = root_5$2();
-			var text_13 = only_child(div_6);
-			template_effect(($0, $1) => set_text(text_13, `subagent ${(get(e).subagent_type || "") ?? ""} ${(get(e).description || "") ?? ""} — ${$0 ?? ""}${get(e).status ? ` (${get(e).status})` : ""}${$1 ?? ""}`), [() => get(e).subtype.replace("task_", ""), () => get(e).usage && get(e).usage.total_tokens ? ` · ${fmtTokens(get(e).usage.total_tokens)} tokens` : ""]);
 			append($$anchor, div_6);
 		};
-		var consequent_7 = ($$anchor) => {
-			var div_7 = root_7$2();
-			let classes_3;
-			var text_14 = child(div_7);
-			var node_5 = sibling(text_14);
-			var consequent_6 = ($$anchor) => {
-				var div_8 = root_6$2();
-				var text_15 = only_child(div_8);
-				template_effect(() => set_text(text_15, `Needs a look: ${get(e).attention ?? ""}`));
-				append($$anchor, div_8);
-			};
-			if_block(node_5, ($$render) => {
-				if (get(e).attention) $$render(consequent_6);
-			});
-			reset(div_7);
-			template_effect(() => {
-				classes_3 = set_class(div_7, 1, "tc-ev tc-update", null, classes_3, { "tc-attn": !!get(e).attention });
-				set_text(text_14, `${get(e).at ? `${get(e).at} ` : ""}${get(e).text ?? ""}`);
-			});
+		var consequent_9 = ($$anchor) => {
+			var div_7 = root_6$2();
+			var text_14 = only_child(div_7);
+			template_effect(($0, $1) => set_text(text_14, `subagent ${(get(e).subagent_type || "") ?? ""} ${(get(e).description || "") ?? ""} — ${$0 ?? ""}${get(e).status ? ` (${get(e).status})` : ""}${$1 ?? ""}`), [() => get(e).subtype.replace("task_", ""), () => get(e).usage && get(e).usage.total_tokens ? ` · ${fmtTokens(get(e).usage.total_tokens)} tokens` : ""]);
 			append($$anchor, div_7);
 		};
-		var consequent_8 = ($$anchor) => {
-			var div_9 = root_2$3();
-			var text_16 = only_child(div_9, true);
-			template_effect(($0) => {
-				set_class(div_9, 1, `tc-ev tc-marker ${$0 ?? ""}`);
-				set_text(text_16, get(e).line);
-			}, [() => markerClass(get(e).line)]);
-			append($$anchor, div_9);
+		var consequent_11 = ($$anchor) => {
+			var div_8 = root_8$2();
+			let classes_4;
+			var text_15 = child(div_8);
+			var node_8 = sibling(text_15);
+			var consequent_10 = ($$anchor) => {
+				var div_9 = root_7$2();
+				var text_16 = only_child(div_9);
+				template_effect(() => set_text(text_16, `Needs a look: ${get(e).attention ?? ""}`));
+				append($$anchor, div_9);
+			};
+			if_block(node_8, ($$render) => {
+				if (get(e).attention) $$render(consequent_10);
+			});
+			reset(div_8);
+			template_effect(() => {
+				classes_4 = set_class(div_8, 1, "tc-ev tc-update", null, classes_4, { "tc-attn": !!get(e).attention });
+				set_text(text_15, `${get(e).at ? `${get(e).at} ` : ""}${get(e).text ?? ""}`);
+			});
+			append($$anchor, div_8);
 		};
-		var consequent_10 = ($$anchor) => {
-			var div_10 = root_12$1();
-			var node_6 = sibling(child(div_10), 2);
-			each(node_6, 17, () => get(e).input && get(e).input.questions || [], index, ($$anchor, q) => {
-				var fragment_1 = root_11$1();
-				var div_11 = first_child(fragment_1);
-				var text_17 = only_child(div_11, true);
-				var node_7 = sibling(div_11, 2);
-				var consequent_9 = ($$anchor) => {
-					var div_12 = root_9$1();
-					var node_8 = child(div_12);
-					each(node_8, 17, () => get(q).options || [], index, ($$anchor, o) => {
-						var button_2 = root_8$2();
-						var text_18 = only_child(button_2, true);
+		var consequent_12 = ($$anchor) => {
+			var div_10 = root_9$1();
+			var text_17 = only_child(div_10, true);
+			template_effect(($0) => {
+				set_class(div_10, 1, `tc-ev tc-marker ${$0 ?? ""}`);
+				set_text(text_17, get(e).line);
+			}, [() => markerClass(get(e).line)]);
+			append($$anchor, div_10);
+		};
+		var consequent_14 = ($$anchor) => {
+			var div_11 = root_14$1();
+			var node_9 = sibling(child(div_11), 2);
+			each(node_9, 17, () => get(e).input && get(e).input.questions || [], index, ($$anchor, q) => {
+				var fragment_2 = root_13$1();
+				var div_12 = first_child(fragment_2);
+				var text_18 = only_child(div_12, true);
+				var node_10 = sibling(div_12, 2);
+				var consequent_13 = ($$anchor) => {
+					var div_13 = root_11$1();
+					var node_11 = child(div_13);
+					each(node_11, 17, () => get(q).options || [], index, ($$anchor, o) => {
+						var button_2 = root_10$1();
+						var text_19 = only_child(button_2, true);
 						template_effect(() => {
 							set_attribute(button_2, "title", get(o).description || "");
-							set_text(text_18, get(o).label);
+							set_text(text_19, get(o).label);
 						});
 						delegated("click", button_2, () => answerQuestion(get(e), get(q), get(o).label));
 						append($$anchor, button_2);
 					});
-					var input_1 = sibling(node_8, 2);
-					remove_input_defaults(input_1);
-					var button_3 = sibling(input_1, 2);
-					reset(div_12);
-					bind_value(input_1, () => other[get(e).request_id], ($$value) => other[get(e).request_id] = $$value);
+					var input_2 = sibling(node_11, 2);
+					remove_input_defaults(input_2);
+					var button_3 = sibling(input_2, 2);
+					reset(div_13);
+					bind_value(input_2, () => other[get(e).request_id], ($$value) => other[get(e).request_id] = $$value);
 					delegated("click", button_3, () => answerQuestion(get(e), get(q), other[get(e).request_id] || ""));
-					append($$anchor, div_12);
-				};
-				var d_1 = user_derived(() => get(e).waits && get(live) && !get(pendingIds).has(get(e).request_id) && !get(answered)[get(e).request_id]);
-				var alternate = ($$anchor) => {
-					var div_13 = root_10$1();
-					var text_19 = only_child(div_13, true);
-					template_effect(() => set_text(text_19, get(answered)[get(e).request_id] ? "Answered here." : get(e).waits ? "Waiting for an answer…" : "Not waited for: the campaign carries on (D5)."));
 					append($$anchor, div_13);
 				};
-				if_block(node_7, ($$render) => {
-					if (get(d_1)) $$render(consequent_9);
+				var d_3 = user_derived(() => get(e).waits && get(live) && !get(pendingIds).has(get(e).request_id) && !get(answered)[get(e).request_id]);
+				var alternate = ($$anchor) => {
+					var div_14 = root_12$1();
+					var text_20 = only_child(div_14, true);
+					template_effect(() => set_text(text_20, get(answered)[get(e).request_id] ? "Answered here." : get(e).waits ? "Waiting for an answer…" : "Not waited for: the campaign carries on (D5)."));
+					append($$anchor, div_14);
+				};
+				if_block(node_10, ($$render) => {
+					if (get(d_3)) $$render(consequent_13);
 					else $$render(alternate, -1);
 				});
-				template_effect(() => set_text(text_17, get(q).question));
-				append($$anchor, fragment_1);
+				template_effect(() => set_text(text_18, get(q).question));
+				append($$anchor, fragment_2);
 			});
-			reset(div_10);
-			append($$anchor, div_10);
+			reset(div_11);
+			append($$anchor, div_11);
 		};
-		var consequent_12 = ($$anchor) => {
-			var div_14 = root_14$1();
-			var div_15 = child(div_14);
-			var text_20 = only_child(div_15);
-			var pre_1 = sibling(div_15, 2);
-			var text_21 = only_child(pre_1, true);
-			var node_9 = sibling(pre_1, 2);
-			var consequent_11 = ($$anchor) => {
-				var fragment_2 = root_13$1();
-				var button_4 = first_child(fragment_2);
+		var consequent_16 = ($$anchor) => {
+			var div_15 = root_16();
+			var div_16 = child(div_15);
+			var text_21 = only_child(div_16);
+			var pre_1 = sibling(div_16, 2);
+			var text_22 = only_child(pre_1, true);
+			var node_12 = sibling(pre_1, 2);
+			var consequent_15 = ($$anchor) => {
+				var fragment_3 = root_15();
+				var button_4 = first_child(fragment_3);
 				var button_5 = sibling(button_4, 2);
 				delegated("click", button_4, () => approve(get(e), true));
 				delegated("click", button_5, () => approve(get(e), false));
-				append($$anchor, fragment_2);
+				append($$anchor, fragment_3);
 			};
-			var d_2 = user_derived(() => get(e).waits && get(live) && !get(pendingIds).has(get(e).request_id) && !get(answered)[get(e).request_id]);
+			var d_4 = user_derived(() => get(e).waits && get(live) && !get(pendingIds).has(get(e).request_id) && !get(answered)[get(e).request_id]);
 			var alternate_1 = ($$anchor) => {
-				var div_16 = root_10$1();
-				var text_22 = only_child(div_16, true);
-				template_effect(() => set_text(text_22, get(answered)[get(e).request_id] ? "Answered here." : "Not approved: outside the session's permission profile (D6)."));
-				append($$anchor, div_16);
+				var div_17 = root_12$1();
+				var text_23 = only_child(div_17, true);
+				template_effect(() => set_text(text_23, get(answered)[get(e).request_id] ? "Answered here." : "Not approved: outside the session's permission profile (D6)."));
+				append($$anchor, div_17);
 			};
-			if_block(node_9, ($$render) => {
-				if (get(d_2)) $$render(consequent_11);
+			if_block(node_12, ($$render) => {
+				if (get(d_4)) $$render(consequent_15);
 				else $$render(alternate_1, -1);
 			});
-			reset(div_14);
+			reset(div_15);
 			template_effect(() => {
-				set_text(text_20, `Permission asked: ${get(e).tool ?? ""}`);
-				set_text(text_21, get(e).input);
+				set_text(text_21, `Permission asked: ${get(e).tool ?? ""}`);
+				set_text(text_22, get(e).input);
 			});
-			append($$anchor, div_14);
+			append($$anchor, div_15);
 		};
-		var consequent_13 = ($$anchor) => {
-			var div_17 = root_15();
-			var text_23 = only_child(div_17);
-			template_effect(($0, $1) => set_text(text_23, `turn finished · ${get(e).num_turns ?? ""} turns · ${$0 ?? ""}${$1 ?? ""}`), [() => fmtDuration(get(e).duration_ms), () => get(e).total_cost_usd != null ? ` · $${get(e).total_cost_usd.toFixed(2)}` : ""]);
-			append($$anchor, div_17);
-		};
-		var consequent_14 = ($$anchor) => {
-			var div_18 = root_16();
-			var text_24 = only_child(div_18, true);
-			template_effect(() => set_text(text_24, get(e).text));
+		var consequent_17 = ($$anchor) => {
+			var div_18 = root_17();
+			var text_24 = only_child(div_18);
+			template_effect(($0, $1) => set_text(text_24, `turn finished · ${get(e).num_turns ?? ""} turns · ${$0 ?? ""}${$1 ?? ""}`), [() => fmtDuration(get(e).duration_ms), () => get(e).total_cost_usd != null ? ` · $${get(e).total_cost_usd.toFixed(2)}` : ""]);
 			append($$anchor, div_18);
 		};
-		var consequent_15 = ($$anchor) => {
-			var div_19 = root_17();
-			var text_25 = only_child(div_19);
-			template_effect(() => set_text(text_25, `session ${get(e).state ?? ""}${get(e).error ? ": " + get(e).error : ""}`));
+		var consequent_18 = ($$anchor) => {
+			var div_19 = root_18();
+			var text_25 = only_child(div_19, true);
+			template_effect(() => set_text(text_25, get(e).text));
 			append($$anchor, div_19);
 		};
-		var consequent_16 = ($$anchor) => {
-			var div_20 = root_17();
+		var consequent_19 = ($$anchor) => {
+			var div_20 = root_19();
 			var text_26 = only_child(div_20);
-			template_effect(() => set_text(text_26, `session started · ${(get(e).model || "") ?? ""} · permission mode ${(get(e).permission_mode || "?") ?? ""} · Claude Code ${(get(e).cli_version || "?") ?? ""}`));
+			template_effect(() => set_text(text_26, `session ${get(e).state ?? ""}${get(e).error ? ": " + get(e).error : ""}`));
 			append($$anchor, div_20);
 		};
+		var consequent_20 = ($$anchor) => {
+			var div_21 = root_19();
+			var text_27 = only_child(div_21);
+			template_effect(() => set_text(text_27, `session started · ${(get(e).model || "") ?? ""} · permission mode ${(get(e).permission_mode || "?") ?? ""} · Claude Code ${(get(e).cli_version || "?") ?? ""}`));
+			append($$anchor, div_21);
+		};
 		if_block(node_3, ($$render) => {
-			if (get(e).kind === "text") $$render(consequent_2);
-			else if (get(e).kind === "tool_use") $$render(consequent_4, 1);
-			else if (get(e).kind === "task") $$render(consequent_5, 2);
-			else if (get(e).kind === "update") $$render(consequent_7, 3);
-			else if (get(e).kind === "marker") $$render(consequent_8, 4);
-			else if (get(e).kind === "question") $$render(consequent_10, 5);
-			else if (get(e).kind === "approval") $$render(consequent_12, 6);
-			else if (get(e).kind === "result") $$render(consequent_13, 7);
-			else if (get(e).kind === "user_message") $$render(consequent_14, 8);
-			else if (get(e).kind === "state") $$render(consequent_15, 9);
-			else if (get(e).kind === "init") $$render(consequent_16, 10);
+			if (get(e).kind === "text") $$render(consequent_3);
+			else if (get(e).kind === "thinking") $$render(consequent_6, 1);
+			else if (get(e).kind === "tool_use") $$render(consequent_8, 2);
+			else if (get(e).kind === "task") $$render(consequent_9, 3);
+			else if (get(e).kind === "update") $$render(consequent_11, 4);
+			else if (get(e).kind === "marker") $$render(consequent_12, 5);
+			else if (get(e).kind === "question") $$render(consequent_14, 6);
+			else if (get(e).kind === "approval") $$render(consequent_16, 7);
+			else if (get(e).kind === "result") $$render(consequent_17, 8);
+			else if (get(e).kind === "user_message") $$render(consequent_18, 9);
+			else if (get(e).kind === "state") $$render(consequent_19, 10);
+			else if (get(e).kind === "init") $$render(consequent_20, 11);
 		});
 		append($$anchor, fragment);
 	});
-	var node_10 = sibling(node_2, 2);
-	var consequent_17 = ($$anchor) => {
-		var div_21 = root_18();
-		append($$anchor, div_21);
+	var node_13 = sibling(node_2, 2);
+	var consequent_21 = ($$anchor) => {
+		var div_22 = root_20();
+		append($$anchor, div_22);
 	};
-	if_block(node_10, ($$render) => {
-		if (!get(events).length) $$render(consequent_17);
+	if_block(node_13, ($$render) => {
+		if (!get(events).length) $$render(consequent_21);
 	});
 	reset(div_3);
 	bind_this(div_3, ($$value) => box = $$value, () => box);
-	var node_11 = sibling(div_3, 2);
-	var consequent_18 = ($$anchor) => {
-		var div_22 = root_19();
-		var input_2 = child(div_22);
-		remove_input_defaults(input_2);
-		var button_6 = sibling(input_2, 2);
-		reset(div_22);
-		delegated("keydown", input_2, (ev) => {
+	var node_14 = sibling(div_3, 2);
+	var consequent_22 = ($$anchor) => {
+		var div_23 = root_21();
+		var input_3 = child(div_23);
+		remove_input_defaults(input_3);
+		var button_6 = sibling(input_3, 2);
+		reset(div_23);
+		delegated("keydown", input_3, (ev) => {
 			if (ev.key === "Enter") send();
 		});
-		bind_value(input_2, () => get(draft), ($$value) => set(draft, $$value));
+		bind_value(input_3, () => get(draft), ($$value) => set(draft, $$value));
 		delegated("click", button_6, send);
-		append($$anchor, div_22);
+		append($$anchor, div_23);
 	};
-	if_block(node_11, ($$render) => {
-		if (get(live)) $$render(consequent_18);
+	if_block(node_14, ($$render) => {
+		if (get(live)) $$render(consequent_22);
 	});
 	reset(div);
 	template_effect(($0, $1, $2, $3) => {
@@ -603,6 +679,7 @@ function AgentWindow($$anchor, $$props) {
 		set_text(text_4, `tokens ${$1 ?? ""}`);
 		set_attribute(span_4, "title", $2);
 		set_text(text_5, $3);
+		set_checked(input_1, get(verbose));
 	}, [
 		() => fmtDuration(get(elapsed)),
 		() => fmtTokens(get(tokens)),
@@ -610,13 +687,18 @@ function AgentWindow($$anchor, $$props) {
 		() => get(cost) != null ? `$${get(cost).toFixed(2)}` : ""
 	]);
 	bind_checked(input, () => get(follow), ($$value) => set(follow, $$value));
+	delegated("change", input_1, (ev) => setVerbose(ev.currentTarget.checked));
 	event("scroll", div_3, () => {
 		if (box) set(follow, box.scrollHeight - box.scrollTop - box.clientHeight < 40);
 	});
 	append($$anchor, div);
 	pop();
 }
-delegate(["click", "keydown"]);
+delegate([
+	"change",
+	"click",
+	"keydown"
+]);
 //#endregion
 //#region src/tc/LogViewer.svelte
 var root$3 = from_html(`<div class="tc-problem"> </div>`);

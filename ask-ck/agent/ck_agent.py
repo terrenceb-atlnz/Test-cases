@@ -36,7 +36,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 # Bump when the contract changes; the setup script compares this against the served
 # manifest to decide whether a running agent is stale and must be replaced.
-AGENT_VERSION = "1.3.4"
+AGENT_VERSION = "1.3.5"
 
 # Thinking and the answer share ONE MESSAGE's output budget (`maxOutputTokens`, 32,000 on
 # the CLI and not raisable). These are reasoning models, so uncapped thinking silently
@@ -603,6 +603,10 @@ def _block_text(content):
     return str(content or "")
 
 
+# Per reasoning block, the same cap as a turn result's text.
+THINKING_SHOW_MAX = 4000
+
+
 def normalize_message(msg) -> list:
     """SDK message → page events (plain dicts). One message can carry several blocks."""
     kind = type(msg).__name__
@@ -620,7 +624,11 @@ def normalize_message(msg) -> list:
                                               or inp.get("prompt") or inp.get("file_path") or inp, 200),
                             "input": _short(inp, 1500)})
             elif bk == "ThinkingBlock":
-                out.append({"kind": "thinking", "parent": parent})
+                # The text is shown in the window (1.3.5): a session sometimes answers the user's
+                # message only in its reasoning (run 2026-10-13T1454-val-43dd), which Claude Code
+                # shows and 1.3.4 dropped. Never read for markers — those come from text only.
+                out.append({"kind": "thinking", "parent": parent,
+                            "text": _short(getattr(b, "thinking", "") or "", THINKING_SHOW_MAX)})
     elif kind == "UserMessage":
         content = getattr(msg, "content", None)
         for b in content if isinstance(content, list) else []:

@@ -50,7 +50,7 @@
 - [grep shim honors .gitignore](grep-shim-honors-gitignore.md) — `grep` is a FUNCTION wrapping ugrep --ignore-files, so 0 hits in .venv/ node_modules/ var/ looks like absence; use `command grep`
 
 <!-- hardware / testbox lane (was a separate store keyed on ~/testbox_home until 2026-07-30) -->
-- [Agent sessions: the SDK facts](agent-sessions-sdk-facts.md) — 2026-10-09: stream-json control protocol (= VS Code's); the classifier never reads tool results, so a hand-off file authorizes nothing; never write authorization in the user's name; --bg not drivable; D6 profile = launcher --settings; TRIAGE ≈ $2–4
+- [Agent sessions: the SDK facts](agent-sessions-sdk-facts.md) — 2026-10-09: stream-json control protocol (= VS Code's); the classifier never reads tool results, so a hand-off file authorizes nothing; never write authorization in the user's name; --bg not drivable; D6 profile = launcher --settings; TRIAGE ≈ $2–4; 2026-10-14: mid-turn messages are absorbed, may be answered only in reasoning; most reasoning has no text; no system_prompt = an empty one
 - [Kill by PID, not pattern](kill-by-pid-not-pattern.md) — stop your own processes by captured PID; `pkill -f ck_agent.py` matches the user's live agent (and your own shell)
 - [tb470 runs go through /test-mode](tb470-runs-go-through-test-mode.md) — since 2026-09-28: device-testing session, ONE session = sentinel + bench-runner subagents; gate 8 refuses a bare dispatch; STANDING-ORDERS = log NAME is the verdict
 - [PyTest Creator (Ask CK)](pytest-creator-askck.md) — 5 steps ending at a saved script (Run/Validate/Testboxes retired 2026-10-12, Validation runs it); tracker at ask-ck/plans/PLAN-pytest-creator.md

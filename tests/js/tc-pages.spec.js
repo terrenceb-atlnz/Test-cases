@@ -154,6 +154,67 @@ describe('Validation', () => {
     expect($$('.tc-update.tc-attn').length).toBe(1);
   });
 
+  it('shows the sentinel\'s reasoning; Verbose adds the tester\'s, and is remembered', async () => {
+    // Agent 1.3.5: run 2026-10-13T1454-val-43dd answered "how long will this take?" only in its
+    // reasoning, which 1.3.4 dropped and the window never showed.
+    const evs = [...EVENTS.slice(0, 7),
+      { seq: 7, t: 7, kind: 'thinking', parent: null, text: 'This should take 30–45 minutes.' },
+      { seq: 8, t: 8, kind: 'thinking', parent: 'toolu_tester', text: 'Reading the queue file.' },
+      { seq: 9, t: 8, kind: 'thinking', parent: null, text: '' },
+      { seq: 10, t: 8, kind: 'thinking', parent: null },                       // 1.3.4: no text at all
+      { ...EVENTS[7], seq: 11 }, { ...EVENTS[8], seq: 12 }];
+    await page(vdRoutes(), fakeAgent(evs));
+    $('input[name="vd-script"]').click(); flushSync();
+    type($('#tc-testbox'), 'tb470'); type($('#tc-consoles'), 'u0-u5');
+    await click($('#vd-launch'));
+    await until(() => $$('.tc-turn').length === 1);
+    expect($$('.tc-thinking').map(e => e.textContent)).toEqual(['This should take 30–45 minutes.']);
+    expect($('.tc-verbose').checked).toBe(false);
+    await click($('.tc-verbose'));
+    expect($$('.tc-thinking').map(e => [e.textContent, e.classList.contains('tc-sub')])).toEqual(
+      [['This should take 30–45 minutes.', false], ['Reading the queue file.', true]]);
+    expect(localStorage.getItem('ckAgentVerbose')).toBe('1');
+    await click($('.tc-verbose'));
+    expect($$('.tc-thinking').length).toBe(1);
+    expect(localStorage.getItem('ckAgentVerbose')).toBe('0');
+  });
+
+  it('marks the first thing the sentinel says after a message as its reply, in reasoning or text', async () => {
+    // Run 2026-10-13T1454-val-43dd's answer was only in reasoning; a scratch session's was in text.
+    // Empty reasoning and the tester's reasoning (even with Verbose on) are never the reply.
+    localStorage.setItem('ckAgentVerbose', '1');
+    const evs = [...EVENTS.slice(0, 2),
+      { seq: 2, t: 2, kind: 'user_message', text: 'how long will this take?' },
+      { seq: 3, t: 3, kind: 'thinking', parent: null, text: '' },
+      { seq: 4, t: 3, kind: 'thinking', parent: 'toolu_tester', text: 'Reading the queue file.' },
+      { seq: 5, t: 4, kind: 'thinking', parent: null, text: 'This should take 30–45 minutes.' },
+      { seq: 6, t: 5, kind: 'text', parent: null, text: 'Arming the sentinel.' },
+      { seq: 7, t: 6, kind: 'user_message', text: 'and now?' },
+      { seq: 8, t: 7, kind: 'text', parent: null, text: 'About 10 minutes left.' },
+      { seq: 9, t: 8, kind: 'text', parent: null, text: 'Run finished.' },
+      { ...EVENTS[7], seq: 10 }, { ...EVENTS[8], seq: 11 }];
+    await page(vdRoutes(), fakeAgent(evs));
+    $('input[name="vd-script"]').click(); flushSync();
+    type($('#tc-testbox'), 'tb470'); type($('#tc-consoles'), 'u0-u5');
+    await click($('#vd-launch'));
+    await until(() => $$('.tc-turn').length === 1);
+    expect($$('.tc-reply').map(e => e.textContent)).toEqual(['replyThis should take 30–45 minutes.', 'replyAbout 10 minutes left.']);
+    expect($$('.tc-reply').map(e => e.classList.contains('tc-thinking'))).toEqual([true, false]);
+  });
+
+  it('opens with Verbose on when this browser last left it on', async () => {
+    localStorage.setItem('ckAgentVerbose', '1');
+    const evs = [...EVENTS.slice(0, 7), { seq: 7, t: 7, kind: 'thinking', parent: 'toolu_tester', text: 'Tester reasoning.' },
+      { ...EVENTS[7], seq: 8 }, { ...EVENTS[8], seq: 9 }];
+    await page(vdRoutes(), fakeAgent(evs));
+    $('input[name="vd-script"]').click(); flushSync();
+    type($('#tc-testbox'), 'tb470'); type($('#tc-consoles'), 'u0-u5');
+    await click($('#vd-launch'));
+    await until(() => $$('.tc-turn').length === 1);
+    expect($('.tc-verbose').checked).toBe(true);
+    expect($$('.tc-thinking').map(e => e.textContent)).toEqual(['Tester reasoning.']);
+  });
+
   it('shows results by cycle with the type marker, and Finalize disabled until the run is clean', async () => {
     await page();
     $('input[name="vd-script"]').click(); flushSync();
