@@ -93,10 +93,10 @@ def _sidebar_sections(path):
 
 def test_validation_lives_inside_test_composer_in_both_pages():
     # Terrence 2026-10-12: Validation moved INTO the Test Composer section, Validate before
-    # Compose, and the colour specimen panel removed.
+    # Compose, and the colour specimen panel removed. 2026-10-15: Run Scripts third (PLAN-run-scripts §2).
     for page in (CURRENT, RESTYLE):
         sections = dict(_sidebar_sections(page))
-        assert sections.get("Test Composer") == ["panel-vd", "panel-tc"], (page, sections.get("Test Composer"))
+        assert sections.get("Test Composer") == ["panel-vd", "panel-tc", "panel-rs"], (page, sections.get("Test Composer"))
         assert "Validation" not in sections, page
         assert "panel-tc-tbd" not in page.read_text(encoding="utf-8"), page
 

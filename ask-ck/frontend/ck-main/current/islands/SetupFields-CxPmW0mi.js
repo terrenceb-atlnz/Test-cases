@@ -1,6 +1,6 @@
 /* Built from ask-ck/frontend/ck-main/current/svelte-src/ — do not edit; run `npm run build` there.
-* source-sha256:b6e9e10e1afb636e68b3c321dd3f52483f4377276ee8bb34822d2c2656a60b3e */
-import { A as event, B as proxy, E as from_html, G as pop, H as state, I as child, J as reset, K as push, L as first_child, M as untrack, N as template_effect, O as delegate, P as user_effect, R as only_child, S as set_text, T as comment, V as set, W as user_derived, _ as each, a as bind_checked, b as if_block, c as remove_input_defaults, d as bind_select_value, f as init_select, g as clsx, h as set_class, i as bind_this, j as get, k as delegated, l as set_attribute, n as onMount, p as select_option, q as next, r as prop, s as bind_value, t as onDestroy, u as set_checked, v as index, w as append, z as sibling } from "./disclose-version-DSaNGfAt.js";
+* source-sha256:1206112986e1464d57b15314760c388e9a3bf8ac7cadfa2db25759e6165fac97 */
+import { A as delegated, B as sibling, C as set_text, D as from_html, E as comment, F as user_effect, G as user_derived, H as set, J as next, K as pop, L as child, M as get, N as untrack, P as template_effect, R as first_child, T as append, U as state, V as proxy, Y as reset, _ as clsx, a as bind_checked, c as remove_input_defaults, f as bind_select_value, g as set_class, i as bind_this, j as event, k as delegate, l as set_attribute, m as select_option, n as onMount, p as init_select, q as push, r as prop, s as bind_value, t as onDestroy, u as set_checked, v as each, x as if_block, y as index, z as only_child } from "./disclose-version-XCxqLbnz.js";
 //#region src/tc/api.js
 var TC_API = "/api/test-composer";
 async function json(r) {
@@ -74,6 +74,27 @@ function runBody(kind, setup, extra = {}) {
 		constraints: (setup.constraints || "").trim(),
 		options: { email: (setup.email || "").trim() || null }
 	}, extra);
+}
+/** Run Scripts' share link (PLAN-run-scripts §3): the scripts in run order and the bench settings,
+*  never the email (R-D4) — whoever opens it gets the mail. Parsed by test-composer.js deepLink. */
+function scriptsLink(href, { source, scripts, setup, start }) {
+	const u = new URL(href);
+	u.search = "";
+	u.hash = "";
+	const put = (k, v) => {
+		const t = String(v || "").trim();
+		if (t) u.searchParams.set(k, t);
+	};
+	put("panel", "run-scripts");
+	put("source", source);
+	put("scripts", (scripts || []).join(","));
+	put("testbox", setup.testbox);
+	put("consoles", setup.consoles);
+	put("pdu", setup.pduIp);
+	put("outlets", setup.outlets);
+	put("constraints", setup.constraints);
+	put("start", start);
+	return u.toString();
 }
 var VERDICT_ORDER = [
 	"PASS",
@@ -1410,4 +1431,4 @@ function SetupFields($$anchor, $$props) {
 	pop();
 }
 //#endregion
-export { saveSetup as _, TC_API as a, effectiveVerdict as c, formatOutlets as d, httpAgent as f, runBody as g, parseOutlets as h, AgentWindow as i, fmtDuration as l, loadSetup as m, RunsList as n, VERDICT_ORDER as o, httpServer as p, ResultsTable as r, byCycle as s, SetupFields as t, fmtTokens as u, tokensOf as v, verdictCounts as y };
+export { saveSetup as _, TC_API as a, verdictCounts as b, effectiveVerdict as c, formatOutlets as d, httpAgent as f, runBody as g, parseOutlets as h, AgentWindow as i, fmtDuration as l, loadSetup as m, RunsList as n, VERDICT_ORDER as o, httpServer as p, ResultsTable as r, byCycle as s, SetupFields as t, fmtTokens as u, scriptsLink as v, tokensOf as y };

@@ -1,7 +1,473 @@
 /* Built from ask-ck/frontend/ck-main/current/svelte-src/ — do not edit; run `npm run build` there.
-* source-sha256:b6e9e10e1afb636e68b3c321dd3f52483f4377276ee8bb34822d2c2656a60b3e */
-import { B as proxy, C as unmount, E as from_html, G as pop, H as state, I as child, J as reset, K as push, L as first_child, N as template_effect, O as delegate, R as only_child, S as set_text, T as comment, U as flushSync, V as set, W as user_derived, _ as each, a as bind_checked, b as if_block, c as remove_input_defaults, d as bind_select_value, f as init_select, h as set_class, j as get, k as delegated, l as set_attribute, n as onMount, o as bind_group, q as next, r as prop, s as bind_value, u as set_checked, v as index, w as append, x as mount, y as key, z as sibling } from "./disclose-version-DSaNGfAt.js";
-import { _ as saveSetup, a as TC_API, c as effectiveVerdict, d as formatOutlets, f as httpAgent, g as runBody, h as parseOutlets, i as AgentWindow, l as fmtDuration, m as loadSetup, n as RunsList, o as VERDICT_ORDER, p as httpServer, r as ResultsTable, s as byCycle, t as SetupFields, u as fmtTokens, v as tokensOf, y as verdictCounts } from "./SetupFields-BRhbrZT3.js";
+* source-sha256:1206112986e1464d57b15314760c388e9a3bf8ac7cadfa2db25759e6165fac97 */
+import { A as delegated, B as sibling, C as set_text, D as from_html, E as comment, G as user_derived, H as set, J as next, K as pop, L as child, M as get, N as untrack, O as text, P as template_effect, R as first_child, S as mount, T as append, U as state, V as proxy, W as flushSync, Y as reset, a as bind_checked, b as key, c as remove_input_defaults, d as set_value, f as bind_select_value, g as set_class, j as event, k as delegate, l as set_attribute, n as onMount, o as bind_group, p as init_select, q as push, r as prop, s as bind_value, u as set_checked, v as each, w as unmount, x as if_block, y as index, z as only_child } from "./disclose-version-XCxqLbnz.js";
+import { _ as saveSetup, a as TC_API, b as verdictCounts, c as effectiveVerdict, d as formatOutlets, f as httpAgent, g as runBody, h as parseOutlets, i as AgentWindow, l as fmtDuration, m as loadSetup, n as RunsList, o as VERDICT_ORDER, p as httpServer, r as ResultsTable, s as byCycle, t as SetupFields, u as fmtTokens, v as scriptsLink, y as tokensOf } from "./SetupFields-CxPmW0mi.js";
+//#region src/tc/RsPage.svelte
+var root$2 = from_html(`<label class="tc-small"><input type="radio" name="rs-source"/> </label>`);
+var root_1$2 = from_html(`<div class="tc-problem"> </div>`);
+var root_2$2 = from_html(`<label><input type="checkbox" name="rs-script"/> <span class="tc-key"> </span> <span> </span> <span class="tc-small"> </span></label>`);
+var root_3$2 = from_html(`<div class="rs-group"> </div> <!>`, 1);
+var root_4$2 = from_html(`<div class="tc-small rs-empty">No validated scripts yet. A script appears here once Validation has finalized it.</div>`);
+var root_5$2 = from_html(`<li><span class="tc-key"> </span> <span class="tc-small"> </span></li>`);
+var root_6$2 = from_html(`<ol></ol>`);
+var root_7$1 = from_html(`<div class="tc-small">Nothing ticked.</div>`);
+var root_8$1 = from_html(`<div class="tc-problem rs-missing"> </div>`);
+var root_9$1 = from_html(`<input id="rs-shared" class="form-input" readonly=""/>`);
+var root_10$1 = from_html(`<!> <div class="tc-step"><span class="tc-step-n">6</span> Results</div> <!>`, 1);
+var root_11$1 = from_html(`<div class="tc-step"><span class="tc-step-n">5</span> </div> <!> <div class="tc-line"><button type="button" id="rs-again" class="btn btn-secondary">Run again</button> <span class="tc-small"> </span></div>`, 1);
+var root_12$1 = from_html(`<div class="section tc-page"><div class="section-heading">Run Scripts</div> <div class="section-description">Run validated scripts on a test bench through your seat's agent, several at once, in the order you tick them. A script that fails does not stop the rest. There is no repair or review: that is Validation's job. The session still checks the bench before it runs anything.</div> <div class="tc-step"><span class="tc-step-n">1</span> Source</div> <div class="tc-line rs-sources"></div> <div class="tc-step"><span class="tc-step-n">2</span> Scripts</div> <!> <div class="tc-line"><input id="rs-filter" class="form-input" placeholder="Filter by case key or path"/></div> <div class="rs-pick"><div class="tc-scripts"><!> <!></div> <div class="rs-order"><div class="tc-small">Runs in this order</div> <!></div></div> <!> <div class="tc-step"><span class="tc-step-n">3</span> Where it runs</div> <!> <div class="tc-step"><span class="tc-step-n">4</span> When and launch</div> <div class="tc-line"><label class="tc-small">Run once, after hours, from <input id="rs-start" type="time" class="form-input tc-time"/></label> <span class="tc-small">(blank = now)</span> <button type="button" id="rs-link" class="btn btn-secondary">Copy share link</button> <button type="button" id="rs-launch" class="btn btn-primary"> </button></div> <div class="tc-line"><span class="tc-small"><!></span></div> <!> <div role="status"> </div> <!> <div class="tc-step">Earlier runs</div> <!></div>`);
+function RsPage($$anchor, $$props) {
+	push($$props, true);
+	let link = prop($$props, "link", 3, null), openRun = prop($$props, "openRun", 3, null);
+	const TERMINAL = [
+		"done",
+		"stopped",
+		"error"
+	];
+	const given = untrack(() => link()) || {};
+	let setup = state(proxy(Object.assign({
+		testbox: "",
+		consoles: "",
+		pduIp: "",
+		outlets: "",
+		constraints: "",
+		email: ""
+	}, loadSetup(), given.setup || {})));
+	let sources = state(proxy([]));
+	let sourceId = state(proxy(given.source || "generated"));
+	let listing = state(null);
+	let filter = state("");
+	let order = state(proxy([]));
+	let missing = state(proxy([]));
+	let wanted = given.scripts && given.scripts.length ? given.scripts : null;
+	let startAfter = state(proxy(given.start || ""));
+	let health = state(null);
+	let busy = state(false);
+	let status = state(proxy({
+		msg: "",
+		bad: false
+	}));
+	let shared = state("");
+	let run = state(null);
+	let runState = state(null);
+	let refreshKey = state(0);
+	const scripts = user_derived(() => get(listing) ? get(listing).scripts : []);
+	const byPath = user_derived(() => new Map(get(scripts).map((s) => [s.path, s])));
+	const shown = user_derived(() => get(scripts).filter((s) => !get(filter).trim() || `${s.case_key || ""} ${s.path}`.toLowerCase().includes(get(filter).trim().toLowerCase())));
+	const groups = user_derived(() => [...new Set(get(shown).map((s) => s.group))].map((g) => ({
+		group: g,
+		rows: get(shown).filter((s) => s.group === g)
+	})));
+	const sessionsOk = user_derived(() => get(health) && get(health).sessions && get(health).sessions.available);
+	const canLaunch = user_derived(() => get(order).length > 0 && get(sessionsOk) && get(setup).testbox && get(setup).consoles && !get(busy));
+	function setStatus(msg, bad = false) {
+		set(status, {
+			msg,
+			bad
+		}, true);
+	}
+	function toggle(path) {
+		set(order, get(order).includes(path) ? get(order).filter((p) => p !== path) : [...get(order), path], true);
+	}
+	/** Tick the named scripts in their order; anything missing or no longer validated is reported. */
+	function pick(paths) {
+		set(order, paths.filter((p) => get(byPath).has(p)), true);
+		set(missing, paths.filter((p) => !get(byPath).has(p)), true);
+	}
+	async function loadScripts() {
+		try {
+			const d = await $$props.server(`/scripts?source=${encodeURIComponent(get(sourceId))}&validated=true`);
+			set(sources, d.sources || [], true);
+			set(listing, {
+				enabled: d.enabled,
+				reason: d.reason,
+				scripts: d.scripts || []
+			}, true);
+		} catch (e) {
+			set(listing, {
+				enabled: false,
+				reason: e.message,
+				scripts: []
+			}, true);
+		}
+		if (wanted) {
+			pick(wanted);
+			wanted = null;
+		}
+	}
+	function chooseSource(id) {
+		if (id === get(sourceId)) return;
+		set(sourceId, id, true);
+		set(order, [], true);
+		set(missing, [], true);
+		loadScripts();
+	}
+	async function checkAgent() {
+		try {
+			set(health, await $$props.agent.health(), true);
+		} catch (e) {
+			set(health, { error: e.message }, true);
+		}
+	}
+	function body() {
+		return {
+			source: get(sourceId),
+			cases: get(order).map((p) => ({
+				key: (get(byPath).get(p) || {}).case_key,
+				kind: "script",
+				script: p
+			})),
+			options: {
+				email: (get(setup).email || "").trim() || null,
+				start_after: get(startAfter) || null
+			}
+		};
+	}
+	async function launch() {
+		if (!get(canLaunch)) return;
+		set(busy, true);
+		saveSetup(get(setup));
+		try {
+			const b = runBody("scripts", get(setup), body());
+			const created = await $$props.server("/runs", {
+				method: "POST",
+				body: JSON.stringify(b)
+			});
+			if (b.options.start_after) setStatus(`Scheduled ${created.run_id} for ${get(startAfter)} (${created.handoff.start_at}). Your seat agent starts it then — keep this seat on and logged in; no tab is needed. The results arrive in the runs list and by email.`);
+			else {
+				const started = await $$props.agent.start({
+					run_id: created.run_id,
+					handoff: created.handoff,
+					mode: "campaign"
+				});
+				if (!started.ok) throw new Error(started.error || "the seat agent refused the session");
+				set(run, {
+					runId: created.run_id,
+					sessionId: started.session_id
+				}, true);
+				set(runState, null);
+				setStatus(`Launched ${created.run_id} on ${b.testbox}: ${get(order).length} script(s).`);
+			}
+			set(refreshKey, get(refreshKey) + 1);
+		} catch (e) {
+			setStatus("Launch failed: " + e.message, true);
+		} finally {
+			set(busy, false);
+		}
+	}
+	async function copyLink() {
+		set(shared, scriptsLink(window.location.href, {
+			source: get(sourceId),
+			scripts: get(order),
+			setup: get(setup),
+			start: get(startAfter)
+		}), true);
+		try {
+			await navigator.clipboard.writeText(get(shared));
+			setStatus("Share link copied. It carries the scripts and the bench settings, never your email.");
+		} catch (_) {
+			setStatus("Copy the share link below. It carries the scripts and the bench settings, never your email.");
+		}
+	}
+	/** Refill the page from a finished run's hand-off: same scripts, order and bench; this seat's email. */
+	async function runAgain() {
+		try {
+			const h = (await $$props.server(`/runs/${encodeURIComponent(get(run).runId)}`)).handoff || {};
+			set(setup, Object.assign({}, get(setup), {
+				testbox: h.testbox || "",
+				consoles: h.consoles || "",
+				pduIp: h.pdu && h.pdu.ip || "",
+				outlets: formatOutlets(h.pdu && h.pdu.outlets),
+				constraints: h.constraints || ""
+			}), true);
+			set(startAfter, "");
+			const paths = (h.cases || []).map((c) => c.path).filter(Boolean);
+			if ((h.source || "generated") !== get(sourceId)) {
+				set(sourceId, h.source || "generated", true);
+				wanted = paths;
+				await loadScripts();
+			} else pick(paths);
+			setStatus(`Filled from ${get(run).runId}. Press Launch to run it again.`);
+		} catch (e) {
+			setStatus("Could not read that run: " + e.message, true);
+		}
+	}
+	onMount(() => {
+		loadScripts();
+		checkAgent();
+		if (openRun()) set(run, {
+			runId: openRun(),
+			sessionId: null
+		}, true);
+		if (link()) setStatus("Filled from a share link. Check the settings, then press Launch.");
+	});
+	var div = root_12$1();
+	var div_1 = sibling(child(div), 6);
+	each(div_1, 21, () => get(sources), (s) => s.id, ($$anchor, s) => {
+		var label = root$2();
+		var input = child(label);
+		remove_input_defaults(input);
+		var text = sibling(input);
+		reset(label);
+		template_effect(() => {
+			set_attribute(label, "title", get(s).reason || "");
+			set_value(input, get(s).id);
+			set_checked(input, get(sourceId) === get(s).id);
+			input.disabled = !get(s).enabled;
+			set_text(text, ` ${get(s).label ?? ""}${get(s).enabled ? "" : " (not yet)"}`);
+		});
+		delegated("change", input, () => chooseSource(get(s).id));
+		append($$anchor, label);
+	});
+	reset(div_1);
+	var node = sibling(div_1, 4);
+	var consequent = ($$anchor) => {
+		var div_2 = root_1$2();
+		var text_1 = only_child(div_2, true);
+		template_effect(() => set_text(text_1, get(listing).reason));
+		append($$anchor, div_2);
+	};
+	if_block(node, ($$render) => {
+		if (get(listing) && !get(listing).enabled) $$render(consequent);
+	});
+	var div_3 = sibling(node, 2);
+	var input_1 = child(div_3);
+	remove_input_defaults(input_1);
+	reset(div_3);
+	var div_4 = sibling(div_3, 2);
+	var div_5 = child(div_4);
+	var node_1 = child(div_5);
+	each(node_1, 17, () => get(groups), (g) => g.group, ($$anchor, g) => {
+		var fragment = root_3$2();
+		var div_6 = first_child(fragment);
+		var text_2 = only_child(div_6, true);
+		var node_2 = sibling(div_6, 2);
+		each(node_2, 17, () => get(g).rows, (s) => s.path, ($$anchor, s) => {
+			var label_1 = root_2$2();
+			let classes;
+			var input_2 = child(label_1);
+			remove_input_defaults(input_2);
+			var span = sibling(input_2, 2);
+			var text_3 = only_child(span, true);
+			var span_1 = sibling(span, 2);
+			var text_4 = only_child(span_1, true);
+			var span_2 = sibling(span_1, 2);
+			var text_5 = only_child(span_2);
+			reset(label_1);
+			template_effect(($0, $1, $2) => {
+				classes = set_class(label_1, 1, "tc-script-row", null, classes, { "is-chosen": $0 });
+				set_value(input_2, get(s).path);
+				set_checked(input_2, $1);
+				set_text(text_3, get(s).case_key || "?");
+				set_text(text_4, get(s).path);
+				set_text(text_5, `validated ${$2 ?? ""}`);
+			}, [
+				() => get(order).includes(get(s).path),
+				() => get(order).includes(get(s).path),
+				() => String(get(s).finalized_at || "").slice(0, 10)
+			]);
+			delegated("change", input_2, () => toggle(get(s).path));
+			append($$anchor, label_1);
+		});
+		template_effect(() => set_text(text_2, get(g).group));
+		append($$anchor, fragment);
+	});
+	var node_3 = sibling(node_1, 2);
+	var consequent_1 = ($$anchor) => {
+		var div_7 = root_4$2();
+		append($$anchor, div_7);
+	};
+	if_block(node_3, ($$render) => {
+		if (get(listing) && get(listing).enabled && !get(scripts).length) $$render(consequent_1);
+	});
+	reset(div_5);
+	var div_8 = sibling(div_5, 2);
+	var node_4 = sibling(child(div_8), 2);
+	var consequent_2 = ($$anchor) => {
+		var ol = root_6$2();
+		each(ol, 20, () => get(order), (p) => p, ($$anchor, p) => {
+			var li = root_5$2();
+			var span_3 = child(li);
+			var text_6 = only_child(span_3, true);
+			var span_4 = sibling(span_3, 2);
+			var text_7 = only_child(span_4, true);
+			reset(li);
+			template_effect(($0) => {
+				set_text(text_6, $0);
+				set_text(text_7, p);
+			}, [() => (get(byPath).get(p) || {}).case_key || "?"]);
+			append($$anchor, li);
+		});
+		reset(ol);
+		append($$anchor, ol);
+	};
+	var alternate = ($$anchor) => {
+		var div_9 = root_7$1();
+		append($$anchor, div_9);
+	};
+	if_block(node_4, ($$render) => {
+		if (get(order).length) $$render(consequent_2);
+		else $$render(alternate, -1);
+	});
+	reset(div_8);
+	reset(div_4);
+	var node_5 = sibling(div_4, 2);
+	each(node_5, 16, () => get(missing), (p) => p, ($$anchor, p) => {
+		var div_10 = root_8$1();
+		var text_8 = only_child(div_10);
+		template_effect(() => set_text(text_8, `not available: ${p ?? ""}`));
+		append($$anchor, div_10);
+	});
+	var node_6 = sibling(node_5, 4);
+	SetupFields(node_6, {
+		get setup() {
+			return get(setup);
+		},
+		set setup($$value) {
+			set(setup, $$value, true);
+		}
+	});
+	var div_11 = sibling(node_6, 4);
+	var label_2 = child(div_11);
+	var input_3 = sibling(child(label_2));
+	remove_input_defaults(input_3);
+	reset(label_2);
+	var button = sibling(label_2, 4);
+	var button_1 = sibling(button, 2);
+	var text_9 = only_child(button_1, true);
+	reset(div_11);
+	var div_12 = sibling(div_11, 2);
+	var span_5 = child(div_12);
+	var node_7 = child(span_5);
+	var consequent_3 = ($$anchor) => {
+		var text_10 = text("checking your seat agent…");
+		append($$anchor, text_10);
+	};
+	var consequent_4 = ($$anchor) => {
+		var text_11 = text();
+		template_effect(() => set_text(text_11, `Your seat agent is not reachable (${get(health).error ?? ""}) — run the seat setup from the home page.`));
+		append($$anchor, text_11);
+	};
+	var consequent_5 = ($$anchor) => {
+		var text_12 = text();
+		template_effect(() => set_text(text_12, `Your seat agent cannot run sessions: ${(get(health).sessions ? get(health).sessions.reason : "agent too old — re-run the seat setup") ?? ""}`));
+		append($$anchor, text_12);
+	};
+	var alternate_1 = ($$anchor) => {
+		var text_13 = text();
+		template_effect(() => set_text(text_13, `Seat agent ${get(health).agent_version ?? ""} ready · device-testing at ${get(health).sessions.dt_root ?? ""}`));
+		append($$anchor, text_13);
+	};
+	if_block(node_7, ($$render) => {
+		if (!get(health)) $$render(consequent_3);
+		else if (get(health).error) $$render(consequent_4, 1);
+		else if (!get(sessionsOk)) $$render(consequent_5, 2);
+		else $$render(alternate_1, -1);
+	});
+	reset(span_5);
+	reset(div_12);
+	var node_8 = sibling(div_12, 2);
+	var consequent_6 = ($$anchor) => {
+		var input_4 = root_9$1();
+		remove_input_defaults(input_4);
+		template_effect(() => set_value(input_4, get(shared)));
+		event("focus", input_4, (e) => e.currentTarget.select());
+		append($$anchor, input_4);
+	};
+	if_block(node_8, ($$render) => {
+		if (get(shared)) $$render(consequent_6);
+	});
+	var div_13 = sibling(node_8, 2);
+	let classes_1;
+	var text_14 = only_child(div_13, true);
+	var node_9 = sibling(div_13, 2);
+	var consequent_7 = ($$anchor) => {
+		var fragment_4 = root_11$1();
+		var div_14 = first_child(fragment_4);
+		var text_15 = sibling(child(div_14));
+		reset(div_14);
+		var node_10 = sibling(div_14, 2);
+		key(node_10, () => get(run).runId, ($$anchor) => {
+			var fragment_5 = root_10$1();
+			var node_11 = first_child(fragment_5);
+			AgentWindow(node_11, {
+				get runId() {
+					return get(run).runId;
+				},
+				get sessionId() {
+					return get(run).sessionId;
+				},
+				get agent() {
+					return $$props.agent;
+				},
+				get server() {
+					return $$props.server;
+				},
+				onstate: (s) => {
+					set(runState, s, true);
+					if (TERMINAL.includes(s)) set(refreshKey, get(refreshKey) + 1);
+				}
+			});
+			var node_12 = sibling(node_11, 4);
+			ResultsTable(node_12, {
+				get runId() {
+					return get(run).runId;
+				},
+				get server() {
+					return $$props.server;
+				}
+			});
+			append($$anchor, fragment_5);
+		});
+		var div_15 = sibling(node_10, 2);
+		var button_2 = child(div_15);
+		var span_6 = sibling(button_2, 2);
+		var text_16 = only_child(span_6, true);
+		reset(div_15);
+		template_effect(($0, $1) => {
+			set_text(text_15, ` The session — ${get(run).runId ?? ""}`);
+			button_2.disabled = $0;
+			set_text(text_16, $1);
+		}, [() => !TERMINAL.includes(get(runState)), () => TERMINAL.includes(get(runState)) ? "Fills the page with this run's scripts, order and bench." : "Available when the run has finished."]);
+		delegated("click", button_2, runAgain);
+		append($$anchor, fragment_4);
+	};
+	if_block(node_9, ($$render) => {
+		if (get(run)) $$render(consequent_7);
+	});
+	var node_13 = sibling(node_9, 4);
+	RunsList(node_13, {
+		get server() {
+			return $$props.server;
+		},
+		kind: "scripts",
+		get refreshKey() {
+			return get(refreshKey);
+		},
+		onopen: (id) => {
+			set(run, {
+				runId: id,
+				sessionId: null
+			}, true);
+			set(runState, null);
+		}
+	});
+	reset(div);
+	template_effect(() => {
+		button_1.disabled = !get(canLaunch);
+		set_text(text_9, get(busy) ? "Launching…" : `${get(startAfter) ? "Schedule" : "Launch"} (${get(order).length})`);
+		classes_1 = set_class(div_13, 1, "tc-status", null, classes_1, { "is-bad": get(status).bad });
+		set_text(text_14, get(status).msg);
+	});
+	bind_value(input_1, () => get(filter), ($$value) => set(filter, $$value));
+	bind_value(input_3, () => get(startAfter), ($$value) => set(startAfter, $$value));
+	delegated("click", button, copyLink);
+	delegated("click", button_1, launch);
+	append($$anchor, div);
+	pop();
+}
+delegate(["change", "click"]);
+//#endregion
 //#region src/tc/TcTree.svelte
 var root$1 = from_html(`<div class="zt-empty">No plans loaded.</div>`);
 var root_1$1 = from_html(`<span class="tc-prev">Previously Run</span>`);
@@ -798,5 +1264,20 @@ function mountTc(target, opts = {}) {
 		unmount(app);
 	} };
 }
+/** Run Scripts (PLAN-run-scripts): `link` is a parsed share link, which fills the page and never launches. */
+function mountRs(target, opts = {}) {
+	const app = mount(RsPage, {
+		target,
+		props: {
+			server: opts.server || httpServer(),
+			agent: opts.agent || httpAgent(opts.agentUrl),
+			link: opts.link || null,
+			openRun: opts.openRun || null
+		}
+	});
+	return { destroy() {
+		unmount(app);
+	} };
+}
 //#endregion
-export { TC_API, VERDICT_ORDER, byCycle, effectiveVerdict, flushSync, fmtDuration, fmtTokens, formatOutlets, httpAgent, httpServer, loadSetup, mountTc, parseOutlets, runBody, saveSetup, tokensOf, verdictCounts };
+export { TC_API, VERDICT_ORDER, byCycle, effectiveVerdict, flushSync, fmtDuration, fmtTokens, formatOutlets, httpAgent, httpServer, loadSetup, mountRs, mountTc, parseOutlets, runBody, saveSetup, scriptsLink, tokensOf, verdictCounts };

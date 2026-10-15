@@ -32,6 +32,15 @@
 .tc-page .tc-variant { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; padding: 4px 0; }
 .tc-page .tc-blockers { margin: 0 0 0 1.2em; font-size: 12px; color: var(--text-tertiary); }
 
+/* Run Scripts: the checklist and its run order side by side */
+.tc-page .rs-sources label { display: inline-flex; gap: 4px; align-items: center; }
+.tc-page .rs-pick { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 8px; }
+@media (max-width: 900px) { .tc-page .rs-pick { grid-template-columns: minmax(0, 1fr); } }
+.tc-page .rs-group { font-size: 12px; font-weight: 600; color: var(--text-secondary); padding: 6px 10px 2px; }
+.tc-page .rs-order { border: 1px solid var(--border-default); border-radius: 6px; background: var(--bg-secondary); padding: 6px 10px; max-height: 260px; overflow: auto; }
+.tc-page .rs-order ol { margin: 4px 0 0 1.4em; padding: 0; font-size: 13px; }
+.tc-page .rs-empty { padding: 6px 10px; }
+
 /* the agent window */
 .tc-page .tc-window { border: 1px solid var(--border-default); border-radius: 6px; background: var(--bg-secondary); margin: 6px 0; }
 .tc-page .tc-window-head { display: flex; gap: 10px; align-items: center; padding: 6px 10px; border-bottom: 1px solid var(--border-subtle); flex-wrap: wrap; }

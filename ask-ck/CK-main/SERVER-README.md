@@ -55,7 +55,7 @@ always opens Classic (`archive/plans/PLAN-atui-restyle.md`).
 - **Ask CK multi-tool sidebar** (always-expanded sections, top→bottom):
   - **LLM** — live status + **Configure** entry (opens the LLM Provider Login as a main-area panel)
   - **Zephyr Templating Tool** — one page, **Organize Templates** (`panel-zt`, `zephyr-tool/zephyr-tool.js`): project URL → analysis → tick tree → Confirm → API Upload (dry run)
-  - **Test Composer** — **Validate a Script** (`panel-vd`) then **Compose a Run** (`panel-tc`); Validation moved into this section and the colour specimen panel was removed on 2026-10-12
+  - **Test Composer** — **Validate a Script** (`panel-vd`), **Compose a Run** (`panel-tc`), then **Run Scripts** (`panel-rs`, 2026-10-16); Validation moved into this section and the colour specimen panel was removed on 2026-10-12
   - **PyTest Creator** — 5-step flow (7 steps 2026-07-23; **6. Run** and **7. Validate** retired 2026-10-12 — running a script is Validation's job): **1. Cases** (Open/Partial + Complete dropdowns, split by PyTest work state; partials auto-sorted to top; independent of the Generator) / **2. Sequence** / **3. Script Search** / **4. Fragments** / **5. Generate** (Confirm saves the script and offers Validation). (Former **4. Fit Decision** removed; internal `stepN` keys unchanged.) See the detailed **PyTest Creator** section below.
   - **Objective/Test Case Generator** — **1. Cases**, **2. TestLink**, **3. Zephyr**, **4. ATPyLib (scored)**, **5. Objectives (LLM)**, **6. Test Steps (LLM)**
 - Navigation: `goToPanel(panelId)` shows exactly one `.tool-panel` card; `goToStep()` wraps it for the Generator. **Visible step numbers (1–6) are display-only** — the internal scheme (`data-step` 0–5, panel ids `step-0..5`, session keys `step1..step5`, `confirm_step` domain ids 1–3) is unchanged and load-bearing.
@@ -1500,8 +1500,16 @@ reach the model (`_head_and_tail`). CHANGELOG 2026-09-08 has the measurements.
 ## Validation and Test Composer — agent sessions (2026-10-09)
 
 Plans: `ask-ck/plans/PLAN-agent-sessions.md` (the foundation: D1–D7, P0 findings §9a),
-`PLAN-test-validation.md` and `PLAN-test-composer.md`. Both pages are Svelte islands
-(`current/svelte-src/` → `current/islands/vd.js`, `tc.js`; see the front-end README).
+`PLAN-test-validation.md`, `PLAN-test-composer.md` and `PLAN-run-scripts.md`. The pages are Svelte
+islands (`current/svelte-src/` → `current/islands/vd.js`, `tc.js`; Run Scripts is `mountRs` in
+`tc.js`; see the front-end README).
+
+**Run kinds** (`tc_runs.KINDS`): `validation` (one script; repair and review), `composer` (a
+project's cases on a template), `composer-validate` (the bench probe only) and `scripts` (Run
+Scripts, run ids `…-scr-xxxx`: finalized scripts only, in the order given, script cases only, from
+an enabled source — `tc_runs.SOURCES`, where only `generated` is on; the hand-off carries `source`
+and each case its `path`). A Run Scripts share link (`?panel=run-scripts&source=&scripts=…`)
+carries the scripts and bench settings, never the email, and never launches.
 
 **How a run flows.** Every Claude session runs on the user's own seat and login (D7). The browser
 is the broker, exactly as for `claude_agent` jobs:
@@ -1539,7 +1547,7 @@ BLOCKs the case.
 
 | Method | Path (`/api/test-composer`) | Purpose |
 |---|---|---|
-| GET | `/scripts` | saved scripts (generated/) with provenance |
+| GET | `/scripts?source=&validated=` | one source's scripts with provenance, plus `sources` (the selector). Bare = every saved generated script (Validation); Run Scripts asks `validated=true` (finalized only). A disabled source answers `enabled: false` and a reason |
 | GET | `/templates?plans=` | templates (`functions/test-composer/templates/`) with runnable counts (pt_preflight) |
 | GET | `/requirements` | every saved script's topology demands, unioned |
 | GET | `/projects` | templated projects: `db/zt-uploads.jsonl` (written by `zt_upload.py`) + an audit-log backfill |

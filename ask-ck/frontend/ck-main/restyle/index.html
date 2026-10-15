@@ -14,7 +14,7 @@
 <link rel="shortcut icon" href="/favicon.ico">
 <link rel="stylesheet" href="/restyle/static/styles.css?v=16">
 <link rel="stylesheet" href="/static/zephyr-tool/zephyr-tool.css?v=1">
-<link rel="stylesheet" href="/static/test-composer/test-composer.css?v=1">
+<link rel="stylesheet" href="/static/test-composer/test-composer.css?v=2">
 </head>
 <body>
 <!-- ATUI shell (PLAN-atui-restyle S13-S15): a 48px header — brand mark + name on the left (the element
@@ -76,6 +76,9 @@
       </div>
       <div data-action="goToPanel" data-args='["panel-tc"]' role="button" tabindex="0" class="sidebar-nav-item" data-panel="panel-tc">
         Compose a Run
+      </div>
+      <div data-action="goToPanel" data-args='["panel-rs"]' role="button" tabindex="0" class="sidebar-nav-item" data-panel="panel-rs">
+        Run Scripts
       </div>
     </div>
 
@@ -522,6 +525,7 @@
     <!-- Validation and Test Composer — Svelte islands mounted by test-composer/test-composer.js -->
     <div id="panel-vd" class="card tool-panel hidden"><div id="vd-root"></div></div>
     <div id="panel-tc" class="card tool-panel hidden"><div id="tc-root"></div></div>
+    <div id="panel-rs" class="card tool-panel hidden"><div id="rs-root"></div></div>
 
     <!-- PyTest Creator: Cases (selection independent of the Generator's loaded case) -->
     <div id="panel-pt-cases" class="card tool-panel hidden">

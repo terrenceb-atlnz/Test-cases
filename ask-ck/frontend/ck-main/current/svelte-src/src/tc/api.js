@@ -75,6 +75,18 @@ export function runBody(kind, setup, extra = {}) {
   }, extra);
 }
 
+/** Run Scripts' share link (PLAN-run-scripts §3): the scripts in run order and the bench settings,
+ *  never the email (R-D4) — whoever opens it gets the mail. Parsed by test-composer.js deepLink. */
+export function scriptsLink(href, { source, scripts, setup, start }) {
+  const u = new URL(href);
+  u.search = ''; u.hash = '';
+  const put = (k, v) => { const t = String(v || '').trim(); if (t) u.searchParams.set(k, t); };
+  put('panel', 'run-scripts'); put('source', source); put('scripts', (scripts || []).join(','));
+  put('testbox', setup.testbox); put('consoles', setup.consoles); put('pdu', setup.pduIp);
+  put('outlets', setup.outlets); put('constraints', setup.constraints); put('start', start);
+  return u.toString();
+}
+
 export const VERDICT_ORDER = ['PASS', 'FAIL', 'PARTIAL', 'UNSUPPORTED', 'ERROR', 'BLOCKED', 'NOT TESTED', 'SKIP', 'PENDING'];
 
 /** The results table grouped by test cycle, in first-seen order; cases without a cycle last. */

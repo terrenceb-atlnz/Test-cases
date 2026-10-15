@@ -420,3 +420,71 @@ def test_status_advertises_the_device_testing_checkout_the_server_reads(client, 
     monkeypatch.setenv("CK_DT_ROOT_SERVER", str(tmp_path / "dt"))
     assert client.get("/api/test-composer/status").json()["dt_root"] == str(tmp_path / "dt")
 
+
+
+# ------------------------------------------------------------------ Run Scripts (PLAN-run-scripts R1, R4)
+
+def _finalize(env, name, case):
+    (env["gen"] / "9001_Port" / f"{name}.py").write_text(SCRIPT)
+    meta = env["gen"] / ".meta" / "9001_Port" / name
+    meta.mkdir(parents=True, exist_ok=True)
+    (meta / "provenance.json").write_text(json.dumps({"case_key": case, "saved_at": "2026-10-01",
+                                                      "finalized_at": "2026-10-16T09:00:00+00:00"}))
+    return f"9001_Port/{name}.py"
+
+
+def scripts_body(*paths, **kw):
+    cases = [{"key": "AWPTCM-T" + p.split(".")[-2], "kind": "script", "script": p} for p in paths]
+    return body(**({"kind": "scripts", "source": "generated", "cases": cases} | kw))
+
+
+def test_a_scripts_run_keeps_the_ticked_order_and_names_its_source(env):
+    a = _finalize(env, "test-9001.33235", "AWPTCM-T33235")
+    b = _finalize(env, "test-9001.33236", "AWPTCM-T33236")
+    sb = scripts_body(b, a)
+    sb["cases"][0]["cycle"] = "AWPTCM-C1"                     # not used by this kind
+    h = tc_runs.create_run(sb, seat="s")["handoff"]
+    assert "-scr-" in h["run_id"] and h["kind"] == "scripts" and h["source"] == "generated"
+    assert [c["key"] for c in h["cases"]] == ["AWPTCM-T33236", "AWPTCM-T33235"]
+    assert [c["path"] for c in h["cases"]] == [b, a]
+    assert all("cycle" not in c for c in h["cases"])
+    assert "source" not in tc_runs.create_run(body(), seat="s")["handoff"]     # other kinds unchanged
+
+
+@pytest.mark.parametrize("change,why", [
+    (lambda a: scripts_body("9001_Port/test-9001.33234.py"), "not validated"),
+    (lambda a: scripts_body(a, source="art"), "source ART: not yet"),
+    (lambda a: scripts_body(a, source="nowhere"), "no script source"),
+    (lambda a: scripts_body(a) | {"cases": [{"key": "AWPTCM-T33235", "kind": "script", "script": a},
+                                            {"key": "AWPTCM-T9", "kind": "manual"}]}, "script cases only"),
+    (lambda a: scripts_body(), "no cases"),
+])
+def test_a_scripts_run_refuses_what_run_scripts_may_not_run(env, change, why):
+    a = _finalize(env, "test-9001.33235", "AWPTCM-T33235")
+    with pytest.raises(tc_runs.RunError, match=why):
+        tc_runs.create_run(change(a), seat="s")
+
+
+def test_the_scripts_route_lists_one_source_and_validation_still_sees_every_script(env, client):
+    a = _finalize(env, "test-9001.33235", "AWPTCM-T33235")
+    bare = client.get("/api/test-composer/scripts").json()
+    assert [s["path"] for s in bare["scripts"]] == ["9001_Port/test-9001.33234.py", a]
+    only = client.get("/api/test-composer/scripts?source=generated&validated=true").json()
+    assert [s["path"] for s in only["scripts"]] == [a] and only["enabled"] is True
+    art = client.get("/api/test-composer/scripts?source=art&validated=true").json()
+    assert art["enabled"] is False and art["scripts"] == [] and "not yet" in art["reason"]
+    assert [(s["id"], s["enabled"]) for s in art["sources"]] == [
+        ("generated", True), ("art", False), ("legacy", False), ("svt", False)]
+    assert client.get("/api/test-composer/scripts?source=nowhere").status_code == 422
+    r = client.post("/api/test-composer/runs", json=scripts_body("9001_Port/test-9001.33234.py"))
+    assert r.status_code == 422 and "not validated" in r.json()["detail"]
+
+
+def test_a_scripts_run_can_start_once_after_hours(env, client):
+    a = _finalize(env, "test-9001.33235", "AWPTCM-T33235")
+    rid = tc_runs.create_run(scripts_body(a, options={"email": None, "start_after": "00:00"}), seat="testclient")["run_id"]
+    assert tc_runs.load(rid)["state"] == "scheduled"
+    tc_runs.mark(rid, start_at="2000-01-01T00:00:00+13:00")
+    assert client.get("/api/test-composer/scheduled").json()["due"] == [
+        {"run_id": rid, "start_at": "2000-01-01T00:00:00+13:00", "kind": "scripts"}]
+    assert client.post(f"/api/test-composer/runs/{rid}/claim").json()["handoff"]["source"] == "generated"

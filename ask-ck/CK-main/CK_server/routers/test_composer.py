@@ -51,8 +51,14 @@ async def status():
 # ------------------------------------------------------------------ inputs
 
 @router.get("/scripts")
-async def scripts():
-    return {"scripts": tc_runs.list_scripts()}
+async def scripts(source: Optional[str] = None, validated: bool = False):
+    """Validation asks bare (every saved generated script). Run Scripts names its source and asks
+    for validated scripts only (PLAN-run-scripts §4, R-O1); `sources` feeds its selector."""
+    try:
+        out = tc_runs.source_scripts(source or "generated", validated_only=validated)
+    except tc_runs.RunError as e:
+        _bad(e)
+    return out | {"sources": tc_runs.list_sources()}
 
 
 @router.get("/templates")

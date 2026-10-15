@@ -6,7 +6,7 @@ import { renderLlmDebugFooter } from './llm-debug.js';
 import { loadStepCandidates, renderObjectiveResult, renderReviewSummary, renderStepsResult, synthesize } from '../generator/generator.js';
 import { ptSession, renderPtFragPanel, renderPtGenPanel, renderPtSearchPanel, renderPtSeqPanel } from '../pytest-creator/pytest.js';
 import { renderZtPanel } from '../zephyr-tool/zephyr-tool.js';
-import { renderTcPanel, renderVdPanel } from '../test-composer/test-composer.js';
+import { renderRsPanel, renderTcPanel, renderVdPanel } from '../test-composer/test-composer.js';
 
 export function initSidebarAccordion() {
   const labels = Array.from(document.querySelectorAll('.sidebar .sidebar-section-label'));
@@ -111,6 +111,7 @@ export function goToPanel(panelId) {
     'panel-zt': renderZtPanel,
     'panel-tc': renderTcPanel,
     'panel-vd': renderVdPanel,
+    'panel-rs': renderRsPanel,
   };
   if (ptRenderers[panelId]) ptRenderers[panelId]();
 }
@@ -161,6 +162,7 @@ export function updatePageHeader() {
     'panel-zt': { title: 'Zephyr Templating Tool', desc: 'Trim the template test plans, cycles and cases to one project.' },
     'panel-vd': { title: 'Validation', desc: 'Run one saved script on a bench through your seat agent; repair, review, Finalize.' },
     'panel-tc': { title: 'Test Composer', desc: 'Run a project\'s runnable cases on a topology template through your seat agent.' },
+    'panel-rs': { title: 'Run Scripts', desc: 'Run validated scripts on a bench, several at once, through your seat agent.' },
     'panel-pt-cases': { title: 'PyTest Creator', desc: 'Select an Open/Partial case to turn into a framework test script.' },
     'panel-pt-seq': { title: 'PyTest Creator', desc: 'Step 2: identify the prescriptive test-step sequence, then confirm.' },
     'panel-pt-search': { title: 'PyTest Creator', desc: 'Step 3: search the script databases for full/partial coverage, then confirm.' },

@@ -2,7 +2,24 @@
 
 > ## Status (read first)
 >
-> **PLANNED 2026-10-15, nothing built.** Written from Terrence's design in that day's
+> **R1–R4 BUILT and LIVE 2026-10-16** (built on the live tree at Terrence's word; one backend reload).
+> - **R1:** `scripts` kind (`…-scr-xxxx`), `tc_runs.SOURCES` (only `generated` enabled),
+>   `GET /scripts?source=<id>&validated=true` (bare = every generated script, so Validation is
+>   unchanged; every reply carries `sources` for the selector). `POST /runs` refuses an unvalidated
+>   script, a disabled or unknown source, a manual case; keeps the order; drops `cycle`. The hand-off
+>   gains `source`, and each case a `path` (the source's own id) for Run again.
+> - **R2:** `svelte-src/src/tc/RsPage.svelte`, mounted as `mountRs` from the `tc` island into
+>   `#rs-root` (`panel-rs`), third in the Test Composer sidebar on both pages.
+> - **R3:** the link carries **source-relative** ids (`scripts=9001_Port/test-9001.33235.py,…`, not
+>   repo-relative as §3 first said; Terrence 2026-10-16). Built by `api.js scriptsLink`, read by
+>   `test-composer.js scriptsLinkFields`. A `tc-runs` mail link for a `-scr-` run opens this page.
+> - **R4:** the one-off start time; Launch reads *Schedule* while one is set.
+> - **Tests:** `tests/test_test_composer.py` (8) and `tests/js/run-scripts.spec.js` (7); 8 server and
+>   12 page mutations each red.
+> - **R5:** the `test-mode` §1 lines are in device-testing (`a2684da`). **The real two-script run
+>   is still to do**, and it waits for V0: the list is empty until a script is finalized.
+>
+> **PLANNED 2026-10-15.** Written from Terrence's design in that day's
 > conversation. It is a fourth Test Composer page beside [`PLAN-test-validation.md`](PLAN-test-validation.md)
 > (B) and [`PLAN-test-composer.md`](PLAN-test-composer.md) (C), and depends on
 > [`PLAN-agent-sessions.md`](PLAN-agent-sessions.md) (A) exactly as they do.

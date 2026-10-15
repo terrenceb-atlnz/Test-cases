@@ -16,7 +16,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/static/styles.css?v=36">
 <link rel="stylesheet" href="/static/zephyr-tool/zephyr-tool.css?v=1">
-<link rel="stylesheet" href="/static/test-composer/test-composer.css?v=1">
+<link rel="stylesheet" href="/static/test-composer/test-composer.css?v=2">
 </head>
 <body>
 <div class="layout">
@@ -70,7 +70,7 @@
       </div>
     </div>
 
-    <!-- Test Composer (PLAN-test-composer, PLAN-test-validation; Svelte islands islands/vd.js, islands/tc.js) -->
+    <!-- Test Composer (PLAN-test-composer, PLAN-test-validation, PLAN-run-scripts; Svelte islands islands/vd.js, islands/tc.js) -->
     <div class="sidebar-section-label">Test Composer</div>
     <div class="sidebar-steps">
       <div data-action="goToPanel" data-args='["panel-vd"]' role="button" tabindex="0" class="sidebar-nav-item" data-panel="panel-vd">
@@ -80,6 +80,10 @@
       <div data-action="goToPanel" data-args='["panel-tc"]' role="button" tabindex="0" class="sidebar-nav-item" data-panel="panel-tc">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
         Compose a Run
+      </div>
+      <div data-action="goToPanel" data-args='["panel-rs"]' role="button" tabindex="0" class="sidebar-nav-item" data-panel="panel-rs">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 19 22 12 13 5 13 19"></polygon><polygon points="2 19 11 12 2 5 2 19"></polygon></svg>
+        Run Scripts
       </div>
     </div>
 
@@ -529,9 +533,10 @@
       <div id="zt-root"></div>
     </div>
 
-    <!-- Validation and Test Composer — Svelte islands mounted by test-composer/test-composer.js -->
+    <!-- Validation, Test Composer and Run Scripts — Svelte islands mounted by test-composer/test-composer.js -->
     <div id="panel-vd" class="card tool-panel hidden"><div id="vd-root"></div></div>
     <div id="panel-tc" class="card tool-panel hidden"><div id="tc-root"></div></div>
+    <div id="panel-rs" class="card tool-panel hidden"><div id="rs-root"></div></div>
 
     <!-- PyTest Creator: Cases (selection independent of the Generator's loaded case) -->
     <div id="panel-pt-cases" class="card tool-panel hidden">

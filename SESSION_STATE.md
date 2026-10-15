@@ -5130,3 +5130,16 @@ Open:
   the D8 gap applies.
 
 Detail: PROGRESS 2026-10-13 (wrapped 2026-10-15).
+
+## Session Close / Handoff (2026-10-16) — Run Scripts R1–R4 live; 43dd record deleted
+
+Run Scripts (PLAN-run-scripts R1–R4) is built and live, on Terrence's word to build on the live
+tree. It adds the `scripts` run kind with a source registry (only `generated` enabled) and a
+validated-only list (finalized scripts). There is a third Test Composer page (`panel-rs`) where
+the scripts run in the order ticked. It has a share link that carries settings and source-relative
+script ids, but never the email or a launch, plus Run again and a one-off start time.
+The backend went in as one save (one ~22 s reload). The 43dd run record is deleted as not needed,
+so the "repair 43dd before reinstalling agent 1.3.5" item is dropped.
+Open: R5's real two-script run on tb470, which waits for a finalized script (V0); the missing
+`RESULT` markers; the agent 1.3.5 reinstall. Detail: PROGRESS 2026-10-16. Gate: pytest 2106 /
+1 skipped, vitest 409.

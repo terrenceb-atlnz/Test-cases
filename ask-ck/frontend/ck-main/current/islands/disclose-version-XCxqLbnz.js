@@ -1,5 +1,5 @@
 /* Built from ask-ck/frontend/ck-main/current/svelte-src/ — do not edit; run `npm run build` there.
-* source-sha256:b6e9e10e1afb636e68b3c321dd3f52483f4377276ee8bb34822d2c2656a60b3e */
+* source-sha256:1206112986e1464d57b15314760c388e9a3bf8ac7cadfa2db25759e6165fac97 */
 //#region node_modules/svelte/src/internal/shared/utils.js
 var is_array = Array.isArray;
 var index_of = Array.prototype.indexOf;
@@ -4685,6 +4685,7 @@ function is_selectedcontent_mutation(entry) {
 var IS_CUSTOM_ELEMENT = Symbol("is custom element");
 var IS_HTML = Symbol("is html");
 var LINK_TAG = IS_XHTML ? "link" : "LINK";
+var PROGRESS_TAG = IS_XHTML ? "progress" : "PROGRESS";
 /**
 * The value/checked attribute in the template actually corresponds to the defaultValue property, so we need
 * to remove it upon hydration to avoid a bug when someone resets the form value.
@@ -4711,6 +4712,15 @@ function remove_input_defaults(input) {
 	/** @type {any} */ input[FORM_RESET_HANDLER] = remove_defaults;
 	queue_micro_task(remove_defaults);
 	add_form_reset_listener();
+}
+/**
+* @param {Element} element
+* @param {any} value
+*/
+function set_value(element, value) {
+	var attributes = get_attributes(element);
+	if (attributes.value === (attributes.value = value ?? void 0) || element.value === value && (value !== 0 || element.nodeName !== PROGRESS_TAG)) return;
+	element.value = value ?? "";
 }
 /**
 * @param {Element} element
@@ -5137,4 +5147,4 @@ function init_update_callbacks(context) {
 //#region node_modules/svelte/src/internal/disclose-version.js
 if (typeof window !== "undefined") ((window.__svelte ??= {}).v ??= /* @__PURE__ */ new Set()).add("5");
 //#endregion
-export { event as A, proxy as B, unmount as C, text as D, from_html as E, $window as F, pop as G, state as H, child as I, reset as J, push as K, first_child as L, untrack as M, template_effect as N, delegate as O, user_effect as P, only_child as R, set_text as S, comment as T, flushSync as U, set as V, user_derived as W, each as _, bind_checked as a, if_block as b, remove_input_defaults as c, bind_select_value as d, init_select as f, clsx as g, set_class as h, bind_this as i, get as j, delegated as k, set_attribute as l, set_style as m, onMount as n, bind_group as o, select_option as p, next as q, prop as r, bind_value as s, onDestroy as t, set_checked as u, index as v, append as w, mount as x, key as y, sibling as z };
+export { delegated as A, sibling as B, set_text as C, from_html as D, comment as E, user_effect as F, user_derived as G, set as H, $window as I, next as J, pop as K, child as L, get as M, untrack as N, text as O, template_effect as P, first_child as R, mount as S, append as T, state as U, proxy as V, flushSync as W, reset as Y, clsx as _, bind_checked as a, key as b, remove_input_defaults as c, set_value as d, bind_select_value as f, set_class as g, set_style as h, bind_this as i, event as j, delegate as k, set_attribute as l, select_option as m, onMount as n, bind_group as o, init_select as p, push as q, prop as r, bind_value as s, onDestroy as t, set_checked as u, each as v, unmount as w, if_block as x, index as y, only_child as z };

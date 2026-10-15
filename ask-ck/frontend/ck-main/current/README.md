@@ -119,8 +119,8 @@ inside `current/`, not in Trent's app at `../svelte/`.
     committing.
 - **Mounting:**
   - a plain adapter module mounts each island into one `<div id="…-root">`, present in BOTH
-    index files: `zephyr-tool/zephyr-tool.js` → `zt`, `test-composer/test-composer.js` → `tc`
-    and `vd`;
+    index files: `zephyr-tool/zephyr-tool.js` → `zt`, `test-composer/test-composer.js` → `tc`,
+    `vd` and Run Scripts (`mountRs` from the `tc` bundle, into `#rs-root`);
   - islands use Svelte handlers, not the `data-action` registry (convention 1 covers the plain
     modules).
 - **Tests:** `tests/js/*.spec.js` import the BUILT bundles and drive them with fake servers and

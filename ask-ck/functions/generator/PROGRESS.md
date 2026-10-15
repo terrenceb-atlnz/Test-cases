@@ -5,11 +5,55 @@ verified: 2026-09-28
 
 **Purpose**: This file exists so future sessions can quickly understand exactly where we are, what has been built, what the priorities are, and how to continue seamlessly.
 
-**Last Updated**: 2026-10-15 (by Claude, with Terrence; the 2026-10-13 work logged: agent 1.3.2–1.3.4, T33235 regrouped, tb470 link M, Windows-seat facts)
+**Last Updated**: 2026-10-16 (by Claude, with Terrence; Run Scripts R1–R4 built and live; the 43dd record deleted)
 
 > **Reading note (2026-09-23 doc sweep).** Entries are frozen as written. Where an entry's
 > claim has since stopped being true, a ⚠ line under its heading says what changed.
 > Newest first. Paths in older entries predate these moves (the same as in CHANGELOG): `tool/` → `ask-ck/tools/`, `ask-ck/var/` → `ask-ck/db/`, `objective-drafting/` → `ask-ck/functions/generator/`, `pytest-create/` → `ask-ck/functions/pytest-creator/`, `js-tests/` → `tests/js/`, `ask-ck/ck-facelift/` → `ask-ck/plans/`, root reports → `docs/`, and completed plans `ask-ck/plans/` → `archive/plans/` (2026-09-11, 2026-09-23). Also retired 2026-09-23: the demo notes → `archive/plans/demo-2026-09-11/`, and `HANDOFF-generate-token-efficiency.md` + `Fragments_prompt.md` → `archive/records/`.
+
+## Latest session (2026-10-16) — Run Scripts R1–R4 built and live; the 43dd record deleted
+
+Terrence: "can you kill 43dd's record? its not actually needed", then "execute the plan for the
+script runner". Asked first, answered: the share link carries **source-relative** script ids, and
+the work is built **on the live tree** ("build it on live, no merge needed").
+- **43dd:** `runs/2026-10-13/2026-10-13T1454-val-43dd/` is removed from the repo (it is still in
+  git history at `0775bfe`). That drops the "repair 43dd before reinstalling 1.3.5" item; nothing
+  else read it. The seat agent's own copy (`~/.local/share/ck-agent/runs/…43dd/`) is outside the
+  repo and was left alone.
+- **R1, the server (`tc_runs.py`, `routers/test_composer.py`):**
+  - **The kind:** `scripts`, with run ids `…-scr-xxxx`.
+  - **Sources:** `tc_runs.SOURCES`; only `generated` is enabled, ART/Legacy/SVT answer "not yet".
+  - **The list:** `GET /scripts?source=&validated=true`. A bare call is unchanged for Validation;
+    every reply carries `sources`.
+  - **`POST /runs` refuses:** an unfinalized script, a disabled or unknown source, a manual case.
+    It keeps the order and drops `cycle`.
+  - **The hand-off:** gains `source`, and each case a `path`, for Run again.
+  - **Live:** one save of both files at 10:20:26; the reload took ~22 s with no wedge. 10.33.12.16
+    held PyTest Creator locks on T33234 and T33236; the restart cleared them until that page reloads.
+- **R2–R4, the page (`svelte-src/src/tc/RsPage.svelte`):**
+  - **Where:** mounted as `mountRs` from the `tc` island into `#rs-root` (`panel-rs`), third in
+    the Test Composer sidebar on Classic and ATUI. `test-composer.css` is now `?v=2`.
+  - **What it does:** source selector, grouped and filterable checklist, the run order as a
+    numbered list, `SetupFields`, an optional one-off start (Launch then reads *Schedule*),
+    `AgentWindow`, `ResultsTable` and earlier runs.
+  - **The share link:** `api.js scriptsLink` builds it and `test-composer.js scriptsLinkFields`
+    reads it. It never carries the email and never launches; a missing script is listed.
+  - **Run again:** refills the page from a finished run's hand-off; the email stays this seat's.
+  - **Mail links:** a `tc-runs` mail link for a `-scr-` run opens the page.
+- **Tests:** 8 pytest (`tests/test_test_composer.py`) and 7 vitest (`tests/js/run-scripts.spec.js`).
+  8 server and 12 page mutations were each red, all run on scratch copies (no extra reloads). The
+  restyle parity test now expects `panel-vd`, `panel-tc`, `panel-rs`.
+- **R5:** the device-testing `test-mode` §1 lines were already committed there (`a2684da`).
+
+**Open:**
+- **R5's real run** of two scripts on tb470 with Terrence. It waits for a finalized script, which
+  waits for V0: until then the list is empty.
+- **No `RESULT` marker in real runs** (2026-10-13 entry): Run Scripts' results table is empty
+  until it is fixed.
+- **Reinstall agent 1.3.5** on each seat; nothing blocks it now.
+- **Manual check:** Terrence, from the checklist given in the session.
+
+Gate: pytest 2106 / 1 skipped, vitest 409.
 
 ## Latest session (2026-10-13, wrapped 2026-10-15) — agent 1.3.2–1.3.4, T33235 regrouped and hidden from the Creator, tb470 link M, Windows seats
 
@@ -73,6 +117,9 @@ as possible", "Implement both for this test script", "just hide it from pytest c
 - Restore T33235 to the Creator: Finalize does it once Validation approves the script.
 
 ## Latest session (2026-10-14, late afternoon) — reattach a reopened run; task rows labelled; 43dd repair left to the page
+
+> ⚠ 2026-10-16: the 43dd repair was dropped. Terrence had the record deleted as not needed, so
+> agent 1.3.5 can be reinstalled now.
 
 Terrence: "1. yes 2. yes 3. yes 4. erase them if they're not useful".
 - **Reattach** (AgentWindow `attach()`):

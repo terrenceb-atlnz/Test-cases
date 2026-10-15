@@ -21,6 +21,37 @@ current working thread see
 > `ask-ck/ck-facelift/`, `pytest-create/` and `CK-main/` plan paths moved to `ask-ck/plans/` on 2026-09-11 and, once complete, to `archive/plans/`.
 > `js-tests/` → `tests/js/`, `e2e/` → `tests/e2e/`, `static/js/` → `ask-ck/frontend/ck-main/current/<page>/` (2026-09-11).
 
+## 2026-10-16 — Run Scripts: finalized scripts, several at once, in order, from a shareable link
+
+**What.**
+- **A third Test Composer page, Run Scripts** (`panel-rs`, PLAN-run-scripts R1–R4):
+  - one source's validated scripts, grouped and filterable;
+  - they run in the order ticked, on a bench, now or once after hours;
+  - the live session, the results and the logs, as on the other pages.
+- **A new run kind, `scripts`** (`…-scr-xxxx`). The server refuses:
+  - a script that is not finalized;
+  - a source that is not enabled (only `generated` is; ART, Legacy and SVT in `ck.db` are listed as
+    "not yet");
+  - a manual case.
+
+  The hand-off carries `source` and each case's `path`. `GET /scripts` takes `source` and
+  `validated`; a bare call is Validation's, unchanged.
+- **A share link** that fills the page with the scripts (source-relative ids, in run order) and
+  the bench settings. It never carries the email and never launches. **Run again** refills the
+  page from a finished run.
+
+**Why.**
+- **The page:** Terrence wanted to run known-good scripts without Validation's repair, review and
+  Finalize, and to hand a colleague a link that repeats a run on the same bench.
+- **The email:** it stays out of the link because whoever launches gets the mail (R-D4).
+- **The source-relative ids:** Terrence chose them, 2026-10-16, over the repo-relative paths the
+  plan first wrote. They are the id the server already takes, and a future `ck.db` script has no
+  repo path.
+- **Finalized only (R-O1):** Finalize's stamp is the only one there is, so the list stays empty
+  until V0 lets a script be finalized.
+- **The ck.db sources are listed and disabled:** each is a decision for when it is turned on
+  (shipping `source_text`, libraries, the legacy fix set, what "validated" means).
+
 ## 2026-10-14 — The session window reattaches to a reopened run; task rows say what they are
 
 **What.**

@@ -30,7 +30,7 @@ REPO_ROOT = ASKCK_ROOT.parent
 TC_ROOT = ASKCK_ROOT / "functions" / "test-composer"
 TEMPLATES_DIR = TC_ROOT / "templates"
 SCHEMA = 1
-KINDS = ("validation", "composer", "composer-validate")
+KINDS = ("validation", "composer", "composer-validate", "scripts")
 TERMINAL = ("done", "stopped", "error")
 
 TESTBOX_RE = re.compile(r"^tb\d{1,4}$")
@@ -85,17 +85,19 @@ def list_scripts() -> List[Dict[str, Any]]:
         group, name = py.parent.name, py.stem
         if group.startswith(".") or name.startswith("library_"):
             continue
-        meta = gen / ".meta" / group / name
-        prov = {}
-        try:
-            prov = json.loads((meta / "provenance.json").read_text(encoding="utf-8"))
-        except (OSError, ValueError):
-            pass
+        prov = _provenance(gen, group, name)
         out.append({"path": f"{group}/{py.name}", "group": group, "name": name,
                     "case_key": prov.get("case_key"), "family": prov.get("group"),
                     "saved_at": prov.get("saved_at"), "iterations": prov.get("iterations"),
                     "validated_at": prov.get("validated_at"), "finalized_at": prov.get("finalized_at")})
     return out
+
+
+def _provenance(gen: Path, group: str, name: str) -> Dict[str, Any]:
+    try:
+        return json.loads((gen / ".meta" / group / name / "provenance.json").read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return {}
 
 
 def script_abspath(rel: str) -> Path:
@@ -105,6 +107,47 @@ def script_abspath(rel: str) -> Path:
     if gen not in p.parents or p.suffix != ".py" or not p.is_file():
         raise RunError(f"no saved script {rel!r}")
     return p
+
+
+# ------------------------------------------------------------------ script sources (Run Scripts)
+
+# PLAN-run-scripts §4: where a Run Scripts run's scripts come from. Only `generated` is built; the
+# ck.db sources are listed so the page can show them, and each is a decision for when it is turned on
+# (shipping source_text to the session, its libraries, the legacy fix set, what "validated" means).
+_NOT_YET = "not yet: running scripts from ck.db is not built (PLAN-run-scripts §4)"
+SOURCES = (
+    {"id": "generated", "label": "Generated", "enabled": True, "reason": None},
+    {"id": "art", "label": "ART", "enabled": False, "reason": _NOT_YET},
+    {"id": "legacy", "label": "Legacy", "enabled": False, "reason": _NOT_YET},
+    {"id": "svt", "label": "SVT", "enabled": False, "reason": _NOT_YET},
+)
+
+
+def list_sources() -> List[Dict[str, Any]]:
+    return [dict(s) for s in SOURCES]
+
+
+def script_source(source_id: str) -> Dict[str, Any]:
+    s = next((x for x in SOURCES if x["id"] == source_id), None)
+    if s is None:
+        raise RunError(f"no script source {source_id!r}")
+    return s
+
+
+def is_validated(script: Dict[str, Any]) -> bool:
+    """R-O1 (Terrence 2026-10-15): validated means FINALIZED — Finalize's stamp is the only one."""
+    return bool(script.get("finalized_at"))
+
+
+def source_scripts(source_id: str = "generated", validated_only: bool = False) -> Dict[str, Any]:
+    """One source's scripts. A disabled source lists nothing and says why."""
+    s = script_source(source_id)
+    if not s["enabled"]:
+        return {"source": source_id, "enabled": False, "reason": s["reason"], "scripts": []}
+    scripts = list_scripts()
+    if validated_only:
+        scripts = [x for x in scripts if is_validated(x)]
+    return {"source": source_id, "enabled": True, "reason": None, "scripts": scripts}
 
 
 # ------------------------------------------------------------------ templates
@@ -155,6 +198,12 @@ def build_handoff(body: Dict[str, Any], seat: str, now: Optional[datetime] = Non
         raise RunError("PDU IP is not an IPv4 address")
     outlets = {str(k): int(v) for k, v in (pdu.get("outlets") or {}).items()
                if re.match(r"^u\d{1,2}$", str(k)) and str(v).isdigit()}
+    source = None
+    if kind == "scripts":
+        source = str(body.get("source") or "generated")
+        s = script_source(source)
+        if not s["enabled"]:
+            raise RunError(f"source {s['label']}: {s['reason']}")
     cases = []
     for c in body.get("cases") or []:
         key = str(c.get("key") or "").strip()
@@ -163,6 +212,8 @@ def build_handoff(body: Dict[str, Any], seat: str, now: Optional[datetime] = Non
         ck = c.get("kind") if c.get("kind") in ("script", "manual") else None
         if not ck:
             raise RunError(f"{key}: kind must be script or manual")
+        if kind == "scripts" and ck != "script":
+            raise RunError(f"{key}: a Run Scripts run has script cases only")
         entry = {"key": key, "kind": ck}
         if ck == "script":
             sp = script_abspath(str(c.get("script") or ""))
@@ -170,7 +221,12 @@ def build_handoff(body: Dict[str, Any], seat: str, now: Optional[datetime] = Non
             # Repo-relative too: a seat or testbox mounts the lab home elsewhere, so device-testing
             # resolves this against the Test-cases checkout BESIDE its own (<dt root>/../Test-cases).
             entry["script_rel"] = _repo_rel(sp)
-        if c.get("cycle"):
+            if kind == "scripts":
+                rel = sp.relative_to(generated_dir().resolve())
+                if not is_validated(_provenance(generated_dir().resolve(), rel.parent.as_posix(), rel.stem)):
+                    raise RunError(f"{rel.as_posix()} is not validated: Run Scripts runs finalized scripts only")
+                entry["path"] = rel.as_posix()       # the source's own id, for Run again
+        if c.get("cycle") and kind != "scripts":
             entry["cycle"] = str(c["cycle"])[:40]
         # The refined case (objective + steps) the Validation review checks the script against
         # (PLAN-test-validation §5); repo-relative like the script.
@@ -210,7 +266,7 @@ def build_handoff(body: Dict[str, Any], seat: str, now: Optional[datetime] = Non
         "cases": cases,
         "options": {"email": email or None, "start_after": start_after},
         "start_at": start_at,
-    }
+    } | ({"source": source} if kind == "scripts" else {})
 
 
 def _repo_rel(p: Path) -> Optional[str]:
