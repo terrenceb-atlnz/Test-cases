@@ -168,6 +168,15 @@ export async function fixUnits(key, units) {
   return await res.json();   // {dispatched, already_running, unmapped, structural, stale, primed}
 }
 
+// Re-cuts the units from the assembled script (local, no LLM): after a whole-script fix the
+// units still hold the OLD code and the server refuses Assemble / Fix Units as "diverged"
+// until this runs. Returns which units changed and which no longer exist in the script.
+export async function rechunk(key) {
+  const res = await fetch(`${PT_API}/rechunk/${encodeURIComponent(key)}`, { method: 'POST' });
+  if (!res.ok) throw new Error(await errorDetail(res));
+  return await res.json();   // {changed, dropped, units, gen_state}
+}
+
 // A review- or run-driven unit fix is HELD on its unit, never spliced on arrival (G7/D2):
 // the unit's own code is untouched until this promotes the held fix of the named units
 // (omitted = all), then re-assembles and re-lints.

@@ -1,4 +1,6 @@
 <script>
+  import CodeEditor from './CodeEditor.svelte';
+
   /** @type {{ name: string, source: string, steps: number, description?: string, redundantReason?: string, codeLines: number, code: string }} */
   export let fragment;
 
@@ -39,7 +41,9 @@
   </button>
 
   {#if expanded}
-    <pre class="fragment-code-block">{fragment.code}</pre>
+    <div class="fragment-code-block">
+      <CodeEditor value={fragment.code} readonly height="auto" maxHeight="300px" />
+    </div>
   {/if}
 </div>
 
@@ -126,14 +130,5 @@
 
   .fragment-code-block {
     margin: 8px 0 0 26px;
-    padding: 10px 12px;
-    border-radius: 8px;
-    background: var(--color-code-bg);
-    font-family: 'SFMono-Regular', Consolas, monospace;
-    font-size: 0.8rem;
-    max-height: 300px;
-    overflow: auto;
-    overflow-x: auto;
-    white-space: pre;
   }
 </style>

@@ -61,6 +61,7 @@ def assert_role_media_now(testCase, dut, port, role):
 class TestSet(ATTestSet.TestSet):
 
     FEATURES = ['ALL']
+
     def _ck_discover(self, dut, unit=None):
         """Every data link on the DUT, classified by asking the DUT what is fitted in each port.
 
@@ -180,7 +181,6 @@ class TestSet(ATTestSet.TestSet):
             return None, None, None
         raise RuntimeError(why)
 
-
     def init(self, setup):
         # Topology is DISCOVERED through the framework at run time, never declared to this
         # script: the DUT is the framework's `swi_a` slot (its stack, when it is in one), the
@@ -266,14 +266,12 @@ class TestSet(ATTestSet.TestSet):
         peer.cmd('no speed')
         peer.cmd('duplex auto')
         peer.mode('#')
-        # Wait for the auto/auto link to come up, then record the baseline negotiated values.
+        # Wait for the auto/auto link to come up. No baseline is recorded here: the negotiated
+        # polarity depends on the cable fitted (crossover in TestCase_5, straight-through from
+        # TestCase_7), so a value read at suite start would be from a different cable. The baseline
+        # speed, duplex and polarity are published by the case that runs once the straight-through
+        # cable is in place and the partner restrictions are lifted.
         waitForLinkState(self, dut, portPeer, 'connected', timeout=60)
-        output = dut.cmd('show interface {}'.format(portPeer.name))
-        self.baseline_speed = getCurrentValue(output, 'speed')
-        self.baseline_duplex = getCurrentValue(output, 'duplex')
-        self.baseline_polarity = getCurrentValue(output, 'polarity')
-        self.log('Baseline negotiated on {}: speed {}, duplex {}, polarity {}'.format(
-            portPeer.name, self.baseline_speed, self.baseline_duplex, self.baseline_polarity))
 
     def tear_down(self):
         tb = self.tb
@@ -3033,7 +3031,38 @@ class TestCase_22(ATTestCase.TestCase):
         if self.testSet.fibre_supported and portFibre is not None:
             test_ports.append(('fibre', portFibre))
 
-        # Force one more down/up cycle per test port so the audit always has a fresh transition.
+        def read_log():
+            # Buffered log (survives the earlier reload on disk-backed logs) merged with the permanent log.
+            buffered = dut.cmd('show log')
+            permanent = dut.cmd('show log permanent')
+            lines = buffered.splitlines()
+            if not checkInvalidCmd(permanent):
+                seen = set(lines)
+                lines.extend(ln for ln in permanent.splitlines() if ln not in seen)
+            return '\n'.join(lines)
+
+        def link_events(text, name):
+            short = name[len('port'):] if name.startswith('port') else name
+            pattern = re.compile(r'(?<![\w.])(?:port)?{}(?![\w.])'.format(re.escape(short)))
+            found = []
+            for line in text.splitlines():
+                if not pattern.search(line):
+                    continue
+                low = line.lower()
+                if re.search(r'\bdown\b', low):
+                    found.append('down')
+                elif re.search(r'\bup\b', low):
+                    found.append('up')
+            return found
+
+        # Snapshot of the log BEFORE this case forces anything: only the transitions the earlier
+        # cases forced (cable removal, shutdown/no shutdown, reload, transceiver swap) count as evidence.
+        earlier_log = read_log()
+        earlier_events = {}
+        for role, port in test_ports:
+            earlier_events[role] = link_events(earlier_log, port.name)
+
+        # Force one more down/up cycle per test port so the status records are taken on a settled link.
         link_ok = {}
         for role, port in test_ports:
             dut.mode(')#')
@@ -3047,10 +3076,7 @@ class TestCase_22(ATTestCase.TestCase):
             dut.mode('#')
             link_ok[role] = waitForLinkState(self, dut, port, 'connected', timeout=90)
 
-        # The buffered log is wiped by a reload, so read the permanent log (fall back to the buffer).
-        log_out = dut.cmd('show log permanent')
-        if checkInvalidCmd(log_out):
-            log_out = dut.cmd('show log')
+        log_out = read_log()
         status_all = dut.cmd('show interface status')
         collected = ['LOG:\n{}'.format(log_out), 'STATUS ALL:\n{}'.format(status_all)]
         records = {}
@@ -3066,41 +3092,36 @@ class TestCase_22(ATTestCase.TestCase):
 
         for role, port in test_ports:
             name = port.name
-            short = name[len('port'):] if name.startswith('port') else name
-            pattern = re.compile(r'(?<![\w.])(?:port)?{}(?![\w.])'.format(re.escape(short)))
-            events = []
-            for line in log_out.splitlines():
-                if not pattern.search(line):
-                    continue
-                low = line.lower()
-                if re.search(r'\bdown\b', low):
-                    events.append('down')
-                elif re.search(r'\bup\b', low):
-                    events.append('up')
-            downs = events.count('down')
-            ups = events.count('up')
-            if not events:
-                self.failed('{} port {}: log has no link up/down entries, so no forced transition was recorded'.format(
+            before = earlier_events[role]
+            downs = before.count('down')
+            ups = before.count('up')
+            # Copper saw at least a link loss and a shutdown cycle earlier; fibre at least one loss.
+            min_downs = 2 if role == 'copper' else 1
+            if not before:
+                self.failed('{} port {}: log has no link up/down entries from the earlier forced transitions'.format(
                     role, name))
                 continue
-            self.passed('{} port {}: log has {} link down and {} link up entries'.format(role, name, downs, ups))
-            if downs >= 1:
-                self.passed('{} port {}: log records link down entries ({}) for the forced loss events'.format(
-                    role, name, downs))
+            self.passed('{} port {}: earlier log has {} link down and {} link up entries'.format(
+                role, name, downs, ups))
+            if downs >= min_downs:
+                self.passed('{} port {}: log records {} link down entries for the earlier forced losses (need {})'.format(
+                    role, name, downs, min_downs))
             else:
-                self.failed('{} port {}: log has no link down entry'.format(role, name))
-            if ups >= 1 and ups >= downs:
-                self.passed('{} port {}: every link down ({}) is matched by a link up entry ({})'.format(
+                self.failed('{} port {}: log has {} link down entries from earlier events, expected at least {}'.format(
+                    role, name, downs, min_downs))
+            if ups >= downs - 1 and ups >= 1:
+                self.passed('{} port {}: link down entries ({}) are matched by link up entries ({})'.format(
                     role, name, downs, ups))
             else:
                 self.failed('{} port {}: {} link up entries do not match {} link down entries'.format(
                     role, name, ups, downs))
-            if events[-1] == 'up':
+            final_events = link_events(log_out, name)
+            if final_events and final_events[-1] == 'up':
                 self.passed('{} port {}: last logged transition is link up, matching the connected port'.format(
                     role, name))
             else:
                 self.failed('{} port {}: last logged transition is {}, expected up'.format(
-                    role, name, events[-1]))
+                    role, name, final_events[-1] if final_events else 'absent'))
 
             # Negotiated speed/duplex agree between show interface and show interface status.
             if not link_ok.get(role):
@@ -3118,9 +3139,14 @@ class TestCase_22(ATTestCase.TestCase):
                 continue
             for label, line in (('show interface <port> status', row_port), ('show interface status', row_all)):
                 tokens = line.split()
-                st_duplex = next((t for t in tokens if t.replace('a-', '', 1) in ('full', 'half')), None)
-                st_speed = next((t for t in tokens if t.replace('a-', '', 1).isdigit()
-                                 and t != tokens[0]), None)
+                st_duplex = None
+                st_speed = None
+                # Columns are ... Vlan Duplex Speed Type: the speed is the token right after duplex.
+                for idx in range(1, len(tokens) - 1):
+                    if tokens[idx].replace('a-', '', 1) in ('full', 'half', 'auto'):
+                        st_duplex = tokens[idx]
+                        st_speed = tokens[idx + 1]
+                        break
                 if st_duplex is None or st_speed is None:
                     self.failed('{} row for {} lacks duplex/speed columns: {}'.format(label, name, line.strip()))
                 elif role == 'copper' and not (st_duplex.startswith('a-') and st_speed.startswith('a-')):

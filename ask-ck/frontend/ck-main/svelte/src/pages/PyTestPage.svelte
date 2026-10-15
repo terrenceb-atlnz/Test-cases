@@ -313,6 +313,7 @@
       onFixScript={(headers) => generateService.fixScript(session.key, headers)}
       onFixUnits={(units) => generateService.fixUnits(session.key, units)}
       onApplyHeld={(units) => generateService.applyHeldFixes(session.key, units)}
+      onRechunk={() => generateService.rechunk(session.key)}
       onRefreshStep6={async () => {
         const sessResult = await casesService.getSession(session.key);
         session = sessResult.session;

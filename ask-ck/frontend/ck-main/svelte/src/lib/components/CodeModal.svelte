@@ -2,6 +2,7 @@
 // @ts-nocheck
 
   import Button from './Button.svelte';
+  import CodeEditor from './CodeEditor.svelte';
 
   /** @type {boolean} Bindable open/closed state */
   export let open = false;
@@ -53,7 +54,9 @@
       {#if loading}
         <p class="modal-loading">Loading…</p>
       {:else}
-        <pre class="code-view">{code}</pre>
+        <div class="code-view">
+          <CodeEditor value={code} readonly height="60vh" />
+        </div>
       {/if}
       <div class="modal-actions">
         <Button variant="primary" on:click={handleClose}>Close</Button>
@@ -106,17 +109,6 @@
 
   .code-view {
     margin: 0 0 20px;
-    max-height: 60vh;
-    overflow: auto;
-    padding: 16px;
-    border-radius: 8px;
-    background: var(--color-code-bg);
-    border: 1px solid var(--color-border-surface);
-    color: var(--color-text);
-    font-family: 'SFMono-Regular', Consolas, monospace;
-    font-size: 0.82rem;
-    line-height: 1.5;
-    white-space: pre;
   }
 
   .modal-actions {
