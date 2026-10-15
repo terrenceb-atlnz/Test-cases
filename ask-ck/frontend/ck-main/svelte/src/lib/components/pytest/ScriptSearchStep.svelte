@@ -1,7 +1,8 @@
 <script>
 // @ts-nocheck
 
-  import ArrowStep from '../ArrowStep.svelte';
+  import ArrowStep from './ArrowStep.svelte';
+  import StatusBadge from '../StatusBadge.svelte';
   import Button from '../Button.svelte';
   import Table from '../Table.svelte';
   import SearchBox from '../SearchBox.svelte';
@@ -382,15 +383,7 @@
       {#each sequencedTestSteps as step, i (step.n)}
         <div class="script-summary-section">
           <div class="sequence-step-summary">
-            <span
-              class="step-status-badge"
-              class:covered={stepStatuses[step.n] === 'covered'}
-              class:review={stepStatuses[step.n] === 'review'}
-              class:none={stepStatuses[step.n] === 'none'}
-              aria-hidden="true"
-            >
-              {stepStatuses[step.n] === 'covered' ? '✓' : stepStatuses[step.n] === 'review' ? '!' : '–'}
-            </span>
+            <StatusBadge status={stepStatuses[step.n] ?? 'none'} />
             <p><strong>Sequence Step {i + 1}</strong> - {step.action}</p>
           </div>
           <Table columns={tableColumns} rows={scriptSearchState[step.n]?.chosen ?? []} selectable={false} />
@@ -403,15 +396,7 @@
     </div>
   {:else if activeStep}
     <div class="sequence-step-summary">
-      <span
-        class="step-status-badge"
-        class:covered={stepStatuses[activeStep.n] === 'covered'}
-        class:review={stepStatuses[activeStep.n] === 'review'}
-        class:none={stepStatuses[activeStep.n] === 'none'}
-        aria-hidden="true"
-      >
-        {stepStatuses[activeStep.n] === 'covered' ? '✓' : stepStatuses[activeStep.n] === 'review' ? '!' : '–'}
-      </span>
+      <StatusBadge status={stepStatuses[activeStep.n] ?? 'none'} />
       <p><strong>Sequence Step {activeStepIndex + 1}</strong> - {activeStep.action}</p>
     </div>
 
@@ -543,32 +528,6 @@
     margin: 0;
     color: var(--color-text);
     font-size: 0.94rem;
-  }
-
-  .step-status-badge {
-    flex: 0 0 auto;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 22px;
-    height: 22px;
-    border-radius: 50%;
-    color: #fff;
-    font-size: 0.75rem;
-    font-weight: 700;
-    margin-top: 2px;
-  }
-
-  .step-status-badge.covered {
-    background: var(--color-success);
-  }
-
-  .step-status-badge.review {
-    background: var(--color-warning);
-  }
-
-  .step-status-badge.none {
-    background: var(--color-text-muted);
   }
 
   .testlink-choose-actions {

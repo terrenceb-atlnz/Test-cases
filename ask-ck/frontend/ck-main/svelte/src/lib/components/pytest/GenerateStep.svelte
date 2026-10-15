@@ -1,12 +1,15 @@
 <script>
 // @ts-nocheck
 
-  import ArrowStep from '../ArrowStep.svelte';
+  import ArrowStep from './ArrowStep.svelte';
+  import StatusBadge from '../StatusBadge.svelte';
   import Button from '../Button.svelte';
   import EditableField from '../EditableField.svelte';
+  import CodeEditor from '../CodeEditor.svelte';
   import StatusModal from '../StatusModal.svelte';
   import ConfirmModal from '../ConfirmModal.svelte';
   import LlmButton from '../LlmButton.svelte';
+  import ReviewFindings from './ReviewFindings.svelte';
   import ErrorBanner from '../ErrorBanner.svelte';
   import { onMount, onDestroy } from 'svelte';
   import { scrollToSection } from '../../utils/scroll.js';
@@ -96,6 +99,10 @@
   /** @type {() => Promise<any>} Re-fetches the session (parent keeps it) and returns step6 —
       fix results, the refreshed script/lint and the (cleared) review are read off it. */
   export let onRefreshStep6 = async () => ({});
+
+  /** @type {() => Promise<{ changed: string[], dropped: string[] }>} rechunk — re-cuts the units
+      from the assembled script (local, no LLM); run after a whole-script fix. */
+  export let onRechunk = async () => ({ changed: [], dropped: [] });
 
   /** @type {(group: string, name: string, code: string) => Promise<{ status: string, message: string }>}
       Save and Finish: writes generated/ with this naming + code, then confirms Generate. Never
@@ -473,16 +480,10 @@
   // fix, where it is recorded and reviewable.
   let review = initialReview;
 
-  // A review describes ONE version of the script. Once the code has moved on (a save or hand
-  // edit), its findings are shown collapsed under a "stale" badge, each saying whether its
-  // quoted evidence is still present in the current code.
+  // A review describes ONE version of the script; once the code has moved on (a save or hand
+  // edit) it is stale. Shown by ReviewFindings; also read by the red-unit logic below.
   $: reviewStale = !!genState?.review_stale;
   $: reviewFindings = review?.findings || [];
-  $: reviewCounts = ['high', 'medium', 'low']
-    .map((sv) => ({ sv, n: reviewFindings.filter((f) => f.severity === sv).length }))
-    .filter((c) => c.n)
-    .map((c) => `${c.n} ${c.sv}`)
-    .join(' · ');
 
   // How many tool review rounds this script has had, out of the free allowance.
   $: reviewButtonTitle = genState?.review_rounds_free
@@ -492,16 +493,6 @@
         : '') +
       ' — after that, another round needs a confirmation.'
     : '';
-
-  const SEV_MARK = { high: '✗', medium: '△', low: '·' };
-
-  // Presence check ignores ALL whitespace, so re-indenting doesn't read as "gone".
-  function normWs(t) { return String(t || '').replace(/\s+/g, ''); }
-  function evidencePresent(code, evidence) {
-    const ev = normWs(evidence);
-    if (!ev) return null;   // nothing quoted: nothing to check
-    return normWs(code).includes(ev);
-  }
 
   // Free rounds used up: the server refuses with "review round cap: …"; another round goes
   // only if the reviewer says so. The modal's answer resolves this parked promise.
@@ -545,6 +536,12 @@
   let fixesUnlocked = !!initialReview?.at && !genState?.review_stale;
   const FIX_LOCKED_HINT = 'Run Review with LLM first — the fixes act on its findings.';
 
+  // Lint errors also unlock the fixes. The server refuses Review while lint has blocking
+  // errors ("run Fix units to clear them, then Review"), so gating the fixes on a review alone
+  // left no way forward: no review without fixing, no fixing without a review.
+  $: hasLintErrors = lintResults.some((r) => r.level === 'error');
+  $: fixesAvailable = fixesUnlocked || hasLintErrors;
+
   // --- Review/Fix: fixes (ported from current/'s ptFixFromSummary / _ptFixUnitsCommon) --
   // Both push the on-screen script first — fix the script the reviewer can see, not a stale
   // session copy — and both leave the server with new code, fresh lint and NO review (it
@@ -560,31 +557,37 @@
     runStatus = message + ' Re-assemble on Summary once every unit is confirmed.';
   }
 
-  // Fix whole script: one LLM call that rewrites the file. A following Assemble re-splices
-  // the units and would discard it — so this one stays on Review/Fix.
+  // Fix whole script: one LLM call that rewrites the file, then the units are re-cut from it
+  // (rechunk, local) so each unit holds its slice of the fixed script — without that the units
+  // keep the OLD code, the server refuses Assemble / Fix Units as "diverged", and an Assemble
+  // would discard the fix. Every unit then turns orange for confirmation (Confirm all on
+  // Summary); re-assembly stays manual and now reproduces the fixed script.
   async function runFixScript(headers) {
     await onPushCodeEdits(assembledCode);
     const d = await onFixScript(headers);
     fixesUnlocked = false;
+    const r = await onRechunk();
     const s = await onRefreshStep6();
-    assembledCode = s.code;
-    lintResults = s.lintResults;
     review = s.review;
-    runStatus = `Revised whole script (iteration ${d.iterations}); previous archived. Lint is refreshed and ` +
-      `the old review was cleared (it described the pre-fix code) — re-run Review to see what remains. ` +
-      `Do not re-Assemble (it re-splices the units and discards this). Then Save and Finish.`;
+    await Promise.all(generateUnits.map((u) => fetchLandedCode(u.id)));   // each unit's slice
+    confirmedGenerateUnits = [];   // every unit goes orange
+    const dropped = r.dropped || [];
+    markNotAssembled(`Revised the whole script (iteration ${d.iterations}) and re-cut it into the units — ` +
+      `every unit is now in review; check them, then use Confirm all on Summary.` +
+      (dropped.length ? ` ${dropped.length} unit(s) no longer exist in the fixed script: ${dropped.map(unitTitle).join(', ')}.` : ''));
     return d;
   }
 
-  // Fix units: re-generates ONLY the red units (a high-severity finding in the current
-  // review) — each with all of its own current reasons. A review-driven fix comes back HELD:
+  // Fix units: re-generates ONLY the flagged units — the red ones (a high-severity finding in
+  // the current review) and those a lint error names (fixUnitTargets) — each with all of its
+  // own current reasons. A review-driven fix comes back HELD:
   // the unit's code is untouched and it turns orange until Confirm Unit applies the fix.
   // Run by an LlmButton that stays busy until the fixed units have landed and the result has
   // been read — the unit calls run server-side after the dispatch returns, so the button's
   // click-to-stop cannot cancel them.
   async function runFixUnits() {
     await onPushCodeEdits(assembledCode);
-    const d = await onFixUnits([...criticalUnitIds]);
+    const d = await onFixUnits([...fixUnitTargets]);
     const dispatched = d.dispatched || [];
     for (const id of dispatched) runningUnitIds[id] = true;
     runningUnitIds = runningUnitIds;
@@ -615,7 +618,7 @@
     review = s.review;
     const held = fu.held || [];
     const heldNote = held.length
-      ? ` ${held.length} fix(es) are ready for confirmation (${held.map(unitTitle).join(', ')}) — open each orange unit and Confirm Unit to apply it.`
+      ? ` ${held.length} fix(es) are ready for confirmation (${held.map(unitTitle).join(', ')}) — open each orange unit and Confirm Unit to apply it. Regenerate any red units that did not get fixed.`
       : '';
     if (fu.error) {
       markNotAssembled(`Fix units: the units landed but re-assembly failed — ${fu.error}.${heldNote}`);
@@ -656,6 +659,62 @@
       }
     }
     advanceGenerateUnit();
+  }
+
+  // Re-chunk from script: the way out of "diverged". Once the assembled script has changed
+  // outside an Assemble — a hand edit pushed by Re-lint / Review / a fix / Save — the server
+  // refuses Assemble, Generate, Fix Units and applying fixes, because splicing the old units
+  // would discard those edits. This re-cuts the units from the current script (local, no LLM);
+  // units whose code changed turn orange for confirmation.
+  let isRechunking = false;
+  let rechunkError = '';
+
+  async function rechunkFromScript() {
+    isRechunking = true;
+    rechunkError = '';
+    try {
+      const r = await onRechunk();
+      await onRefreshStep6();   // the parent refreshes genState, which clears `diverged`
+      const changed = (r.changed || []).filter((id) => generateState[id]);
+      const dropped = r.dropped || [];
+      await Promise.all(changed.map(fetchLandedCode));   // un-confirms them: orange
+      runStatus = `Re-chunked from the script: ${changed.length} unit(s) took new code from it` +
+        (changed.length ? ' and are now in review.' : '.') +
+        (dropped.length ? ` ${dropped.length} unit(s) no longer exist in the script: ${dropped.map(unitTitle).join(', ')}.` : '');
+    } catch (e) {
+      rechunkError = (e && e.message) || String(e);
+    } finally {
+      isRechunking = false;
+    }
+  }
+
+  // Confirm all: confirms every orange unit in one go — applying the held fixes among them
+  // (one apply_held call), exactly as Confirm Unit would one unit at a time.
+  let isConfirmingAll = false;
+
+  async function confirmAll() {
+    isConfirmingAll = true;
+    fixError = '';
+    try {
+      const orange = generateUnits.filter((u) => generateUnitStatuses[u.id] === 'review').map((u) => u.id);
+      const held = orange.filter((id) => heldUnitIds.includes(id));
+      if (held.length) {
+        const d = await onApplyHeld(held);
+        const s = await onRefreshStep6();
+        review = s.review;
+        for (const id of held) generateState[id].held = null;
+        heldUnitIds = heldUnitIds.filter((x) => !held.includes(x));
+        await Promise.all(held.map(fetchLandedCode));   // the units' code is now the applied fixes
+        markNotAssembled(`Applied ${held.length} fix(es); lint ` +
+          `${d.lint_ok ? 'ok' : `FAILED (${d.lint_errors} error(s))`}.`);
+      }
+      // After the fetches — fetchLandedCode un-confirms the units it refreshes.
+      confirmedGenerateUnits = [...new Set([...confirmedGenerateUnits, ...orange])];
+    } catch (e) {
+      fixError = (e && e.message) || String(e);
+    } finally {
+      isConfirmingAll = false;
+    }
   }
 
   // The held fix itself (code, diff, scope) — units_status only says THAT a unit is held, so
@@ -761,6 +820,24 @@
     );
   })();
 
+  // Units a lint error names — routed with the same rule as the red units (the server's
+  // _unit_id_for_text), which is also how the server sorts lint errors onto units. A lint
+  // error that names no unit is a whole-file problem: Fix Whole Script's job.
+  $: lintErrorUnitIds = (() => {
+    const ids = new Set(generateUnits.map((u) => u.id));
+    const ranges = unitLineRanges(assembledCode);
+    return new Set(
+      lintResults
+        .filter((r) => r.level === 'error')
+        .map((r) => unitIdForText(r.message, ids, ranges))
+        .filter(Boolean)
+    );
+  })();
+
+  // What Fix Units sends: the red units plus the units with lint errors. Lint-only fixes are
+  // applied by the server straight away (they aren't held), so those units land with new code.
+  $: fixUnitTargets = new Set([...criticalUnitIds, ...lintErrorUnitIds]);
+
   function goToReviewFix() {
     generateActiveUnitId = GENERATE_REVIEW_STEP_ID;
     scrollToSection('.step-intro');
@@ -841,38 +918,67 @@
   </div>
 </div>
 {#if runStatus}
-  <p class="generate-run-status">{runStatus}</p>
+  <p class="generate-run-status"><span style="font-weight: 400;"></span>{runStatus}</p>
 {/if}
 <ErrorBanner message={dispatchError && `Dispatch failed: ${dispatchError}`} />
+{#snippet divergedNotice()}
+  {#if genState?.diverged}
+    <div class="diverged-notice">
+      <p class="review-note">{genState.reason}</p>
+      <div>
+        <Button variant="primary" loading={isRechunking} on:click={rechunkFromScript}>Re-chunk from script</Button>
+      </div>
+      <ErrorBanner message={rechunkError && `Re-chunk failed: ${rechunkError}`} />
+    </div>
+  {/if}
+{/snippet}
+
 <div class="step-frame">
   {#if generateActiveUnitId === GENERATE_SUMMARY_STEP_ID}
     <p class="step-table-label summary-title">Sequence Step Summary</p>
-    <div class="summary-counts">
-      <p class="sequence-step-summary">
-        <span class="step-status-badge covered" aria-hidden="true">✓</span>
-        <span><strong>{summaryCounts.covered}</strong> Confirmed</span>
-      </p>
-      <p class="sequence-step-summary">
-        <span class="step-status-badge review" aria-hidden="true">!</span>
-        <span><strong>{summaryCounts.review}</strong> In Review</span>
-      </p>
-      <p class="sequence-step-summary">
-        <span class="step-status-badge none" aria-hidden="true">–</span>
-        <span><strong>{summaryCounts.none}</strong> Not started</span>
-      </p>
-      {#if summaryCounts.error}
+    <div class="summary-box">
+      <div class="summary-counts">
         <p class="sequence-step-summary">
-          <span class="step-status-badge critical" aria-hidden="true">✗</span>
-          <span><strong>{summaryCounts.error}</strong> Critical</span>
+          <StatusBadge status="covered" />
+          <span><strong>{summaryCounts.covered}</strong> Confirmed</span>
         </p>
-      {/if}
+        <p class="sequence-step-summary">
+          <StatusBadge status="review" />
+          <span><strong>{summaryCounts.review}</strong> In Review</span>
+        </p>
+        <p class="sequence-step-summary">
+          <StatusBadge status="none" />
+          <span><strong>{summaryCounts.none}</strong> Not started</span>
+        </p>
+        {#if summaryCounts.error}
+          <p class="sequence-step-summary">
+            <StatusBadge status="error" />
+            <span><strong>{summaryCounts.error}</strong> Critical</span>
+          </p>
+        {/if}
+      </div>
+
     </div>
+      <div>
+        <div class="step-summary-actions">
+          <Button
+            variant="primary"
+            disabled={summaryCounts.review === 0 || Object.keys(runningUnitIds).length > 0}
+            loading={isConfirmingAll}
+            on:click={confirmAll}
+          >Confirm all</Button>
+          <Button variant="primary" disabled={generateSummaryStatus !== 'covered'} loading={isAssembling} on:click={assembleAndLint}>Assemble &amp; Lint</Button>
+        </div>
+      </div>
+
+    {@render divergedNotice()}
+
+
+    <ErrorBanner message={fixError && `Confirm all failed: ${fixError}`} />
 
     <ErrorBanner message={assembleError && `Assemble failed: ${assembleError}`} />
 
-    <div class="step-actions">
-      <Button variant="primary" disabled={generateSummaryStatus !== 'covered'} loading={isAssembling} on:click={assembleAndLint}>Assemble &amp; Lint</Button>
-    </div>
+
 
     <p class="step-table-label assembled-script-label">Assembled Script</p>
     <div class="generate-assembled-editor">
@@ -880,7 +986,7 @@
         type="code"
         bind:value={assembledCode}
         placeholder={'Not assembled yet. Click "Assemble & Lint" above.'}
-        height="600px"
+        height="700px"
       />
     </div>
 
@@ -904,36 +1010,50 @@
       <Button variant="primary" disabled={!assembled} on:click={goToReviewFix}>Continue to Review/Fix</Button>
     </div>
   {:else if generateActiveUnitId === GENERATE_REVIEW_STEP_ID}
-    <p class="step-table-label">Assembled Script</p>
-    <div class="generate-assembled-editor">
-      <EditableField
-        type="code"
-        bind:value={assembledCode}
-        placeholder={'Not assembled yet. Assemble & Lint on the Summary step first.'}
-        height="600px"
-      />
+    <div class="review-fix-grid">
+      <div class="script-section">
+        <p class="step-table-label">Assembled Script</p>
+        <div class="generate-assembled-editor">
+          <EditableField
+            type="code"
+            bind:value={assembledCode}
+            placeholder={'Not assembled yet. Assemble & Lint on the Summary step first.'}
+            height="650px"
+          />
+        </div>
+      </div>
+      <div class="review-section">
+        <p class="step-table-label">Script Review</p>
+        {#if assembled}
+          <div class="step-actions review-fix-row review-button">
+            <LlmButton label="Review with LLM" verb="Reviewing…" title={reviewButtonTitle} onRun={runReview} onResult={handleReviewResult} />
+          </div>
+        {/if}
+        <ReviewFindings {review} stale={reviewStale} code={assembledCode} />
+      </div>
     </div>
+   
+    {@render divergedNotice()}
 
     {#if assembled}
-      <div class="step-actions review-fix-row review-button">
-        <LlmButton label="Review with LLM" verb="Reviewing…" title={reviewButtonTitle} onRun={runReview} onResult={handleReviewResult} />
-      </div>
       <p class="step-table-label">Fix Scripts From LLM Review</p>
       <div class="step-actions review-fix-row">
         <LlmButton
           label="Fix Whole Script"
           verb="Fixing…"
-          disabled={!fixesUnlocked}
-          title={fixesUnlocked ? '' : FIX_LOCKED_HINT}
+          disabled={!fixesAvailable}
+          title={fixesAvailable ? '' : FIX_LOCKED_HINT}
           onRun={runFixScript}
         />
         <LlmButton
           label="Fix Units"
           verb="Fixing units…"
-          disabled={!fixesUnlocked || criticalUnitIds.size === 0 || Object.keys(runningUnitIds).length > 0}
-          title={!fixesUnlocked
+          disabled={!fixesAvailable || fixUnitTargets.size === 0 || Object.keys(runningUnitIds).length > 0}
+          title={!fixesAvailable
             ? FIX_LOCKED_HINT
-            : criticalUnitIds.size === 0 ? 'No red units — Fix Units fixes units with a high-severity review finding' : ''}
+            : fixUnitTargets.size === 0
+              ? 'No unit to fix — no red units, and no lint error names a unit (use Fix Whole Script for whole-file errors)'
+              : ''}
           onRun={runFixUnits}
         />
       </div>
@@ -953,57 +1073,6 @@
       <Button variant="success" disabled={!assembled} loading={isSaving} on:click={saveAndFinish}>Save and Finish</Button>
     </div>
     <ErrorBanner message={fixError && `Fix failed: ${fixError}`} />
-
-    {#if review?.at}
-      <div class="review-result">
-        {#if reviewFindings.length === 0}
-          <!-- "No findings" is a real result, not an empty state — say so, or a clean review
-               can't be told apart from one that never ran. -->
-          <p class="review-head"><span class="review-badge review-badge-success">review: no findings</span></p>
-          <p class="review-note">Reviewed {review.at} — nothing found beyond the static checks.</p>
-        {:else if reviewStale}
-          <p class="review-head">
-            <span class="review-badge review-badge-medium">review is for an earlier version of the script</span>
-            <span class="review-note">{reviewFindings.length} finding(s) from {review.at} — the code has changed since. Re-run Review for findings about what is on screen.</span>
-          </p>
-          <details>
-            <summary class="review-note">show the {reviewFindings.length} stale finding(s) — {reviewCounts}</summary>
-            {@render findingsList()}
-          </details>
-        {:else}
-          <p class="review-head">
-            <span class="review-badge">review: {reviewFindings.length} finding(s)</span>
-            <span class="review-note">{reviewCounts}</span>
-          </p>
-          {@render findingsList()}
-        {/if}
-      </div>
-    {/if}
-
-    {#snippet findingsList()}
-      <div class="review-findings">
-        {#each reviewFindings as f}
-          {@const present = reviewStale ? evidencePresent(assembledCode, f.evidence) : null}
-          <div class="review-finding review-{f.severity}" class:review-gone={present === false}>
-            <div>
-              <b>{SEV_MARK[f.severity] || SEV_MARK.low} {f.where || '(script)'}</b>
-              {#if f.step}<span class="review-note">step {f.step}</span>{/if}
-              <span class="review-note">{f.kind}</span>
-              {#if reviewStale && f.evidence}
-                {#if present}
-                  <span class="review-badge review-badge-medium" title="The quoted lines are still in the current script">evidence still present</span>
-                {:else}
-                  <span class="review-badge" title="The quoted lines are no longer in the current script">evidence gone</span>
-                {/if}
-              {/if}
-            </div>
-            <div>{f.what}</div>
-            {#if f.evidence}<pre class="review-evidence">{f.evidence}</pre>{/if}
-            {#if f.suggestion}<div class="review-note">suggested: {f.suggestion}</div>{/if}
-          </div>
-        {/each}
-      </div>
-    {/snippet}
 
     <ConfirmModal
       bind:open={showReviewCapModal}
@@ -1030,15 +1099,7 @@
     </StatusModal>
   {:else if generateActiveUnit}
     <div class="sequence-step-summary">
-      <span
-        class="step-status-badge"
-        class:covered={generateUnitStatuses[generateActiveUnit.id] === 'covered'}
-        class:review={generateUnitStatuses[generateActiveUnit.id] === 'review'}
-        class:none={generateUnitStatuses[generateActiveUnit.id] === 'none'}
-        aria-hidden="true"
-      >
-        {generateUnitStatuses[generateActiveUnit.id] === 'covered' ? '✓' : generateUnitStatuses[generateActiveUnit.id] === 'review' ? '!' : '–'}
-      </span>
+      <StatusBadge status={generateUnitStatuses[generateActiveUnit.id] ?? 'none'} />
       <p><strong>{generateActiveUnit.title}</strong> - {generateActiveUnit.detail}</p>
     </div>
     <div class="step-generate">
@@ -1047,15 +1108,6 @@
     <ErrorBanner message={generateState[generateActiveUnitId].error && `Last generation failed: ${generateState[generateActiveUnitId].error}`} />
 
     {#if heldUnitIds.includes(generateActiveUnitId)}
-      <div class="held-fix">
-        <p class="step-table-label">Proposed fix — Confirm Unit applies it</p>
-        {#if generateState[generateActiveUnitId].held}
-          <pre class="held-fix-code">{generateState[generateActiveUnitId].held.code}</pre>
-        {:else}
-          <p class="review-note">Loading the proposed fix…</p>
-        {/if}
-        <p class="review-note">The generated code below is what the script still contains until you confirm.</p>
-      </div>
       <ErrorBanner message={fixError && `Applying the fix failed: ${fixError}`} />
     {/if}
 
@@ -1067,14 +1119,27 @@
         {/key}
       </div>
       <div class="generate-pane generate-pane-code">
-        <p class="step-table-label">Generated Code</p>
-        {#key generateActiveUnitId}
-          <EditableField
-            type="code"
-            bind:value={generateState[generateActiveUnitId].code}
-            placeholder={'Not generated yet. Click the "Generate Unit" button above.'}
-          />
-        {/key}
+        {#if heldUnitIds.includes(generateActiveUnitId)}
+          <!-- A held fix: shown in place of the current code, read-only — Confirm Unit applies
+               the server's stored fix, so an edit made here would not be what gets applied. -->
+          <p class="step-table-label">Generated Code — proposed fix, read-only until Confirm Unit applies it</p>
+          {#if generateState[generateActiveUnitId].held}
+            <div class="held-fix-code">
+              <CodeEditor value={generateState[generateActiveUnitId].held.code} readonly height="45vh" />
+            </div>
+          {:else}
+            <p class="review-note">Loading the proposed fix…</p>
+          {/if}
+        {:else}
+          <p class="step-table-label">Generated Code</p>
+          {#key generateActiveUnitId}
+            <EditableField
+              type="code"
+              bind:value={generateState[generateActiveUnitId].code}
+              placeholder={'Not generated yet. Click the "Generate Unit" button above.'}
+            />
+          {/key}
+        {/if}
       </div>
     </div>
 
@@ -1134,6 +1199,7 @@
     margin: -12px 0 20px;
     color: var(--color-text-muted);
     font-size: 0.85rem;
+    font-style: italic;
   }
 
   .summary-title {
@@ -1145,6 +1211,14 @@
     align-items: center;
     gap: 12px;
     margin: 16px 0 32px;
+  }
+
+  .step-summary-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 0px 0px 24px 0px;
+
   }
 
   /* Review with LLM, then the two fixes, stacked tight above Save and Finish. */
@@ -1208,54 +1282,31 @@
     font-size: 0.94rem;
   }
 
-  .step-status-badge {
-    flex: 0 0 auto;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0;
-    width: 22px;
-    height: 22px;
-    border-radius: 50%;
-    color: #fff;
-    font-size: 0.75rem;
-    font-weight: 700;
+  .summary-box {
+    border-radius: 10px;
+    background-color: var(--color-bg-surface);
+    border: 1px solid var(--color-border-surface);
+    padding-left: 10px;
+    margin-bottom: 16px;
   }
-
-  .step-status-badge.covered {
-    background: var(--color-success);
-  }
-
-  .step-status-badge.review {
-    background: var(--color-warning);
-  }
-
-  .step-status-badge.critical {
-    background: var(--color-error);
-  }
-
   .summary-counts {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     margin: 0;
-    gap: 0;
+    gap: 24px;
     font-size: 0.94rem;
-  }
-
-  .step-status-badge.none {
-    background: var(--color-text-muted);
   }
 
   .step-generate {
     padding-bottom: 20px;
   }
 
-  .script-summary {
+  /* .script-summary {
     display: flex;
     flex-direction: column;
     gap: 24px;
     width: 100%;
-  }
+  } */
 
   .fragment-empty {
     margin: 0;
@@ -1307,92 +1358,28 @@
     color: var(--color-warning);
   }
 
-  .held-fix {
-    margin: 0 0 16px;
+  /* The orange edge marks a proposed (held) fix; the code itself is a read-only CodeMirror. */
+  .held-fix-code {
+    margin: 0 0 20px;
+    border: 3px solid var(--color-arrow-step-review-border);
+    border-radius: 12px;
+  }
+
+  .diverged-notice {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin: 0 0 20px;
     padding: 12px 14px;
-    border-left: 3px solid var(--color-arrow-step-review-border);
+    border-left: 3px solid var(--color-warning);
     border-radius: 6px;
     background: var(--color-bg-surface);
-  }
-
-  .held-fix-code {
-    margin: 0 0 8px;
-    max-height: 40vh;
-    overflow: auto;
-    padding: 12px;
-    border-radius: 6px;
-    background: var(--color-code-bg);
-    font-family: 'SFMono-Regular', Consolas, monospace;
-    font-size: 0.82rem;
-    white-space: pre;
-  }
-
-  .review-result {
-    margin: 0 0 24px;
-  }
-
-  .review-head {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 8px;
-    margin: 0 0 8px;
-  }
-
-  .review-badge {
-    display: inline-block;
-    padding: 2px 10px;
-    border-radius: 999px;
-    font-size: 0.78rem;
-    font-weight: 600;
-    background: color-mix(in srgb, var(--color-text-muted) 18%, transparent);
-    color: var(--color-text);
-  }
-
-  .review-badge-success {
-    background: color-mix(in srgb, var(--color-success) 18%, transparent);
-    color: var(--color-success);
-  }
-
-  .review-badge-medium {
-    background: color-mix(in srgb, var(--color-warning) 18%, transparent);
-    color: var(--color-warning);
   }
 
   .review-note {
     margin: 0;
     color: var(--color-text-muted);
     font-size: 0.85rem;
-  }
-
-  .review-findings {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    margin-top: 8px;
-  }
-
-  .review-finding {
-    padding: 10px 12px;
-    border-left: 3px solid var(--color-text-muted);
-    border-radius: 6px;
-    background: var(--color-bg-surface);
-    font-size: 0.9rem;
-    overflow-wrap: anywhere;
-  }
-
-  .review-high { border-left-color: var(--color-error); }
-  .review-medium { border-left-color: var(--color-warning); }
-  .review-gone { opacity: 0.55; }
-
-  .review-evidence {
-    margin: 8px 0;
-    padding: 8px 10px;
-    border-radius: 6px;
-    background: var(--color-code-bg);
-    font-family: 'SFMono-Regular', Consolas, monospace;
-    font-size: 0.8rem;
-    white-space: pre-wrap;
   }
 
   .lint-error {
@@ -1402,5 +1389,18 @@
 
   .review-button {
     margin-bottom: 1rem;
+  }
+
+  .review-fix-grid {
+    display: flex;
+    flex: 1;
+  }
+  .script-section {
+    width: 60%;
+    margin-right: 20px;
+  }
+
+  .review-section {
+    width: 40%
   }
 </style>

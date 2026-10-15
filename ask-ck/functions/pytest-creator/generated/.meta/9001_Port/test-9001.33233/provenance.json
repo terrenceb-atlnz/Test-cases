@@ -2,8 +2,8 @@
   "case_key": "AWPTCM-T33233",
   "group": "Port",
   "name": "test-9001.33233",
-  "saved_at": "2026-10-12T20:53:08.307210+00:00",
-  "iterations": 7,
+  "saved_at": "2026-10-14T19:41:33.935234+00:00",
+  "iterations": 14,
   "fragments": [
     {
       "source_id": "art/6000_link_check/test-6000.8002-time_copy_rel_to_flash.py",

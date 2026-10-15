@@ -1,7 +1,8 @@
 <script>
 // @ts-nocheck
 
-  import ArrowStep from '../ArrowStep.svelte';
+  import ArrowStep from './ArrowStep.svelte';
+  import StatusBadge from '../StatusBadge.svelte';
   import Button from '../Button.svelte';
   import FragmentCard from '../FragmentCard.svelte';
   import { scrollToTop, scrollToSection } from '../../utils/scroll.js';
@@ -332,15 +333,7 @@
       {#each sequencedTestSteps as step, i (step.n)}
         <div class="script-summary-section">
           <div class="sequence-step-summary">
-            <span
-              class="step-status-badge"
-              class:covered={fragmentStepStatuses[step.n] === 'covered'}
-              class:review={fragmentStepStatuses[step.n] === 'review'}
-              class:none={fragmentStepStatuses[step.n] === 'none'}
-              aria-hidden="true"
-            >
-              {fragmentStepStatuses[step.n] === 'covered' ? '✓' : fragmentStepStatuses[step.n] === 'review' ? '!' : '–'}
-            </span>
+            <StatusBadge status={fragmentStepStatuses[step.n] ?? 'none'} />
             <p><strong>Sequence Step {i + 1}</strong> - {step.action}</p>
           </div>
           <div class="fragment-summary-list">
@@ -359,15 +352,7 @@
     </div>
   {:else if fragmentActiveStep}
     <div class="sequence-step-summary">
-      <span
-        class="step-status-badge"
-        class:covered={fragmentStepStatuses[fragmentActiveStep.n] === 'covered'}
-        class:review={fragmentStepStatuses[fragmentActiveStep.n] === 'review'}
-        class:none={fragmentStepStatuses[fragmentActiveStep.n] === 'none'}
-        aria-hidden="true"
-      >
-        {fragmentStepStatuses[fragmentActiveStep.n] === 'covered' ? '✓' : fragmentStepStatuses[fragmentActiveStep.n] === 'review' ? '!' : '–'}
-      </span>
+      <StatusBadge status={fragmentStepStatuses[fragmentActiveStep.n] ?? 'none'} />
       <p><strong>Sequence Step {fragmentActiveStepIndex + 1}</strong> - {fragmentActiveStep.action}</p>
     </div>
 
@@ -487,32 +472,6 @@
     margin: 0;
     color: var(--color-text);
     font-size: 0.94rem;
-  }
-
-  .step-status-badge {
-    flex: 0 0 auto;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 22px;
-    height: 22px;
-    border-radius: 50%;
-    color: #fff;
-    font-size: 0.75rem;
-    font-weight: 700;
-    margin-top: 2px;
-  }
-
-  .step-status-badge.covered {
-    background: var(--color-success);
-  }
-
-  .step-status-badge.review {
-    background: var(--color-warning);
-  }
-
-  .step-status-badge.none {
-    background: var(--color-text-muted);
   }
 
   .script-summary {

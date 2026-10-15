@@ -1,0 +1,42 @@
+{
+  "AWPTCM-T33247": {
+    "objective": "<ul>\n  <li>Dynamic ARP entries removed from the ARP cache on a clear-all request, with static entries retained.</li>\n  <li>A single dynamic entry removed when cleared by its IP address, all other cache entries left intact.</li>\n  <li>Cleared entries relearned through normal ARP resolution once traffic to the neighbour resumes, with forwarding restored.</li>\n  <li>A clear within a VRF removing only that VRF's dynamic entries, leaving entries in the global table and other VRFs unchanged.</li>\n  <li>A clear for an address with no matching entry, or for a non-existent VRF, rejected or ignored with no change to the cache.</li>\n  <li>The ARP cache shown empty of dynamic entries for the cleared scope immediately after the clear.</li>\n</ul>",
+    "testScript": {
+      "type": "steps",
+      "steps": [
+        {
+          "description": "Note: Related ART Tests linked in Traceability.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Populate the DUT's ARP cache with a mix of dynamic entries, learned by exchanging traffic with several neighbours on the test VLAN, and static entries configured on the DUT. Perform a clear-all of the ARP cache and inspect the cache immediately afterwards, confirming the dynamic entries are gone and every static entry remains with its original address mapping.",
+          "expectedResult": ""
+        },
+        {
+          "description": "With several dynamic entries and at least one static entry present, clear a single dynamic entry by its IP address. Confirm only that entry is removed and that the remaining dynamic and static entries are unchanged.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Clear dynamic entries both individually and with a clear-all while traffic to the affected neighbours is stopped, then resume traffic. Confirm the DUT sends ARP requests, relearns each neighbour through normal resolution, and forwards traffic to them again without loss persisting beyond resolution.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Using a topology where the DUT has neighbours reachable through the global routing table and through at least two VRFs, with dynamic entries learned in each, perform a clear scoped to one VRF. Confirm only that VRF's dynamic entries are removed and that entries in the global table and the other VRF are untouched. Repeat with a single-address clear within the VRF.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Request a clear for an IP address that has no matching ARP entry, both globally and within an existing VRF, and request a clear scoped to a VRF that does not exist. Confirm each request is rejected or ignored and that the ARP cache contents are identical before and after.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Attempt to clear a static entry by its IP address. Confirm the static entry is retained and the DUT's handling of the request is consistent with clear operations affecting dynamic entries only.",
+          "expectedResult": ""
+        },
+        {
+          "description": "After each clear-all, single-address and VRF-scoped clear, display the ARP cache for the cleared scope before any new traffic can trigger relearning. Confirm the reported cache shows no dynamic entries for that scope and that the entry counts reflect the removal.",
+          "expectedResult": ""
+        }
+      ]
+    }
+  }
+}

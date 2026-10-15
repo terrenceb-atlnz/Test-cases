@@ -55,7 +55,10 @@
   </div>
 {:else}
   {#if type === 'code'}
-    <pre class="code-view" style="height: {height}">{value || placeholder}</pre>
+    <!-- Read-only CodeMirror (no blue border until Edit) rather than a plain <pre>. -->
+    <div class="code-view">
+      <CodeEditor {value} readonly {height} {placeholder} />
+    </div>
   {:else}
     <div class="editable-field-view" class:is-placeholder={!value} style="height: {height}">{value || placeholder}</div>
   {/if}
@@ -107,17 +110,6 @@
 
   .code-view {
     margin: 0 0 20px;
-    max-height: 60vh;
-    overflow: auto;
-    padding: 16px;
-    border-radius: 8px;
-    background: var(--color-code-bg);
-    border: 1px solid var(--color-border-surface);
-    color: var(--color-text);
-    font-family: 'SFMono-Regular', Consolas, monospace;
-    font-size: 0.82rem;
-    line-height: 1.5;
-    white-space: pre;
     max-width: 100%;
   }
 </style>

@@ -75,9 +75,18 @@
   --color-arrow-step-review-bg: #fbdeb8;
   --color-arrow-step-review-text: #ed8a00;
   --color-arrow-step-review-border: #ffbc5e;
-  --color-arrow-step-error-bg: #ffb7b7;
+  --color-arrow-step-error-bg: #ffc9c9;
   --color-arrow-step-error-text: #ff5050;
   --color-arrow-step-error-border: #ff7f7f;
+
+  /* Status-badge icon tints (StatusBadge.svelte). The icons are currentColor SVGs shown via
+     <img>, which draw black, so each is coloured by a filter computed to land on this theme's
+     own token: covered = --color-success, review = --color-warning, none = --color-text-muted,
+     error = --color-arrow-step-error-text. Recompute if one of those colours changes. */
+  --filter-status-covered: invert(45%) sepia(95%) saturate(434%) hue-rotate(89deg) brightness(92%) contrast(88%);    /* #16a34a */
+  --filter-status-review: invert(62%) sepia(60%) saturate(5486%) hue-rotate(9deg) brightness(96%) contrast(95%);    /* #d97706 */
+  --filter-status-none: invert(31%) sepia(14%) saturate(882%) hue-rotate(176deg) brightness(93%) contrast(87%);     /* #475569 */
+  --filter-status-error: invert(40%) sepia(85%) saturate(1432%) hue-rotate(330deg) brightness(100%) contrast(104%); /* #ff5050 */
 
   --arrow-filter-hover: brightness(1.05);
 
@@ -153,6 +162,10 @@
   --color-arrow-step-error-text: #ff6565;
   --color-arrow-step-error-border: #ff6565;
 
+  /* Status-badge tints for this theme's muted / error colours (covered and review are unchanged). */
+  --filter-status-none: invert(75%) sepia(26%) saturate(217%) hue-rotate(168deg) brightness(89%) contrast(90%);     /* #9db0c2 */
+  --filter-status-error: invert(56%) sepia(76%) saturate(2760%) hue-rotate(322deg) brightness(102%) contrast(101%); /* #ff6565 */
+
   --arrow-filter-hover: brightness(1.25);
   --color-arrow-text-hover: #fff;
 
@@ -223,6 +236,10 @@
   --color-arrow-step-error-bg: #680101;
   --color-arrow-step-error-text: #ff6565;
   --color-arrow-step-error-border: #ff6565;
+
+  /* Status-badge tints for this theme's muted / error colours (covered and review are unchanged). */
+  --filter-status-none: invert(75%) sepia(26%) saturate(217%) hue-rotate(168deg) brightness(89%) contrast(90%);     /* #9db0c2 */
+  --filter-status-error: invert(56%) sepia(76%) saturate(2760%) hue-rotate(322deg) brightness(102%) contrast(101%); /* #ff6565 */
 
   --arrow-filter-hover: brightness(1.25);
   --color-arrow-text-hover: #fff;

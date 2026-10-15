@@ -19,8 +19,11 @@
   /** @type {string} */
   export let placeholder = '';
 
-  /** @type {string} CSS height for the editor box, e.g. '260px' */
+  /** @type {string} CSS height for the editor box, e.g. '260px' — or 'auto' to fit the code */
   export let height = '260px';
+
+  /** @type {string} With height 'auto': the most it grows before scrolling, e.g. '300px' */
+  export let maxHeight = '';
 
   /** @type {'python' | 'none'} */
   export let language = 'python';
@@ -44,7 +47,8 @@
       padding: '10px 0'
     },
     '.cm-scroller': {
-      overflow: 'auto'
+      overflow: 'auto',
+      ...(maxHeight ? { maxHeight } : {})
     },
     '.cm-gutters': {
       border: 'none'
@@ -101,11 +105,15 @@
   }
 </script>
 
-<div class="code-editor" bind:this={container}></div>
+<!-- Blue border only while editing — a read-only view keeps CodeMirror's own surface border. -->
+<div class="code-editor" class:editing={!readonly} bind:this={container}></div>
 
 <style>
   .code-editor {
-    border: 1px solid var(--color-accent);
     border-radius: 10px;
-  } 
+  }
+
+  .code-editor.editing {
+    border: 1px solid var(--color-accent);
+  }
 </style>

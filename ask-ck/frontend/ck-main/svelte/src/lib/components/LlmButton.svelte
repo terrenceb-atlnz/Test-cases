@@ -82,34 +82,41 @@ async function handleClick() {
   }
 }
 </script>
+<div class="buttom-error-box">
+  <span class="llm-button-wrap">
+    <Button
+      variant="primary"
+      sparkle={!isBusy}
+      busy={isBusy}
+      disabled={disabled && !isBusy}
+      on:click={handleClick}
+      title={isBusy ? 'Click to stop this LLM call — nothing will be kept' : title}
+    >{isBusy ? progressLabel : label}</Button>
+    {#if usage && !usage.error}
+      <span
+        class="llm-token-badge"
+        class:llm-token-badge-success={!!usage.usage}
+        title={usage.usage?.cost_usd != null
+          ? '$' + usage.usage.cost_usd
+          : (usage.usage ? 'input tokens (prompt) / output tokens (generated)' : 'This transport does not report token usage')}
+      >{fmtTokens(usage.usage)}</span>
+    {/if}
+  </span>
 
-<span class="llm-button-wrap">
-  <Button
-    variant="primary"
-    sparkle={!isBusy}
-    busy={isBusy}
-    disabled={disabled && !isBusy}
-    on:click={handleClick}
-    title={isBusy ? 'Click to stop this LLM call — nothing will be kept' : title}
-  >{isBusy ? progressLabel : label}</Button>
-  {#if usage && !usage.error}
-    <span
-      class="llm-token-badge"
-      class:llm-token-badge-success={!!usage.usage}
-      title={usage.usage?.cost_usd != null
-        ? '$' + usage.usage.cost_usd
-        : (usage.usage ? 'input tokens (prompt) / output tokens (generated)' : 'This transport does not report token usage')}
-    >{fmtTokens(usage.usage)}</span>
+  {#if error}
+    <ErrorBanner
+      message="{label} failed: {error}"
+    ></ErrorBanner>
   {/if}
-</span>
+</div>
 
-{#if error}
-  <ErrorBanner
-    message="{label} failed: {error}"
-  ></ErrorBanner>
-{/if}
 
 <style>
+
+  .buttom-error-box {
+    display: flex;
+    flex-direction: column;
+  }
   .llm-button-wrap {
     display: inline-flex;
     align-items: center;
