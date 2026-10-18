@@ -1,0 +1,135 @@
+{
+  "case_key": "AWPTCM-T33247",
+  "group": "IPv4",
+  "name": "test-9002.33247",
+  "saved_at": "2026-10-16T02:50:17.126844+00:00",
+  "iterations": 7,
+  "fragments": [
+    {
+      "source_id": "art/1366_vrf_lite/test-1366.2001.py",
+      "symbol": "TestCase_6",
+      "maps_to": [
+        1,
+        11
+      ]
+    },
+    {
+      "source_id": "art/1351_gratuitous_arp/test-1351.1001.py",
+      "symbol": "TestCase_9",
+      "maps_to": [
+        2,
+        4,
+        19
+      ]
+    },
+    {
+      "source_id": "art/1366_vrf_lite/library_1366.py",
+      "symbol": "replyArpRequest",
+      "maps_to": [
+        3,
+        11
+      ]
+    },
+    {
+      "source_id": "art/1351_gratuitous_arp/test-1351.1001.py",
+      "symbol": "TestCase_6",
+      "maps_to": [
+        3
+      ]
+    },
+    {
+      "source_id": "legacy/6902_ATPyLib_training/test-6901.1001.py",
+      "symbol": "TestCase_1",
+      "maps_to": [
+        4
+      ]
+    },
+    {
+      "source_id": "art/1351_gratuitous_arp/test-1351.1001.py",
+      "symbol": "TestCase_5",
+      "maps_to": [
+        4
+      ]
+    },
+    {
+      "source_id": "art/1366_vrf_lite/test-1366.1001.py",
+      "symbol": "TestCase_4",
+      "maps_to": [
+        5,
+        6,
+        7,
+        8,
+        19
+      ]
+    },
+    {
+      "source_id": "art/1355_nlb/test-1355.1001.py",
+      "symbol": "TestCase_3",
+      "maps_to": [
+        5
+      ]
+    },
+    {
+      "source_id": "art/1366_vrf_lite/library_1366.py",
+      "symbol": "word_count",
+      "maps_to": [
+        6,
+        8,
+        14
+      ]
+    },
+    {
+      "source_id": "art/1361_mac_learning/test-1361.1001.py",
+      "symbol": "TestCase_8",
+      "maps_to": [
+        7
+      ]
+    },
+    {
+      "source_id": "legacy/6913_ATPyLib_training/test-6913.1001.py",
+      "symbol": "TestCase_2",
+      "maps_to": [
+        9,
+        10
+      ]
+    },
+    {
+      "source_id": "art/1331_past_issues/test-1331.2001.py",
+      "symbol": "TestCase_21013",
+      "maps_to": [
+        9,
+        10
+      ]
+    },
+    {
+      "source_id": "art/1366_vrf_lite/library_1366.py",
+      "symbol": "check_vrf_configuration",
+      "maps_to": [
+        11,
+        18
+      ]
+    },
+    {
+      "source_id": "art/1366_vrf_lite/test-1366.1001.py",
+      "symbol": "TestCase_5",
+      "maps_to": [
+        12,
+        15,
+        16
+      ]
+    },
+    {
+      "source_id": "art/1366_vrf_lite/test-1366.1001.py",
+      "symbol": "TestCase_6",
+      "maps_to": [
+        13,
+        14,
+        15,
+        16,
+        17,
+        18
+      ]
+    }
+  ],
+  "llm": {}
+}

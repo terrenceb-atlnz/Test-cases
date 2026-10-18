@@ -95,6 +95,8 @@
 
   --color-error-surface: rgba(220, 38, 38, 0.08);
   --color-error-border: rgba(220, 38, 38, 0.5);
+
+  --color-analysis-key: #004f88;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -171,6 +173,9 @@
 
   --color-error-surface: rgba(220, 38, 38, 0.08);
   --color-error-border: rgba(220, 38, 38, 0.5);
+
+  --color-analysis-key: #0069B3;
+
   }
 }
 
@@ -243,7 +248,20 @@
 
   --arrow-filter-hover: brightness(1.25);
   --color-arrow-text-hover: #fff;
+
+  --color-analysis-key: #0069B3;
 }
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) a {
+    color: #0077cc;
+  }
+}
+
+:root[data-theme="dark"] a {
+  color: #0077cc;
+}
+
 
 * {
   box-sizing: border-box;

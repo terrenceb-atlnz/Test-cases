@@ -209,20 +209,15 @@ class TestSet(ATTestSet.TestSet):
         # stacked DUT; Terrence: "Copy what they do, because it works.")
         _stk = dutA.get_stack()
         dut_stack = _stk                   # initialised above; init_stk() again builds a second Stack
-        # `stk_a` appears only inside reused fragment code. In ART it names the DUT's own
-        # stack, bound above, so it is an alias here — never a second stack demand (plan 8.1).
-        stk_a = dut_stack if dut_stack is not None else dutA
         self.tb = tb
         self.dutA = dutA
         self.dut_stack = dut_stack
         # Values a test case PUBLISHES for later cases (the sequence's `publishes`), through
         # publish_value(). Each is None until its producer sets it; publishing None marks every
         # case that lists it in `ckNeeds` UNSUPPORTED before that case runs.
-        self.arpBaseline = None  # set by TestCase_1: dict ip->{mac, interface, type}: global ARP cache after initial population
-        self.arpCountBaseline = None  # set by TestCase_1: int: number of ARP entries in arpBaseline
-        self.arpPreSingle = None  # set by TestCase_5: dict ip->{mac, interface, type}: global ARP cache before the single-address clear
-        self.arpPreVrf = None  # set by TestCase_13: dict scope->dict ip->{mac, interface, type}: ARP cache per scope (global, VRF-A, VRF-B) before VRF clear
-        self.stk_a = stk_a
+        self.baselineArp = None  # set by TestCase_1: dict ip->(mac, interface, port, type): the global ARP table with 4 dynamic and 2 static entries
+        self.baselineCount = None  # set by TestCase_1: int: the total number of rows in baselineArp
+        self.vrfBaseline = None  # set by TestCase_8: dict scope('global'|'red'|'blue')->dict ip->(mac, interface, port, type): ARP tables before the VRF clears
         self._ck_far = {}
         self._ck_topo = self._ck_discover(dutA, dut_stack)
         # The TESTBOX data link: the ART shape `(dut.portA, tb.ethA)`. Captures, injected
@@ -246,35 +241,83 @@ class TestSet(ATTestSet.TestSet):
         portPeer = dutA.portPeer
         portDut = peer.portDut
         # One-time SUITE setup, runs ONCE before all test cases. Config only — no pass/fail.
-        # setup: On the DUT, enter 'configure terminal', 'interface vlan<test-vlan>' and apply 'ip address <dut-ip/prefix-length>'. Bring up the test port as an untagged member of the test VLAN, cabled to the traffic host or partner. Configure the Scapy traffic host to answer for four neighbour addresses N1..N4 in that subnet, each with its own MAC.
-        # setup: On the DUT, configure two static ARP entries, S1 and S2, in the test subnet, each mapped to a fixed MAC that differs from N1..N4. Use the AW+ static arp command in Global Configuration.
-        # setup: On the DUT, create two VRFs, VRF-A and VRF-B. Create one VLAN interface per VRF and bind each with 'ip vrf forwarding'. Add 'ip address <vrfA-ip/prefix-length>' and 'ip address <vrfB-ip/prefix-length>' on those interfaces, each on its own test port or tagged VLAN toward the traffic host. Keep the global test VLAN from step 1. On the traffic host, provide neighbours: A1 and A2 for VRF-A, B1 and B2 for VRF-B, and keep N1..N4 for global.
-        # The Scapy neighbours N1..N4, A1/A2 and B1/B2 answer ARP from the test cases themselves
-        # (replyArpRequest / sendArp), so no host-side configuration is needed here.
-        # Global test VLAN 10 (untagged on the test port); VRF VLANs 20 and 30 are tagged on the same port.
+        # setup: On the DUT, create test VLAN 10 and add the test port to it as a tagged trunk member. Create routed VLAN 20 on the source port as an untagged access member. Configure 'interface vlan10' / 'ip address 192.168.10.1/24' and 'interface vlan20' / 'ip address 192.168.20.1/24'.
+        # setup: Configure two static ARP entries on the DUT in global configuration: 'arp 192.168.10.201 0000.5e00.5301 <test port>' and 'arp 192.168.10.202 0000.5e00.5302 <test port>'.
+        # setup: On the traffic host attached to the test port, start Scapy ARP/ICMP responders on VLAN 10 for neighbours 192.168.10.11, .12, .13 and .14, each with its own unique MAC. On the traffic host attached to the source port, configure 192.168.20.100/24 with gateway 192.168.20.1. Start tcpdump on the test-port host interface, capturing ARP and IP.
+        # setup: On the DUT, run 'ip vrf red' and 'ip vrf blue'. Create VLAN 30 and VLAN 40 and add them as tagged VLANs on the test port. On 'interface vlan30' apply 'ip vrf forwarding red' then 'ip address 192.168.30.1/24'. On 'interface vlan40' apply 'ip vrf forwarding blue' then 'ip address 192.168.40.1/24'. On the test-port host, start Scapy responders for 192.168.30.11–.12 (VLAN 30) and 192.168.40.11–.12 (VLAN 40), each with its own unique MAC.
+        from threading import Thread
+
         dutA.mode(')#')
         dutA.cmd('vlan database')
-        dutA.cmd('vlan 10,20,30')
+        dutA.cmd('vlan 10,20,30,40 state enable')
         dutA.cmd('exit')
-        dutA.cmd('ip vrf VRF-A')
-        dutA.cmd('ip vrf VRF-B')
+        dutA.mode(')#')
+        dutA.cmd('ip vrf red')
+        dutA.cmd('ip vrf blue')
+
+        # test port: tagged trunk member of VLANs 10, 30 and 40
         dutA.cmd('interface {}'.format(portA.name))
         dutA.cmd('switchport mode trunk')
-        dutA.cmd('switchport trunk native vlan 10')
-        dutA.cmd('switchport trunk allowed vlan add 20,30')
+        dutA.cmd('switchport trunk allowed vlan add 10,30,40')
+
+        # routed VLAN 20 on the second (source) port: untagged access member.
+        # The bench binds no second testbox port, so the DUT's neighbour-link port is used for it.
+        dutA.cmd('interface {}'.format(portPeer.name))
+        dutA.cmd('switchport mode access')
+        dutA.cmd('switchport access vlan 20')
+
         dutA.cmd('interface vlan10')
-        dutA.cmd('ip address {}/{}'.format(ethA.get_ipv4_addr(2), ethA.ipv4subnetPrefix))
+        dutA.cmd('ip address 192.168.10.1/24')
         dutA.cmd('interface vlan20')
-        dutA.cmd('ip vrf forwarding VRF-A')
-        dutA.cmd('ip address 192.168.120.2/24')
+        dutA.cmd('ip address 192.168.20.1/24')
         dutA.cmd('interface vlan30')
-        dutA.cmd('ip vrf forwarding VRF-B')
-        dutA.cmd('ip address 192.168.130.2/24')
-        dutA.cmd('exit')
-        # Static ARP entries S1 and S2 in the global test subnet, MACs distinct from N1..N4
-        dutA.cmd('arp {} 0000.5e00.0101 {}'.format(ethA.get_ipv4_addr(20), portA.name))
-        dutA.cmd('arp {} 0000.5e00.0102 {}'.format(ethA.get_ipv4_addr(21), portA.name))
+        dutA.cmd('ip vrf forwarding red')
+        dutA.cmd('ip address 192.168.30.1/24')
+        dutA.cmd('interface vlan40')
+        dutA.cmd('ip vrf forwarding blue')
+        dutA.cmd('ip address 192.168.40.1/24')
+
+        # static ARP entries on the test port
+        dutA.mode(')#')
+        dutA.cmd('arp 192.168.10.201 0000.5e00.5301 {}'.format(portA.name))
+        dutA.cmd('arp 192.168.10.202 0000.5e00.5302 {}'.format(portA.name))
         dutA.mode('#')
+
+        # neighbour table for the Scapy responders on the test-port host: ip -> (mac, vlan)
+        neighbours = {
+            '192.168.10.11': ('00:00:5e:00:0a:11', 10),
+            '192.168.10.12': ('00:00:5e:00:0a:12', 10),
+            '192.168.10.13': ('00:00:5e:00:0a:13', 10),
+            '192.168.10.14': ('00:00:5e:00:0a:14', 10),
+            '192.168.30.11': ('00:00:5e:00:1e:11', 30),
+            '192.168.30.12': ('00:00:5e:00:1e:12', 30),
+            '192.168.40.11': ('00:00:5e:00:28:11', 40),
+            '192.168.40.12': ('00:00:5e:00:28:12', 40),
+        }
+        self.arp_responder_stop = {'run': True}
+        stopFlag = self.arp_responder_stop
+        ifaceName = ethA.name
+
+        def answer(pkt):
+            if not pkt.haslayer(ARP) or pkt[ARP].op != 1:
+                return
+            entry = neighbours.get(pkt[ARP].pdst)
+            if entry is None:
+                return
+            mac, vlan = entry
+            reply = (Ether(src=mac, dst=pkt[ARP].hwsrc) / Dot1Q(vlan=vlan) /
+                     ARP(op=2, hwsrc=mac, psrc=pkt[ARP].pdst, hwdst=pkt[ARP].hwsrc, pdst=pkt[ARP].psrc))
+            sendp(reply, iface=ifaceName, verbose=False)
+
+        def responder():
+            while stopFlag['run']:
+                sniff(iface=ifaceName, filter='arp', prn=answer, timeout=2, store=0)
+
+        self.arp_responder_thread = Thread(target=responder)
+        self.arp_responder_thread.daemon = True
+        self.arp_responder_thread.start()
+
+        self.suite_tcpdump = tb.start_tcpdump(ethA.name, 'arp_suite.pcap', 'arp or ip')
 
     def tear_down(self):
         tb = self.tb
@@ -285,169 +328,52 @@ class TestSet(ATTestSet.TestSet):
         portPeer = dutA.portPeer
         portDut = peer.portDut
         # One-time SUITE cleanup, runs ONCE after all cases. No pass/fail.
+        if getattr(self, 'arp_responder_stop', None) is not None:
+            self.arp_responder_stop['run'] = False
+        if getattr(self, 'arp_responder_thread', None) is not None:
+            self.arp_responder_thread.join(10)
+        if getattr(self, 'suite_tcpdump', None) is not None:
+            tb.stop_tcpdump(self.suite_tcpdump)
+
         dutA.mode(')#')
-        dutA.cmd('no arp {}'.format(ethA.get_ipv4_addr(20)))
-        dutA.cmd('no arp {}'.format(ethA.get_ipv4_addr(21)))
+        dutA.cmd('no arp 192.168.10.201')
+        dutA.cmd('no arp 192.168.10.202')
         dutA.cmd('interface vlan30')
         dutA.cmd('no ip address')
         dutA.cmd('no ip vrf forwarding')
-        dutA.cmd('interface vlan20')
+        dutA.cmd('interface vlan40')
         dutA.cmd('no ip address')
         dutA.cmd('no ip vrf forwarding')
         dutA.cmd('interface vlan10')
         dutA.cmd('no ip address')
-        dutA.cmd('interface {}'.format(portA.name))
-        dutA.cmd('no switchport trunk native vlan')
-        dutA.cmd('no switchport trunk allowed vlan')
-        dutA.cmd('switchport mode access')
+        dutA.cmd('interface vlan20')
+        dutA.cmd('no ip address')
+        dutA.cmd('interface {}'.format(portPeer.name))
         dutA.cmd('no switchport access vlan')
-        dutA.cmd('exit')
+        dutA.cmd('interface {}'.format(portA.name))
+        dutA.cmd('switchport trunk allowed vlan remove 10,30,40')
+        dutA.cmd('no switchport trunk')
+        dutA.cmd('switchport mode access')
+        dutA.mode(')#')
+        dutA.cmd('no interface vlan10')
+        dutA.cmd('no interface vlan20')
+        dutA.cmd('no interface vlan30')
+        dutA.cmd('no interface vlan40')
+        dutA.cmd('no ip vrf red')
+        dutA.cmd('no ip vrf blue')
         dutA.cmd('vlan database')
-        dutA.cmd('no vlan 10,20,30')
+        dutA.cmd('no vlan 10,20,30,40')
         dutA.cmd('exit')
-        dutA.cmd('no ip vrf VRF-A')
-        dutA.cmd('no ip vrf VRF-B')
         dutA.mode('#')
 
 
 class TestCase_1(ATTestCase.TestCase):
-    testCaseDesc = "Exchange traffic between the DUT and each of N1..N4: ping each neighbour from the DUT and have Scapy reply to the DUT's ARP requests. Then stop all traffic generators. Read 'show arp'."
+    testCaseDesc = "From the DUT, ping 192.168.10.11, .12, .13 and .14 (2 packets each). Then read 'show arp' and save the full table."
     # ART identity <family>.<case>.<TestCase> — the framework composes the same triple
     # from the filename and this class name, and the run log prints it per case.
     testCaseRef = 'AWPTCM-T33247, 9002.33247.1'
-    testCaseMethod = "Exchange traffic between the DUT and each of N1..N4: ping each neighbour from the DUT and have Scapy reply to the DUT's ARP requests. Then stop all traffic generators. Read 'show arp'.\n"
-    testCaseMethod += "Verify: 'show arp' lists N1..N4 as dynamic entries with the MACs Scapy used, on the test VLAN. It lists S1 and S2 as static entries with their configured MACs. Record the full entry list and the entry count.\n"
-
-    def configure(self):
-        tb = self.testSet.tb
-        dutA = self.testSet.dutA
-        ethA = tb.ethA
-        portA = dutA.portA
-        peer = self.testSet.peer
-        portPeer = dutA.portPeer
-        portDut = peer.portDut
-        # Per-case PRECONDITIONS: S1 and S2 static ARP entries this step presumes.
-        dutA.mode(')#')
-        dutA.cmd('arp {} {}'.format(ethA.get_ipv4_addr(21), '0000.ccdd.0001'))
-        dutA.cmd('arp {} {}'.format(ethA.get_ipv4_addr(22), '0000.ccdd.0002'))
-        dutA.mode('#')
-
-    def main(self):
-        # ART 1366_vrf_lite/library_1366.py lines 5-27
-        tb = self.testSet.tb
-        dutA = self.testSet.dutA
-        ethA = tb.ethA
-        portA = dutA.portA
-        peer = self.testSet.peer
-        portPeer = dutA.portPeer
-        portDut = peer.portDut
-        self.log("STEP 3: Exchange traffic between the DUT and each of N1..N4: ping each neighbour from the DUT and have Scapy reply to the DUT's ARP requests. Then stop all traffic generators. Read 'show arp'.")
-        # N1..N4 (dynamic, Scapy-answered) and S1/S2 (static, configured in configure())
-        import threading
-        nbrs = {}
-        for idx in range(1, 5):
-            nbrs[ethA.get_ipv4_addr(10 + idx)] = '00:00:aa:bb:00:{:02x}'.format(idx)
-        statics = {
-            ethA.get_ipv4_addr(21): '0000.ccdd.0001',
-            ethA.get_ipv4_addr(22): '0000.ccdd.0002',
-        }
-        stop = {'flag': False}
-
-        def answer(pkt):
-            if pkt.haslayer(ARP) and pkt[ARP].op == 1 and pkt[ARP].pdst in nbrs:
-                mac = nbrs[pkt[ARP].pdst]
-                reply = Ether(src=mac, dst=pkt[ARP].hwsrc) / ARP(
-                    op=2, hwsrc=mac, psrc=pkt[ARP].pdst, hwdst=pkt[ARP].hwsrc, pdst=pkt[ARP].psrc)
-                sendp(reply, iface=ethA.name, verbose=0)
-
-        def responder():
-            while not stop['flag']:
-                sniff(iface=ethA.name, filter='arp', prn=answer, store=0, timeout=2)
-
-        responder_thread = threading.Thread(target=responder)
-        responder_thread.start()
-        time.sleep(1)
-        dutA.mode('#')
-        for ip in nbrs:
-            self.log(dutA.cmd('ping {} repeat 3 timeout 2'.format(ip)))
-        stop['flag'] = True
-        responder_thread.join()
-
-        output = dutA.cmd('show arp')
-        self.log('OBSERVED: {}'.format(output))
-
-        entries = {}
-        for line in output.splitlines():
-            tokens = line.split()
-            if len(tokens) >= 5 and tokens[0].count('.') == 3:
-                entries[tokens[0]] = {'mac': tokens[1].lower(), 'interface': tokens[2], 'type': tokens[-1]}
-        self.log('Parsed ARP entries: {}'.format(entries))
-
-        dyn_problems = []
-        for ip, mac in nbrs.items():
-            entry = entries.get(ip)
-            expected = convertMacToDotFormat(mac)
-            if entry is None:
-                dyn_problems.append('{} missing'.format(ip))
-            elif entry['type'] != 'dynamic':
-                dyn_problems.append('{} type {}'.format(ip, entry['type']))
-            elif entry['mac'] != expected:
-                dyn_problems.append('{} mac {} expected {}'.format(ip, entry['mac'], expected))
-            elif not entry['interface'].startswith('vlan'):
-                dyn_problems.append('{} interface {} not a VLAN'.format(ip, entry['interface']))
-        if dyn_problems:
-            self.failed('N1..N4 dynamic ARP entries wrong: {}'.format('; '.join(dyn_problems)))
-        else:
-            self.passed('N1..N4 listed as dynamic with Scapy MACs on a VLAN interface')
-
-        static_problems = []
-        for ip, mac in statics.items():
-            entry = entries.get(ip)
-            if entry is None:
-                static_problems.append('{} missing'.format(ip))
-            elif entry['type'] != 'static':
-                static_problems.append('{} type {}'.format(ip, entry['type']))
-            elif entry['mac'] != mac:
-                static_problems.append('{} mac {} expected {}'.format(ip, entry['mac'], mac))
-        if static_problems:
-            self.failed('S1/S2 static ARP entries wrong: {}'.format('; '.join(static_problems)))
-        else:
-            self.passed('S1 and S2 listed as static with their configured MACs')
-
-        if entries and not dyn_problems and not static_problems:
-            publish_value(self, 'arpBaseline', entries)
-            publish_value(self, 'arpCountBaseline', len(entries))
-            self.passed('Recorded ARP baseline with {} entries'.format(len(entries)))
-        else:
-            publish_value(self, 'arpBaseline', None)
-            publish_value(self, 'arpCountBaseline', None)
-            self.failed('ARP baseline not recorded: {} entries parsed, expectations not met'.format(len(entries)))
-
-    def tear_down(self):
-        tb = self.testSet.tb
-        dutA = self.testSet.dutA
-        ethA = tb.ethA
-        portA = dutA.portA
-        peer = self.testSet.peer
-        portPeer = dutA.portPeer
-        portDut = peer.portDut
-        # Mirror configure(): remove the static entries, and clear dynamic ones learnt by main().
-        dutA.mode(')#')
-        dutA.cmd('no arp {}'.format(ethA.get_ipv4_addr(21)))
-        dutA.cmd('no arp {}'.format(ethA.get_ipv4_addr(22)))
-        dutA.mode('#')
-        dutA.cmd('clear arp-cache')
-
-
-class TestCase_2(ATTestCase.TestCase):
-    testCaseDesc = "With traffic stopped, issue 'clear arp-cache' with no arguments (clear all) on the DUT."
-    # ART identity <family>.<case>.<TestCase> — the framework composes the same triple
-    # from the filename and this class name, and the run log prints it per case.
-    testCaseRef = 'AWPTCM-T33247, 9002.33247.2'
-    ckNeeds = ['arpBaseline', 'arpCountBaseline']
-    skipIfExcl = True
-    testCaseMethod = "With traffic stopped, issue 'clear arp-cache' with no arguments (clear all) on the DUT.\n"
-    testCaseMethod += 'Verify: The command is accepted with no error output.\n'
+    testCaseMethod = "From the DUT, ping 192.168.10.11, .12, .13 and .14 (2 packets each). Then read 'show arp' and save the full table.\n"
+    testCaseMethod += "Verify: 'show arp' lists all four neighbours, each with the MAC its responder uses, on interface vlan10 and the test port, as dynamic entries. Both 192.168.10.201 (0000.5e00.5301) and 192.168.10.202 (0000.5e00.5302) are listed as static. Record the snapshot.\n"
 
     def configure(self):
         tb = self.testSet.tb
@@ -461,11 +387,10 @@ class TestCase_2(ATTestCase.TestCase):
         # pass/fail (main() verifies; tear_down() mirrors this in `no` form). Runs after
         # TestSet.configure() and after the previous case's tear_down(), so nothing another
         # case set up is still in effect here.
-        # Nothing to configure: the clear command is exec-mode only.
         dutA.mode('#')
 
     def main(self):
-        # legacy 8003_x8100/test-9999.018.py lines 166-267
+        # ART 1351_gratuitous_arp/test-1351.1001.py lines 287-362
         tb = self.testSet.tb
         dutA = self.testSet.dutA
         ethA = tb.ethA
@@ -473,30 +398,173 @@ class TestCase_2(ATTestCase.TestCase):
         peer = self.testSet.peer
         portPeer = dutA.portPeer
         portDut = peer.portDut
-        self.log("STEP 4: With traffic stopped, issue 'clear arp-cache' with no arguments (clear all) on the DUT.")
-        if getattr(self.testSet, 'arpBaseline', None) is None:
-            self.supported = False
-            self.failed('arpBaseline was not established by TestCase_1')
-            return
-        if getattr(self.testSet, 'arpCountBaseline', None) is None:
-            self.supported = False
-            self.failed('arpCountBaseline was not established by TestCase_1')
-            return
+        self.log("STEP 4: From the DUT, ping 192.168.10.11, .12, .13 and .14 (2 packets each). Then read 'show arp' and save the full table.")
+        neighbours = ['192.168.10.11', '192.168.10.12', '192.168.10.13', '192.168.10.14']
+        statics = {'192.168.10.201': '0000.5e00.5301', '192.168.10.202': '0000.5e00.5302'}
         dutA.mode('#')
-        output = dutA.cmd('clear arp-cache')
+        for ip in neighbours:
+            dutA.cmd('ping {} repeat 2 timeout 2'.format(ip))
+        output = dutA.cmd('show arp')
         self.log('OBSERVED: {}'.format(output))
-        text = output.strip()
-        error_tokens = ['Invalid input', 'Unrecognized command', 'Incomplete command',
-                        'Ambiguous command', '% ']
-        found = [tok for tok in error_tokens if tok in output]
-        if 'Invalid input' in output or 'Unrecognized command' in output:
-            self.supported = False
-            self.failed('{} does not accept clear arp-cache: {}'.format(dutA.name, text[:80]))
+
+        # Parse the table: IP Address, LL Address, Interface, Port, Type
+        table = {}
+        for line in output.splitlines():
+            tokens = line.split()
+            if len(tokens) >= 5 and tokens[0].count('.') == 3:
+                table[tokens[0]] = (tokens[1].lower(), tokens[2], tokens[3], tokens[4])
+
+        if not table:
+            publish_value(self, 'baselineArp', None)
+            publish_value(self, 'baselineCount', None)
+            self.failed('show arp returned no parsable ARP rows: {}'.format(output.strip()[:200]))
             return
-        if found:
-            self.failed('clear arp-cache produced error output {}: {}'.format(found, text[:120]))
+
+        ok = True
+        for ip in neighbours:
+            entry = table.get(ip)
+            if entry is None:
+                ok = False
+                self.failed('neighbour {} missing from show arp'.format(ip))
+                continue
+            mac, intf, port, etype = entry
+            if intf != 'vlan10':
+                ok = False
+                self.failed('neighbour {} is on interface {}, expected vlan10'.format(ip, intf))
+            elif port != portA.name:
+                ok = False
+                self.failed('neighbour {} is on port {}, expected {}'.format(ip, port, portA.name))
+            elif etype != 'dynamic':
+                ok = False
+                self.failed('neighbour {} type is {}, expected dynamic'.format(ip, etype))
+            elif mac == '0000.0000.0000':
+                ok = False
+                self.failed('neighbour {} has an empty MAC {}'.format(ip, mac))
+            else:
+                self.passed('neighbour {} is dynamic on vlan10/{} with MAC {}'.format(ip, port, mac))
+
+        # each neighbour must have a distinct responder MAC
+        macs = [table[ip][0] for ip in neighbours if ip in table]
+        if len(set(macs)) != len(macs):
+            ok = False
+            self.failed('neighbour MACs are not unique: {}'.format(macs))
+
+        for ip, expected in statics.items():
+            entry = table.get(ip)
+            if entry is None:
+                ok = False
+                self.failed('static entry {} missing from show arp'.format(ip))
+            elif entry[0] != expected or entry[3] != 'static':
+                ok = False
+                self.failed('{} is MAC {} type {}, expected {} static'.format(ip, entry[0], entry[3], expected))
+            else:
+                self.passed('static entry {} present with MAC {}'.format(ip, entry[0]))
+
+        if ok:
+            publish_value(self, 'baselineArp', dict(table))
+            publish_value(self, 'baselineCount', len(table))
+            self.passed('baseline recorded: {} ARP rows (4 dynamic, 2 static required entries verified)'.format(len(table)))
         else:
-            self.passed('clear arp-cache accepted with no error output (output: {!r})'.format(text[:80]))
+            publish_value(self, 'baselineArp', None)
+            publish_value(self, 'baselineCount', None)
+            self.failed('ARP baseline not established, show arp did not match the expected neighbours and static entries')
+
+    def tear_down(self):
+        tb = self.testSet.tb
+        dutA = self.testSet.dutA
+        ethA = tb.ethA
+        portA = dutA.portA
+        peer = self.testSet.peer
+        portPeer = dutA.portPeer
+        portDut = peer.portDut
+        # This case only reads state (ping, show arp); nothing to undo.
+        dutA.mode('#')
+
+
+class TestCase_2(ATTestCase.TestCase):
+    testCaseDesc = "Stop all traffic toward the neighbours, with no pings and no host-originated traffic. Run 'clear arp-cache' on the DUT, then read 'show arp' straight away."
+    # ART identity <family>.<case>.<TestCase> — the framework composes the same triple
+    # from the filename and this class name, and the run log prints it per case.
+    testCaseRef = 'AWPTCM-T33247, 9002.33247.2'
+    ckNeeds = ['baselineArp', 'baselineCount']
+    skipIfExcl = True
+    testCaseMethod = "Stop all traffic toward the neighbours, with no pings and no host-originated traffic. Run 'clear arp-cache' on the DUT, then read 'show arp' straight away.\n"
+    testCaseMethod += "Verify: None of 192.168.10.11–.14 appear in 'show arp'. Both 192.168.10.201 and .202 are still present as static entries, with the same MAC, interface and port as in baselineArp.\n"
+
+    def configure(self):
+        tb = self.testSet.tb
+        dutA = self.testSet.dutA
+        ethA = tb.ethA
+        portA = dutA.portA
+        peer = self.testSet.peer
+        portPeer = dutA.portPeer
+        portDut = peer.portDut
+        # Per-case PRECONDITIONS: the device state this step presumes, config only — no
+        # pass/fail (main() verifies; tear_down() mirrors this in `no` form). Runs after
+        # TestSet.configure() and after the previous case's tear_down(), so nothing another
+        # case set up is still in effect here.
+        dutA.mode('#')
+
+    def main(self):
+        # ART 1355_nlb/test-1355.1001.py lines 168-233
+        tb = self.testSet.tb
+        dutA = self.testSet.dutA
+        ethA = tb.ethA
+        portA = dutA.portA
+        peer = self.testSet.peer
+        portPeer = dutA.portPeer
+        portDut = peer.portDut
+        self.log("STEP 5: Stop all traffic toward the neighbours, with no pings and no host-originated traffic. Run 'clear arp-cache' on the DUT, then read 'show arp' straight away.")
+        baselineArp = getattr(self.testSet, 'baselineArp', None)
+        baselineCount = getattr(self.testSet, 'baselineCount', None)
+        if baselineArp is None or baselineCount is None:
+            self.supported = False
+            self.failed('baselineArp was not established by TestCase_1')
+            return
+
+        dynamic_ips = ['192.168.10.{}'.format(n) for n in (11, 12, 13, 14)]
+        static_ips = ['192.168.10.201', '192.168.10.202']
+
+        # No traffic is generated toward the neighbours: just clear and read immediately.
+        dutA.mode('#')
+        dutA.cmd('clear arp-cache')
+        output = dutA.cmd('show arp')
+        self.log('OBSERVED: {}'.format(output))
+
+        rows = {}
+        for line in output.splitlines():
+            tokens = line.split()
+            if tokens and tokens[0].count('.') == 3:
+                rows[tokens[0]] = tokens
+
+        remaining = [ip for ip in dynamic_ips if ip in rows]
+        if remaining:
+            self.failed('Dynamic ARP entries still present after clear arp-cache: {}'.format(', '.join(remaining)))
+        else:
+            self.passed('None of 192.168.10.11-.14 appear in show arp after clear arp-cache')
+
+        for ip in static_ips:
+            row = rows.get(ip)
+            if row is None:
+                self.failed('Static ARP entry {} missing from show arp after clear arp-cache'.format(ip))
+                continue
+            base = baselineArp.get(ip)
+            if base is None:
+                self.failed('{} not present in baselineArp, cannot compare'.format(ip))
+                continue
+            base_mac, base_if, base_port = base[0], base[1], base[2]
+            if len(row) < 5:
+                self.failed('Unexpected show arp row for {}: {}'.format(ip, ' '.join(row)))
+                continue
+            cur_mac, cur_if, cur_port, cur_type = row[1], row[2], row[3], row[-1]
+            if cur_type != 'static':
+                self.failed('{} is {} in show arp, expected static'.format(ip, cur_type))
+            elif (cur_mac.lower(), cur_if, cur_port) == (str(base_mac).lower(), base_if, base_port):
+                self.passed('{} still static with MAC {}, interface {}, port {} as in baselineArp'.format(
+                    ip, cur_mac, cur_if, cur_port))
+            else:
+                self.failed('{} changed: now {} {} {}, baseline {} {} {}'.format(
+                    ip, cur_mac, cur_if, cur_port, base_mac, base_if, base_port))
 
     def tear_down(self):
         tb = self.testSet.tb
@@ -507,20 +575,20 @@ class TestCase_2(ATTestCase.TestCase):
         portPeer = dutA.portPeer
         portDut = peer.portDut
         # Per-case cleanup so the next case starts clean: undo configure() and anything
-        # main() changed, command for command in `no` form. No pass/fail.
-        # Nothing was configured; the clear is not a config change. Leave console in exec mode.
+        # main() changed, command for command in `no` form (the ART mirror). No pass/fail.
+        # Nothing was configured; clear arp-cache is an exec action, not configuration.
         dutA.mode('#')
 
 
 class TestCase_3(ATTestCase.TestCase):
-    testCaseDesc = "Immediately read 'show arp', before any traffic is resumed."
+    testCaseDesc = "Count the rows in the 'show arp' output captured in step 5, before any new traffic starts."
     # ART identity <family>.<case>.<TestCase> — the framework composes the same triple
     # from the filename and this class name, and the run log prints it per case.
     testCaseRef = 'AWPTCM-T33247, 9002.33247.3'
-    ckNeeds = ['arpBaseline', 'arpCountBaseline']
+    ckNeeds = ['baselineArp', 'baselineCount']
     skipIfExcl = True
-    testCaseMethod = "Immediately read 'show arp', before any traffic is resumed.\n"
-    testCaseMethod += 'Verify: None of N1..N4 appears as a dynamic entry. S1 and S2 are both still present as static entries. Each has the same MAC and interface as recorded in arpBaseline from step 3.\n'
+    testCaseMethod = "Count the rows in the 'show arp' output captured in step 5, before any new traffic starts.\n"
+    testCaseMethod += 'Verify: The global table contains no dynamic entries. The total row count equals the number of static entries (2), so it is lower than baselineCount by exactly the 4 cleared dynamic entries.\n'
 
     def configure(self):
         tb = self.testSet.tb
@@ -537,7 +605,7 @@ class TestCase_3(ATTestCase.TestCase):
         pass
 
     def main(self):
-        # ART 1351_gratuitous_arp/test-1351.1001.py lines 287-362
+        # ART 1366_vrf_lite/library_1366.py lines 78-89
         tb = self.testSet.tb
         dutA = self.testSet.dutA
         ethA = tb.ethA
@@ -545,62 +613,45 @@ class TestCase_3(ATTestCase.TestCase):
         peer = self.testSet.peer
         portPeer = dutA.portPeer
         portDut = peer.portDut
-        self.log("STEP 5: Immediately read 'show arp', before any traffic is resumed.")
-        baseline = getattr(self.testSet, 'arpBaseline', None)
-        if baseline is None:
+        self.log("STEP 6: Count the rows in the 'show arp' output captured in step 5, before any new traffic starts.")
+        baselineArp = getattr(self.testSet, 'baselineArp', None)
+        baselineCount = getattr(self.testSet, 'baselineCount', None)
+        if baselineArp is None or baselineCount is None:
             self.supported = False
-            self.failed('arpBaseline was not established by TestCase_1')
+            self.failed('baselineArp/baselineCount was not established by TestCase_1')
             return
-        output = get_show_arp(self, dutA)
+        expected_static = 2
+        expected_cleared = 4
+        dutA.mode('#')
+        output = dutA.cmd('show arp')
         self.log('OBSERVED: {}'.format(output))
-
-        # Parse 'show arp': IP Address, LL Address, Interface, Port, Type
-        current = {}
+        rows = []
         for line in output.splitlines():
             tokens = line.split()
-            if len(tokens) >= 5 and tokens[0].count('.') == 3 and tokens[0].replace('.', '').isdigit():
-                current[tokens[0]] = {'mac': tokens[1], 'interface': tokens[2], 'type': tokens[-1]}
-
-        dynamic_base = [ip for ip, info in baseline.items() if info.get('type') == 'dynamic']
-        static_base = [ip for ip, info in baseline.items() if info.get('type') == 'static']
-
-        if not static_base:
-            self.failed('arpBaseline holds no static entries (S1, S2), found {}'.format(sorted(baseline)))
-            return
-
-        if not current and 'Invalid input' in output:
-            self.failed('show arp was rejected by the DUT: {}'.format(output.strip()[:80]))
-            return
-
-        # N1..N4: none may be present as a dynamic entry
-        leftover = [ip for ip in dynamic_base if ip in current and current[ip]['type'] == 'dynamic']
-        if leftover:
-            self.failed('Dynamic ARP entries still present after clear: {}'.format(', '.join(leftover)))
+            if len(tokens) >= 5 and tokens[-1] in ('dynamic', 'static'):
+                rows.append(tokens)
+        total = len(rows)
+        dynamic_rows = [row for row in rows if row[-1] == 'dynamic']
+        static_rows = [row for row in rows if row[-1] == 'static']
+        self.log('Rows: total {}, dynamic {}, static {}, baselineCount {}'.format(
+            total, len(dynamic_rows), len(static_rows), baselineCount))
+        if not dynamic_rows:
+            self.passed('Global ARP table contains no dynamic entries')
         else:
-            self.passed('None of the {} baseline dynamic neighbours ({}) appears as a dynamic entry'.format(
-                len(dynamic_base), ', '.join(dynamic_base)))
-
-        # Any dynamic entry at all, for the global cache, is also unexpected before traffic resumes
-        any_dynamic = [ip for ip, info in current.items() if info['type'] == 'dynamic']
-        if any_dynamic:
-            self.failed('Dynamic ARP entries present before traffic resumed: {}'.format(', '.join(any_dynamic)))
+            self.failed('Global ARP table still has {} dynamic entries: {}'.format(
+                len(dynamic_rows), [row[0] for row in dynamic_rows]))
+        if total == expected_static and len(static_rows) == expected_static:
+            self.passed('Total ARP row count is {}, equal to the {} static entries'.format(
+                total, expected_static))
         else:
-            self.passed('No dynamic ARP entries in show arp after the clear')
-
-        # S1 and S2: still present as static with unchanged MAC and interface
-        for ip in static_base:
-            base = baseline[ip]
-            cur = current.get(ip)
-            if cur is None:
-                self.failed('Static entry {} missing from show arp after clear'.format(ip))
-            elif cur['type'] != 'static':
-                self.failed('Entry {} is {} after clear, expected static'.format(ip, cur['type']))
-            elif cur['mac'] != base['mac'] or cur['interface'] != base['interface']:
-                self.failed('Static entry {} changed: mac {} interface {}, baseline mac {} interface {}'.format(
-                    ip, cur['mac'], cur['interface'], base['mac'], base['interface']))
-            else:
-                self.passed('Static entry {} retained with mac {} and interface {} as in arpBaseline'.format(
-                    ip, cur['mac'], cur['interface']))
+            self.failed('Total ARP row count is {} ({} static), expected {} static entries'.format(
+                total, len(static_rows), expected_static))
+        if baselineCount - total == expected_cleared:
+            self.passed('Row count {} is lower than baselineCount {} by exactly {} cleared dynamic entries'.format(
+                total, baselineCount, expected_cleared))
+        else:
+            self.failed('Row count {} differs from baselineCount {} by {}, expected exactly {}'.format(
+                total, baselineCount, baselineCount - total, expected_cleared))
 
     def tear_down(self):
         tb = self.testSet.tb
@@ -616,14 +667,14 @@ class TestCase_3(ATTestCase.TestCase):
 
 
 class TestCase_4(ATTestCase.TestCase):
-    testCaseDesc = "From the 'show arp' output read in step 5, count the entries for the global scope."
+    testCaseDesc = "Ping 192.168.10.11–.14 from the DUT again so the cache refills, and check that 'show arp' matches baselineArp. Stop the traffic, run 'clear arp-cache 192.168.10.12', then read 'show arp' straight away."
     # ART identity <family>.<case>.<TestCase> — the framework composes the same triple
     # from the filename and this class name, and the run log prints it per case.
     testCaseRef = 'AWPTCM-T33247, 9002.33247.4'
-    ckNeeds = ['arpBaseline', 'arpCountBaseline']
+    ckNeeds = ['baselineArp', 'baselineCount']
     skipIfExcl = True
-    testCaseMethod = "From the 'show arp' output read in step 5, count the entries for the global scope.\n"
-    testCaseMethod += 'Verify: The dynamic-entry count for the global scope is zero. The total entry count equals arpCountBaseline minus the four dynamic entries, which leaves only S1 and S2.\n'
+    testCaseMethod = "Ping 192.168.10.11–.14 from the DUT again so the cache refills, and check that 'show arp' matches baselineArp. Stop the traffic, run 'clear arp-cache 192.168.10.12', then read 'show arp' straight away.\n"
+    testCaseMethod += 'Verify: 192.168.10.12 is missing. 192.168.10.11, .13 and .14 are still present as dynamic entries with their baseline MAC, interface and port. Both static entries are unchanged.\n'
 
     def configure(self):
         tb = self.testSet.tb
@@ -637,11 +688,10 @@ class TestCase_4(ATTestCase.TestCase):
         # pass/fail (main() verifies; tear_down() mirrors this in `no` form). Runs after
         # TestSet.configure() and after the previous case's tear_down(), so nothing another
         # case set up is still in effect here.
-        # Nothing to configure: this step only reads the ARP table.
-        pass
+        dutA.mode('#')
 
     def main(self):
-        # ART 1366_vrf_lite/library_1366.py lines 78-89
+        # ART 1361_mac_learning/test-1361.1001.py lines 633-690 (py2→py3)
         tb = self.testSet.tb
         dutA = self.testSet.dutA
         ethA = tb.ethA
@@ -649,41 +699,75 @@ class TestCase_4(ATTestCase.TestCase):
         peer = self.testSet.peer
         portPeer = dutA.portPeer
         portDut = peer.portDut
-        self.log("STEP 6: From the 'show arp' output read in step 5, count the entries for the global scope.")
-        arpBaseline = self.testSet.arpBaseline
-        arpCountBaseline = self.testSet.arpCountBaseline
-        if arpBaseline is None or arpCountBaseline is None:
+        self.log("STEP 7: Ping 192.168.10.11–.14 from the DUT again so the cache refills, and check that 'show arp' matches baselineArp. Stop the traffic, run 'clear arp-cache 192.168.10.12', then read 'show arp' straight away.")
+        baselineArp = getattr(self.testSet, 'baselineArp', None)
+        baselineCount = getattr(self.testSet, 'baselineCount', None)
+        if baselineArp is None or baselineCount is None:
             self.supported = False
-            self.failed('arpBaseline/arpCountBaseline was not established by TestCase_1')
+            self.failed('baselineArp/baselineCount was not established by TestCase_1')
             return
-        output = get_show_arp(self, dutA)
+
+        def parse_arp(text):
+            table = {}
+            for line in text.splitlines():
+                tokens = line.split()
+                if len(tokens) >= 5 and tokens[0].count('.') == 3 and tokens[0].replace('.', '').isdigit():
+                    table[tokens[0]] = (tokens[1].lower(), tokens[2], tokens[3], tokens[4])
+            return table
+
+        dynamic_ips = [ip for ip, ent in baselineArp.items() if ent[3] == 'dynamic']
+        static_ips = [ip for ip, ent in baselineArp.items() if ent[3] == 'static']
+        cleared_ip = '192.168.10.12'
+
+        dutA.mode('#')
+        # refill the cache
+        for last in (11, 12, 13, 14):
+            dutA.cmd('ping 192.168.10.{} repeat 2'.format(last))
+
+        refilled = parse_arp(dutA.cmd('show arp'))
+        mismatch = []
+        for ip, ent in baselineArp.items():
+            cur = refilled.get(ip)
+            if cur is None or (cur[0], cur[1], cur[2], cur[3]) != (ent[0].lower(), ent[1], ent[2], ent[3]):
+                mismatch.append(ip)
+        if len(refilled) != baselineCount:
+            mismatch.append('count {} != {}'.format(len(refilled), baselineCount))
+        if mismatch:
+            self.failed('show arp after refill does not match baselineArp: {}'.format(mismatch))
+            return
+        self.passed('show arp after refill matches baselineArp ({} entries)'.format(len(refilled)))
+
+        dutA.cmd('clear arp-cache {}'.format(cleared_ip))
+        output = dutA.cmd('show arp')
         self.log('OBSERVED: {}'.format(output))
-        if 'Invalid input' in output:
-            self.supported = False
-            self.failed('{} does not support show arp: {}'.format(dutA.name, output.strip()[:80]))
-            return
-        # Entry rows: first token is an IPv4 address; Type is the last column.
-        rows = []
-        for line in output.splitlines():
-            tokens = line.split()
-            if len(tokens) >= 5 and tokens[0].count('.') == 3 and tokens[0].replace('.', '').isdigit():
-                rows.append(tokens)
-        dynamicCount = len([row for row in rows if row[-1] == 'dynamic'])
-        totalCount = len(rows)
-        staticRows = [row for row in rows if row[-1] == 'static']
-        expectedTotal = arpCountBaseline - 4
-        self.log('Global ARP: total={}, dynamic={}, static={}, expected total={}'.format(
-            totalCount, dynamicCount, len(staticRows), expectedTotal))
-        if dynamicCount == 0:
-            self.passed('Global ARP table holds {} dynamic entries after the clear'.format(dynamicCount))
+        table = parse_arp(output)
+
+        if cleared_ip not in table:
+            self.passed('{} is missing from show arp after clear arp-cache'.format(cleared_ip))
         else:
-            self.failed('Global ARP table still holds {} dynamic entries, expected 0'.format(dynamicCount))
-        if totalCount == expectedTotal:
-            self.passed('Global ARP total entry count is {}, equal to arpCountBaseline {} minus 4 dynamic '
-                        '(only S1 and S2 remain)'.format(totalCount, arpCountBaseline))
-        else:
-            self.failed('Global ARP total entry count is {}, expected {} (arpCountBaseline {} minus 4)'.format(
-                totalCount, expectedTotal, arpCountBaseline))
+            self.failed('{} still present in show arp after clear arp-cache: {}'.format(
+                cleared_ip, table[cleared_ip]))
+
+        for ip in dynamic_ips:
+            if ip == cleared_ip:
+                continue
+            ent = baselineArp[ip]
+            cur = table.get(ip)
+            if cur is None:
+                self.failed('{} missing from show arp, expected dynamic entry'.format(ip))
+            elif cur[3] == 'dynamic' and (cur[0], cur[1], cur[2]) == (ent[0].lower(), ent[1], ent[2]):
+                self.passed('{} still dynamic with baseline MAC {}, interface {}, port {}'.format(
+                    ip, cur[0], cur[1], cur[2]))
+            else:
+                self.failed('{} changed: observed {}, baseline {}'.format(ip, cur, ent))
+
+        for ip in static_ips:
+            ent = baselineArp[ip]
+            cur = table.get(ip)
+            if cur is not None and cur == (ent[0].lower(), ent[1], ent[2], ent[3]):
+                self.passed('static entry {} unchanged ({})'.format(ip, cur))
+            else:
+                self.failed('static entry {} changed: observed {}, baseline {}'.format(ip, cur, ent))
 
     def tear_down(self):
         tb = self.testSet.tb
@@ -695,19 +779,19 @@ class TestCase_4(ATTestCase.TestCase):
         portDut = peer.portDut
         # Per-case cleanup so the next case starts clean: undo configure() and anything
         # main() changed, command for command in `no` form (the ART mirror). No pass/fail.
-        # main() only read state; just leave the console in exec mode.
+        # Nothing was configured; only dynamic ARP cache state changed.
         dutA.mode('#')
 
 
 class TestCase_5(ATTestCase.TestCase):
-    testCaseDesc = "Repopulate the cache by pinging N1..N4 from the DUT with Scapy replying. Stop traffic. Read 'show arp' as a pre-clear snapshot."
+    testCaseDesc = "Count the rows in the 'show arp' output captured in step 7, before any new traffic starts."
     # ART identity <family>.<case>.<TestCase> — the framework composes the same triple
     # from the filename and this class name, and the run log prints it per case.
     testCaseRef = 'AWPTCM-T33247, 9002.33247.5'
-    ckNeeds = ['arpBaseline', 'arpCountBaseline']
+    ckNeeds = ['baselineArp', 'baselineCount']
     skipIfExcl = True
-    testCaseMethod = "Repopulate the cache by pinging N1..N4 from the DUT with Scapy replying. Stop traffic. Read 'show arp' as a pre-clear snapshot.\n"
-    testCaseMethod += 'Verify: N1..N4 are present as dynamic entries again and S1 and S2 are present as static entries. Record the snapshot.\n'
+    testCaseMethod = "Count the rows in the 'show arp' output captured in step 7, before any new traffic starts.\n"
+    testCaseMethod += 'Verify: The total row count is baselineCount minus 1. Only the 192.168.10.12 row is gone, and the global scope holds exactly 3 dynamic entries.\n'
 
     def configure(self):
         tb = self.testSet.tb
@@ -717,290 +801,7 @@ class TestCase_5(ATTestCase.TestCase):
         peer = self.testSet.peer
         portPeer = dutA.portPeer
         portDut = peer.portDut
-        # Nothing to presume beyond the suite configuration: this step only pings and reads.
-        pass
-
-    def main(self):
-        # ART 1366_vrf_lite/library_1366.py lines 5-27
-        tb = self.testSet.tb
-        dutA = self.testSet.dutA
-        ethA = tb.ethA
-        portA = dutA.portA
-        peer = self.testSet.peer
-        portPeer = dutA.portPeer
-        portDut = peer.portDut
-        self.log("STEP 7: Repopulate the cache by pinging N1..N4 from the DUT with Scapy replying. Stop traffic. Read 'show arp' as a pre-clear snapshot.")
-        baseline = self.testSet.arpBaseline
-        if baseline is None:
-            self.supported = False
-            publish_value(self, 'arpPreSingle', None)
-            self.failed('arpBaseline was not established by TestCase_1')
-            return
-
-        neighbours = sorted(ip for ip, ent in baseline.items() if ent.get('type') == 'dynamic')
-        baseStatics = sorted(ip for ip, ent in baseline.items() if ent.get('type') == 'static')
-        if not neighbours:
-            publish_value(self, 'arpPreSingle', None)
-            self.failed('arpBaseline holds no dynamic entries (N1..N4) to repopulate: {}'.format(sorted(baseline)))
-            return
-
-        # Scapy answers the DUT's ARP requests while the DUT pings each neighbour
-        dutA.mode('#')
-        responder = ARP_request_reply_thread(ethA.name)
-        responder.start()
-        try:
-            for ip in neighbours:
-                self.log('Pinging {} from the DUT'.format(ip))
-                dutA.cmd('ping {} repeat 3 timeout 2'.format(ip))
-        finally:
-            responder.stop()
-
-        output = get_show_arp(self, dutA)
-        self.log('OBSERVED: {}'.format(output))
-
-        snapshot = {}
-        for line in output.splitlines():
-            tokens = line.split()
-            if len(tokens) < 4 or tokens[0].count('.') != 3:
-                continue
-            snapshot[tokens[0]] = {'mac': tokens[1], 'interface': tokens[2], 'type': tokens[-1]}
-
-        if not snapshot:
-            publish_value(self, 'arpPreSingle', None)
-            self.failed('show arp returned no ARP entries after repopulation')
-            return
-
-        notDynamic = [ip for ip in neighbours if snapshot.get(ip, {}).get('type') != 'dynamic']
-        if not notDynamic:
-            self.passed('N1..N4 {} are present as dynamic entries again'.format(neighbours))
-        else:
-            self.failed('Neighbours {} are not dynamic entries in show arp: {}'.format(
-                notDynamic, {ip: snapshot.get(ip) for ip in notDynamic}))
-
-        staticNow = sorted(ip for ip, ent in snapshot.items() if ent['type'] == 'static')
-        lostStatics = [ip for ip in baseStatics if ip not in staticNow]
-        if len(staticNow) >= 2 and not lostStatics:
-            self.passed('S1 and S2 static entries are present: {}'.format(staticNow))
-        elif lostStatics:
-            self.failed('Baseline static entries {} are no longer static in show arp (static now: {})'.format(
-                lostStatics, staticNow))
-        else:
-            self.failed('Expected at least two static entries (S1, S2), found {}'.format(staticNow))
-
-        if self.has_failed():
-            publish_value(self, 'arpPreSingle', None)
-        else:
-            publish_value(self, 'arpPreSingle', snapshot)
-            self.passed('Pre-clear snapshot recorded with {} ARP entries'.format(len(snapshot)))
-
-    def tear_down(self):
-        tb = self.testSet.tb
-        dutA = self.testSet.dutA
-        ethA = tb.ethA
-        portA = dutA.portA
-        peer = self.testSet.peer
-        portPeer = dutA.portPeer
-        portDut = peer.portDut
-        # configure() and main() changed no configuration (ping and show only); leave the console in exec mode.
-        dutA.mode('#')
-
-
-class TestCase_6(ATTestCase.TestCase):
-    testCaseDesc = "Issue 'clear arp-cache <N2-ip>' on the DUT."
-    # ART identity <family>.<case>.<TestCase> — the framework composes the same triple
-    # from the filename and this class name, and the run log prints it per case.
-    testCaseRef = 'AWPTCM-T33247, 9002.33247.6'
-    ckNeeds = ['arpBaseline', 'arpCountBaseline', 'arpPreSingle']
-    skipIfExcl = True
-    testCaseMethod = "Issue 'clear arp-cache <N2-ip>' on the DUT.\n"
-    testCaseMethod += 'Verify: The command is accepted with no error output.\n'
-
-    def configure(self):
-        tb = self.testSet.tb
-        dutA = self.testSet.dutA
-        ethA = tb.ethA
-        portA = dutA.portA
-        peer = self.testSet.peer
-        portPeer = dutA.portPeer
-        portDut = peer.portDut
-        # Per-case PRECONDITIONS: the device state this step presumes, config only — no
-        # pass/fail (main() verifies; tear_down() mirrors this in `no` form). Runs after
-        # TestSet.configure() and after the previous case's tear_down(), so nothing another
-        # case set up is still in effect here.
-        pass
-
-    def main(self):
-        # ART 1366_vrf_lite/test-1366.1001.py lines 245-313
-        tb = self.testSet.tb
-        dutA = self.testSet.dutA
-        ethA = tb.ethA
-        portA = dutA.portA
-        peer = self.testSet.peer
-        portPeer = dutA.portPeer
-        portDut = peer.portDut
-        self.log("STEP 8: Issue 'clear arp-cache <N2-ip>' on the DUT.")
-        for name in self.ckNeeds:
-            if getattr(self.testSet, name, None) is None:
-                self.supported = False
-                self.failed('{} was not established by an earlier case'.format(name))
-                return
-        # N2 is the second traffic-host neighbour address (offset 1 is N1, offset 2 is the DUT vlan address)
-        n2_ip = ethA.get_ipv4_addr(3)
-        dutA.mode('#')
-        output = dutA.cmd('clear arp-cache {}'.format(n2_ip))
-        self.log('OBSERVED: {}'.format(output))
-        rejected = ('Invalid input' in output or 'Unrecognized command' in output
-                    or 'rror' in output
-                    or any(line.strip().startswith('%') for line in output.splitlines()))
-        if not rejected:
-            self.passed('clear arp-cache {} was accepted with no error output'.format(n2_ip))
-        else:
-            self.failed('clear arp-cache {} produced error output: {}'.format(n2_ip, output.strip()[:120]))
-
-    def tear_down(self):
-        tb = self.testSet.tb
-        dutA = self.testSet.dutA
-        ethA = tb.ethA
-        portA = dutA.portA
-        peer = self.testSet.peer
-        portPeer = dutA.portPeer
-        portDut = peer.portDut
-        # Per-case cleanup so the next case starts clean: undo configure() and anything
-        # main() changed, command for command in `no` form (the ART mirror). No pass/fail.
-        dutA.mode('#')
-
-
-class TestCase_7(ATTestCase.TestCase):
-    testCaseDesc = "Immediately read 'show arp', before resuming traffic."
-    # ART identity <family>.<case>.<TestCase> — the framework composes the same triple
-    # from the filename and this class name, and the run log prints it per case.
-    testCaseRef = 'AWPTCM-T33247, 9002.33247.7'
-    ckNeeds = ['arpBaseline', 'arpCountBaseline', 'arpPreSingle']
-    skipIfExcl = True
-    testCaseMethod = "Immediately read 'show arp', before resuming traffic.\n"
-    testCaseMethod += 'Verify: N2 is absent. N1, N3, N4, S1 and S2 are present with the same MAC, interface and type as in arpPreSingle.\n'
-
-    def configure(self):
-        tb = self.testSet.tb
-        dutA = self.testSet.dutA
-        ethA = tb.ethA
-        portA = dutA.portA
-        peer = self.testSet.peer
-        portPeer = dutA.portPeer
-        portDut = peer.portDut
-        # Per-case PRECONDITIONS: the device state this step presumes, config only — no
-        # pass/fail (main() verifies; tear_down() mirrors this in `no` form). Runs after
-        # TestSet.configure() and after the previous case's tear_down(), so nothing another
-        # case set up is still in effect here.
-        # This step only reads the ARP table; the state it presumes was built by earlier cases.
-        pass
-
-    def main(self):
-        # ART 1355_nlb/library_1355.py lines 97-102
-        tb = self.testSet.tb
-        dutA = self.testSet.dutA
-        ethA = tb.ethA
-        portA = dutA.portA
-        peer = self.testSet.peer
-        portPeer = dutA.portPeer
-        portDut = peer.portDut
-        self.log("STEP 9: Immediately read 'show arp', before resuming traffic.")
-        pre = getattr(self.testSet, 'arpPreSingle', None)
-        if pre is None:
-            self.supported = False
-            self.failed('arpPreSingle was not established by TestCase_5')
-            return
-        output = get_show_arp(self, dutA)
-        self.log('OBSERVED: {}'.format(output))
-
-        # Parse 'show arp': IP Address, LL Address, Interface, Port, Type
-        current = {}
-        for line in output.splitlines():
-            tokens = line.split()
-            if len(tokens) >= 5 and tokens[0].count('.') == 3 and tokens[0].replace('.', '').isdigit():
-                current[tokens[0]] = {'mac': tokens[1], 'interface': tokens[2], 'type': tokens[-1]}
-
-        if not current:
-            self.failed('No ARP entries could be parsed from show arp output')
-            return
-
-        # N2 is the single address cleared in the preceding step: the one entry whose
-        # absence is expected. It is the pre-snapshot entry missing from the live table.
-        missing = [ip for ip in pre if ip not in current]
-        if len(missing) == 1:
-            self.passed('Exactly one entry is absent from show arp after the clear: {} (N2)'.format(missing[0]))
-        else:
-            self.failed('Expected exactly one absent entry (N2), absent entries: {}'.format(missing))
-
-        remaining = [ip for ip in pre if ip in current]
-        bad = []
-        for ip in remaining:
-            exp = pre[ip]
-            act = current[ip]
-            if (str(exp.get('mac')).lower() != act['mac'].lower() or
-                    exp.get('interface') != act['interface'] or exp.get('type') != act['type']):
-                bad.append('{}: expected {} got {}'.format(ip, exp, act))
-        if not remaining:
-            self.failed('No entries from arpPreSingle remain in show arp')
-        elif bad:
-            self.failed('Remaining entries differ from arpPreSingle in MAC/interface/type: {}'.format('; '.join(bad)))
-        else:
-            self.passed('{} remaining entries (N1, N3, N4, S1, S2) match arpPreSingle MAC, interface and type: {}'.format(
-                len(remaining), sorted(remaining)))
-
-        # Expected count after clearing one address: all entries except N2.
-        if len(remaining) == len(pre) - 1:
-            self.passed('{} of {} arpPreSingle entries still present'.format(len(remaining), len(pre)))
-        else:
-            self.failed('{} of {} arpPreSingle entries present, expected {}'.format(
-                len(remaining), len(pre), len(pre) - 1))
-
-        # Static entries must remain static (S1 and S2).
-        statics = [ip for ip in pre if pre[ip].get('type') == 'static']
-        lost = [ip for ip in statics if ip not in current or current[ip]['type'] != 'static']
-        if statics and not lost:
-            self.passed('Static entries {} still present and static'.format(sorted(statics)))
-        elif statics:
-            self.failed('Static entries missing or changed type: {}'.format(sorted(lost)))
-        else:
-            self.failed('arpPreSingle holds no static entries (S1, S2) to verify')
-
-    def tear_down(self):
-        tb = self.testSet.tb
-        dutA = self.testSet.dutA
-        ethA = tb.ethA
-        portA = dutA.portA
-        peer = self.testSet.peer
-        portPeer = dutA.portPeer
-        portDut = peer.portDut
-        # Per-case cleanup so the next case starts clean: undo configure() and anything
-        # main() changed, command for command in `no` form (the ART mirror). No pass/fail.
-        # Nothing was configured or changed by this read-only step; leave console in exec mode.
-        dutA.mode('#')
-
-
-class TestCase_8(ATTestCase.TestCase):
-    testCaseDesc = "From the 'show arp' output read in step 9, count the entries."
-    # ART identity <family>.<case>.<TestCase> — the framework composes the same triple
-    # from the filename and this class name, and the run log prints it per case.
-    testCaseRef = 'AWPTCM-T33247, 9002.33247.8'
-    ckNeeds = ['arpPreSingle']
-    skipIfExcl = True
-    testCaseMethod = "From the 'show arp' output read in step 9, count the entries.\n"
-    testCaseMethod += 'Verify: The entry count is exactly one fewer than the count in arpPreSingle. No dynamic entry for N2 is reported.\n'
-
-    def configure(self):
-        tb = self.testSet.tb
-        dutA = self.testSet.dutA
-        ethA = tb.ethA
-        portA = dutA.portA
-        peer = self.testSet.peer
-        portPeer = dutA.portPeer
-        portDut = peer.portDut
-        # Per-case PRECONDITIONS: the device state this step presumes, config only — no
-        # pass/fail (main() verifies; tear_down() mirrors this in `no` form). Runs after
-        # TestSet.configure() and after the previous case's tear_down(), so nothing another
-        # case set up is still in effect here.
+        # Per-case PRECONDITIONS: nothing to configure; this step only reads the ARP table.
         pass
 
     def main(self):
@@ -1012,448 +813,49 @@ class TestCase_8(ATTestCase.TestCase):
         peer = self.testSet.peer
         portPeer = dutA.portPeer
         portDut = peer.portDut
-        self.log("STEP 10: From the 'show arp' output read in step 9, count the entries.")
-        preSingle = self.testSet.arpPreSingle
-        if preSingle is None:
+        self.log("STEP 8: Count the rows in the 'show arp' output captured in step 7, before any new traffic starts.")
+        baselineArp = getattr(self.testSet, 'baselineArp', None)
+        baselineCount = getattr(self.testSet, 'baselineCount', None)
+        if baselineArp is None or baselineCount is None:
             self.supported = False
-            self.failed('arpPreSingle was not established by TestCase_5')
+            self.failed('baselineArp/baselineCount was not established by TestCase_1')
             return
-
-        def is_ipv4(token):
-            parts = token.split('.')
-            return len(parts) == 4 and all(part.isdigit() for part in parts)
-
-        output = get_show_arp(self, dutA)
-        entries = {}
-        for line in output.splitlines():
-            tokens = line.split()
-            if tokens and is_ipv4(tokens[0]):
-                entries[tokens[0]] = tokens[-1]
-        expectedCount = len(preSingle) - 1
-        self.log('OBSERVED: {} ARP entries now ({}), arpPreSingle had {}'.format(
-            len(entries), sorted(entries), len(preSingle)))
-
-        if len(entries) == expectedCount:
-            self.passed('show arp lists {} entries, exactly one fewer than the {} in arpPreSingle'.format(
-                len(entries), len(preSingle)))
-        else:
-            self.failed('show arp lists {} entries, expected {} (one fewer than the {} in arpPreSingle)'.format(
-                len(entries), expectedCount, len(preSingle)))
-
-        removed = [ip for ip in preSingle if ip not in entries]
-        added = [ip for ip in entries if ip not in preSingle]
-        self.log('Addresses gone since arpPreSingle: {}; new: {}'.format(removed, added))
-        if len(removed) != 1:
-            self.failed('Expected exactly one address (N2) to disappear from the ARP cache, found {}'.format(
-                removed))
-            return
-        n2 = removed[0]
-        if n2 in entries and entries[n2] == 'dynamic':
-            self.failed('Dynamic ARP entry for N2 {} is still reported'.format(n2))
-        else:
-            self.passed('No dynamic ARP entry for N2 {} is reported after the single-address clear'.format(n2))
-
-    def tear_down(self):
-        tb = self.testSet.tb
-        dutA = self.testSet.dutA
-        ethA = tb.ethA
-        portA = dutA.portA
-        peer = self.testSet.peer
-        portPeer = dutA.portPeer
-        portDut = peer.portDut
-        # Per-case cleanup so the next case starts clean: undo configure() and anything
-        # main() changed, command for command in `no` form (the ART mirror). No pass/fail.
-        pass
-
-
-class TestCase_9(ATTestCase.TestCase):
-    testCaseDesc = "Issue 'clear arp-cache <S1-ip>' on the DUT, targeting a static entry. Capture the CLI response. Then read 'show arp' and the running-config."
-    # ART identity <family>.<case>.<TestCase> — the framework composes the same triple
-    # from the filename and this class name, and the run log prints it per case.
-    testCaseRef = 'AWPTCM-T33247, 9002.33247.9'
-    ckNeeds = ['arpBaseline', 'arpPreSingle']
-    skipIfExcl = True
-    testCaseMethod = "Issue 'clear arp-cache <S1-ip>' on the DUT, targeting a static entry. Capture the CLI response. Then read 'show arp' and the running-config.\n"
-    testCaseMethod += 'Verify: The DUT either rejects the request with an error indication or accepts it silently; both outcomes are acceptable. Record which one occurred. In either case, S1 is still listed as static with its original MAC, and the static arp line for S1 is still in running-config. N1, N3, N4 and S2 are unchanged from step 9.\n'
-
-    def configure(self):
-        tb = self.testSet.tb
-        dutA = self.testSet.dutA
-        ethA = tb.ethA
-        portA = dutA.portA
-        peer = self.testSet.peer
-        portPeer = dutA.portPeer
-        portDut = peer.portDut
-        # Per-case PRECONDITIONS: nothing extra is presumed beyond TestSet.configure()
-        # (the static and dynamic ARP entries are already in place).
-        pass
-
-    def main(self):
-        # ART 1355_nlb/library_1355.py lines 97-102
-        tb = self.testSet.tb
-        dutA = self.testSet.dutA
-        ethA = tb.ethA
-        portA = dutA.portA
-        peer = self.testSet.peer
-        portPeer = dutA.portPeer
-        portDut = peer.portDut
-        self.log("STEP 11: Issue 'clear arp-cache <S1-ip>' on the DUT, targeting a static entry. Capture the CLI response. Then read 'show arp' and the running-config.")
-        if self.testSet.arpBaseline is None or self.testSet.arpPreSingle is None:
-            self.supported = False
-            self.failed('arpBaseline/arpPreSingle was not established by TestCase_1/TestCase_5')
-            return
-
-        import re
-        ip_re = re.compile(r'^\d+\.\d+\.\d+\.\d+$')
-
-        def parse_arp(text):
-            entries = {}
-            for line in text.splitlines():
-                tokens = line.split()
-                if len(tokens) >= 3 and ip_re.match(tokens[0]):
-                    entries[tokens[0]] = {'mac': tokens[1].lower(), 'type': tokens[-1].lower()}
-            return entries
-
-        # S1 = the first static entry the earlier cases recorded
-        source = self.testSet.arpPreSingle or self.testSet.arpBaseline
-        static_ips = sorted(ip for ip, ent in source.items() if str(ent.get('type', '')).lower() == 'static')
-        if not static_ips:
-            self.failed('no static ARP entry recorded by earlier cases, cannot pick S1')
-            return
-        s1_ip = static_ips[0]
-
+        removed_ip = '192.168.10.12'
         dutA.mode('#')
-        pre = parse_arp(dutA.cmd('show arp'))
-        if s1_ip not in pre or pre[s1_ip]['type'] != 'static':
-            self.failed('S1 {} is not a static entry in show arp before the clear'.format(s1_ip))
-            return
-        s1_mac = pre[s1_ip]['mac']
-
-        clear_output = dutA.cmd('clear arp-cache {}'.format(s1_ip))
-        rejected = ('Invalid input' in clear_output or '% ' in clear_output
-                    or 'rror' in clear_output or 'annot' in clear_output)
-        arp_output = dutA.cmd('show arp')
-        run_output = dutA.cmd('show running-config', log=False)
-        output = 'clear response: {!r}\n{}'.format(clear_output.strip(), arp_output)
-        self.log('OBSERVED: {}'.format(output))
-
-        if rejected:
-            self.passed('DUT rejected clear arp-cache for static {} with an error: {}'.format(
-                s1_ip, clear_output.strip()[:80]))
-        else:
-            self.passed('DUT accepted clear arp-cache for static {} silently: {!r}'.format(
-                s1_ip, clear_output.strip()[:80]))
-
-        post = parse_arp(arp_output)
-        if s1_ip not in post:
-            self.failed('S1 {} missing from show arp after clear arp-cache'.format(s1_ip))
-        elif post[s1_ip]['type'] != 'static':
-            self.failed('S1 {} is now {} in show arp, expected static'.format(s1_ip, post[s1_ip]['type']))
-        elif post[s1_ip]['mac'] != s1_mac:
-            self.failed('S1 {} MAC changed from {} to {}'.format(s1_ip, s1_mac, post[s1_ip]['mac']))
-        else:
-            self.passed('S1 {} still static with original MAC {}'.format(s1_ip, s1_mac))
-
-        s1_lines = [line for line in run_output.splitlines() if line.split()[:2] == ['arp', s1_ip]]
-        if s1_lines:
-            self.passed('static arp line for S1 still in running-config: {}'.format(s1_lines[0].strip()))
-        else:
-            self.failed('static arp line for {} missing from running-config'.format(s1_ip))
-
-        changed = []
-        for ip, ent in pre.items():
-            if ip == s1_ip:
-                continue
-            if ip not in post:
-                changed.append('{} missing'.format(ip))
-            elif post[ip] != ent:
-                changed.append('{} changed {} -> {}'.format(ip, ent, post[ip]))
-        for ip in post:
-            if ip not in pre:
-                changed.append('{} appeared'.format(ip))
-        if not changed:
-            self.passed('all other ARP entries (N1, N3, N4, S2) unchanged: {} entries'.format(len(pre) - 1))
-        else:
-            self.failed('other ARP entries changed after clearing S1: {}'.format('; '.join(changed)))
-
-    def tear_down(self):
-        tb = self.testSet.tb
-        dutA = self.testSet.dutA
-        ethA = tb.ethA
-        portA = dutA.portA
-        peer = self.testSet.peer
-        portPeer = dutA.portPeer
-        portDut = peer.portDut
-        # main() only read state (the clear was rejected or a no-op on the static entry),
-        # so there is nothing to revert; leave the console in exec mode.
-        dutA.mode('#')
-
-
-class TestCase_10(ATTestCase.TestCase):
-    testCaseDesc = "Make sure N1..N4 are learned, using pings if needed, then stop all traffic to N1. Issue 'clear arp-cache <N1-ip>'. Start tcpdump on the traffic host. Resume traffic: start a continuous ping or Scapy stream from the DUT to N1."
-    # ART identity <family>.<case>.<TestCase> — the framework composes the same triple
-    # from the filename and this class name, and the run log prints it per case.
-    testCaseRef = 'AWPTCM-T33247, 9002.33247.10'
-    ckNeeds = ['arpBaseline', 'arpCountBaseline', 'arpPreSingle']
-    skipIfExcl = True
-    testCaseMethod = "Make sure N1..N4 are learned, using pings if needed, then stop all traffic to N1. Issue 'clear arp-cache <N1-ip>'. Start tcpdump on the traffic host. Resume traffic: start a continuous ping or Scapy stream from the DUT to N1.\n"
-    testCaseMethod += "Verify: The capture shows the DUT sending an ARP request for N1's address, and Scapy replies. 'show arp' then lists N1 as dynamic with Scapy's MAC. Pings succeed after resolution, and loss is limited to the packets sent before the ARP reply.\n"
-
-    def configure(self):
-        tb = self.testSet.tb
-        dutA = self.testSet.dutA
-        ethA = tb.ethA
-        portA = dutA.portA
-        peer = self.testSet.peer
-        portPeer = dutA.portPeer
-        portDut = peer.portDut
-        # Per-case PRECONDITIONS: the device state this step presumes, config only — no
-        # pass/fail (main() verifies; tear_down() mirrors this in `no` form). Runs after
-        # TestSet.configure() and after the previous case's tear_down(), so nothing another
-        # case set up is still in effect here.
-        # Nothing to configure: the step only clears and re-learns dynamic ARP state.
-        pass
-
-    def main(self):
-        # ART 1351_gratuitous_arp/library_1351.py lines 267-280
-        tb = self.testSet.tb
-        dutA = self.testSet.dutA
-        ethA = tb.ethA
-        portA = dutA.portA
-        peer = self.testSet.peer
-        portPeer = dutA.portPeer
-        portDut = peer.portDut
-        self.log("STEP 12: Make sure N1..N4 are learned, using pings if needed, then stop all traffic to N1. Issue 'clear arp-cache <N1-ip>'. Start tcpdump on the traffic host. Resume traffic: start a continuous ping or Scapy stream from the DUT to N1.")
-        import re
-        import hashlib
-        for name in ('arpBaseline', 'arpCountBaseline', 'arpPreSingle'):
-            if getattr(self.testSet, name, None) is None:
-                self.supported = False
-                self.failed('{} was not established by an earlier TestCase'.format(name))
-                return
-        dutA.mode('#')
-        probe = dutA.cmd('show arp')
-        if 'Invalid input' in probe or 'Unrecognized command' in probe:
-            self.supported = False
-            self.failed('{} does not support show arp: {}'.format(dutA.name, probe.strip()[:80]))
-            return
-
-        n1 = ethA.get_ipv4_addr(1)
-        expectedMac = convertMacToDotFormat(
-            '00:00:AA:BB:' + hashlib.sha1(ethA.name.encode()).hexdigest()[:2] + ':' +
-            hashlib.sha1(ethA.name.encode()).hexdigest()[2:4]).lower()
-
-        # make sure the neighbours recorded in the baseline are learned (ping if needed)
-        neighbours = [ip for ip, info in self.testSet.arpBaseline.items() if info.get('type') == 'dynamic']
-        if n1 not in neighbours:
-            neighbours.append(n1)
-        for ip in neighbours:
-            arpNow = dutA.cmd('show arp')
-            if not any(line.split()[:1] == [ip] for line in arpNow.splitlines()):
-                self.log('{} not in ARP table, pinging to learn it'.format(ip))
-                dutA.cmd('ping {} repeat 2 timeout 1'.format(ip), timeOut=30)
-
-        # clear N1 only, with the capture already running
-        tcpdump = tb.start_tcpdump(ethA.name, 'arp_clear_n1.pcap', 'arp')
-        dutA.mode('#')
-        dutA.cmd('clear arp-cache {}'.format(n1))
-        responder = ARP_request_reply_thread(ethA.name)
-        responder.start()
-        pingOut = ''
-        pkts = []
-        try:
-            pingOut = dutA.cmd('ping {} repeat 10 timeout 1'.format(n1), timeOut=90)
-        finally:
-            responder.stop()
-            pkts = tb.stop_tcpdump(tcpdump)
-
-        dutA.mode('#')
-        arpOut = dutA.cmd('show arp')
-        output = 'ping: {}\nshow arp: {}'.format(pingOut, arpOut)
-        self.log('OBSERVED: {}'.format(output))
-
-        requests = []
-        replies = []
-        for pkt in pkts or []:
-            if pkt.haslayer(ARP):
-                arp = pkt[ARP]
-                if arp.op == 1 and arp.pdst == n1:
-                    requests.append(pkt)
-                elif arp.op == 2 and arp.psrc == n1:
-                    replies.append(pkt)
-
-        if requests:
-            self.passed('DUT sent {} ARP request(s) for N1 {} after the clear'.format(len(requests), n1))
-        else:
-            self.failed('No ARP request for N1 {} captured on {} after clear arp-cache'.format(n1, ethA.name))
-            return
-
-        if replies:
-            self.passed('{} ARP reply(ies) for N1 {} seen in the capture'.format(len(replies), n1))
-        else:
-            self.failed('No ARP reply for N1 {} seen in the capture'.format(n1))
-
-        row = next((line for line in arpOut.splitlines() if line.split()[:1] == [n1]), None)
-        if row is None:
-            self.failed('N1 {} missing from show arp after resolution'.format(n1))
-        elif row.split()[-1] == 'dynamic' and expectedMac in row.lower():
-            self.passed('N1 {} is dynamic with Scapy MAC {}: {}'.format(n1, expectedMac, row.strip()))
-        else:
-            self.failed('N1 {} row is "{}", expected type dynamic with MAC {}'.format(n1, row.strip(), expectedMac))
-
-        match = re.search(r'(\d+) packets transmitted, (\d+) (?:packets )?received', pingOut)
-        if match is None:
-            self.failed('Could not read ping statistics for N1 {}: {}'.format(n1, pingOut.strip()[-80:]))
-        else:
-            sent = int(match.group(1))
-            received = int(match.group(2))
-            lost = sent - received
-            if received > 0 and lost <= 3:
-                self.passed('Ping to N1 succeeded after resolution: {} sent, {} received, {} lost'.format(
-                    sent, received, lost))
-            else:
-                self.failed('Ping to N1 {}: {} sent, {} received, loss of {} exceeds the pre-reply allowance'.format(
-                    n1, sent, received, lost))
-
-    def tear_down(self):
-        tb = self.testSet.tb
-        dutA = self.testSet.dutA
-        ethA = tb.ethA
-        portA = dutA.portA
-        peer = self.testSet.peer
-        portPeer = dutA.portPeer
-        portDut = peer.portDut
-        # Per-case cleanup so the next case starts clean: undo configure() and anything
-        # main() changed, command for command in `no` form (the ART mirror). No pass/fail.
-        # No configuration was changed; only the dynamic ARP cache, which re-learns itself.
-        dutA.mode('#')
-
-
-class TestCase_11(ATTestCase.TestCase):
-    testCaseDesc = "Stop all traffic to N1..N4. Issue 'clear arp-cache' (clear all). Start tcpdump. Resume traffic from the DUT to each of N1..N4."
-    # ART identity <family>.<case>.<TestCase> — the framework composes the same triple
-    # from the filename and this class name, and the run log prints it per case.
-    testCaseRef = 'AWPTCM-T33247, 9002.33247.11'
-    ckNeeds = ['arpBaseline', 'arpCountBaseline']
-    skipIfExcl = True
-    testCaseMethod = "Stop all traffic to N1..N4. Issue 'clear arp-cache' (clear all). Start tcpdump. Resume traffic from the DUT to each of N1..N4.\n"
-    testCaseMethod += "Verify: The capture shows an ARP request from the DUT for each of N1..N4, each answered. 'show arp' lists all four as dynamic with the correct MACs, and S1 and S2 are unchanged. Traffic to every neighbour is delivered, and no loss persists after each neighbour has resolved.\n"
-
-    def configure(self):
-        tb = self.testSet.tb
-        dutA = self.testSet.dutA
-        ethA = tb.ethA
-        portA = dutA.portA
-        peer = self.testSet.peer
-        portPeer = dutA.portPeer
-        portDut = peer.portDut
-        # Nothing to presume beyond the baseline ARP cache the earlier cases published.
-        pass
-
-    def main(self):
-        # ART 1351_gratuitous_arp/library_1351.py lines 267-280
-        tb = self.testSet.tb
-        dutA = self.testSet.dutA
-        ethA = tb.ethA
-        portA = dutA.portA
-        peer = self.testSet.peer
-        portPeer = dutA.portPeer
-        portDut = peer.portDut
-        self.log("STEP 13: Stop all traffic to N1..N4. Issue 'clear arp-cache' (clear all). Start tcpdump. Resume traffic from the DUT to each of N1..N4.")
-        baseline = self.testSet.arpBaseline
-        if baseline is None:
-            self.supported = False
-            self.failed('arpBaseline was not established by TestCase_1')
-            return
-
-        neighbours = {ip: info for ip, info in baseline.items() if info.get('type') == 'dynamic'}
-        statics = {ip: info for ip, info in baseline.items() if info.get('type') == 'static'}
-        if not neighbours:
-            self.failed('arpBaseline holds no dynamic neighbour entries (N1..N4) to re-resolve')
-            return
-
-        # No traffic is running between steps: the only DUT traffic is the pings issued below.
-        dutA.mode('#')
-        dutA.cmd('clear arp-cache')
-        after_clear = dutA.cmd('show arp')
-        self.log(['', after_clear])
-        remaining = [ip for ip in neighbours
-                     if any(line.split()[:1] == [ip] for line in after_clear.splitlines())]
-        if remaining:
-            self.failed('dynamic entries still present straight after clear arp-cache: {}'.format(remaining))
-            return
-        self.passed('clear arp-cache removed all dynamic neighbour entries')
-
-        subProc = tb.start_tcpdump(ethA.name, 'clear_all_arp.pcap', 'arp')
-        warm = {}
-        loss = {}
-        try:
-            for ip in neighbours:
-                warm[ip] = dutA.cmd('ping {} repeat 3 timeout 2'.format(ip), timeOut=60)
-            for ip in neighbours:
-                loss[ip] = dutA.cmd('ping {} repeat 5 timeout 2'.format(ip), timeOut=60)
-            time.sleep(2)
-        finally:
-            packets = tb.stop_tcpdump(subProc)
-
-        requested = set()
-        answered = set()
-        for pkt in packets:
-            if pkt.haslayer(ARP):
-                arp = pkt[ARP]
-                if arp.op == 1 and arp.pdst in neighbours:
-                    requested.add(arp.pdst)
-                elif arp.op == 2 and arp.psrc in neighbours:
-                    answered.add(arp.psrc)
-
         output = dutA.cmd('show arp')
-        self.log('OBSERVED: requests for {}, replies from {}\n{}'.format(
-            sorted(requested), sorted(answered), output))
-
-        missing_req = [ip for ip in neighbours if ip not in requested]
-        if missing_req:
-            self.failed('no ARP request from the DUT captured for {}'.format(missing_req))
-        else:
-            self.passed('ARP request from the DUT captured for each of {}'.format(sorted(neighbours)))
-
-        missing_rep = [ip for ip in neighbours if ip not in answered]
-        if missing_rep:
-            self.failed('no ARP reply captured for {}'.format(missing_rep))
-        else:
-            self.passed('ARP request answered for each of {}'.format(sorted(neighbours)))
+        self.log('OBSERVED: {}'.format(output))
+        if 'Invalid input' in output:
+            self.failed('show arp rejected by {}: {}'.format(dutA.name, output.strip()[:80]))
+            return
 
         rows = {}
         for line in output.splitlines():
             tokens = line.split()
-            if tokens:
+            if len(tokens) >= 5 and tokens[0].count('.') == 3 and tokens[0].replace('.', '').isdigit():
                 rows[tokens[0]] = tokens
+        count = len(rows)
+        dynamic = [ip for ip, tokens in rows.items() if tokens[-1] == 'dynamic']
 
-        for ip, info in neighbours.items():
-            tokens = rows.get(ip)
-            if tokens is None:
-                self.failed('{} missing from show arp after re-resolution'.format(ip))
-            elif tokens[-1] != 'dynamic':
-                self.failed('{} listed as {}, expected dynamic'.format(ip, tokens[-1]))
-            elif len(tokens) > 1 and tokens[1].lower() != str(info.get('mac', '')).lower():
-                self.failed('{} MAC is {}, expected {}'.format(ip, tokens[1], info.get('mac')))
-            else:
-                self.passed('{} is dynamic with MAC {}'.format(ip, tokens[1]))
+        if count == baselineCount - 1:
+            self.passed('show arp has {} rows, baselineCount {} minus 1'.format(count, baselineCount))
+        else:
+            self.failed('show arp has {} rows, expected baselineCount {} minus 1 = {}'.format(
+                count, baselineCount, baselineCount - 1))
 
-        for ip, info in statics.items():
-            tokens = rows.get(ip)
-            if tokens is None:
-                self.failed('static entry {} missing from show arp after clear arp-cache'.format(ip))
-            elif tokens[-1] != 'static' or tokens[1].lower() != str(info.get('mac', '')).lower():
-                self.failed('static entry {} changed: now {}, expected MAC {} static'.format(
-                    ip, ' '.join(tokens), info.get('mac')))
-            else:
-                self.passed('static entry {} unchanged with MAC {}'.format(ip, tokens[1]))
+        expected_remaining = set(baselineArp.keys()) - {removed_ip}
+        missing = sorted(expected_remaining - set(rows.keys()))
+        extra = sorted(set(rows.keys()) - expected_remaining)
+        if removed_ip not in rows and not missing and not extra:
+            self.passed('Only {} is gone; all other baseline rows are present'.format(removed_ip))
+        else:
+            self.failed('Row set differs from baseline minus {}: still present={}, missing={}, extra={}'.format(
+                removed_ip, removed_ip in rows, missing, extra))
 
-        for ip in neighbours:
-            if '0% packet loss' in loss[ip]:
-                self.passed('traffic to {} delivered with no loss after resolution'.format(ip))
-            else:
-                self.failed('loss persists to {} after resolution: {}'.format(ip, loss[ip].strip()[-120:]))
+        if len(dynamic) == 3:
+            self.passed('Global scope holds exactly 3 dynamic entries: {}'.format(sorted(dynamic)))
+        else:
+            self.failed('Global scope holds {} dynamic entries ({}), expected exactly 3'.format(
+                len(dynamic), sorted(dynamic)))
 
     def tear_down(self):
         tb = self.testSet.tb
@@ -1463,126 +865,19 @@ class TestCase_11(ATTestCase.TestCase):
         peer = self.testSet.peer
         portPeer = dutA.portPeer
         portDut = peer.portDut
-        # configure() and main() changed no configuration; just leave the console in exec mode.
+        # Nothing was changed by configure() or main(); leave console in exec mode.
         dutA.mode('#')
 
 
-class TestCase_12(ATTestCase.TestCase):
-    testCaseDesc = "Stop traffic and read 'show arp' as a snapshot. Choose an address in the test subnet that the cache does not contain. Issue 'clear arp-cache <unused-ip>'. Capture the response, then read 'show arp' again."
+class TestCase_6(ATTestCase.TestCase):
+    testCaseDesc = "With traffic still stopped, run 'clear arp-cache 192.168.10.11' and check in 'show arp' that .11 is missing. From the source-port host, start a continuous UDP stream routed through the DUT to 192.168.10.11 and .12, for example 10 pps for 10 s, while tcpdump captures on the test-port host."
     # ART identity <family>.<case>.<TestCase> — the framework composes the same triple
     # from the filename and this class name, and the run log prints it per case.
-    testCaseRef = 'AWPTCM-T33247, 9002.33247.12'
-    ckNeeds = ['arpBaseline', 'arpCountBaseline', 'arpPreSingle']
+    testCaseRef = 'AWPTCM-T33247, 9002.33247.6'
+    ckNeeds = ['baselineArp', 'baselineCount']
     skipIfExcl = True
-    testCaseMethod = "Stop traffic and read 'show arp' as a snapshot. Choose an address in the test subnet that the cache does not contain. Issue 'clear arp-cache <unused-ip>'. Capture the response, then read 'show arp' again.\n"
-    testCaseMethod += "Verify: The request is either rejected with an error indication or accepted with no effect. The 'show arp' output after the request is identical to the snapshot: same entries, MACs, interfaces, types and count.\n"
-
-    def configure(self):
-        tb = self.testSet.tb
-        dutA = self.testSet.dutA
-        ethA = tb.ethA
-        portA = dutA.portA
-        peer = self.testSet.peer
-        portPeer = dutA.portPeer
-        portDut = peer.portDut
-        # Per-case PRECONDITIONS: nothing extra beyond TestSet.configure(); this step only reads and
-        # issues an exec-mode clear, so there is no config to apply.
-        pass
-
-    def main(self):
-        # ART 1355_nlb/library_1355.py lines 97-102
-        tb = self.testSet.tb
-        dutA = self.testSet.dutA
-        ethA = tb.ethA
-        portA = dutA.portA
-        peer = self.testSet.peer
-        portPeer = dutA.portPeer
-        portDut = peer.portDut
-        self.log("STEP 14: Stop traffic and read 'show arp' as a snapshot. Choose an address in the test subnet that the cache does not contain. Issue 'clear arp-cache <unused-ip>'. Capture the response, then read 'show arp' again.")
-        for name in ('arpBaseline', 'arpCountBaseline', 'arpPreSingle'):
-            if getattr(self.testSet, name, None) is None:
-                self.supported = False
-                self.failed('{} was not established by an earlier case'.format(name))
-                return
-
-        def parse_arp(text):
-            entries = {}
-            for line in text.splitlines():
-                tokens = line.split()
-                if len(tokens) >= 5 and tokens[0].count('.') == 3 and tokens[0].replace('.', '').isdigit():
-                    entries[tokens[0]] = (tokens[1].lower(), tokens[2], tokens[3], tokens[-1])
-            return entries
-
-        dutA.mode('#')
-        snapshot_text = dutA.cmd('show arp')
-        snapshot = parse_arp(snapshot_text)
-
-        # Pick an unused address in the test subnet (a host offset the cache does not contain)
-        unused_ip = None
-        for offset in range(200, 250):
-            candidate = ethA.get_ipv4_addr(offset)
-            if candidate not in snapshot and candidate not in snapshot_text:
-                unused_ip = candidate
-                break
-        if unused_ip is None:
-            self.failed('could not find an unused address in the test subnet; snapshot was: {}'.format(
-                snapshot_text.strip()[:200]))
-            return
-
-        response = dutA.cmd('clear arp-cache {}'.format(unused_ip))
-        after_text = dutA.cmd('show arp')
-        after = parse_arp(after_text)
-        output = 'unused={} response={!r} snapshot={} after={}'.format(
-            unused_ip, response.strip()[:100], len(snapshot), len(after))
-        self.log('OBSERVED: {}'.format(output))
-
-        if not snapshot:
-            self.failed('snapshot show arp contained no entries: {}'.format(snapshot_text.strip()[:200]))
-            return
-        self.passed('snapshot captured with {} ARP entries'.format(len(snapshot)))
-
-        rejected = any(token in response for token in ('Invalid', '%', 'rror', 'not found', 'No such'))
-        if rejected:
-            self.passed('clear of unused {} was rejected with an error indication: {}'.format(
-                unused_ip, response.strip()[:80]))
-        else:
-            self.passed('clear of unused {} was accepted without error'.format(unused_ip))
-
-        if len(after) == len(snapshot):
-            self.passed('ARP entry count unchanged at {}'.format(len(after)))
-        else:
-            self.failed('ARP entry count changed from {} to {}'.format(len(snapshot), len(after)))
-
-        missing = sorted(set(snapshot) - set(after))
-        added = sorted(set(after) - set(snapshot))
-        changed = sorted(ip for ip in snapshot if ip in after and snapshot[ip] != after[ip])
-        if not missing and not added and not changed:
-            self.passed('show arp identical to snapshot: same IPs, MACs, interfaces, ports and types')
-        else:
-            self.failed('show arp differs after clear: missing {}, added {}, changed {}'.format(
-                missing, added, changed))
-
-    def tear_down(self):
-        tb = self.testSet.tb
-        dutA = self.testSet.dutA
-        ethA = tb.ethA
-        portA = dutA.portA
-        peer = self.testSet.peer
-        portPeer = dutA.portPeer
-        portDut = peer.portDut
-        # configure() applied nothing and main() changed no configuration; just leave exec mode.
-        dutA.mode('#')
-
-
-class TestCase_13(ATTestCase.TestCase):
-    testCaseDesc = "Ping every neighbour from the DUT in its own scope: N1..N4 globally, A1 and A2 in VRF-A, B1 and B2 in VRF-B. Stop traffic. Read 'show arp' globally, 'show arp vrf VRF-A' and 'show arp vrf VRF-B'."
-    # ART identity <family>.<case>.<TestCase> — the framework composes the same triple
-    # from the filename and this class name, and the run log prints it per case.
-    testCaseRef = 'AWPTCM-T33247, 9002.33247.13'
-    ckNeeds = ['arpBaseline', 'arpCountBaseline']
-    skipIfExcl = True
-    testCaseMethod = "Ping every neighbour from the DUT in its own scope: N1..N4 globally, A1 and A2 in VRF-A, B1 and B2 in VRF-B. Stop traffic. Read 'show arp' globally, 'show arp vrf VRF-A' and 'show arp vrf VRF-B'.\n"
-    testCaseMethod += "Verify: Each scope lists its own neighbours as dynamic entries with the correct MACs. The global scope also still lists S1 and S2 as static. Record each scope's entries and count.\n"
+    testCaseMethod = "With traffic still stopped, run 'clear arp-cache 192.168.10.11' and check in 'show arp' that .11 is missing. From the source-port host, start a continuous UDP stream routed through the DUT to 192.168.10.11 and .12, for example 10 pps for 10 s, while tcpdump captures on the test-port host.\n"
+    testCaseMethod += "Verify: tcpdump shows ARP who-has requests from the DUT, with sender 192.168.10.1, for 192.168.10.11 and .12. 'show arp' then lists both as dynamic entries with their correct MACs again. tcpdump shows the routed UDP stream reaching both neighbours, and loss stops once ARP has resolved: every packet after the first ARP reply in the second half of the stream is received.\n"
 
     def configure(self):
         tb = self.testSet.tb
@@ -1596,8 +891,360 @@ class TestCase_13(ATTestCase.TestCase):
         # pass/fail (main() verifies; tear_down() mirrors this in `no` form). Runs after
         # TestSet.configure() and after the previous case's tear_down(), so nothing another
         # case set up is still in effect here.
-        # Nothing to configure: the VRFs and neighbours come from TestSet.configure().
+        # Nothing to configure: the ARP/routing setup comes from TestSet.configure().
+        pass
+
+    def main(self):
+        # ART 1331_past_issues/test-1331.2001.py lines 82-200
+        tb = self.testSet.tb
+        dutA = self.testSet.dutA
+        ethA = tb.ethA
+        portA = dutA.portA
+        peer = self.testSet.peer
+        portPeer = dutA.portPeer
+        portDut = peer.portDut
+        self.log("STEP 9: With traffic still stopped, run 'clear arp-cache 192.168.10.11' and check in 'show arp' that .11 is missing. From the source-port host, start a continuous UDP stream routed through the DUT to 192.168.10.11 and .12, for example 10 pps for 10 s, while tcpdump captures on the test-port host.")
+        baseline = getattr(self.testSet, 'baselineArp', None)
+        if baseline is None:
+            self.supported = False
+            self.failed('baselineArp was not established by TestCase_1')
+            return
+
+        ip11 = '192.168.10.11'
+        ip12 = '192.168.10.12'
+        dutIp = '192.168.10.1'
+        if ip11 not in baseline or ip12 not in baseline:
+            self.failed('baselineArp lacks {} or {}: {}'.format(ip11, ip12, sorted(baseline)))
+            return
+
+        def norm_mac(mac):
+            return ''.join(ch for ch in str(mac).lower() if ch in '0123456789abcdef')
+
+        def to_colon(mac):
+            raw = norm_mac(mac)
+            return ':'.join(raw[i:i + 2] for i in range(0, 12, 2))
+
+        def arp_row(text, ip):
+            for line in text.splitlines():
+                if line.split()[:1] == [ip]:
+                    return line
+            return None
+
+        # Clear .11 and prove it is gone from the table
         dutA.mode('#')
+        dutA.cmd('clear arp-cache {}'.format(ip11))
+        output = dutA.cmd('show arp')
+        if arp_row(output, ip11) is not None:
+            self.failed('{} still present in show arp after clear arp-cache {}'.format(ip11, ip11))
+            return
+        self.passed('{} is missing from show arp after clear arp-cache {}'.format(ip11, ip11))
+
+        # Neighbour simulation: answer the DUT's who-has with each neighbour's baseline MAC
+        macs = {ip11: to_colon(baseline[ip11][0]), ip12: to_colon(baseline[ip12][0])}
+
+        def responder(pkt):
+            if pkt.haslayer(ARP) and pkt[ARP].op == 1 and pkt[ARP].pdst in macs:
+                mac = macs[pkt[ARP].pdst]
+                reply = Ether(src=mac, dst=pkt[Ether].src) / ARP(
+                    op=2, hwsrc=mac, psrc=pkt[ARP].pdst, hwdst=pkt[ARP].hwsrc, pdst=pkt[ARP].psrc)
+                sendp(reply, iface=ethA.name, verbose=False)
+
+        sniffer = Thread(target=lambda: sniff(iface=ethA.name, filter='arp', timeout=16, prn=responder, store=0))
+        sniffer.start()
+        time.sleep(1)
+
+        try:
+            dutMac = to_colon(portA.get_mac_addr())
+        except Exception:
+            dutMac = 'ff:ff:ff:ff:ff:ff'
+        srcIp = ethA.get_ipv4_addr(1)
+        numSeq = 100
+        base = 1000
+        pkts = []
+        for i in range(numSeq):
+            for dst in (ip11, ip12):
+                pkts.append(Ether(dst=dutMac) / IP(src=srcIp, dst=dst) / UDP(sport=base + i, dport=60606))
+
+        tcpdump = tb.start_tcpdump(ethA.name, 'clear_arp.pcap')
+        sendp(pkts, iface=ethA.name, verbose=False, inter=0.05)
+        time.sleep(2)
+        recPkts = tb.stop_tcpdump(tcpdump)
+        sniffer.join()
+
+        # Analyse the capture
+        whoHas = {ip11: False, ip12: False}
+        firstReply = None
+        received = {ip11: set(), ip12: set()}
+        for pkt in recPkts:
+            if pkt.haslayer(ARP):
+                arp = pkt[ARP]
+                if arp.op == 1 and arp.psrc == dutIp and arp.pdst in whoHas:
+                    whoHas[arp.pdst] = True
+                elif arp.op == 2 and firstReply is None and arp.psrc in macs:
+                    firstReply = pkt.time
+            elif pkt.haslayer(IP) and pkt.haslayer(UDP) and pkt[UDP].dport == 60606:
+                dst = pkt[IP].dst
+                if dst in received and norm_mac(pkt[Ether].dst) == norm_mac(macs[dst]):
+                    received[dst].add(pkt[UDP].sport - base)
+
+        output = dutA.cmd('show arp')
+        self.log('OBSERVED: who-has {} firstReply {} rx11 {} rx12 {} show arp: {}'.format(
+            whoHas, firstReply, len(received[ip11]), len(received[ip12]), output))
+
+        for ip in (ip11, ip12):
+            if whoHas[ip]:
+                self.passed('ARP who-has from {} for {} captured'.format(dutIp, ip))
+            else:
+                self.failed('no ARP who-has from {} for {} captured'.format(dutIp, ip))
+
+        for ip in (ip11, ip12):
+            row = arp_row(output, ip)
+            if row is None:
+                self.failed('{} missing from show arp after traffic'.format(ip))
+            elif row.split()[-1] != 'dynamic':
+                self.failed('{} is not dynamic in show arp: {}'.format(ip, row.strip()))
+            elif norm_mac(baseline[ip][0]) not in norm_mac(row):
+                self.failed('{} MAC differs from baseline {}: {}'.format(ip, baseline[ip][0], row.strip()))
+            else:
+                self.passed('{} is dynamic again in show arp with MAC {}'.format(ip, baseline[ip][0]))
+
+        if firstReply is None:
+            self.failed('no ARP reply seen in the capture, cannot judge loss after resolution')
+            return
+        for ip in (ip11, ip12):
+            if not received[ip]:
+                self.failed('no routed UDP packets reached {}'.format(ip))
+                continue
+            missing = [n for n in range(numSeq // 2, numSeq) if n not in received[ip]]
+            if missing:
+                self.failed('{}: {} packets lost in second half after ARP resolved, first missing seq {}'.format(
+                    ip, len(missing), missing[0]))
+            else:
+                self.passed('{}: received {} of {} UDP packets, all of second half received'.format(
+                    ip, len(received[ip]), numSeq))
+
+    def tear_down(self):
+        tb = self.testSet.tb
+        dutA = self.testSet.dutA
+        ethA = tb.ethA
+        portA = dutA.portA
+        peer = self.testSet.peer
+        portPeer = dutA.portPeer
+        portDut = peer.portDut
+        # Per-case cleanup so the next case starts clean: undo configure() and anything
+        # main() changed, command for command in `no` form (the ART mirror). No pass/fail.
+        # Nothing configured; the cleared ARP entries were re-learned in main().
+        dutA.mode('#')
+
+
+class TestCase_7(ATTestCase.TestCase):
+    testCaseDesc = "Stop all traffic, run 'clear arp-cache', and check in 'show arp' that no dynamic entries are left. From the source-port host, start the routed UDP stream to all of 192.168.10.11–.14 while tcpdump captures on the test-port host."
+    # ART identity <family>.<case>.<TestCase> — the framework composes the same triple
+    # from the filename and this class name, and the run log prints it per case.
+    testCaseRef = 'AWPTCM-T33247, 9002.33247.7'
+    ckNeeds = ['baselineArp', 'baselineCount']
+    skipIfExcl = True
+    testCaseMethod = "Stop all traffic, run 'clear arp-cache', and check in 'show arp' that no dynamic entries are left. From the source-port host, start the routed UDP stream to all of 192.168.10.11–.14 while tcpdump captures on the test-port host.\n"
+    testCaseMethod += "Verify: tcpdump shows the DUT sending an ARP request for each of the four neighbours. 'show arp' lists all four as dynamic entries again, with their baseline MACs. Every neighbour receives the stream, with no loss continuing after resolution. The static entries stay unchanged throughout.\n"
+
+    def configure(self):
+        tb = self.testSet.tb
+        dutA = self.testSet.dutA
+        ethA = tb.ethA
+        portA = dutA.portA
+        peer = self.testSet.peer
+        portPeer = dutA.portPeer
+        portDut = peer.portDut
+        # Per-case PRECONDITIONS: nothing extra is presumed beyond TestSet.configure().
+        dutA.mode('#')
+
+    def main(self):
+        # ART 1331_past_issues/test-1331.2001.py lines 82-200
+        tb = self.testSet.tb
+        dutA = self.testSet.dutA
+        ethA = tb.ethA
+        portA = dutA.portA
+        peer = self.testSet.peer
+        portPeer = dutA.portPeer
+        portDut = peer.portDut
+        self.log("STEP 10: Stop all traffic, run 'clear arp-cache', and check in 'show arp' that no dynamic entries are left. From the source-port host, start the routed UDP stream to all of 192.168.10.11–.14 while tcpdump captures on the test-port host.")
+        baseline = getattr(self.testSet, 'baselineArp', None)
+        if baseline is None:
+            self.supported = False
+            self.failed('baselineArp was not established by TestCase_1')
+            return
+
+        def norm_mac(mac):
+            return mac.replace('.', '').replace(':', '').lower()
+
+        def colon_mac(mac):
+            raw = norm_mac(mac)
+            return ':'.join(raw[i:i + 2] for i in range(0, 12, 2))
+
+        def arp_rows(text):
+            rows = {}
+            for line in text.splitlines():
+                tokens = line.split()
+                if len(tokens) >= 5 and tokens[-1] in ('dynamic', 'static'):
+                    rows[tokens[0]] = (norm_mac(tokens[1]), tokens[-1])
+            return rows
+
+        neighbours = sorted(ip for ip, val in baseline.items() if val[3] == 'dynamic')
+        statics = sorted(ip for ip, val in baseline.items() if val[3] == 'static')
+
+        # 1. clear the ARP cache and check no dynamic entry is left
+        dutA.mode('#')
+        dutA.cmd('clear arp-cache')
+        output = dutA.cmd('show arp')
+        rows = arp_rows(output)
+        left = [ip for ip, val in rows.items() if val[1] == 'dynamic']
+        if left:
+            self.failed('dynamic ARP entries left after clear arp-cache: {}'.format(', '.join(left)))
+        else:
+            self.passed('no dynamic ARP entries left after clear arp-cache')
+        bad_static = [ip for ip in statics if rows.get(ip) != (norm_mac(baseline[ip][0]), 'static')]
+        if bad_static:
+            self.failed('static ARP entries changed by clear arp-cache: {}'.format(', '.join(bad_static)))
+        else:
+            self.passed('static ARP entries unchanged after clear arp-cache: {}'.format(', '.join(statics)))
+
+        # 2. stream to all neighbours while capturing; answer the DUT's ARP requests with baseline MACs
+        srcMac = '00:00:aa:bb:cc:01'
+        try:
+            dstMac = portA.get_mac_addr()
+        except Exception:
+            dstMac = None
+        if not dstMac:
+            self.failed('could not read the MAC address of {}'.format(portA.name))
+            return
+        dstMac = colon_mac(dstMac)
+        srcIp = ethA.get_ipv4_addr(1)
+        numPkts = 40
+        dport = 60606
+        responded = set()
+
+        def on_arp(pkt):
+            if pkt.haslayer(ARP) and pkt[ARP].op == 1 and pkt[ARP].pdst in neighbours:
+                mac = colon_mac(baseline[pkt[ARP].pdst][0])
+                reply = Ether(src=mac, dst=pkt[ARP].hwsrc) / ARP(
+                    op=2, hwsrc=mac, psrc=pkt[ARP].pdst, hwdst=pkt[ARP].hwsrc, pdst=pkt[ARP].psrc)
+                sendp(reply, iface=ethA.name, verbose=False)
+                responded.add(pkt[ARP].pdst)
+
+        responder = Thread(target=lambda: sniff(iface=ethA.name, filter='arp', timeout=15, prn=on_arp, store=0))
+        tcpdump = tb.start_tcpdump(ethA.name, 'clear_arp.pcap', 'arp or udp')
+        responder.start()
+        time.sleep(2)
+        for seq in range(numPkts):
+            for ip in neighbours:
+                pkt = Ether(src=srcMac, dst=dstMac) / IP(src=srcIp, dst=ip) / UDP(sport=1000 + seq, dport=dport)
+                sendp(pkt, iface=ethA.name, verbose=False)
+            time.sleep(0.1)
+        time.sleep(3)
+        responder.join()
+        recPkts = tb.stop_tcpdump(tcpdump)
+
+        requested = set()
+        received = {}
+        for pkt in recPkts:
+            if pkt.haslayer(ARP) and pkt[ARP].op == 1 and pkt[ARP].pdst in neighbours:
+                if pkt[Ether].src != srcMac and pkt[ARP].psrc != pkt[ARP].pdst:
+                    requested.add(pkt[ARP].pdst)
+            if pkt.haslayer(UDP) and pkt.haslayer(IP) and pkt[Ether].src != srcMac and pkt[UDP].dport == dport:
+                received.setdefault(pkt[IP].dst, set()).add(pkt[UDP].sport)
+
+        output = 'ARP requests seen for {}; UDP received {}'.format(
+            sorted(requested), dict((ip, len(val)) for ip, val in received.items()))
+        self.log('OBSERVED: {}'.format(output))
+
+        missing = [ip for ip in neighbours if ip not in requested]
+        if not requested and not neighbours:
+            self.failed('baselineArp holds no dynamic neighbours')
+            return
+        if missing:
+            self.failed('no ARP request from the DUT captured for {}'.format(', '.join(missing)))
+        else:
+            self.passed('DUT sent an ARP request for each of {}'.format(', '.join(neighbours)))
+
+        # 3. show arp relearned with the baseline MACs
+        relearned = {}
+        deadline = time.time() + 15
+        while time.time() < deadline:
+            dutA.mode('#')
+            relearned = arp_rows(dutA.cmd('show arp'))
+            if all(relearned.get(ip, ('', ''))[1] == 'dynamic' for ip in neighbours):
+                break
+            time.sleep(1)
+        notDyn = [ip for ip in neighbours if relearned.get(ip, ('', ''))[1] != 'dynamic']
+        wrongMac = [ip for ip in neighbours if ip in relearned
+                    and relearned[ip][0] != norm_mac(baseline[ip][0])]
+        if notDyn:
+            self.failed('show arp does not list dynamic entries again for {}'.format(', '.join(notDyn)))
+        elif wrongMac:
+            self.failed('relearned MAC differs from baseline for {}'.format(', '.join(wrongMac)))
+        else:
+            self.passed('show arp lists all {} neighbours as dynamic with baseline MACs'.format(len(neighbours)))
+
+        # 4. every neighbour receives the stream; no loss continuing after resolution
+        lossy = []
+        noStream = []
+        tailStart = 1000 + numPkts // 2
+        for ip in neighbours:
+            got = received.get(ip, set())
+            if not got:
+                noStream.append(ip)
+                continue
+            tail = [1000 + seq for seq in range(numPkts) if 1000 + seq >= tailStart]
+            if any(sport not in got for sport in tail):
+                lossy.append(ip)
+        if noStream:
+            self.failed('neighbours received none of the UDP stream: {}'.format(', '.join(noStream)))
+        elif lossy:
+            self.failed('loss continued after ARP resolution for {}'.format(', '.join(lossy)))
+        else:
+            self.passed('every neighbour received the stream with no loss after resolution')
+
+        # 5. statics unchanged throughout
+        final = arp_rows(dutA.cmd('show arp'))
+        bad_static = [ip for ip in statics if final.get(ip) != (norm_mac(baseline[ip][0]), 'static')]
+        if bad_static:
+            self.failed('static ARP entries changed during the test: {}'.format(', '.join(bad_static)))
+        else:
+            self.passed('static ARP entries unchanged throughout: {}'.format(', '.join(statics)))
+
+    def tear_down(self):
+        tb = self.testSet.tb
+        dutA = self.testSet.dutA
+        ethA = tb.ethA
+        portA = dutA.portA
+        peer = self.testSet.peer
+        portPeer = dutA.portPeer
+        portDut = peer.portDut
+        # Nothing was configured; leave the console in exec mode.
+        dutA.mode('#')
+
+
+class TestCase_8(ATTestCase.TestCase):
+    testCaseDesc = "Ping all global neighbours from the DUT, then ping the red and blue neighbours with 'ping vrf red 192.168.30.11', 'ping vrf red 192.168.30.12', 'ping vrf blue 192.168.40.11' and 'ping vrf blue 192.168.40.12'. Read 'show arp', 'show arp vrf red' and 'show arp vrf blue', and save each table."
+    # ART identity <family>.<case>.<TestCase> — the framework composes the same triple
+    # from the filename and this class name, and the run log prints it per case.
+    testCaseRef = 'AWPTCM-T33247, 9002.33247.8'
+    ckNeeds = ['baselineArp', 'baselineCount']
+    skipIfExcl = True
+    testCaseMethod = "Ping all global neighbours from the DUT, then ping the red and blue neighbours with 'ping vrf red 192.168.30.11', 'ping vrf red 192.168.30.12', 'ping vrf blue 192.168.40.11' and 'ping vrf blue 192.168.40.12'. Read 'show arp', 'show arp vrf red' and 'show arp vrf blue', and save each table.\n"
+    testCaseMethod += 'Verify: The global table holds 192.168.10.11–.14 as dynamic entries plus the two static entries. The red VRF table holds 192.168.30.11 and .12 as dynamic entries on vlan30. The blue VRF table holds 192.168.40.11 and .12 as dynamic entries on vlan40.\n'
+
+    def configure(self):
+        tb = self.testSet.tb
+        dutA = self.testSet.dutA
+        ethA = tb.ethA
+        portA = dutA.portA
+        peer = self.testSet.peer
+        portPeer = dutA.portPeer
+        portDut = peer.portDut
+        # The VRF and neighbour configuration is established by TestSet.configure();
+        # this step only pings and reads tables, so nothing extra is needed here.
+        pass
 
     def main(self):
         # ART 1366_vrf_lite/test-1366.1001.py lines 316-396
@@ -1608,98 +1255,533 @@ class TestCase_13(ATTestCase.TestCase):
         peer = self.testSet.peer
         portPeer = dutA.portPeer
         portDut = peer.portDut
-        self.log("STEP 16: Ping every neighbour from the DUT in its own scope: N1..N4 globally, A1 and A2 in VRF-A, B1 and B2 in VRF-B. Stop traffic. Read 'show arp' globally, 'show arp vrf VRF-A' and 'show arp vrf VRF-B'.")
-        baseline = self.testSet.arpBaseline
-        if baseline is None:
+        self.log("STEP 12: Ping all global neighbours from the DUT, then ping the red and blue neighbours with 'ping vrf red 192.168.30.11', 'ping vrf red 192.168.30.12', 'ping vrf blue 192.168.40.11' and 'ping vrf blue 192.168.40.12'. Read 'show arp', 'show arp vrf red' and 'show arp vrf blue', and save each table.")
+
+        baselineArp = self.testSet.baselineArp
+        if baselineArp is None:
             self.supported = False
-            publish_value(self, 'arpPreVrf', None)
-            self.failed('arpBaseline was not established by TestCase_1')
+            publish_value(self, 'vrfBaseline', None)
+            self.failed('baselineArp was not established by TestCase_1')
             return
 
         def parse_arp(text):
-            entries = {}
+            table = {}
             for line in text.splitlines():
-                tokens = line.split()
-                if len(tokens) < 4:
-                    continue
-                parts = tokens[0].split('.')
-                if len(parts) != 4 or not all(p.isdigit() for p in parts):
-                    continue
-                entries[tokens[0]] = {'mac': tokens[1].lower(), 'interface': tokens[2], 'type': tokens[-1]}
-            return entries
+                tok = line.split()
+                if len(tok) >= 5 and tok[0].count('.') == 3 and tok[0].replace('.', '').isdigit():
+                    table[tok[0]] = (tok[1], tok[2], tok[3], tok[4])
+            return table
+
+        globalIps = ['192.168.10.11', '192.168.10.12', '192.168.10.13', '192.168.10.14']
+        redIps = ['192.168.30.11', '192.168.30.12']
+        blueIps = ['192.168.40.11', '192.168.40.12']
+        staticIps = sorted(ip for ip, ent in baselineArp.items() if ent[3] == 'static')
 
         dutA.mode('#')
-        # Traffic generated by earlier steps is not run from this case; only pings are sent here.
-        global_dyn = [ip for ip, e in baseline.items() if e['type'] == 'dynamic']
-        global_static = [ip for ip, e in baseline.items() if e['type'] == 'static']
-        vrf_seed = {}
-        for vrf in ('VRF-A', 'VRF-B'):
-            seed_text = dutA.cmd('show arp vrf {}'.format(vrf))
-            vrf_seed[vrf] = list(parse_arp(seed_text).keys())
-
-        for ip in global_dyn:
-            dutA.cmd('ping {} repeat 3'.format(ip))
-        for vrf in ('VRF-A', 'VRF-B'):
-            for ip in vrf_seed[vrf]:
-                dutA.cmd('ping vrf {} {} repeat 3'.format(vrf, ip))
-
-        out_global = dutA.cmd('show arp')
-        out_a = dutA.cmd('show arp vrf VRF-A')
-        out_b = dutA.cmd('show arp vrf VRF-B')
-        output = '{}\n{}\n{}'.format(out_global, out_a, out_b)
-        self.log('OBSERVED: {}'.format(output))
-
-        arp_global = parse_arp(out_global)
-        arp_a = parse_arp(out_a)
-        arp_b = parse_arp(out_b)
-        pre_vrf = {'global': arp_global, 'VRF-A': arp_a, 'VRF-B': arp_b}
-        self.log('ARP entry counts: global {}, VRF-A {}, VRF-B {}'.format(
-            len(arp_global), len(arp_a), len(arp_b)))
-
-        if not arp_global and not arp_a and not arp_b:
-            publish_value(self, 'arpPreVrf', None)
-            self.failed('No ARP entries parsed from any scope')
+        probe = dutA.cmd('show arp vrf red')
+        if 'Invalid input' in probe or 'Unrecognized command' in probe:
+            self.supported = False
+            publish_value(self, 'vrfBaseline', None)
+            self.failed('{} does not support show arp vrf: {}'.format(dutA.name, probe.strip()[:80]))
             return
 
+        for ip in globalIps:
+            dutA.cmd('ping {} repeat 2'.format(ip))
+        for ip in redIps:
+            dutA.cmd('ping vrf red {} repeat 2'.format(ip))
+        for ip in blueIps:
+            dutA.cmd('ping vrf blue {} repeat 2'.format(ip))
+
+        globalTable = {}
+        redTable = {}
+        blueTable = {}
+        outG = outR = outB = ''
+        for attempt in range(3):
+            dutA.mode('#')
+            outG = dutA.cmd('show arp')
+            outR = dutA.cmd('show arp vrf red')
+            outB = dutA.cmd('show arp vrf blue')
+            globalTable = parse_arp(outG)
+            redTable = parse_arp(outR)
+            blueTable = parse_arp(outB)
+            if (all(ip in globalTable for ip in globalIps) and all(ip in redTable for ip in redIps)
+                    and all(ip in blueTable for ip in blueIps)):
+                break
+            time.sleep(3)
+
+        output = 'GLOBAL:\n{}\nRED:\n{}\nBLUE:\n{}'.format(outG, outR, outB)
+        self.log('OBSERVED: {}'.format(output))
+
         ok = True
-        # Global dynamic neighbours with correct MACs
-        bad = []
-        for ip in global_dyn:
-            entry = arp_global.get(ip)
-            if entry is None or entry['type'] != 'dynamic' or entry['mac'] != baseline[ip]['mac'].lower():
-                bad.append('{} -> {}'.format(ip, entry))
-        if global_dyn and not bad:
-            self.passed('Global scope lists {} neighbours as dynamic with the baseline MACs'.format(len(global_dyn)))
-        else:
-            ok = False
-            self.failed('Global dynamic neighbours wrong or missing (expected {}): {}'.format(
-                len(global_dyn), bad))
 
-        # Static entries still present
-        bad = [ip for ip in global_static if ip not in arp_global or arp_global[ip]['type'] != 'static']
-        if global_static and not bad:
-            self.passed('Global scope still lists static entries {}'.format(', '.join(global_static)))
-        else:
+        missingG = [ip for ip in globalIps if ip not in globalTable or globalTable[ip][3] != 'dynamic']
+        if missingG:
             ok = False
-            self.failed('Global static entries missing or not static: {} (expected {})'.format(
-                bad, global_static))
+            self.failed('Global ARP table lacks dynamic entries for {}'.format(', '.join(missingG)))
+        else:
+            self.passed('Global ARP table holds dynamic entries for {}'.format(', '.join(globalIps)))
 
-        # VRF scopes: own neighbours as dynamic entries, none leaked from the global scope
-        for vrf, arp in (('VRF-A', arp_a), ('VRF-B', arp_b)):
-            dyn = [ip for ip, e in arp.items() if e['type'] == 'dynamic']
-            seeded_missing = [ip for ip in vrf_seed[vrf] if ip not in dyn]
-            leaked = [ip for ip in arp if ip in baseline]
-            if len(dyn) >= 2 and not seeded_missing and not leaked:
-                self.passed('{} lists {} dynamic neighbours: {}'.format(vrf, len(dyn), ', '.join(sorted(dyn))))
-            else:
+        if len(staticIps) != 2:
+            ok = False
+            self.failed('Expected 2 static entries in baselineArp, found {}'.format(len(staticIps)))
+        else:
+            badStatic = [ip for ip in staticIps if ip not in globalTable or globalTable[ip][3] != 'static']
+            if badStatic:
                 ok = False
-                self.failed('{} dynamic entries {} (need at least 2), missing after ping {}, global leaks {}'.format(
-                    vrf, sorted(dyn), seeded_missing, leaked))
+                self.failed('Global ARP table lacks static entries for {}'.format(', '.join(badStatic)))
+            else:
+                self.passed('Global ARP table holds the two static entries {}'.format(', '.join(staticIps)))
+
+        badRed = [ip for ip in redIps
+                  if ip not in redTable or redTable[ip][3] != 'dynamic' or redTable[ip][1] != 'vlan30']
+        if badRed:
+            ok = False
+            self.failed('Red VRF ARP table lacks dynamic vlan30 entries for {} (saw {})'.format(
+                ', '.join(badRed), dict((ip, redTable.get(ip)) for ip in badRed)))
+        else:
+            self.passed('Red VRF ARP table holds {} as dynamic entries on vlan30'.format(', '.join(redIps)))
+
+        badBlue = [ip for ip in blueIps
+                   if ip not in blueTable or blueTable[ip][3] != 'dynamic' or blueTable[ip][1] != 'vlan40']
+        if badBlue:
+            ok = False
+            self.failed('Blue VRF ARP table lacks dynamic vlan40 entries for {} (saw {})'.format(
+                ', '.join(badBlue), dict((ip, blueTable.get(ip)) for ip in badBlue)))
+        else:
+            self.passed('Blue VRF ARP table holds {} as dynamic entries on vlan40'.format(', '.join(blueIps)))
 
         if ok:
-            publish_value(self, 'arpPreVrf', pre_vrf)
+            publish_value(self, 'vrfBaseline', {'global': globalTable, 'red': redTable, 'blue': blueTable})
         else:
-            publish_value(self, 'arpPreVrf', None)
+            publish_value(self, 'vrfBaseline', None)
+
+    def tear_down(self):
+        tb = self.testSet.tb
+        dutA = self.testSet.dutA
+        ethA = tb.ethA
+        portA = dutA.portA
+        peer = self.testSet.peer
+        portPeer = dutA.portPeer
+        portDut = peer.portDut
+        # main() only pings and reads tables; no configuration was changed.
+        dutA.mode('#')
+
+
+class TestCase_9(ATTestCase.TestCase):
+    testCaseDesc = "Stop all traffic. Run 'clear arp-cache vrf red', then read 'show arp vrf red', 'show arp vrf blue' and 'show arp' straight away."
+    # ART identity <family>.<case>.<TestCase> — the framework composes the same triple
+    # from the filename and this class name, and the run log prints it per case.
+    testCaseRef = 'AWPTCM-T33247, 9002.33247.9'
+    ckNeeds = ['vrfBaseline']
+    skipIfExcl = True
+    testCaseMethod = "Stop all traffic. Run 'clear arp-cache vrf red', then read 'show arp vrf red', 'show arp vrf blue' and 'show arp' straight away.\n"
+    testCaseMethod += 'Verify: 192.168.30.11 and .12 are missing from the red VRF table. The blue VRF table and the global table match vrfBaseline exactly, including the static entries.\n'
+
+    def configure(self):
+        tb = self.testSet.tb
+        dutA = self.testSet.dutA
+        ethA = tb.ethA
+        portA = dutA.portA
+        peer = self.testSet.peer
+        portPeer = dutA.portPeer
+        portDut = peer.portDut
+        # Per-case PRECONDITIONS: the device state this step presumes, config only — no
+        # pass/fail (main() verifies; tear_down() mirrors this in `no` form). Runs after
+        # TestSet.configure() and after the previous case's tear_down(), so nothing another
+        # case set up is still in effect here.
+        # The VRF and ARP state this step presumes is established by TestSet.configure()
+        # and the earlier cases (vrfBaseline); nothing extra to configure here.
+        pass
+
+    def main(self):
+        # ART 1366_vrf_lite/test-1366.1001.py lines 399-497
+        tb = self.testSet.tb
+        dutA = self.testSet.dutA
+        ethA = tb.ethA
+        portA = dutA.portA
+        peer = self.testSet.peer
+        portPeer = dutA.portPeer
+        portDut = peer.portDut
+        self.log("STEP 13: Stop all traffic. Run 'clear arp-cache vrf red', then read 'show arp vrf red', 'show arp vrf blue' and 'show arp' straight away.")
+
+        vrfBaseline = getattr(self.testSet, 'vrfBaseline', None)
+        if vrfBaseline is None:
+            self.supported = False
+            self.failed('vrfBaseline was not established by TestCase_8')
+            return
+
+        def parse_arp(text):
+            table = {}
+            for line in text.splitlines():
+                tokens = line.split()
+                if not tokens:
+                    continue
+                addr = tokens[0]
+                if addr.count('.') == 3 and addr.replace('.', '').isdigit():
+                    table[addr] = tuple(tokens[1:5])
+            return table
+
+        # Traffic is not generated by this case: nothing from earlier cases is left running.
+        dutA.mode('#')
+        dutA.cmd('clear arp-cache vrf red')
+        redOut = dutA.cmd('show arp vrf red')
+        blueOut = dutA.cmd('show arp vrf blue')
+        globalOut = dutA.cmd('show arp')
+        output = 'RED:\n{}\nBLUE:\n{}\nGLOBAL:\n{}'.format(redOut, blueOut, globalOut)
+        self.log('OBSERVED: {}'.format(output))
+
+        redTable = parse_arp(redOut)
+        blueTable = parse_arp(blueOut)
+        globalTable = parse_arp(globalOut)
+
+        if 'Invalid input' in redOut or 'Invalid input' in blueOut:
+            self.supported = False
+            self.failed('{} does not support VRF-aware ARP commands: {}'.format(dutA.name, redOut.strip()[:80]))
+            return
+
+        # Check 1: .11 and .12 gone from the red VRF table
+        remaining = [ip for ip in ('192.168.30.11', '192.168.30.12') if ip in redTable]
+        if not remaining:
+            self.passed('192.168.30.11 and 192.168.30.12 are absent from the red VRF ARP table after clear')
+        else:
+            self.failed('{} still present in red VRF ARP table after clear arp-cache vrf red'.format(
+                ', '.join(remaining)))
+
+        # Check 2 and 3: blue and global tables unchanged versus baseline
+        for scope, table in (('blue', blueTable), ('global', globalTable)):
+            expected = {ip: tuple(val) for ip, val in vrfBaseline.get(scope, {}).items()}
+            if table == expected:
+                self.passed('{} ARP table matches vrfBaseline exactly ({} entries incl. static)'.format(
+                    scope, len(expected)))
+            else:
+                missing = sorted(set(expected) - set(table))
+                extra = sorted(set(table) - set(expected))
+                changed = sorted(ip for ip in expected if ip in table and table[ip] != expected[ip])
+                self.failed('{} ARP table differs from vrfBaseline: missing {}, extra {}, changed {}'.format(
+                    scope, missing, extra, changed))
+
+    def tear_down(self):
+        tb = self.testSet.tb
+        dutA = self.testSet.dutA
+        ethA = tb.ethA
+        portA = dutA.portA
+        peer = self.testSet.peer
+        portPeer = dutA.portPeer
+        portDut = peer.portDut
+        # Per-case cleanup so the next case starts clean: undo configure() and anything
+        # main() changed, command for command in `no` form (the ART mirror). No pass/fail.
+        # configure() changed nothing and main() only ran an exec-mode clear; leave exec mode.
+        dutA.mode('#')
+
+
+class TestCase_10(ATTestCase.TestCase):
+    testCaseDesc = "Count the rows in the 'show arp vrf red' output captured in step 13, before any new traffic starts."
+    # ART identity <family>.<case>.<TestCase> — the framework composes the same triple
+    # from the filename and this class name, and the run log prints it per case.
+    testCaseRef = 'AWPTCM-T33247, 9002.33247.10'
+    ckNeeds = ['vrfBaseline']
+    skipIfExcl = True
+    testCaseMethod = "Count the rows in the 'show arp vrf red' output captured in step 13, before any new traffic starts.\n"
+    testCaseMethod += 'Verify: The red VRF table contains no dynamic entries. Its entry count has dropped from 2 to 0, while the blue and global entry counts match vrfBaseline.\n'
+
+    def configure(self):
+        tb = self.testSet.tb
+        dutA = self.testSet.dutA
+        ethA = tb.ethA
+        portA = dutA.portA
+        peer = self.testSet.peer
+        portPeer = dutA.portPeer
+        portDut = peer.portDut
+        # Per-case PRECONDITIONS: the device state this step presumes, config only — no
+        # pass/fail (main() verifies; tear_down() mirrors this in `no` form). Runs after
+        # TestSet.configure() and after the previous case's tear_down(), so nothing another
+        # case set up is still in effect here.
+        # Nothing to configure: the step only reads ARP tables (main() clears the red VRF cache itself).
+        pass
+
+    def main(self):
+        # ART 1366_vrf_lite/test-1366.1001.py lines 399-497
+        tb = self.testSet.tb
+        dutA = self.testSet.dutA
+        ethA = tb.ethA
+        portA = dutA.portA
+        peer = self.testSet.peer
+        portPeer = dutA.portPeer
+        portDut = peer.portDut
+        self.log("STEP 14: Count the rows in the 'show arp vrf red' output captured in step 13, before any new traffic starts.")
+        vrfBaseline = getattr(self.testSet, 'vrfBaseline', None)
+        if vrfBaseline is None:
+            self.supported = False
+            self.failed('vrfBaseline was not established by TestCase_8')
+            return
+
+        def arp_rows(text):
+            rows = []
+            for line in text.splitlines():
+                tokens = line.split()
+                if not tokens:
+                    continue
+                parts = tokens[0].split('.')
+                if len(parts) == 4 and all(p.isdigit() for p in parts):
+                    rows.append(tokens)
+            return rows
+
+        # Establish the post-clear state of the red VRF (no new traffic is sent in between).
+        dutA.mode('#')
+        dutA.cmd('clear arp-cache vrf red')
+        redOut = dutA.cmd('show arp vrf red')
+        if 'Invalid input' in redOut or 'Unrecognized command' in redOut:
+            self.supported = False
+            self.failed('{} does not support show arp vrf: {}'.format(dutA.name, redOut.strip()[:80]))
+            return
+        blueOut = dutA.cmd('show arp vrf blue')
+        globalOut = dutA.cmd('show arp global')
+        output = 'RED:\n{}\nBLUE:\n{}\nGLOBAL:\n{}'.format(redOut, blueOut, globalOut)
+        self.log('OBSERVED: {}'.format(output))
+
+        redRows = arp_rows(redOut)
+        redDynamic = [r for r in redRows if r[-1] == 'dynamic']
+        blueRows = arp_rows(blueOut)
+        globalRows = arp_rows(globalOut)
+        baseRedDynamic = len([v for v in vrfBaseline.get('red', {}).values() if v[-1] == 'dynamic'])
+        self.log('red VRF dynamic entries: baseline {}, now {}'.format(baseRedDynamic, len(redDynamic)))
+
+        if len(redDynamic) == 0:
+            self.passed('red VRF ARP table has {} dynamic entries (baseline {}), {} rows in total'.format(
+                len(redDynamic), baseRedDynamic, len(redRows)))
+        else:
+            self.failed('red VRF ARP table still has {} dynamic entries, expected 0'.format(len(redDynamic)))
+
+        blueExpected = len(vrfBaseline.get('blue', {}))
+        if len(blueRows) == blueExpected:
+            self.passed('blue VRF ARP entry count {} matches vrfBaseline'.format(len(blueRows)))
+        else:
+            self.failed('blue VRF ARP entry count is {}, vrfBaseline has {}'.format(len(blueRows), blueExpected))
+
+        globalExpected = len(vrfBaseline.get('global', {}))
+        if len(globalRows) == globalExpected:
+            self.passed('global ARP entry count {} matches vrfBaseline'.format(len(globalRows)))
+        else:
+            self.failed('global ARP entry count is {}, vrfBaseline has {}'.format(len(globalRows), globalExpected))
+
+    def tear_down(self):
+        tb = self.testSet.tb
+        dutA = self.testSet.dutA
+        ethA = tb.ethA
+        portA = dutA.portA
+        peer = self.testSet.peer
+        portPeer = dutA.portPeer
+        portDut = peer.portDut
+        # Per-case cleanup so the next case starts clean: undo configure() and anything
+        # main() changed, command for command in `no` form (the ART mirror). No pass/fail.
+        # Nothing was configured; only the ARP cache was cleared, which is not configuration.
+        dutA.mode('#')
+
+
+class TestCase_11(ATTestCase.TestCase):
+    testCaseDesc = "Refill the red VRF cache with 'ping vrf red 192.168.30.11' and 'ping vrf red 192.168.30.12'. Stop the traffic, run 'clear arp-cache vrf red 192.168.30.11', then read 'show arp vrf red', 'show arp vrf blue' and 'show arp' straight away."
+    # ART identity <family>.<case>.<TestCase> — the framework composes the same triple
+    # from the filename and this class name, and the run log prints it per case.
+    testCaseRef = 'AWPTCM-T33247, 9002.33247.11'
+    ckNeeds = ['baselineArp', 'baselineCount', 'vrfBaseline']
+    skipIfExcl = True
+    testCaseMethod = "Refill the red VRF cache with 'ping vrf red 192.168.30.11' and 'ping vrf red 192.168.30.12'. Stop the traffic, run 'clear arp-cache vrf red 192.168.30.11', then read 'show arp vrf red', 'show arp vrf blue' and 'show arp' straight away.\n"
+    testCaseMethod += 'Verify: 192.168.30.11 is missing from the red VRF table, and 192.168.30.12 is still there with its baseline MAC. The blue VRF table and the global table match vrfBaseline. The red entry count is exactly 1.\n'
+
+    def configure(self):
+        tb = self.testSet.tb
+        dutA = self.testSet.dutA
+        ethA = tb.ethA
+        portA = dutA.portA
+        peer = self.testSet.peer
+        portPeer = dutA.portPeer
+        portDut = peer.portDut
+        # Per-case PRECONDITIONS: the device state this step presumes, config only — no
+        # pass/fail (main() verifies; tear_down() mirrors this in `no` form). Runs after
+        # TestSet.configure() and after the previous case's tear_down(), so nothing another
+        # case set up is still in effect here.
+        dutA.mode('#')
+
+    def main(self):
+        # ART 1366_vrf_lite/test-1366.1001.py lines 399-497
+        tb = self.testSet.tb
+        dutA = self.testSet.dutA
+        ethA = tb.ethA
+        portA = dutA.portA
+        peer = self.testSet.peer
+        portPeer = dutA.portPeer
+        portDut = peer.portDut
+        self.log("STEP 15: Refill the red VRF cache with 'ping vrf red 192.168.30.11' and 'ping vrf red 192.168.30.12'. Stop the traffic, run 'clear arp-cache vrf red 192.168.30.11', then read 'show arp vrf red', 'show arp vrf blue' and 'show arp' straight away.")
+        for name in ('baselineArp', 'baselineCount', 'vrfBaseline'):
+            if getattr(self.testSet, name, None) is None:
+                self.supported = False
+                self.failed('{} was not established by an earlier case'.format(name))
+                return
+        vrfBaseline = self.testSet.vrfBaseline
+        ip_clear = '192.168.30.11'
+        ip_keep = '192.168.30.12'
+
+        def parse_arp(text):
+            table = {}
+            for line in text.splitlines():
+                tokens = line.split()
+                if len(tokens) >= 5 and tokens[0].count('.') == 3 and tokens[0].replace('.', '').isdigit():
+                    table[tokens[0]] = (tokens[1], tokens[2], tokens[3], tokens[4])
+            return table
+
+        dutA.mode('#')
+        dutA.cmd('ping vrf red {} repeat 2'.format(ip_clear))
+        dutA.cmd('ping vrf red {} repeat 2'.format(ip_keep))
+        red_before = parse_arp(dutA.cmd('show arp vrf red'))
+        self.log('Red table before clear: {}'.format(red_before))
+
+        dutA.cmd('clear arp-cache vrf red {}'.format(ip_clear))
+        red_out = dutA.cmd('show arp vrf red')
+        blue_out = dutA.cmd('show arp vrf blue')
+        glob_out = dutA.cmd('show arp')
+        output = 'RED:\n{}\nBLUE:\n{}\nGLOBAL:\n{}'.format(red_out, blue_out, glob_out)
+        self.log('OBSERVED: {}'.format(output))
+
+        red = parse_arp(red_out)
+        blue = parse_arp(blue_out)
+        glob = parse_arp(glob_out)
+        base_red = vrfBaseline.get('red', {})
+        base_blue = vrfBaseline.get('blue', {})
+        base_glob = vrfBaseline.get('global', {})
+
+        if ip_clear not in red:
+            self.passed('{} is missing from the red VRF table after clear arp-cache vrf red {}'.format(ip_clear, ip_clear))
+        else:
+            self.failed('{} still present in red VRF table: {}'.format(ip_clear, red.get(ip_clear)))
+
+        if ip_keep not in red:
+            self.failed('{} is missing from the red VRF table, expected it to remain'.format(ip_keep))
+        elif ip_keep in base_red and red[ip_keep][0] != base_red[ip_keep][0]:
+            self.failed('{} MAC is {}, baseline MAC is {}'.format(ip_keep, red[ip_keep][0], base_red[ip_keep][0]))
+        else:
+            self.passed('{} still in red VRF table with MAC {} matching baseline'.format(ip_keep, red[ip_keep][0]))
+
+        blue_ok = set(blue) == set(base_blue) and all(blue[k][0] == base_blue[k][0] for k in base_blue)
+        if blue_ok:
+            self.passed('Blue VRF table matches vrfBaseline with {} entries'.format(len(blue)))
+        else:
+            self.failed('Blue VRF table {} differs from vrfBaseline {}'.format(sorted(blue), sorted(base_blue)))
+
+        glob_ok = set(glob) == set(base_glob) and all(glob[k][0] == base_glob[k][0] for k in base_glob)
+        if glob_ok:
+            self.passed('Global ARP table matches vrfBaseline with {} entries'.format(len(glob)))
+        else:
+            self.failed('Global ARP table {} differs from vrfBaseline {}'.format(sorted(glob), sorted(base_glob)))
+
+        if len(red) == 1:
+            self.passed('Red VRF entry count is exactly 1 ({})'.format(list(red)))
+        else:
+            self.failed('Red VRF entry count is {}, expected exactly 1: {}'.format(len(red), sorted(red)))
+
+    def tear_down(self):
+        tb = self.testSet.tb
+        dutA = self.testSet.dutA
+        ethA = tb.ethA
+        portA = dutA.portA
+        peer = self.testSet.peer
+        portPeer = dutA.portPeer
+        portDut = peer.portDut
+        # Per-case cleanup so the next case starts clean: undo configure() and anything
+        # main() changed, command for command in `no` form (the ART mirror). No pass/fail.
+        dutA.mode('#')
+
+
+class TestCase_12(ATTestCase.TestCase):
+    testCaseDesc = "Refill the red VRF cache. Snapshot the global, red and blue tables, then run 'clear arp-cache 192.168.10.99', an address with no entry in any table. Snapshot all three tables again."
+    # ART identity <family>.<case>.<TestCase> — the framework composes the same triple
+    # from the filename and this class name, and the run log prints it per case.
+    testCaseRef = 'AWPTCM-T33247, 9002.33247.12'
+    ckNeeds = ['baselineArp', 'baselineCount', 'vrfBaseline']
+    skipIfExcl = True
+    testCaseMethod = "Refill the red VRF cache. Snapshot the global, red and blue tables, then run 'clear arp-cache 192.168.10.99', an address with no entry in any table. Snapshot all three tables again.\n"
+    testCaseMethod += 'Verify: The DUT either rejects the command with an error indication or accepts it without output. Both are valid results, and the response should be logged. The global, red and blue tables are identical before and after the command, both row by row and in row count.\n'
+
+    def configure(self):
+        tb = self.testSet.tb
+        dutA = self.testSet.dutA
+        ethA = tb.ethA
+        portA = dutA.portA
+        peer = self.testSet.peer
+        portPeer = dutA.portPeer
+        portDut = peer.portDut
+        # Per-case PRECONDITIONS: the device state this step presumes, config only — no
+        # pass/fail (main() verifies; tear_down() mirrors this in `no` form). Runs after
+        # TestSet.configure() and after the previous case's tear_down(), so nothing another
+        # case set up is still in effect here.
+        # Nothing to configure: the red cache refill is done in main() with pings.
+        dutA.mode('#')
+
+    def main(self):
+        # ART 1366_vrf_lite/test-1366.1001.py lines 399-497
+        tb = self.testSet.tb
+        dutA = self.testSet.dutA
+        ethA = tb.ethA
+        portA = dutA.portA
+        peer = self.testSet.peer
+        portPeer = dutA.portPeer
+        portDut = peer.portDut
+        self.log("STEP 16: Refill the red VRF cache. Snapshot the global, red and blue tables, then run 'clear arp-cache 192.168.10.99', an address with no entry in any table. Snapshot all three tables again.")
+        import re
+
+        for name in ('baselineArp', 'baselineCount', 'vrfBaseline'):
+            if getattr(self.testSet, name, None) is None:
+                self.supported = False
+                self.failed('{} was not established by an earlier case'.format(name))
+                return
+
+        target = '192.168.10.99'
+        scopes = [('global', 'show arp global'), ('red', 'show arp vrf RED'), ('blue', 'show arp vrf BLUE')]
+
+        def snapshot():
+            dutA.mode('#')
+            snap = {}
+            for scope, command in scopes:
+                text = dutA.cmd(command)
+                rows = []
+                for line in text.splitlines():
+                    tokens = line.split()
+                    if tokens and re.match(r'^\d+\.\d+\.\d+\.\d+$', tokens[0]):
+                        rows.append(tuple(tokens))
+                snap[scope] = sorted(rows)
+            return snap
+
+        # refill the red VRF cache by pinging the neighbours known from the earlier red table
+        dutA.mode('#')
+        for ip in self.testSet.vrfBaseline.get('red', {}):
+            dutA.cmd('ping vrf RED {} repeat 2'.format(ip))
+
+        before = snapshot()
+        response = dutA.cmd('clear arp-cache {}'.format(target))
+        self.log('Response to clear arp-cache {}: {!r}'.format(target, response))
+        after = snapshot()
+
+        output = 'before={} after={}'.format(
+            {k: len(v) for k, v in before.items()}, {k: len(v) for k, v in after.items()})
+        self.log('OBSERVED: {}'.format(output))
+
+        if response.strip() == '':
+            self.passed('clear arp-cache {} accepted without output'.format(target))
+        elif 'Invalid' in response or 'Unrecognized' in response or '%' in response or 'rror' in response:
+            self.passed('clear arp-cache {} rejected with error indication: {}'.format(
+                target, response.strip()[:80]))
+        else:
+            self.passed('clear arp-cache {} responded with: {}'.format(target, response.strip()[:80]))
+
+        for scope, command in scopes:
+            if len(before[scope]) != len(after[scope]):
+                self.failed('{} table row count changed from {} to {}'.format(
+                    scope, len(before[scope]), len(after[scope])))
+            elif before[scope] != after[scope]:
+                self.failed('{} table rows differ after clear of absent address: before {} after {}'.format(
+                    scope, before[scope], after[scope]))
+            else:
+                self.passed('{} table unchanged, {} rows identical row by row'.format(
+                    scope, len(after[scope])))
 
     def tear_down(self):
         tb = self.testSet.tb
@@ -1715,15 +1797,15 @@ class TestCase_13(ATTestCase.TestCase):
         dutA.mode('#')
 
 
-class TestCase_14(ATTestCase.TestCase):
-    testCaseDesc = "Issue 'clear arp-cache vrf VRF-A' on the DUT."
+class TestCase_13(ATTestCase.TestCase):
+    testCaseDesc = "Snapshot the global, red and blue tables, then run 'clear arp-cache vrf red 192.168.30.99', an address with no entry in that VRF. Snapshot all three tables again."
     # ART identity <family>.<case>.<TestCase> — the framework composes the same triple
     # from the filename and this class name, and the run log prints it per case.
-    testCaseRef = 'AWPTCM-T33247, 9002.33247.14'
-    ckNeeds = ['arpBaseline', 'arpCountBaseline', 'arpPreSingle', 'arpPreVrf']
+    testCaseRef = 'AWPTCM-T33247, 9002.33247.13'
+    ckNeeds = ['baselineArp', 'baselineCount', 'vrfBaseline']
     skipIfExcl = True
-    testCaseMethod = "Issue 'clear arp-cache vrf VRF-A' on the DUT.\n"
-    testCaseMethod += 'Verify: The command is accepted with no error output.\n'
+    testCaseMethod = "Snapshot the global, red and blue tables, then run 'clear arp-cache vrf red 192.168.30.99', an address with no entry in that VRF. Snapshot all three tables again.\n"
+    testCaseMethod += 'Verify: The DUT either rejects the command with an error indication or accepts it without output. Both are valid results, and the response should be logged. The global, red and blue tables are identical before and after the command.\n'
 
     def configure(self):
         tb = self.testSet.tb
@@ -1737,8 +1819,7 @@ class TestCase_14(ATTestCase.TestCase):
         # pass/fail (main() verifies; tear_down() mirrors this in `no` form). Runs after
         # TestSet.configure() and after the previous case's tear_down(), so nothing another
         # case set up is still in effect here.
-        # The VRF-A instance is established by TestSet.configure(); nothing extra needed.
-        pass
+        dutA.mode('#')
 
     def main(self):
         # ART 1366_vrf_lite/test-1366.1001.py lines 399-497
@@ -1749,490 +1830,60 @@ class TestCase_14(ATTestCase.TestCase):
         peer = self.testSet.peer
         portPeer = dutA.portPeer
         portDut = peer.portDut
-        self.log("STEP 17: Issue 'clear arp-cache vrf VRF-A' on the DUT.")
-        arpPreVrf = self.testSet.arpPreVrf
-        if arpPreVrf is None:
-            self.supported = False
-            self.failed('arpPreVrf was not established by TestCase_13')
-            return
-        dutA.mode('#')
-        output = dutA.cmd('clear arp-cache vrf VRF-A')
-        self.log('OBSERVED: {}'.format(output))
-        lowered = output.lower()
-        errors = ['invalid input', '% ', 'unrecognized', 'error', 'incomplete', 'ambiguous', 'not found']
-        found = [token for token in errors if token in lowered]
-        if 'invalid input' in lowered or 'unrecognized command' in lowered:
-            self.supported = False
-            self.failed('{} does not support clear arp-cache vrf: {}'.format(dutA.name, output.strip()[:80]))
-            return
-        if not found:
-            self.passed("'clear arp-cache vrf VRF-A' accepted with no error output")
-        else:
-            self.failed("'clear arp-cache vrf VRF-A' produced error output ({}): {}".format(
-                found, output.strip()[:120]))
-
-    def tear_down(self):
-        tb = self.testSet.tb
-        dutA = self.testSet.dutA
-        ethA = tb.ethA
-        portA = dutA.portA
-        peer = self.testSet.peer
-        portPeer = dutA.portPeer
-        portDut = peer.portDut
-        # Per-case cleanup so the next case starts clean: undo configure() and anything
-        # main() changed, command for command in `no` form (the ART mirror). No pass/fail.
-        # clear arp-cache changes no configuration; just leave the console in exec mode.
-        dutA.mode('#')
-
-
-class TestCase_15(ATTestCase.TestCase):
-    testCaseDesc = "Immediately read 'show arp vrf VRF-A', 'show arp vrf VRF-B' and the global 'show arp', before resuming traffic."
-    # ART identity <family>.<case>.<TestCase> — the framework composes the same triple
-    # from the filename and this class name, and the run log prints it per case.
-    testCaseRef = 'AWPTCM-T33247, 9002.33247.15'
-    ckNeeds = ['arpPreVrf']
-    skipIfExcl = True
-    testCaseMethod = "Immediately read 'show arp vrf VRF-A', 'show arp vrf VRF-B' and the global 'show arp', before resuming traffic.\n"
-    testCaseMethod += 'Verify: VRF-A has no dynamic entries. VRF-B and the global table are identical to arpPreVrf, including S1 and S2.\n'
-
-    def configure(self):
-        tb = self.testSet.tb
-        dutA = self.testSet.dutA
-        ethA = tb.ethA
-        portA = dutA.portA
-        peer = self.testSet.peer
-        portPeer = dutA.portPeer
-        portDut = peer.portDut
-        # Per-case PRECONDITIONS: the device state this step presumes, config only — no
-        # pass/fail (main() verifies; tear_down() mirrors this in `no` form). Runs after
-        # TestSet.configure() and after the previous case's tear_down(), so nothing another
-        # case set up is still in effect here.
-        # Nothing to configure: this step only reads ARP tables set up by the suite.
-        pass
-
-    def main(self):
-        # ART 1355_nlb/library_1355.py lines 97-102
-        tb = self.testSet.tb
-        dutA = self.testSet.dutA
-        ethA = tb.ethA
-        portA = dutA.portA
-        peer = self.testSet.peer
-        portPeer = dutA.portPeer
-        portDut = peer.portDut
-        self.log("STEP 18: Immediately read 'show arp vrf VRF-A', 'show arp vrf VRF-B' and the global 'show arp', before resuming traffic.")
-        pre = getattr(self.testSet, 'arpPreVrf', None)
-        if pre is None:
-            self.supported = False
-            self.failed('arpPreVrf was not established by TestCase_13')
-            return
-
-        def parse_arp(text):
-            entries = {}
-            for line in text.splitlines():
-                tokens = line.split()
-                if len(tokens) < 5:
-                    continue
-                parts = tokens[0].split('.')
-                if len(parts) != 4 or not all(p.isdigit() for p in parts):
-                    continue
-                entries[tokens[0]] = {'mac': tokens[1], 'interface': tokens[2], 'type': tokens[-1]}
-            return entries
-
-        dutA.mode('#')
-        out_a = dutA.cmd('show arp vrf VRF-A')
-        out_b = dutA.cmd('show arp vrf VRF-B')
-        out_g = dutA.cmd('show arp')
-        output = '\n'.join(['VRF-A:', out_a, 'VRF-B:', out_b, 'GLOBAL:', out_g])
-        self.log('OBSERVED: {}'.format(output))
-
-        for out in (out_a, out_b, out_g):
-            if 'Invalid input' in out or 'Unrecognized command' in out:
-                self.supported = False
-                self.failed('{} does not support show arp with VRF: {}'.format(dutA.name, out.strip()[:80]))
-                return
-
-        arp_a = parse_arp(out_a)
-        arp_b = parse_arp(out_b)
-        arp_g = parse_arp(out_g)
-
-        dyn_a = [ip for ip, e in arp_a.items() if e['type'] == 'dynamic']
-        if not dyn_a:
-            self.passed('VRF-A has no dynamic ARP entries after the clear')
-        else:
-            self.failed('VRF-A still has dynamic ARP entries: {}'.format(', '.join(sorted(dyn_a))))
-
-        exp_b = pre.get('VRF-B')
-        exp_g = pre.get('global')
-        if exp_b is None or exp_g is None:
-            self.supported = False
-            self.failed('arpPreVrf lacks VRF-B or global scope: keys {}'.format(sorted(pre.keys())))
-            return
-
-        if arp_b == exp_b:
-            self.passed('VRF-B ARP table identical to arpPreVrf ({} entries)'.format(len(arp_b)))
-        else:
-            missing = sorted(set(exp_b) - set(arp_b))
-            extra = sorted(set(arp_b) - set(exp_b))
-            changed = sorted(ip for ip in exp_b if ip in arp_b and exp_b[ip] != arp_b[ip])
-            self.failed('VRF-B ARP differs from arpPreVrf: missing {}, extra {}, changed {}'.format(
-                missing, extra, changed))
-
-        if arp_g == exp_g:
-            self.passed('Global ARP table identical to arpPreVrf, including static entries S1 and S2 ({} entries)'.format(
-                len(arp_g)))
-        else:
-            missing = sorted(set(exp_g) - set(arp_g))
-            extra = sorted(set(arp_g) - set(exp_g))
-            changed = sorted(ip for ip in exp_g if ip in arp_g and exp_g[ip] != arp_g[ip])
-            self.failed('Global ARP differs from arpPreVrf: missing {}, extra {}, changed {}'.format(
-                missing, extra, changed))
-
-    def tear_down(self):
-        tb = self.testSet.tb
-        dutA = self.testSet.dutA
-        ethA = tb.ethA
-        portA = dutA.portA
-        peer = self.testSet.peer
-        portPeer = dutA.portPeer
-        portDut = peer.portDut
-        # Per-case cleanup so the next case starts clean: undo configure() and anything
-        # main() changed, command for command in `no` form (the ART mirror). No pass/fail.
-        # main() only reads state; nothing to undo.
-        dutA.mode('#')
-
-
-class TestCase_16(ATTestCase.TestCase):
-    testCaseDesc = "From the 'show arp vrf VRF-A' output read in step 18, count the entries."
-    # ART identity <family>.<case>.<TestCase> — the framework composes the same triple
-    # from the filename and this class name, and the run log prints it per case.
-    testCaseRef = 'AWPTCM-T33247, 9002.33247.16'
-    ckNeeds = ['arpPreVrf']
-    skipIfExcl = True
-    testCaseMethod = "From the 'show arp vrf VRF-A' output read in step 18, count the entries.\n"
-    testCaseMethod += 'Verify: The VRF-A dynamic-entry count is zero, a reduction from its count in arpPreVrf. The counts for VRF-B and global are unchanged.\n'
-
-    def configure(self):
-        tb = self.testSet.tb
-        dutA = self.testSet.dutA
-        ethA = tb.ethA
-        portA = dutA.portA
-        peer = self.testSet.peer
-        portPeer = dutA.portPeer
-        portDut = peer.portDut
-        # Per-case PRECONDITIONS: the device state this step presumes, config only — no
-        # pass/fail (main() verifies; tear_down() mirrors this in `no` form). Runs after
-        # TestSet.configure() and after the previous case's tear_down(), so nothing another
-        # case set up is still in effect here.
-        # This step only reads ARP tables; nothing needs configuring.
-        pass
-
-    def main(self):
-        # ART 1366_vrf_lite/test-1366.1001.py lines 399-497
-        tb = self.testSet.tb
-        dutA = self.testSet.dutA
-        ethA = tb.ethA
-        portA = dutA.portA
-        peer = self.testSet.peer
-        portPeer = dutA.portPeer
-        portDut = peer.portDut
-        self.log("STEP 19: From the 'show arp vrf VRF-A' output read in step 18, count the entries.")
-
-        arpPreVrf = getattr(self.testSet, 'arpPreVrf', None)
-        if arpPreVrf is None:
-            self.supported = False
-            self.failed('arpPreVrf was not established by TestCase_13')
-            return
-
-        def count_dynamic_live(text):
-            total = 0
-            for line in text.splitlines():
-                tokens = line.split()
-                if len(tokens) >= 5 and tokens[0][:1].isdigit() and tokens[-1].lower() == 'dynamic':
-                    total += 1
-            return total
-
-        def count_dynamic_pre(scope):
-            entries = arpPreVrf.get(scope) or {}
-            return sum(1 for val in entries.values() if str(val.get('type', '')).lower() == 'dynamic')
-
-        dutA.mode('#')
-        outputA = dutA.cmd('show arp vrf VRF-A')
-        if 'Invalid input' in outputA or 'Unrecognized command' in outputA:
-            self.supported = False
-            self.failed('{} does not support show arp vrf: {}'.format(dutA.name, outputA.strip()[:80]))
-            return
-        outputB = dutA.cmd('show arp vrf VRF-B')
-        outputG = dutA.cmd('show arp global')
-
-        nowA = count_dynamic_live(outputA)
-        nowB = count_dynamic_live(outputB)
-        nowG = count_dynamic_live(outputG)
-        preA = count_dynamic_pre('VRF-A')
-        preB = count_dynamic_pre('VRF-B')
-        preG = count_dynamic_pre('global')
-
-        output = 'dynamic entries now/pre: VRF-A {}/{}, VRF-B {}/{}, global {}/{}'.format(
-            nowA, preA, nowB, preB, nowG, preG)
-        self.log('OBSERVED: {}'.format(output))
-
-        if nowA == 0:
-            self.passed('VRF-A has {} dynamic ARP entries after the clear'.format(nowA))
-        else:
-            self.failed('VRF-A still has {} dynamic ARP entries, expected 0: {}'.format(nowA, outputA.strip()))
-
-        if nowA < preA:
-            self.passed('VRF-A dynamic count reduced from {} (arpPreVrf) to {}'.format(preA, nowA))
-        else:
-            self.failed('VRF-A dynamic count {} is not a reduction from arpPreVrf count {}'.format(nowA, preA))
-
-        if nowB == preB:
-            self.passed('VRF-B dynamic count unchanged at {}'.format(nowB))
-        else:
-            self.failed('VRF-B dynamic count changed from {} to {}, expected unchanged'.format(preB, nowB))
-
-        if nowG == preG:
-            self.passed('global dynamic count unchanged at {}'.format(nowG))
-        else:
-            self.failed('global dynamic count changed from {} to {}, expected unchanged'.format(preG, nowG))
-
-    def tear_down(self):
-        tb = self.testSet.tb
-        dutA = self.testSet.dutA
-        ethA = tb.ethA
-        portA = dutA.portA
-        peer = self.testSet.peer
-        portPeer = dutA.portPeer
-        portDut = peer.portDut
-        # Per-case cleanup so the next case starts clean: undo configure() and anything
-        # main() changed, command for command in `no` form (the ART mirror). No pass/fail.
-        # Read-only step: nothing to undo beyond leaving the console in exec mode.
-        dutA.mode('#')
-
-
-class TestCase_17(ATTestCase.TestCase):
-    testCaseDesc = "Repopulate VRF-A by pinging A1 and A2 in VRF-A, then stop traffic. Issue 'clear arp-cache vrf VRF-A <A1-ip>'. Immediately read 'show arp vrf VRF-A', 'show arp vrf VRF-B' and the global 'show arp'."
-    # ART identity <family>.<case>.<TestCase> — the framework composes the same triple
-    # from the filename and this class name, and the run log prints it per case.
-    testCaseRef = 'AWPTCM-T33247, 9002.33247.17'
-    ckNeeds = ['arpPreVrf']
-    skipIfExcl = True
-    testCaseMethod = "Repopulate VRF-A by pinging A1 and A2 in VRF-A, then stop traffic. Issue 'clear arp-cache vrf VRF-A <A1-ip>'. Immediately read 'show arp vrf VRF-A', 'show arp vrf VRF-B' and the global 'show arp'.\n"
-    testCaseMethod += 'Verify: The command is accepted. A1 is absent from VRF-A, A2 remains with its original MAC, and the VRF-A count is one lower than before the clear. VRF-B and global are unchanged from arpPreVrf.\n'
-
-    def configure(self):
-        tb = self.testSet.tb
-        dutA = self.testSet.dutA
-        ethA = tb.ethA
-        portA = dutA.portA
-        peer = self.testSet.peer
-        portPeer = dutA.portPeer
-        portDut = peer.portDut
-        # Per-case PRECONDITIONS: nothing to configure; main() repopulates the ARP cache itself.
-        pass
-
-    def main(self):
-        # ART 1366_vrf_lite/test-1366.1001.py lines 399-497
-        tb = self.testSet.tb
-        dutA = self.testSet.dutA
-        ethA = tb.ethA
-        portA = dutA.portA
-        peer = self.testSet.peer
-        portPeer = dutA.portPeer
-        portDut = peer.portDut
-        self.log("STEP 20: Repopulate VRF-A by pinging A1 and A2 in VRF-A, then stop traffic. Issue 'clear arp-cache vrf VRF-A <A1-ip>'. Immediately read 'show arp vrf VRF-A', 'show arp vrf VRF-B' and the global 'show arp'.")
-        preVrf = getattr(self.testSet, 'arpPreVrf', None)
-        if preVrf is None:
-            self.supported = False
-            self.failed('arpPreVrf was not established by TestCase_13')
-            return
-        preA = preVrf.get('VRF-A', {})
-        if len(preA) < 2:
-            self.supported = False
-            self.failed('arpPreVrf has fewer than two VRF-A entries ({}), cannot identify A1 and A2'.format(len(preA)))
-            return
-        # A1 and A2 are the first two VRF-A neighbours recorded in arpPreVrf
-        a1Ip, a2Ip = list(preA.keys())[:2]
-
-        def parse_arp(text):
-            entries = {}
-            for line in text.splitlines():
-                tokens = line.split()
-                if len(tokens) >= 2 and tokens[0][:1].isdigit() and tokens[0].count('.') == 3:
-                    entries[tokens[0]] = tokens[1].lower()
-            return entries
-
-        # Repopulate VRF-A: ping A1 and A2 while the testbox answers ARP requests
-        dutA.mode('#')
-        replier = ARP_request_reply_thread(ethA.name)
-        replier.start()
-        try:
-            dutA.cmd('ping vrf VRF-A {} repeat 3'.format(a1Ip))
-            dutA.cmd('ping vrf VRF-A {} repeat 3'.format(a2Ip))
-        finally:
-            replier.stop()
-
-        beforeA = parse_arp(dutA.cmd('show arp vrf VRF-A'))
-        if a1Ip not in beforeA or a2Ip not in beforeA:
-            self.failed('VRF-A not repopulated before clear: A1 {} present={}, A2 {} present={}'.format(
-                a1Ip, a1Ip in beforeA, a2Ip, a2Ip in beforeA))
-            return
-        self.passed('VRF-A repopulated with A1 {} and A2 {} ({} entries)'.format(a1Ip, a2Ip, len(beforeA)))
-
-        clearOut = dutA.cmd('clear arp-cache vrf VRF-A {}'.format(a1Ip))
-        outA = dutA.cmd('show arp vrf VRF-A')
-        outB = dutA.cmd('show arp vrf VRF-B')
-        outGlobal = dutA.cmd('show arp')
-        outGlobalScope = dutA.cmd('show arp global')
-        afterA = parse_arp(outA)
-        afterB = parse_arp(outB)
-        afterGlobal = parse_arp(outGlobalScope)
-        output = 'clear: {}\nVRF-A:\n{}\nVRF-B:\n{}\nshow arp:\n{}'.format(clearOut.strip(), outA, outB, outGlobal)
-        self.log('OBSERVED: {}'.format(output))
-
-        if 'Invalid input' in clearOut or '%' in clearOut:
-            self.failed('clear arp-cache vrf VRF-A {} was not accepted: {}'.format(a1Ip, clearOut.strip()[:80]))
-            return
-        self.passed('clear arp-cache vrf VRF-A {} accepted'.format(a1Ip))
-
-        if a1Ip not in afterA:
-            self.passed('A1 {} absent from VRF-A after the clear'.format(a1Ip))
-        else:
-            self.failed('A1 {} still present in VRF-A after the clear'.format(a1Ip))
-
-        if afterA.get(a2Ip) == beforeA[a2Ip]:
-            self.passed('A2 {} remains in VRF-A with original MAC {}'.format(a2Ip, beforeA[a2Ip]))
-        else:
-            self.failed('A2 {} MAC is {} after clear, expected {}'.format(a2Ip, afterA.get(a2Ip), beforeA[a2Ip]))
-
-        if len(afterA) == len(beforeA) - 1:
-            self.passed('VRF-A count {} is one lower than before the clear ({})'.format(len(afterA), len(beforeA)))
-        else:
-            self.failed('VRF-A count is {}, expected {} (one lower than {})'.format(
-                len(afterA), len(beforeA) - 1, len(beforeA)))
-
-        expB = {ip: str(v.get('mac', '')).lower() for ip, v in preVrf.get('VRF-B', {}).items()}
-        if afterB == expB:
-            self.passed('VRF-B unchanged from arpPreVrf ({} entries)'.format(len(afterB)))
-        else:
-            self.failed('VRF-B differs from arpPreVrf: now {}, expected {}'.format(sorted(afterB), sorted(expB)))
-
-        expG = {ip: str(v.get('mac', '')).lower() for ip, v in preVrf.get('global', {}).items()}
-        if afterGlobal == expG:
-            self.passed('global ARP unchanged from arpPreVrf ({} entries)'.format(len(afterGlobal)))
-        else:
-            self.failed('global ARP differs from arpPreVrf: now {}, expected {}'.format(
-                sorted(afterGlobal), sorted(expG)))
-
-    def tear_down(self):
-        tb = self.testSet.tb
-        dutA = self.testSet.dutA
-        ethA = tb.ethA
-        portA = dutA.portA
-        peer = self.testSet.peer
-        portPeer = dutA.portPeer
-        portDut = peer.portDut
-        # No configuration was changed; only ensure the console is back in exec mode.
-        dutA.mode('#')
-
-
-class TestCase_18(ATTestCase.TestCase):
-    testCaseDesc = "Take a snapshot of all three scopes. Issue 'clear arp-cache vrf VRF-A <unused-ip>', using an address in the VRF-A subnet that has no entry. Capture the response, then read all three scopes again."
-    # ART identity <family>.<case>.<TestCase> — the framework composes the same triple
-    # from the filename and this class name, and the run log prints it per case.
-    testCaseRef = 'AWPTCM-T33247, 9002.33247.18'
-    ckNeeds = ['arpBaseline', 'arpCountBaseline', 'arpPreSingle', 'arpPreVrf']
-    skipIfExcl = True
-    testCaseMethod = "Take a snapshot of all three scopes. Issue 'clear arp-cache vrf VRF-A <unused-ip>', using an address in the VRF-A subnet that has no entry. Capture the response, then read all three scopes again.\n"
-    testCaseMethod += 'Verify: The request is either rejected with an error indication or accepted with no effect. All three scopes are identical to the snapshot.\n'
-
-    def configure(self):
-        tb = self.testSet.tb
-        dutA = self.testSet.dutA
-        ethA = tb.ethA
-        portA = dutA.portA
-        peer = self.testSet.peer
-        portPeer = dutA.portPeer
-        portDut = peer.portDut
-        # Per-case PRECONDITIONS: the device state this step presumes, config only — no
-        # pass/fail (main() verifies; tear_down() mirrors this in `no` form). Runs after
-        # TestSet.configure() and after the previous case's tear_down(), so nothing another
-        # case set up is still in effect here.
-        pass
-
-    def main(self):
-        # ART 1355_nlb/library_1355.py lines 97-102
-        tb = self.testSet.tb
-        dutA = self.testSet.dutA
-        ethA = tb.ethA
-        portA = dutA.portA
-        peer = self.testSet.peer
-        portPeer = dutA.portPeer
-        portDut = peer.portDut
-        self.log("STEP 21: Take a snapshot of all three scopes. Issue 'clear arp-cache vrf VRF-A <unused-ip>', using an address in the VRF-A subnet that has no entry. Capture the response, then read all three scopes again.")
-        for name in ('arpBaseline', 'arpCountBaseline', 'arpPreSingle', 'arpPreVrf'):
+        self.log("STEP 17: Snapshot the global, red and blue tables, then run 'clear arp-cache vrf red 192.168.30.99', an address with no entry in that VRF. Snapshot all three tables again.")
+        for name in ('baselineArp', 'baselineCount', 'vrfBaseline'):
             if getattr(self.testSet, name, None) is None:
                 self.supported = False
                 self.failed('{} was not established by an earlier case'.format(name))
                 return
 
-        scopes = [('global', 'show arp global'), ('VRF-A', 'show arp vrf VRF-A'), ('VRF-B', 'show arp vrf VRF-B')]
+        target_ip = '192.168.30.99'
+        scopes = {
+            'global': 'show arp global',
+            'red': 'show arp vrf red',
+            'blue': 'show arp vrf blue',
+        }
 
-        def parse_rows(text):
-            rows = {}
-            for line in text.splitlines():
-                tokens = line.split()
-                if len(tokens) >= 4 and tokens[0].count('.') == 3 and tokens[0].replace('.', '').isdigit():
-                    rows[tokens[0]] = tuple(tokens[1:])
-            return rows
+        def snapshot():
+            dutA.mode('#')
+            snap = {}
+            for scope, command in scopes.items():
+                text = dutA.cmd(command)
+                rows = set()
+                for line in text.splitlines():
+                    tokens = line.split()
+                    # data rows start with an IPv4 address; keep the full row for comparison
+                    if tokens and tokens[0].count('.') == 3 and tokens[0].replace('.', '').isdigit():
+                        rows.add(' '.join(tokens))
+                snap[scope] = rows
+            return snap
 
-        def read_scopes():
-            result = {}
-            for scope, command in scopes:
-                dutA.mode('#')
-                result[scope] = parse_rows(dutA.cmd(command))
-            return result
-
-        before = read_scopes()
-        if not before['VRF-A']:
-            self.failed('VRF-A ARP table is empty before the clear, cannot choose an address in its subnet')
-            return
-
-        used = set()
-        for rows in before.values():
-            used.update(rows.keys())
-        sample = sorted(before['VRF-A'].keys())[0]
-        octets = sample.split('.')
-        unused = None
-        for last in range(250, 1, -1):
-            candidate = '{}.{}.{}.{}'.format(octets[0], octets[1], octets[2], last)
-            if candidate not in used:
-                unused = candidate
-                break
-        if unused is None:
-            self.failed('No unused address found in the VRF-A subnet of {}'.format(sample))
-            return
-
+        before = snapshot()
         dutA.mode('#')
-        output = dutA.cmd('clear arp-cache vrf VRF-A {}'.format(unused))
-        self.log('Cleared unused address {}'.format(unused))
-        after = read_scopes()
-        self.log('OBSERVED: {}'.format(output))
+        response = dutA.cmd('clear arp-cache vrf red {}'.format(target_ip))
+        after = snapshot()
+        output = response.strip()
+        self.log('OBSERVED: {}'.format(output if output else '<no output>'))
 
-        rejected = any(token in output for token in ('Invalid input', '% ', 'rror', 'not found', 'No such'))
+        if any(target_ip in row.split()[0] for row in before['red']):
+            self.log('Note: {} already present in the red table before the clear'.format(target_ip))
+
+        rejected = any(token in response for token in ('Invalid', '%', 'rror', 'Unrecognized'))
         if rejected:
-            self.passed('Clear of unused address {} was rejected with an error indication: {}'.format(
-                unused, output.strip()[:80]))
+            self.passed('DUT rejected clear of absent address with an error indication: {}'.format(output[:80]))
+        elif output == '':
+            self.passed('DUT accepted clear of absent address {} without output'.format(target_ip))
         else:
-            self.passed('Clear of unused address {} was accepted without error'.format(unused))
+            self.passed('DUT accepted clear of absent address {} with response: {}'.format(target_ip, output[:80]))
 
-        for scope, _ in scopes:
-            if after[scope] == before[scope]:
-                self.passed('{} ARP scope unchanged ({} entries) after clearing unused address'.format(
-                    scope, len(after[scope])))
+        for scope in ('global', 'red', 'blue'):
+            if before[scope] == after[scope]:
+                self.passed('{} ARP table unchanged after clear ({} rows)'.format(scope, len(after[scope])))
             else:
-                changed = sorted(set(before[scope]) ^ set(after[scope]))
-                self.failed('{} ARP scope changed after clearing unused address {}; differing entries: {}'.format(
-                    scope, unused, changed))
+                removed = sorted(before[scope] - after[scope])
+                added = sorted(after[scope] - before[scope])
+                self.failed('{} ARP table changed after clear of absent address: removed {}, added {}'.format(
+                    scope, removed, added))
 
     def tear_down(self):
         tb = self.testSet.tb
@@ -2247,15 +1898,15 @@ class TestCase_18(ATTestCase.TestCase):
         dutA.mode('#')
 
 
-class TestCase_19(ATTestCase.TestCase):
-    testCaseDesc = "Issue 'clear arp-cache vrf <nonexistent-vrf>', using a VRF name that is not configured. Capture the response, then read all three scopes."
+class TestCase_14(ATTestCase.TestCase):
+    testCaseDesc = "Snapshot the global, red and blue tables, then run 'clear arp-cache vrf nosuchvrf'. Snapshot all three tables again."
     # ART identity <family>.<case>.<TestCase> — the framework composes the same triple
     # from the filename and this class name, and the run log prints it per case.
-    testCaseRef = 'AWPTCM-T33247, 9002.33247.19'
-    ckNeeds = ['arpPreVrf']
+    testCaseRef = 'AWPTCM-T33247, 9002.33247.14'
+    ckNeeds = ['baselineArp', 'baselineCount', 'vrfBaseline']
     skipIfExcl = True
-    testCaseMethod = "Issue 'clear arp-cache vrf <nonexistent-vrf>', using a VRF name that is not configured. Capture the response, then read all three scopes.\n"
-    testCaseMethod += 'Verify: The DUT rejects the request with an error indication or ignores it. All three scopes are identical to the snapshot from step 21.\n'
+    testCaseMethod = "Snapshot the global, red and blue tables, then run 'clear arp-cache vrf nosuchvrf'. Snapshot all three tables again.\n"
+    testCaseMethod += 'Verify: The DUT either rejects the command with an error indication (expected) or ignores it. The global, red and blue tables are identical before and after the command.\n'
 
     def configure(self):
         tb = self.testSet.tb
@@ -2265,11 +1916,11 @@ class TestCase_19(ATTestCase.TestCase):
         peer = self.testSet.peer
         portPeer = dutA.portPeer
         portDut = peer.portDut
-        # Nothing to presume: this step only issues a clear against a VRF that does not exist.
-        dutA.mode('#')
+        # Per-case PRECONDITIONS: nothing extra; the suite's TestSet.configure() provides VRFs.
+        pass
 
     def main(self):
-        # ART 1355_nlb/library_1355.py lines 97-102
+        # ART 1366_vrf_lite/test-1366.1001.py lines 399-497
         tb = self.testSet.tb
         dutA = self.testSet.dutA
         ethA = tb.ethA
@@ -2277,65 +1928,51 @@ class TestCase_19(ATTestCase.TestCase):
         peer = self.testSet.peer
         portPeer = dutA.portPeer
         portDut = peer.portDut
-        self.log("STEP 22: Issue 'clear arp-cache vrf <nonexistent-vrf>', using a VRF name that is not configured. Capture the response, then read all three scopes.")
+        self.log("STEP 18: Snapshot the global, red and blue tables, then run 'clear arp-cache vrf nosuchvrf'. Snapshot all three tables again.")
+        for name in ('baselineArp', 'baselineCount', 'vrfBaseline'):
+            if getattr(self.testSet, name, None) is None:
+                self.supported = False
+                self.failed('{} was not established by an earlier case'.format(name))
+                return
 
-        preVrf = getattr(self.testSet, 'arpPreVrf', None)
-        if preVrf is None:
-            self.supported = False
-            self.failed('arpPreVrf was not established by TestCase_13')
-            return
-
-        scopes = list(preVrf.keys()) or ['global']
-
-        def scope_cmd(scope):
-            if str(scope).lower() == 'global':
-                return 'show arp global'
-            return 'show arp vrf {}'.format(scope)
-
-        def parse_arp(text):
-            table = {}
+        def rows_of(text):
+            rows = []
             for line in text.splitlines():
                 tokens = line.split()
-                parts = tokens[0].split('.') if tokens else []
-                if len(parts) == 4 and all(p.isdigit() for p in parts):
-                    table[tokens[0]] = tuple(tokens[1:])
-            return table
+                if tokens and tokens[0].count('.') == 3 and tokens[0].replace('.', '').isdigit():
+                    rows.append(tuple(tokens))
+            return sorted(rows)
 
-        def read_scopes():
-            result = {}
-            for scope in scopes:
-                dutA.mode('#')
-                result[scope] = parse_arp(dutA.cmd(scope_cmd(scope)))
-            return result
+        def snapshot():
+            dutA.mode('#')
+            return {
+                'global': rows_of(dutA.cmd('show arp global')),
+                'red': rows_of(dutA.cmd('show arp vrf red')),
+                'blue': rows_of(dutA.cmd('show arp vrf blue')),
+            }
 
-        bogus = 'NOSUCHVRF99'
-        while bogus in scopes:
-            bogus += 'X'
-
-        snapshot = read_scopes()
+        before = snapshot()
         dutA.mode('#')
-        output = dutA.cmd('clear arp-cache vrf {}'.format(bogus))
-        after = read_scopes()
+        output = dutA.cmd('clear arp-cache vrf nosuchvrf')
+        after = snapshot()
         self.log('OBSERVED: {}'.format(output))
+        self.log('Before: {}'.format(before))
+        self.log('After: {}'.format(after))
 
-        lowered = output.lower()
-        if any(tok in lowered for tok in ('invalid', 'error', 'not found', 'does not exist', 'unknown', '%')):
-            self.passed('DUT rejected clear for nonexistent VRF {} with an error indication: {}'.format(
-                bogus, output.strip()[:80]))
+        rejected = any(token in output for token in (
+            'Invalid', 'invalid', 'Unrecognized', 'Unknown', 'unknown', 'not found', 'No such', 'does not exist',
+            '% '))
+        if rejected:
+            self.passed('DUT rejected the unknown VRF with an error indication: {}'.format(output.strip()[:80]))
         else:
-            self.passed('DUT accepted/ignored clear for nonexistent VRF {} without changing state: {!r}'.format(
-                bogus, output.strip()[:80]))
+            self.passed('DUT ignored the unknown VRF clear without error output: {!r}'.format(output.strip()[:80]))
 
-        for scope in scopes:
-            if after[scope] == snapshot[scope]:
-                self.passed('Scope {} unchanged: {} ARP entries identical to the snapshot'.format(
-                    scope, len(snapshot[scope])))
+        for scope in ('global', 'red', 'blue'):
+            if before[scope] == after[scope]:
+                self.passed('{} ARP table identical before and after ({} rows)'.format(scope, len(after[scope])))
             else:
-                missing = sorted(set(snapshot[scope]) - set(after[scope]))
-                added = sorted(set(after[scope]) - set(snapshot[scope]))
-                self.failed('Scope {} changed after clear of nonexistent VRF: missing {}, added {}, entries modified {}'.format(
-                    scope, missing, added,
-                    sorted(ip for ip in snapshot[scope] if ip in after[scope] and snapshot[scope][ip] != after[scope][ip])))
+                self.failed('{} ARP table changed after clear on nosuchvrf: before {} rows, after {} rows'.format(
+                    scope, len(before[scope]), len(after[scope])))
 
     def tear_down(self):
         tb = self.testSet.tb
@@ -2345,7 +1982,111 @@ class TestCase_19(ATTestCase.TestCase):
         peer = self.testSet.peer
         portPeer = dutA.portPeer
         portDut = peer.portDut
-        # configure() and main() changed no configuration; just leave the console in exec mode.
+        # Nothing changed in configuration; leave console in exec mode.
+        dutA.mode('#')
+
+
+class TestCase_15(ATTestCase.TestCase):
+    testCaseDesc = "Snapshot 'show arp', then run 'clear arp-cache 192.168.10.201' against the static entry. Read 'show arp' and 'show running-config' straight away."
+    # ART identity <family>.<case>.<TestCase> — the framework composes the same triple
+    # from the filename and this class name, and the run log prints it per case.
+    testCaseRef = 'AWPTCM-T33247, 9002.33247.15'
+    ckNeeds = ['baselineArp', 'baselineCount']
+    skipIfExcl = True
+    testCaseMethod = "Snapshot 'show arp', then run 'clear arp-cache 192.168.10.201' against the static entry. Read 'show arp' and 'show running-config' straight away.\n"
+    testCaseMethod += "Verify: 192.168.10.201 is still listed as a static entry with MAC 0000.5e00.5301 on the test port. The running-config still contains the 'arp 192.168.10.201 0000.5e00.5301' line. All other entries match the snapshot. Any error indication or silent acceptance is logged as the DUT's handling and is acceptable either way.\n"
+
+    def configure(self):
+        tb = self.testSet.tb
+        dutA = self.testSet.dutA
+        ethA = tb.ethA
+        portA = dutA.portA
+        peer = self.testSet.peer
+        portPeer = dutA.portPeer
+        portDut = peer.portDut
+        # Per-case PRECONDITIONS: nothing extra; the static entry comes from the suite configuration.
+        dutA.mode('#')
+
+    def main(self):
+        # ART 1366_vrf_lite/test-1366.1001.py lines 245-313
+        tb = self.testSet.tb
+        dutA = self.testSet.dutA
+        ethA = tb.ethA
+        portA = dutA.portA
+        peer = self.testSet.peer
+        portPeer = dutA.portPeer
+        portDut = peer.portDut
+        self.log("STEP 19: Snapshot 'show arp', then run 'clear arp-cache 192.168.10.201' against the static entry. Read 'show arp' and 'show running-config' straight away.")
+        if self.testSet.baselineArp is None or self.testSet.baselineCount is None:
+            self.supported = False
+            self.failed('baselineArp was not established by TestCase_1')
+            return
+        target_ip = '192.168.10.201'
+        target_mac = '0000.5e00.5301'
+
+        def parse_arp(text):
+            table = {}
+            for line in text.splitlines():
+                tokens = line.split()
+                if len(tokens) >= 5 and tokens[0].count('.') == 3 and tokens[0][0].isdigit():
+                    table[tokens[0]] = (tokens[1], tokens[2], tokens[3], tokens[4])
+            return table
+
+        dutA.mode('#')
+        before_out = dutA.cmd('show arp')
+        before = parse_arp(before_out)
+        clear_out = dutA.cmd('clear arp-cache {}'.format(target_ip))
+        self.log("DUT handling of 'clear arp-cache {}': {}".format(target_ip, clear_out.strip()[:200]))
+        after_out = dutA.cmd('show arp')
+        run_cfg = dutA.cmd('show running-config')
+        after = parse_arp(after_out)
+        output = after_out
+        self.log('OBSERVED: {}'.format(output))
+
+        if target_ip not in before:
+            self.failed('{} not present as an entry in the pre-clear snapshot: {}'.format(
+                target_ip, before_out.strip()[:200]))
+            return
+
+        row = after.get(target_ip)
+        if row is None:
+            self.failed('{} no longer listed in show arp after clear arp-cache'.format(target_ip))
+        elif row[0].lower() == target_mac and row[3] == 'static' and row[2] == portA.name:
+            self.passed('{} still static with MAC {} on {}'.format(target_ip, row[0], row[2]))
+        else:
+            self.failed('{} entry changed after clear: MAC {}, port {}, type {}; expected {} on {} static'.format(
+                target_ip, row[0], row[2], row[3], target_mac, portA.name))
+
+        cfg_line = 'arp {} {}'.format(target_ip, target_mac)
+        if any(line.strip().startswith(cfg_line) for line in run_cfg.splitlines()):
+            self.passed("running-config still contains '{}'".format(cfg_line))
+        else:
+            self.failed("running-config lost '{}' after clear arp-cache".format(cfg_line))
+
+        # Other entries must match the snapshot (ignore the target and dynamic entries that may legitimately age).
+        diffs = []
+        for ip, entry in before.items():
+            if ip == target_ip:
+                continue
+            if after.get(ip) != entry:
+                diffs.append('{}: {} -> {}'.format(ip, entry, after.get(ip)))
+        for ip in after:
+            if ip not in before:
+                diffs.append('{}: new entry {}'.format(ip, after[ip]))
+        if not diffs:
+            self.passed('all other ARP entries ({}) match the snapshot'.format(len(before) - 1))
+        else:
+            self.failed('other ARP entries differ from the snapshot: {}'.format('; '.join(diffs)))
+
+    def tear_down(self):
+        tb = self.testSet.tb
+        dutA = self.testSet.dutA
+        ethA = tb.ethA
+        portA = dutA.portA
+        peer = self.testSet.peer
+        portPeer = dutA.portPeer
+        portDut = peer.portDut
+        # Nothing was configured by this case; the clear is a runtime action, so just return to exec mode.
         dutA.mode('#')
 
 
@@ -2366,8 +2107,4 @@ if __name__ == '__main__':
     ts.add_testCase(TestCase_13())
     ts.add_testCase(TestCase_14())
     ts.add_testCase(TestCase_15())
-    ts.add_testCase(TestCase_16())
-    ts.add_testCase(TestCase_17())
-    ts.add_testCase(TestCase_18())
-    ts.add_testCase(TestCase_19())
     ts.run(sys.argv)

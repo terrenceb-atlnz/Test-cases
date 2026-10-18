@@ -86,7 +86,7 @@
   .data-table {
     width: 100%;
     max-height: 500px;
-    /* border: 1px solid var(--color-border-surface); */
+    border: 1px solid var(--color-border-surface);
     border-radius: 10px;
     background: var(--color-table-header-bg);
     overflow: auto;

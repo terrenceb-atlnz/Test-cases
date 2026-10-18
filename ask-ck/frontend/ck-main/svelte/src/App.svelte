@@ -21,9 +21,9 @@
   import SettingsPage from './pages/SettingsPage.svelte';
   import ToolPage from './pages/ToolPage.svelte';
   import CaseGeneratorPage from './pages/GeneratorPage.svelte';
-    import PyTestPage from './pages/PyTestPage.svelte';
-    import TestComposerPage from './pages/TestComposerPage.svelte';
-    import ZephyrPage from './pages/ZephyrPage.svelte';
+  import PyTestPage from './pages/PyTestPage.svelte';
+  import TestComposerPage from './pages/TestComposerPage.svelte';
+  import ZephyrPage from './pages/ZephyrPage.svelte';
 
   const navigation = {
     main: [

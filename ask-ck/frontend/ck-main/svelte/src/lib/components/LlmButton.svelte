@@ -48,6 +48,11 @@ export let disabled = false;
 /** @type {string} Tooltip while idle (the busy state shows its own stop hint). */
 export let title = '';
 
+/** @type {(() => void) | null} What a click while busy does, when the work is NOT a single call
+    the button started — e.g. a server-side job with its own cancel endpoint. Without it, the
+    click cancels this button's own call id (cancelLlmCall). */
+export let onStop = null;
+
 let isBusy = false;
 let callId = null;
 let progressLabel = label;
@@ -56,7 +61,8 @@ let usage = null;   // latest /api/llm/recent record — badge shown only on suc
 
 async function handleClick() {
   if (isBusy) {
-    cancelLlmCall(callId);   // true server-side cancel — see llmProgressService
+    if (onStop) onStop();
+    else cancelLlmCall(callId);   // true server-side cancel — see llmProgressService
     return;
   }
   if (onBeforeRun) {

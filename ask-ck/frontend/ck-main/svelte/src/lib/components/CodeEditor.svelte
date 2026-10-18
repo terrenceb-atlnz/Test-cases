@@ -111,9 +111,12 @@
 <style>
   .code-editor {
     border-radius: 10px;
+    margin-bottom: 0;
   }
 
   .code-editor.editing {
     border: 1px solid var(--color-accent);
   }
+
+  
 </style>

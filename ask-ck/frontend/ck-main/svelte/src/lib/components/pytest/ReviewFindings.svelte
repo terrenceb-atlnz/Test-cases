@@ -188,7 +188,7 @@
     gap: 10px;
     margin-top: 8px;
     overflow: scroll;
-    max-height: 51vh;
+    max-height: 55vh;
     padding: 12px;
     /* background-color: var(--color-bg-surface); */
     border-top: 5px solid var(--color-border-surface);

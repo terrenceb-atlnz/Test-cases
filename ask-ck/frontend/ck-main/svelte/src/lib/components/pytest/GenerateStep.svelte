@@ -1263,9 +1263,9 @@
   }
 
   .step-frame {
-    border: 1px solid var(--color-border-surface);
+    /* border: 1px solid var(--color-border-surface); */
     border-radius: 8px;
-    padding: 24px 24px 0px 24px;
+    /* padding: 24px 24px 0px 24px; */
     width: 100%;
   }
 
@@ -1361,7 +1361,7 @@
   /* The orange edge marks a proposed (held) fix; the code itself is a read-only CodeMirror. */
   .held-fix-code {
     margin: 0 0 20px;
-    border: 3px solid var(--color-arrow-step-review-border);
+    border: 1px solid var(--color-arrow-step-review-border);
     border-radius: 12px;
   }
 
