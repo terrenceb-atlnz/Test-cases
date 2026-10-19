@@ -5,11 +5,60 @@ verified: 2026-09-28
 
 **Purpose**: This file exists so future sessions can quickly understand exactly where we are, what has been built, what the priorities are, and how to continue seamlessly.
 
-**Last Updated**: 2026-10-16 (by Claude, with Terrence; Run Scripts R1–R4 built and live; the 43dd record deleted)
+**Last Updated**: 2026-10-19 (by Claude, with Terrence; ZTT local-LLM-only planned as D16; README replaced; a silent server-worker death diagnosed)
 
 > **Reading note (2026-09-23 doc sweep).** Entries are frozen as written. Where an entry's
 > claim has since stopped being true, a ⚠ line under its heading says what changed.
 > Newest first. Paths in older entries predate these moves (the same as in CHANGELOG): `tool/` → `ask-ck/tools/`, `ask-ck/var/` → `ask-ck/db/`, `objective-drafting/` → `ask-ck/functions/generator/`, `pytest-create/` → `ask-ck/functions/pytest-creator/`, `js-tests/` → `tests/js/`, `ask-ck/ck-facelift/` → `ask-ck/plans/`, root reports → `docs/`, and completed plans `ask-ck/plans/` → `archive/plans/` (2026-09-11, 2026-09-23). Also retired 2026-09-23: the demo notes → `archive/plans/demo-2026-09-11/`, and `HANDOFF-generate-token-efficiency.md` + `Fragments_prompt.md` → `archive/records/`.
+
+## Latest session (2026-10-19) — ZTT local-LLM-only planned (D16); README replaced; the server's worker died silently
+
+Terrence: "Is the server active? can we reset it", then "We need to pivot ZTT into local LLM
+only … The zephyr templating tool (ZTT), i need that to run with local LLM only", then "Please
+read and replace the git README, as it is almost a month out of date." No code changed.
+- **The server was down, silently.** At 11:01:26 the uvicorn worker (up since the 2026-10-16
+  deploy) went `<defunct>` under the reloader, with no reload, no traceback and no OOM line. The
+  unit still read "active" while `/health` timed out. Claude's `systemctl --user restart` was
+  refused by the classifier as a production deploy. The unit was restarted outside the session
+  at 11:24:37 and was healthy at once. The cause is unknown. Recorded in memory
+  `editing-backend-restarts-production`. 10.33.12.16's case locks (T33234, T33236) went with the
+  worker.
+- **ZTT → local LLM only: D16 PLANNED, not built** (`ask-ck/plans/PLAN-zephyr-templating.md` §3
+  D16, status header, §8.15). The analysis took the per-seat LLM (`routers/zephyr_tool.py`
+  `effective_llm_config(None)`). Terrence chose:
+  - **Model:** the seat's local model.
+  - **A Claude seat is refused** with a 409 and no job.
+  - **Delivery:** plan first.
+
+  Still open: §8.15 (a request with no header; the local LLM key not set), how the one backend
+  save is delivered, and whether a reason is recorded.
+- **README replaced**, re-checked against the repo and `/health` (`verified: 2026-10-19`):
+  - **ZTT:** the real upload (it said dry run) and `zt_create.py`.
+  - **New sections:** the seat-agent setup, and the three Test Composer pages spelled out.
+  - **Layout:** `current/`'s page directories, `svelte-src/` + `islands/`, `svelte/` as Trent's
+    scaffold, test-composer `runs/` + `templates/`, and `TB470-HOST-NETWORKING.md`.
+  - **Doc map:** the newer tools' plans and the agent README.
+  - **Security:** the 2026-09-23 no-auth acceptance and locks cleared by a restart.
+  - **Gate:** one guard, not two.
+  - **Unchanged:** the copyright and "don't clone" text.
+
+**Open (new; raised with Terrence, not answered):**
+- **The `/orient-ck` invariant-3 grep** prints ~46 MB. `command grep` searches the gitignored
+  `CK_server/debug-log/` transcripts and a stale `__pycache__/pt_exec.cpython-310.pyc` (Aug 3).
+  Proposed fix: `--include='*.py'` in the skill.
+- **A tab on 10.33.22.17 polls the deleted 43dd run** every ~4 s and gets 404 each time.
+  Should the page stop polling on a 404?
+- **Harness memory slugs outside every repo:** `-home-terrenceb` and
+  `-home-terrenceb-Documents-banilla` are STRANDED (non-Ask-CK memories), and two others are
+  empty. `check_memory_links.py` fails on them. Where they belong is Terrence's call.
+- **README:** its "don't clone" line doesn't render bold (a space before the closing `**`).
+  Not re-checked: tb470's Python 3.13.5 and the CLI-commands count.
+- **The untracked run record `runs/2026-10-19/2026-10-19T1133-val-ef4c/`** is not this session's
+  and was left unstaged.
+- **Carried over from 2026-10-16:** R5's real run (waits on V0), the missing `RESULT` markers,
+  the agent 1.3.5 reinstall.
+
+Gate: pytest 2106 / 1 skipped, vitest 409.
 
 ## Latest session (2026-10-16) — Run Scripts R1–R4 built and live; the 43dd record deleted
 

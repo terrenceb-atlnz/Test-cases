@@ -28,6 +28,9 @@ verified: 2026-10-07
 > `bc9d7bc`…`781f97d`, one reload, no wedge), after the **first real upload by the tool** on the scratch
 > server: Industrial Features P3260 → **P3266**, C8463 → **C8470** in the IE570 folders, read back from
 > both ends (§5b, *First real run*). Open questions: §8.
+>
+> **2026-10-19: D16 PLANNED, not built** — the analysis runs on the local LLM only (the seat's
+> local model; a Claude seat is refused). §3 D16; its open edges are §8.15.
 
 ## 1. What the tool does (from `docs/zephyr.txt`)
 
@@ -121,6 +124,25 @@ It replaces the four placeholder pages the 2026-07 facelift scaffolded
   created and what was not.
 - **D15 — a family whose `<product>: <name> (Ask-CK)` plan already exists in the target folder is
   SKIPPED** (Terrence, 2026-10-07), the rest uploads, and the skip is reported.
+- **D16 — the analysis runs on the local LLM only** (Terrence, 2026-10-19: *"The zephyr templating
+  tool (ZTT), i need that to run with local LLM only"*). PLANNED, not built. Until now
+  `POST /analyse` took the per-seat LLM (`routers/zephyr_tool.py` `effective_llm_config(None)`), so a
+  seat on the Claude agent sent every plan call and the gaps call through Claude. Terrence's answers
+  the same day:
+  - **the model is the seat's local model** — a seat on `local_llm` keeps its `vllm-fast` or
+    `vllm-thinking`;
+  - **a seat on the Claude agent is REFUSED**, not switched: `POST /analyse` answers 409 with a
+    plain-words reason (proposed: *"Organize with LLM runs on the local LLM only — set this seat to
+    Local LLM and press it again."*) and starts no job. The page already shows a refused
+    `/analyse` in its red status line (`ZtPage.svelte` `analyse()`), so no page change is planned;
+  - **the rule is enforced on the server**, on the effective config (header, else site default,
+    else the transport default), so a client cannot get round it. The analysis is ZTT's only LLM
+    use; the wiki read, the snapshot and the upload make no model calls and are unchanged.
+  - **To build (one backend save, so one production reload — delivery to be agreed):** the check in
+    `POST /analyse` before the job is made; pytest for a local seat on each model (the job keeps
+    that model), a Claude seat (409, no job), no header with a Claude site default (409), no header
+    and no site default (runs, `vllm-fast`); a mutation removing the check must turn them red.
+    Open edges: §8.15.
 
 ## 4. The template set (snapshot 2026-10-05, `zt_snapshot.py`)
 
@@ -474,3 +496,9 @@ C8458 (10 cases), link 169696 only, `updatedOn` 21:28Z (the unlinks); P3264 arch
     template cycle with such a link pulls every future clone of it into that archived plan, and the
     plan-side reads `zt_snapshot` relies on would not show it. Whether any other template cycle has
     one has not been checked (GET only, ~30 s per cycle from the cycle side).
+15. **D16's edges (2026-10-19, open).** (a) A request with **no `X-CK-LLM` header** (curl, a script)
+    gets the site default, which any seat's Apply rewrites — under D16 it runs when that default is
+    local and is refused when it is Claude, and with no site default at all it runs on `vllm-fast`.
+    Is that the wanted behaviour? (b) **The local LLM key is not set** on the server: today every
+    plan call would fail and the plans stay fully ticked with an error each. Refuse up front with
+    *"the local LLM key is not set"* instead, or leave it as it is?

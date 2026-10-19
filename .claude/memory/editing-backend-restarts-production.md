@@ -1,9 +1,9 @@
 ---
 name: editing-backend-restarts-production
-description: ask-ck.service runs uvicorn --reload against the working tree, so ANY save to CK_server/*.py bounces the live server — and a reload can wedge on the agent long-polls
+description: ask-ck.service runs uvicorn --reload against the working tree, so ANY save to CK_server/*.py bounces the live server — a reload can wedge on the agent long-polls, and the worker can also die silently (defunct, 2026-10-19); Claude's unit restart is refused, Terrence restarts
 metadata:
   type: project
-  verified: 2026-10-16
+  verified: 2026-10-19
 ---
 
 The hosted server (`systemd --user` unit `ask-ck.service`, LAN on :8000) runs:
@@ -122,3 +122,15 @@ lock only if one exists and returns 200 either way, and the page fires it withou
 gone until that page re-acquires (a reload). See [[auth-and-case-locking-plan]]. **How to apply:**
 before a restart, check the journal for `/heartbeat` lines — those seats lose their case locks.
 
+
+**2026-10-19 — a SILENT worker death, not a reload wedge; and Claude cannot restart the unit.**
+At 11:01:26 the worker (PID 2292536, up since the 2026-10-16 10:20 deploy) stopped answering and
+became `<defunct>` under the reloader (91715). There was no `StatReload`, no `Waiting for connections to
+close`, no traceback and no OOM line in the kernel log (17 GB free); the journal simply went quiet.
+`systemctl --user status` still said "active (running)" and `/health` and `/api/version` timed out on
+localhost. **Recognise it by:** `ps -o pid,lstart,stat --ppid <MainPID>` shows the worker as `Z`, and the
+journal's last line is an ordinary request. Cause unknown. **The fix is the same unit restart**, but
+the auto-mode classifier refused Claude's `systemctl --user restart ask-ck.service` as [Production
+Deploy] — not retryable, and `ck restart` is the same act, so do not route round it. Diagnose, then
+hand Terrence `ck restart` (the unit was restarted outside the session at 11:24:37 and was healthy at once). Seats holding case locks (that
+day 10.33.12.16 on T33234 + T33236) lose them until their page reloads.

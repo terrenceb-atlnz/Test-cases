@@ -5143,3 +5143,15 @@ so the "repair 43dd before reinstalling agent 1.3.5" item is dropped.
 Open: R5's real two-script run on tb470, which waits for a finalized script (V0); the missing
 `RESULT` markers; the agent 1.3.5 reinstall. Detail: PROGRESS 2026-10-16. Gate: pytest 2106 /
 1 skipped, vitest 409.
+
+## Session Close / Handoff (2026-10-19) — ZTT local-LLM-only planned; README replaced; silent worker death
+
+No code changed. The hosted server's worker went `<defunct>` at 11:01:26 with nothing logged while
+the unit still read "active". Claude's unit restart was refused as a production deploy, and the
+unit was restarted outside the session at 11:24:37 (memory `editing-backend-restarts-production`).
+ZTT's analysis is to run on the local LLM only: PLAN-zephyr-templating D16 (the seat's local model;
+a Claude seat is refused). It is planned, not built; its edges are §8.15 and its delivery is still
+to be agreed. The README was replaced after a check against the repo and `/health`. Open: D16's
+edges and delivery, the orient-skill grep fix, the 43dd 404 polling, the stranded non-repo memory
+slugs, plus 2026-10-16's R5, `RESULT` markers and agent 1.3.5. Detail: PROGRESS 2026-10-19. Gate:
+pytest 2106 / 1 skipped, vitest 409.

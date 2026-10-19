@@ -1,5 +1,5 @@
 ---
-verified: 2026-09-23
+verified: 2026-10-19
 ---
 <p align="center">
   <img src="ask-ck/frontend/ck-main/current/ckc.jpg" alt="Ask CK" width="140" style="border-radius:50%;" />
@@ -19,19 +19,26 @@ verified: 2026-09-23
 ---
 **Please don't clone this without contacting first! **
 
-Ask CK is a server-backed test-engineering workbench for the **AWPTCM** test-case program.
-It takes a sparse Zephyr manual test case, enriches it into a refined case with declarative
-objectives and reviewable steps, and then turns that into a runnable Allied Telesis
-`framework` test script — with a human confirm gate at every stage.
+Ask CK is a server-backed test-engineering workbench for the **AWPTCM** test-case program. It
+carries a test from the project paperwork to a result on a real bench, with a person confirming
+every stage:
 
-It draws on two historical silos to decide what a case *should* verify:
+1. **Zephyr Templating Tool** — from a project's wiki page, choose which template test plans,
+   cycles and cases the project needs, and clone them into Zephyr.
+2. **Objective / Test Case Generator** — enrich a sparse Zephyr manual case into a refined case
+   with declarative objectives and reviewable steps.
+3. **PyTest Creator** — turn a refined case into a runnable Allied Telesis `framework` script.
+4. **Test Composer** — run that script on a testbox, make it run end to end, review it, finalize
+   it, and later run finalized scripts or whole projects.
+
+To decide what a case *should* verify, it draws on two historical silos:
 
 | Source | Role |
 |---|---|
 | **TestLink** (historical) | Detailed human-authored cases (`AWP-*`) for artefact context and overlap |
 | **ATPyLib** (automated) | Enriched suites describing what automation actually tests *for* |
 
-**Authoritative process:**
+**Authoritative process for the Generator:**
 [`ask-ck/functions/generator/OBJECTIVE_DRAFTING_PROCESS.md`](ask-ck/functions/generator/OBJECTIVE_DRAFTING_PROCESS.md).
 
 ## Quick start
@@ -59,7 +66,7 @@ Then open **`http://localhost:8000/`**. Root `./run.sh` is a thin wrapper around
 launcher at `ask-ck/CK-main/run.sh`; either works.
 
 > These flags are for a checkout you run yourself. The hosted LAN server of record runs as
-> the systemd unit `ask-ck.service` — manage it with `ck` or the admin panel, **never**
+> the systemd user unit `ask-ck.service` — manage it with `ck` or the admin panel, **never**
 > `run.sh --stop` / `--bg` (see SERVER-README → *Running the Server* → hosted deployment).
 
 > **Use `http://`, not `https://`.** Ask CK serves plain HTTP. Browsers with HTTPS-Only mode
@@ -69,8 +76,14 @@ launcher at `ask-ck/CK-main/run.sh`; either works.
 **`setup.sh` vs `run.sh`:** `setup.sh` is the superset — prerequisites, LFS pull, venv, and a
 `ck.db` sanity check, then it delegates to `run.sh` to launch. Use it for first-time setup or
 when the toolchain changed. `run.sh` does none of that; it only starts the server. The server
-runs with `--reload`, so **code edits hot-reload** — restart only for environment or
-dependency changes.
+runs with `--reload`, so **backend code edits restart it automatically** — restart by hand only
+for environment or dependency changes.
+
+**Set up your seat (one time).** Claude, and every Test Composer page, run on *your own* PC
+through a small agent that uses your own Claude seat — the server never runs Claude and never
+sees a credential. The Ask CK home page shows the one line to paste (PowerShell on Windows, a
+shell on Linux); it installs Claude Code if needed, logs you in, installs the agent and starts
+it. Re-run the same line to update or repair. Details: [`ask-ck/agent/README.md`](ask-ck/agent/README.md).
 
 <details>
 <summary>Requirements, manual setup, and the Python-version rule</summary>
@@ -116,8 +129,8 @@ modern Git. Install from the git-lfs repo instead:
 
 ## The four invariants
 
-Flag immediately if any of these is violated — they are load-bearing, and two are enforced by
-guards in the test gate.
+Flag immediately if any of these is violated — they are load-bearing, and one is enforced by a
+guard in the test gate.
 
 1. **`ask-ck/db/ck.db` is the permanent single source of truth.** Built **once**, shipped via
    Git LFS, **not** gitignored, **not** rebuildable. A fresh clone gets a complete, populated,
@@ -127,11 +140,12 @@ guards in the test gate.
    `git update-index --skip-worktree` and does not appear in `git status`. See CLAUDE.md
    invariant 1 for how to take a snapshot, and why `.gitignore` is the wrong tool.
 2. **The server reads corpora only from `ck.db`** — zero runtime JSON. Guard:
-   `ask-ck/tools/guard_db_only.py`.
+   `ask-ck/tools/guard_db_only.py`. (The Zephyr Templating Tool's live read of a project's wiki
+   pages is an accepted exception: it is per-project input, not a corpus.)
 3. **`/home/st-art/framework` is read-only.** Never write, edit or redirect into it; copy to a
-   local staging path instead. No runtime guard since 2026-10-12: Ask-CK has no code path that writes to a testbox — runs go
-   through the seat agent's `/test-mode` session and device-testing's bench-runner, whose own rules
-   carry this (PLAN-test-validation V4).
+   local staging path instead. This holds by construction: since 2026-10-12 the server has no
+   code path to a testbox — runs go through the seat agent's `/test-mode` session and
+   device-testing's bench-runner, whose own rules carry this.
 4. **The org vLLM is the one live external dependency, and it is core function** — not an
    inter-dependency to remove. Its models are *reasoning* models. The embedding model is
    bundled and loads fully offline.
@@ -143,7 +157,7 @@ Tests, smoke checks and E2E must **not** write the permanent `ck.db` — use
 ## The gate
 
 ```bash
-./ask-ck/tools/run_tests.sh     # both guards + backend pytest + frontend Vitest
+./ask-ck/tools/run_tests.sh     # the guard + backend pytest + frontend Vitest + a ck.db signature check
 ```
 
 Run it before and after a change. Three layers: **backend** (`tests/`, in-process — no mocks,
@@ -164,54 +178,75 @@ search, including literal script-code chunks):
 | TestLink cases | 21,620 |
 | ATPyLib tests | 10,157 |
 | AlliedWare Plus CLI commands | 3,535 (one combined docs zip since 2026-09-08; renewable) |
-| Indexed scripts | 830 |
+| Indexed scripts | 830 (5,782 code chunks) |
 | Semantic embeddings | 83,816 |
+| Zephyr template set | 14 plans / 15 cycles / 396 cases (refreshed from Zephyr on demand) |
 
-(Counts read from `ck.db` on 2026-09-23.) The former on-disk courier corpora were retired into
-`ck.db` and **deleted** — do not look for them on disk. The raw extracts that used to sit in
-`ask-ck/functions/generator/data/` were deleted in the 2026-09-11 restructure; that directory no
-longer exists.
+(Counts read from the live server's `/health` on 2026-10-19; the CLI count was last read
+2026-09-23 and the template set at its 2026-10-05 refresh.) The former on-disk courier corpora
+were retired into `ck.db` and **deleted** — do not look for them on disk.
 
-**Output:** refined cases are exported to
-`ask-ck/functions/generator/refined-cases/<Group>/AWPTCM-Txxxx/` as `traceability.md` +
-`zephyr_payload.json`. A case is **Complete** once that bundle exists. On 2026-09-16 every case
-was rewound to square one (`e35bbb2`) and the bundles removed; they come back as cases are
-re-exported (4, all in Port, on 2026-09-23).
+**Outputs:**
+- **Refined cases** — `ask-ck/functions/generator/refined-cases/<Group>/AWPTCM-Txxxx/`, as
+  `traceability.md` + `zephyr_payload.json`. A case is **Complete** once that bundle exists.
+  Every case was rewound to square one on 2026-09-16; four have been re-exported since
+  (T33233–T33236, Port).
+- **Generated scripts** — `ask-ck/functions/pytest-creator/generated/<family>/`.
+- **Run records** — `ask-ck/functions/test-composer/runs/<date>/<run id>/`, one per Test
+  Composer run.
 
 ## The tools
 
-Pick a backend first under **LLM → Configure** — most tools need it: **Local LLM** (org vLLM;
-Fast/Thinking toggle, Health check button) or **Claude Code CLI (my local machine)** (your own
-seat through the per-user local agent; Haiku/Sonnet/Opus selector, reports tokens + cost). The
-choice is **per seat**; a seat that never chose starts from the site default, which every Apply
-rewrites (Claude via agent on 2026-09-23), and the org vLLM is the fallback when nothing is set. Every LLM panel
-exposes a **Provenance** block that copies the exact prompt, or re-renders it live without
-sending (`dry_run`, zero tokens) for use in a competing LLM.
+Pick a backend first under **LLM → Configure** — most tools need it: **Local LLM** (the org
+vLLM; Fast/Thinking toggle, Health check button) or **Claude Code CLI (my local machine)** (your
+own seat through the agent; Haiku/Sonnet/Opus selector, reports tokens and cost). The choice is
+**per seat**; a seat that never chose starts from the site default, which any seat's Apply
+rewrites (Claude via the agent, Sonnet, on 2026-10-19). Every LLM panel has a **Provenance**
+block that copies the exact prompt, or re-renders it live without sending (`dry_run`, zero
+tokens) for use in another LLM.
+
+The sidebar lists the tools in this order:
+
+**Zephyr Templating Tool** — one page, **Organize Templates**. Paste a project's wiki page: the
+tool reads its Test Strategy, TPS and Feature Page, and the model proposes which template plans,
+cycles and cases the project can leave out, each with a cited source. Everything starts ticked,
+and the server keeps a proposal only if it names a real key, a reason and a source, so a bad
+answer can only fail to untick. You review the ticks and Confirm. **API Upload** then clones the
+ticked plans and cycles into the project's folder for its AW+ version in Zephyr, after a
+confirmation that names the product and version (the server re-checks both). An audit line is
+written before every write; it stops at the first failure and never undoes automatically. The template set itself is snapshotted from Zephyr
+into `ck.db` by *Refresh templates*. For a new feature with no template to clone,
+`ask-ck/tools/zt_create.py` (command line, `--dry-run` / `--apply`) creates its cases, plan and
+cycle under the same safety rules. Plan: [`ask-ck/plans/PLAN-zephyr-templating.md`](ask-ck/plans/PLAN-zephyr-templating.md).
+
+**Test Composer** — three pages. Each one starts device-testing's `/test-mode` as a full Claude
+Code session **on your own seat** (through the agent and the Claude Agent SDK) and streams it
+into the page; results are read only from agreed marker lines, never from prose.
+- **Validate a Script** — one saved script: probe the bench, check it can run the script, run
+  it, repair a *copy* until the run is clean (the original is overwritten only with your
+  approval), review it, then **Finalize** it.
+- **Compose a Run** — a project's runnable cases on a template bench, with results by cycle.
+- **Run Scripts** — finalized scripts, several at once, in the order you tick them, now or at
+  a one-off start time; a shareable link refills the page (never the email, never a launch). No repair
+  or review.
+
+**PyTest Creator** — turns a Complete case into a runnable `framework` (ATTestSet / ATTestCase)
+script over five gated steps: *Cases* → *Sequence* (the LLM extracts automatable steps,
+classified **setup / verify / physical / manual**) → *Script Search* → *Fragments* (reusable
+symbols resolved to real source by line range) → *Generate* (the LLM fills a fixed skeleton;
+lint enforces conformance). Confirming *Generate* saves the script to `generated/` and offers to
+test it in **Validate a Script**. Physical steps are **in scope**: they generate an operator
+prompt plus a wait-for-state-change poll, and manual checks generate a `yesNo()`. Scripts are
+hardware-agnostic — the frame discovers its topology from the bench through the framework.
 
 **Objective / Test Case Generator** — the original tool. Turns a sparse manual case into a
 refined one over six gated steps: *Cases* → *TestLink* → *Zephyr* → *ATPyLib (scored)* →
 *Objectives (LLM)* → *Test Steps (LLM)*, then **Export the Repeatable Bundle**. Review steps
 2–4 use a two-table "chosen shortlist": search/suggest results land in the top candidates
-table, and **Confirm reads only the bottom chosen table**. A seventh action pushes the
-exported bundle to the live Zephyr case (dry-run Preview first; ensures version 2.0; shells
-out to `ask-ck/frontend/ck-main/current/generator/upload_refined.py` so the server never holds the JIRA token).
-
-**PyTest Creator** — turns a Complete case into a runnable `framework` (ATTestSet /
-ATTestCase) script over five gated steps: *Cases* → *Sequence* (LLM extracts automatable
-steps, classified **setup / verify / physical / manual**) → *Script Search* → *Fragments*
-(reusable symbols resolved to real source by line range) → *Generate* (the LLM fills a fixed
-skeleton; lint enforces conformance). Confirming *Generate* saves the script to `generated/`
-and ends the Creator; it then offers to test the script in **Validation** (its *Run* and
-*Validate* steps and the stored testboxes were retired on 2026-10-12).
-Physical steps are **in scope**: they generate an operator prompt plus a wait-for-state-change
-poll, and manual checks generate a `yesNo()`.
-
-**Test Composer** — three pages, all launching device-testing's `/test-mode` through your seat's
-agent: **Validate a Script** (one saved script, run on a bench, repaired on a copy until the run
-is clean, reviewed, then Finalized), **Compose a Run** (a project's runnable cases on a
-template bench, with results by cycle) and **Run Scripts** (finalized scripts, several at once in
-the order ticked, from a shareable link; no repair or review). Plans: `ask-ck/plans/PLAN-test-validation.md`,
-`PLAN-test-composer.md`, `PLAN-agent-sessions.md`, `PLAN-run-scripts.md`. **Zephyr Templating Tool** — one page (**Organize Templates**): paste a project's wiki page, the model trims the template plans/cycles/cases citing the TPS and Test Strategy, you review the ticks; API Upload is a dry run for now (`ask-ck/plans/PLAN-zephyr-templating.md`).
+table, and **Confirm reads only the bottom chosen table**. A seventh action pushes the exported
+bundle to the live Zephyr case (dry-run Preview first; takes the case to version 2.0, never
+higher; shells out to `ask-ck/frontend/ck-main/current/generator/upload_refined.py` so the
+server never holds the Jira token).
 
 Before touching lab hardware, read [`TESTBOX-ACCESS.md`](TESTBOX-ACCESS.md) in full.
 
@@ -222,7 +257,8 @@ Test-cases/
 ├── CHANGELOG.md                    # Feature history (newest first)
 ├── SESSION_STATE.md                # Long-form session history
 ├── TESTBOX-ACCESS.md               # Read before touching lab hardware (symlink → ../device-testing/)
-├── docs/                           # Repo-level documents: reviewer onboarding, reports, inventories
+├── TB470-HOST-NETWORKING.md        # The tb470 Linux host itself: DHCP, routing, packet capture
+├── docs/                           # Repo-level documents: reviewer onboarding, reports, the ATUI design system
 ├── tests/                          # The whole test layer: pytest at tests/, Vitest at tests/js/, Playwright at tests/e2e/
 ├── archive/                        # Retired tools, completed plans, closed records — kept, not live
 └── ask-ck/
@@ -230,18 +266,22 @@ Test-cases/
     ├── CK-main/                    # Backend: run.sh, requirements.txt, SERVER-README.md
     │   └── CK_server/              # FastAPI server (main.py, paths.py, routers/, templates/)
     ├── frontend/ck-main/
-    │   ├── current/                # The served front-end: index.html, styles.css, modules by page
-    │   │                           #   (generator/, pytest-creator/, llm-config/, admin/, shared/)
+    │   ├── current/                # The served front-end: index.html, styles.css, one directory per page
+    │   │                           #   (generator/, pytest-creator/, test-composer/, validation/,
+    │   │                           #   zephyr-tool/, llm-config/, admin/, shared/)
+    │   │   ├── svelte-src/         #   Svelte source for the Test Composer and ZTT pages
+    │   │   └── islands/            #   …and its built bundles, committed (no build step on the server)
     │   ├── restyle/                # The ATUI restyle, served at /restyle — own HTML + CSS, current/'s JS
-    │   └── svelte/                 # The Svelte rewrite (Vite + Svelte 5) — the design branch's home
+    │   └── svelte/                 # A separate Svelte scaffold (Trent's) — not the source of the pages above
     ├── functions/                  # One directory per page: its data, results and docs
     │   ├── generator/              # PROGRESS.md, OBJECTIVE_DRAFTING_PROCESS.md, refined-cases/
     │   ├── pytest-creator/         # Specs (TOPOLOGY-PROFILES, TEMPLATE-SPEC, …) and generated/
-    │   ├── test-composer/          # ART execution-chain doc + bench scripts
+    │   ├── test-composer/          # runs/ (run records), templates/ (bench topologies + configs), ART chain doc
     │   └── zephyr-tool/            # README (the tool's data lives in ck.db; its page is current/zephyr-tool/)
-    ├── tools/                      # Every script not called by a page button: gate, guards, checkers, corpus loaders
+    ├── tools/                      # Every script not called by a page button: gate, guard, checkers,
+    │                               #   corpus loaders, the zt_* Zephyr tools
     ├── plans/                      # Active plans (PLAN-*.md) + DECISIONS-FOR-REVIEW.md
-    ├── agent/                      # The seat agent, served at /setup/
+    ├── agent/                      # The seat agent (Linux + Windows), served at /setup/
     └── db/                         # ck.db — THE permanent database (Git LFS) + the embedding model
 ```
 
@@ -251,39 +291,44 @@ Test-cases/
 |---|---|
 | [`ask-ck/functions/generator/PROGRESS.md`](ask-ck/functions/generator/PROGRESS.md) | **Start here** — status, backlog, handoff (newest entry at the top) |
 | [`ask-ck/ARCHITECTURE.md`](ask-ck/ARCHITECTURE.md) | Executive summary — system shape, the invariants, where the risk sits |
-| [`ask-ck/CK-main/SERVER-README.md`](ask-ck/CK-main/SERVER-README.md) | The deep technical reference — run, architecture, LLM modes, nginx |
+| [`ask-ck/CK-main/SERVER-README.md`](ask-ck/CK-main/SERVER-README.md) | The deep technical reference — run, architecture, LLM modes, agent sessions, nginx |
 | [`CHANGELOG.md`](CHANGELOG.md) | What changed, when, and **why** |
 | [`ask-ck/functions/generator/OBJECTIVE_DRAFTING_PROCESS.md`](ask-ck/functions/generator/OBJECTIVE_DRAFTING_PROCESS.md) | The Generator's authority (Steps 1–2) |
 | [`ask-ck/plans/PLAN-pytest-creator.md`](ask-ck/plans/PLAN-pytest-creator.md) | PyTest Creator plan + progress tracker |
-| [`ask-ck/functions/pytest-creator/TOPOLOGY-PROFILES.md`](ask-ck/functions/pytest-creator/TOPOLOGY-PROFILES.md) | What a bench must cable, and how a generated script discovers its topology (no `[misc]` contract since 2026-09-21) |
+| [`ask-ck/functions/pytest-creator/TOPOLOGY-PROFILES.md`](ask-ck/functions/pytest-creator/TOPOLOGY-PROFILES.md) | What a bench must cable, and how a generated script discovers its topology |
 | [`ask-ck/functions/pytest-creator/SETUP-FILE-REFERENCE.md`](ask-ck/functions/pytest-creator/SETUP-FILE-REFERENCE.md) | `.setup` topology schema + a worked example |
+| [`ask-ck/plans/PLAN-agent-sessions.md`](ask-ck/plans/PLAN-agent-sessions.md) | How Ask CK starts and talks to a `/test-mode` session on a seat |
+| [`ask-ck/plans/PLAN-test-validation.md`](ask-ck/plans/PLAN-test-validation.md) | Validate a Script: run, repair, review, Finalize |
+| [`ask-ck/plans/PLAN-test-composer.md`](ask-ck/plans/PLAN-test-composer.md) | Compose a Run: a project's cases on a template bench |
+| [`ask-ck/plans/PLAN-run-scripts.md`](ask-ck/plans/PLAN-run-scripts.md) | Run Scripts: finalized scripts, several at once, from a link |
+| [`ask-ck/plans/PLAN-zephyr-templating.md`](ask-ck/plans/PLAN-zephyr-templating.md) | The Zephyr Templating Tool: design, decisions, the upload's requests |
+| [`ask-ck/agent/README.md`](ask-ck/agent/README.md) | The seat agent: install, update, what it runs |
 | [`ask-ck/functions/generator/LESSONS_LEARNED.md`](ask-ck/functions/generator/LESSONS_LEARNED.md) | Prior decisions and pitfalls |
 | [`docs/resources.md`](docs/resources.md) | Links to TestLink, Zephyr, ART |
 | [`archive/plans/PLAN-atui-restyle.md`](archive/plans/PLAN-atui-restyle.md) | The ATUI restyle at `/restyle`, swappable with Classic: settled decisions S1–S16, wording + icon lists |
-| [`docs/ATUI Design System/`](<docs/ATUI Design System/readme.md>) | Allied Telesis UI guidance from governance (received 2026-09-30): tokens, content rules, component recreations. Also the `atui-design` skill, linked from `.claude/skills/` |
+| [`docs/ATUI Design System/`](<docs/ATUI Design System/readme.md>) | Allied Telesis UI guidance from governance (received 2026-09-30). Also the `atui-design` skill, linked from `.claude/skills/` |
 | [`docs/`](docs/) | Repo-level documents: reviewer onboarding, the token-efficiency report, the memory-split inventory, captured prompts |
 
 **Session workflow:** run **`/orient-ck`** at the start of a working session and **`/wrap-ck`** at
 the end — project skills in [`.claude/skills/`](.claude/skills/). `/orient-ck` ground-truths the
-live repo (git, guards, gate), reads the newest handoff, and confirms the invariants before
-any work begins; `/wrap-ck` reconciles the docs against what actually shipped and commits. Both
-are plain Markdown with no tool-specific syntax — paste a `SKILL.md` body into any other
-assistant if you are not using Claude Code.
+live repo (git, guard, gate), reads the newest handoff, and confirms the invariants before any
+work begins; `/wrap-ck` reconciles the docs against what actually shipped and commits. Both are
+plain Markdown with no tool-specific syntax — paste a `SKILL.md` body into any other assistant if
+you are not using Claude Code.
 
-**Security posture:** designed for **localhost / single user**. The server binds `127.0.0.1`
-by default (LAN exposure is an explicit `HOST=0.0.0.0`) and there is still **no
-authentication** — yet the hosted server of record has run with `HOST=0.0.0.0` on the LAN
-since 2026-08-26, used by several seats, so that exposure is real today. **Per-case locking is DONE** (Phase 1, 2026-07-29): `CK_server/locks.py`
-holds a lock per (tool, case) so a second tab gets a read-only view instead of silently
-overwriting the first — the whole-blob session write that made that possible is still there,
-with an optimistic `rev` compare-and-swap as backstop. The registry is **in-process on
-purpose** (a durable table would have been the first in-place schema change to the permanent
-`ck.db`), so running multi-worker would silently reintroduce the overwrite bug — `locks.py`
-says so prominently. Multi-user **identity** (Phase 2) and attribution + TLS (Phase 3) remain
-planned in
-[`ask-ck/plans/PLAN-auth-and-case-locking.md`](ask-ck/plans/PLAN-auth-and-case-locking.md),
-gated on an organisational decision. Never commit credentials — `secrets.md`,
-`secrets.local.json` and `secrets.testboxes.json` (the retired testbox profiles) are gitignored.
+**Security posture:** there is **no authentication**. The server binds `127.0.0.1` by default
+(LAN exposure is an explicit `HOST=0.0.0.0`), but the hosted server of record has run on the LAN
+since 2026-08-26, open admin panel included — accepted for now on 2026-09-23, with LDAP or
+similar to come later. **Per-case locking** (2026-07-29): `CK_server/locks.py` holds a lock per
+(tool, case), so a second tab gets a read-only view instead of silently overwriting the first,
+with an optimistic `rev` compare-and-swap as backstop. The registry is **in memory on purpose**
+(a durable table would have been the first in-place schema change to the permanent `ck.db`), so
+a server restart clears every lock until the page holding it reloads, and running multi-worker
+would silently bring back the overwrite bug — `locks.py` says so prominently. Identity and
+attribution remain planned in
+[`ask-ck/plans/PLAN-auth-and-case-locking.md`](ask-ck/plans/PLAN-auth-and-case-locking.md).
+Never commit credentials — `secrets.md`, `secrets.local.json` and `secrets.testboxes.json` (the
+retired testbox profiles) are gitignored.
 
 > **Note:** primary development is on an internal machine; this GitHub tree is a published
 > copy. On 2026-07-13 the repo was restructured (`drafting-tool/` → `ask-ck/CK-main/`; root
