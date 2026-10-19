@@ -29,8 +29,23 @@ These steps produce the raw material that is recorded in the standardized per-ca
 - Objectives describe **artefacts** (what should be true), not the process or instructions.
 - The number of objective bullets and the number of testScript steps is **not uniform** across cases. Use as many as needed for clear coverage.
 
+> **2026-10-19 (Terrence) — the level of an objective and its steps.** Generated objectives
+> had to be hand-edited "because they're unreadable for the average person": "incredibly
+> high-level engineer-speak, often FAR too specific in testing (this should be an overview
+> test, not a set of full deep-dive tests that test every little thing)". So:
+> - **An objective is a plain-language list of the things about the feature that we want
+>   testing to prove work** — for loopbacks: "they can be addressable, are usable as a source
+>   address, can be advertised, there can be multiple of them, make sure we cant add invalid
+>   addresses, removing them actually DOES remove them, and other very basic things".
+>   Layman's terms; no character limit and no set number of bullets.
+> - **Test steps "can be as high-level as required"**, and a step may cover several
+>   objectives: "Nothing prevents that, nor should there be."
+>
+> The principles below are read in that light: an overview of the feature working, not a
+> sweep of every condition.
+
 **General Principles (applies to all areas)**
-- The `objective` is a bulleted list of **artefacts** — declarative statements of desired end states or verifiable outcomes (e.g. "A port with no pluggable present defaults to...").
+- The `objective` is a bulleted list of **artefacts** — plain statements of what the feature does or what should be true (e.g. "A port with no pluggable present defaults to...").
 - Do **not** write procedural language ("Verify that...", "Set the port...") in the objective bullets.
 - Always cover positive (happy path, defaults, supported) + negative (incompatible, error, unsupported).
 - Explicitly call out observability/reporting ("...correctly reports...", "...accurately reflects...").
@@ -147,11 +162,11 @@ grep -o "\"title\":\"[^\"]*[Aa]uto[^\"]*\"" data/zephyr_full/zephyr_cases.jsonl 
    - **User review**: Pause for user review and confirmation of the documented TestLink list (primary + relevant cases) before continuing to ATPyLib analysis or artefact synthesis.
    - Perform an additional review step for **tangentially related cases** (conduct broader searches using keywords derived from the feature area — e.g., for Port: "no pluggins", "defaults", "hot-swap", "pluggable insert"; for OSPF: "adjacency", "lsa", "area", "neighbor", "hello"; for other areas: appropriate feature-specific terms — plus any mentions of reporting/status/show commands, defaults, or error handling). Assess whether these introduce new artefacts not covered by the core relevant cases or are adequately addressed by them.
 4. Review enriched ATPyLib cases that exercise the same area (see Step 4).
-5. Produce a list of **declarative artefact statements**. Each bullet describes a desired end state or verifiable outcome.
+5. Produce a list of **the things about the feature that testing should prove work**. Each bullet is a plain statement of something the feature does, or something that should be true.
    - Focus exclusively on **what should be true** after the scenario (artefacts), not instructions or process steps.
-   - Cover positive scenarios, negative/failure cases, special conditions, and correct reporting.
-   - Keep each bullet concise and observable.
-   - The number of bullets varies per case (typically 1–10).
+   - Stay with the basics of the feature: it can be set up, it does what it is for, it refuses settings that are not valid, and removing it really does remove it. An overview, not a deep-dive into every variation (2026-10-19).
+   - Write in plain language a tester new to the feature can read — layman's terms, not engineer-speak (2026-10-19).
+   - The number of bullets varies per case; there is no set number and no length limit (2026-10-19).
 
 **Output format for `objective`** (exact string to store in `zephyr_payload.json` inside the case directory):
 
@@ -212,9 +227,9 @@ grep -o "\"title\":\"[^\"]*[Aa]uto[^\"]*\"" data/zephyr_full/zephyr_cases.jsonl 
    }
    ```
 
-6. Keep steps high-level enough to be reusable across platforms but specific enough to be testable.
+6. Keep steps as high-level as the case allows — reusable across platforms, but specific enough to be testable (2026-10-19: "The test steps can be as high-level as required").
 7. Include both happy-path and error-path scenarios.
-8. The number of steps is **not fixed**. Match the coverage needed for the artefacts.
+8. The number of steps is **not fixed**. Match the coverage needed for the artefacts. A step may cover several objective bullets at once, and no two steps should cover the same ground (2026-10-19).
 
 **Reference step style** (excerpt from the XML for AWPTCM-T33234):
 

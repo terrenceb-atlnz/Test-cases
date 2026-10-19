@@ -8,17 +8,27 @@
   generated SCRIPT (pt_generate_script.jinja), never here.
   On 2026-08-05 four rules that had drifted in from the script layer were reversed. Read
   the SPEC before changing a rule here — a review against the code alone passed all four.
+
+  2026-10-19 (Terrence): generated steps were "FAR too verbose" and "tend to overlap". Two
+  rules drove it — "cover each major objective bullet" (one long step per bullet) and "a step
+  must add the setup, the data, the variation" (every step carrying all three). Terrence:
+  "The test steps can be as high-level as required", and "There can be steps that cover
+  multiple objectives … Nothing prevents that, nor should there be." The ban on naming
+  commands stays (his 2026-10-19 answer). Two evidence labels that contradicted the rules
+  went too: TestLink "reuse their concrete values" (values are the script's job) and Zephyr
+  "match their level of detail" (only their titles are shown).
   This block is a Jinja comment: it never renders and is never sent to the model.
 -#}
-You are drafting Zephyr-ready verification steps for a manual test case.
+You are drafting Zephyr-ready test steps for a manual test case.
 The objective below is finalized (user-reviewed). Derive the steps from it.
 
 An objective bullet states an END STATE — what should be true. A step is a PROCEDURE — what
-someone does, and under what conditions. A step must add test-design information the bullet
-does not already carry: the setup, the data, the variation, the thing being exercised.
-Re-wording a bullet adds nothing and is not a step — whatever verb it opens with. "Verify …"
-is a perfectly good way to begin a real step and many steps here should use it; the fault is
-restatement, never the word.
+a tester does to show it. Re-wording a bullet is not a step, whatever verb it opens with.
+"Verify …" is a perfectly good way to begin a real step; the fault is restatement, never the
+word.
+
+Keep the steps as high-level as the case allows: say what to do, and what to confirm, in
+plain words, and leave the detail to the tester.
 
 ## Case
 {{ case_key }}{% if primary and primary.w %} — {{ primary.w }}{% endif %}
@@ -26,10 +36,10 @@ restatement, never the word.
 ## Finalized objective (authoritative)
 {{ objective }}
 {% if testlink_selections %}
-## TestLink selections (evidence — reuse their concrete values where they fit)
+## TestLink selections (evidence of what has been tested before)
 {% for s in testlink_selections %}- {{ s.id_or_key }}: {{ s.title }}
 {% endfor %}{% endif %}{% if zephyr_selections %}
-## Zephyr exemplars (evidence — match their level of detail)
+## Zephyr exemplars (evidence)
 {% for s in zephyr_selections %}- {{ s.key or s.id_or_key }}: {{ s.title }}
 {% endfor %}{% endif %}{% if atp_selections %}
 ## ATPyLib coverage (selected ART)
@@ -40,12 +50,14 @@ restatement, never the word.
 {% endif %}
 ## Rules
 - The FIRST step is injected server-side as a traceability note — DO NOT generate it.
-- Generate ONLY the subsequent verification steps exercising the objective's artefacts.
-- Cover each major objective bullet: positive, negative, special conditions, reporting.
-- Keep each step high-level enough to be reusable across platforms, but specific enough to
-  be testable. Naming exact values, counts and timings is the PyTest script's job, not this
-  one — a manual step that dictates them narrows the tester to one way of exercising the
-  feature instead of leaving them to produce evidence that it works.
+- Generate ONLY the subsequent steps.
+- Between them, the steps must show every bullet in the objective. One step may show
+  several bullets at once — where one action proves more than one thing, that is good. Do
+  not write two steps that cover the same ground.
+- Keep each step short: what the tester does, then what they confirm.
+- Keep each step reusable across platforms. Naming exact values, counts and timings is the
+  PyTest script's job, not this one — a manual step that dictates them narrows the tester to
+  one way of exercising the feature instead of leaving them to produce evidence that it works.
 - LEAVE `expectedResult` EMPTY on every step. This is deliberate, not an omission. The
   tester reads the objective and the step and reasons out what should happen; stating the
   outcome narrows them to producing exactly that result instead of evidence that the
@@ -59,21 +71,30 @@ restatement, never the word.
 - Platform-agnostic language: no product names, no hardcoded port strings.
 
 ## Output format — this example IS the specification; match its level of detail
+For an objective about loopback interfaces:
 [
   {
-    "description": "Verify LLDP operation with the DUT and its link partner both running default timers. Confirm neighbours are discovered on the test link and that each side reports the other's chassis and port identity.",
+    "description": "Create a loopback interface and give it a valid address. Confirm the address can be reached from a neighbouring device.",
     "expectedResult": ""
   },
   {
-    "description": "Vary the transmit interval and hold multiplier across their supported range, including the minimum and maximum. Confirm advertisements are sent at the configured rate and that the neighbour's advertised lifetime tracks the configured values.",
+    "description": "Send traffic from the device using the loopback address as its source. Confirm the far end sees the loopback address as the sender.",
     "expectedResult": ""
   },
   {
-    "description": "Set the transmit interval below the supported minimum and above the supported maximum. Confirm the DUT rejects both and retains its previous configuration.",
+    "description": "Advertise the loopback address to a neighbouring device. Confirm the neighbour learns how to reach it.",
     "expectedResult": ""
   },
   {
-    "description": "Disable LLDP transmit on the DUT while leaving receive enabled, then re-enable it. Confirm the neighbour ages out and is rediscovered, and that the port reports the change.",
+    "description": "Create several loopback interfaces, each with its own address. Confirm each one exists and can be reached on its own.",
+    "expectedResult": ""
+  },
+  {
+    "description": "Try to give a loopback interface addresses that are not valid. Confirm each one is refused and the interface keeps its existing address.",
+    "expectedResult": ""
+  },
+  {
+    "description": "Remove a loopback address, then the loopback interface itself. Confirm neither can still be reached, and the neighbour no longer learns a route to it.",
     "expectedResult": ""
   }
 ]

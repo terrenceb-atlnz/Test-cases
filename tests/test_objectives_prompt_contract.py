@@ -16,6 +16,15 @@ example whose bullets average ~90. Two causes, both pinned here:
      bullets; T33236 (duplex) was handed the *Polarity* bundle and produced four polarity
      bullets. Each wrote its neighbour's objective.
 
+2026-10-19 (Terrence) reversed the count and length rules this file used to pin. With them
+in place the objectives still came back as "incredibly high-level engineer-speak" and "FAR
+too specific" -- deep-dives, hand-edited "because they're unreadable for the average
+person". The worked example was T33234's own generated objective, so the model was being
+taught to copy its own deep-dive. Terrence: "remove the character limit, its not expressly
+necessary. same with any mention of the total amount of objectives." What is pinned now is
+the level -- plain language, an overview of the feature working -- and the ABSENCE of a count
+or a length limit, in both the prompt and the SPEC.
+
 Per `prompt-examples-are-the-spec` the example is what the model implements, so the example
 is checked hardest -- and ONLY the example is scanned for banned phrasing, because the
 prose legitimately names every antipattern it forbids (`_prose` exists for that trap).
@@ -64,7 +73,8 @@ def _example_bullets(text):
 @pytest.mark.parametrize("rule", [
     "procedural language",      # no "Verify that..."
     "do NOT enumerate exact values",
-    "between 1 and 10 bullets",
+    "everyday words",           # plain language, 2026-10-19
+    "an overview of the feature working, not a deep-dive",
 ])
 def test_every_constraint_lives_in_the_rendered_body(rule):
     assert rule.lower() in FLAT.lower(), (
@@ -79,23 +89,27 @@ def test_the_header_comment_is_still_stripped_by_the_check():
     assert "LAYER: Test Case Generator" not in BODY
 
 
-# --- 2. prompt and SPEC must agree on the bullet range ------------------------------
+# --- 2. no bullet count and no length limit, in the prompt or the SPEC ---------------
 
-def test_bullet_range_matches_the_design_doc():
-    spec = SPEC.read_text(encoding="utf-8")
-    m = re.search(r"number of bullets varies per case \(typically (\d+)\s*[–-]\s*(\d+)\)", spec)
-    assert m, "SPEC no longer states a 'typically N-M' bullet range — re-sync this test."
-    lo, hi = m.group(1), m.group(2)
-    assert re.search(rf"between\s+{lo}\s+and\s+{hi}\s+bullets", FLAT), (
-        f"SPEC says typically {lo}-{hi} bullets; the prompt must state the same range. "
-        f"This drifted silently once — the prompt said only 'count is not fixed'.")
+def test_the_prompt_sets_no_bullet_count_and_no_length_limit():
+    # Terrence 2026-10-19: neither is "expressly necessary". The header comment is stripped
+    # (BODY), so its history of the old rules cannot trip this.
+    assert not re.search(r"\bbetween\s+\d+\s+and\s+\d+\s+bullets", FLAT, re.I), \
+        "the prompt states a bullet-count range again — removed 2026-10-19"
+    assert not re.search(r"\b\d+\s+characters\b", FLAT, re.I), \
+        "the prompt states a character limit again — removed 2026-10-19"
+
+
+def test_the_design_doc_agrees_there_is_no_set_number():
+    spec = flat(SPEC.read_text(encoding="utf-8")).lower()
+    assert "no set number and no length limit" in spec, (
+        "SPEC Step 1 no longer says there is no set number and no length limit — the "
+        "prompt and the SPEC must agree (they drifted silently once before).")
+    assert "typically 1–10" not in spec and "typically 1-10" not in spec, \
+        "SPEC Step 1 states a 'typically 1-10' range again — removed 2026-10-19"
 
 
 # --- 3. the worked example must obey the rules it teaches ---------------------------
-
-def test_example_is_within_the_bullet_range():
-    n = len(_example_bullets(_render()))
-    assert 1 <= n <= 10, f"example shows {n} bullets — it teaches breaking the stated range"
 
 
 def test_example_bullets_are_declarative_not_procedural():
@@ -109,11 +123,6 @@ def test_example_bullets_carry_no_device_specifics_or_value_lists():
     banned = re.compile(r"\b(1G\b|1-Gigabit|10/100|1000 Mbps|port\d+\.\d+\.\d+|x9\d0|IE\d{3})", re.I)
     for b in _example_bullets(_render()):
         assert not banned.search(b), f"example bullet names a device specific/value list: {b!r}"
-
-
-def test_example_bullets_respect_the_length_guidance():
-    for b in _example_bullets(_render()):
-        assert len(b) <= 140, f"example bullet is {len(b)} chars, over the stated guidance: {b!r}"
 
 
 # --- 4. the scope boundary must actually reach the model ----------------------------

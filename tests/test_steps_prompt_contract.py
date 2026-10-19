@@ -20,7 +20,7 @@ import re
 
 import pytest
 
-from _prose import code_fences, flat
+from _prose import code_fences, flat, strip_jinja_comments
 
 REPO = pathlib.Path(__file__).resolve().parents[1]
 STEPS_TPL = REPO / "ask-ck" / "CK-main" / "CK_server" / "templates" / "prompts" / "generate_steps.jinja"
@@ -149,6 +149,26 @@ def test_prose_distinguishes_an_end_state_from_a_procedure():
 def test_prompt_no_longer_asks_for_one_step_per_bullet():
     """That rule is what made steps track bullets 1:1 at 0.98 similarity."""
     assert "one or a few steps per major objective bullet" not in flat(TEXT).lower()
+
+
+def test_one_step_may_cover_several_bullets():
+    """Terrence 2026-10-19: "There can be steps that cover multiple objectives … Nothing
+    prevents that, nor should there be." Its replacement, "cover each major objective
+    bullet", gave one long step per bullet — the verbose, overlapping steps of T33233-36."""
+    body = flat(strip_jinja_comments(TEXT)).lower()   # the header quotes the old rules
+    assert "one step may show several bullets" in body, \
+        "the prompt no longer says one step may cover several objective bullets"
+    assert "cover each major objective bullet" not in body, \
+        "the one-step-per-bullet rule is back (removed 2026-10-19)"
+
+
+def test_evidence_labels_do_not_contradict_the_rules():
+    """The TestLink label said "reuse their concrete values" while a rule said exact values
+    are the script's job; the Zephyr label said "match their level of detail" when only the
+    exemplars' titles are shown. Both removed 2026-10-19."""
+    body = flat(strip_jinja_comments(TEXT)).lower()   # the header quotes the old labels
+    assert "reuse their concrete values" not in body
+    assert "match their level of detail" not in body
 
 
 # ------------------------------------------------------ 2.2: the corpus context is rendered
