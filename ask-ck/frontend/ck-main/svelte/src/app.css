@@ -88,6 +88,11 @@
   --filter-status-none: invert(31%) sepia(14%) saturate(882%) hue-rotate(176deg) brightness(93%) contrast(87%);     /* #475569 */
   --filter-status-error: invert(40%) sepia(85%) saturate(1432%) hue-rotate(330deg) brightness(100%) contrast(104%); /* #ff5050 */
 
+  /* Icon tints matching TEXT colours (currentColor SVGs via <img> draw black), computed like the
+     status filters above: heading = --color-text-heading, muted = --color-text-muted. */
+  --filter-text-heading: invert(6%) sepia(7%) saturate(4079%) hue-rotate(169deg) brightness(95%) contrast(93%);   /* #101820 */
+  --filter-text-muted: invert(31%) sepia(14%) saturate(882%) hue-rotate(176deg) brightness(93%) contrast(87%);      /* #475569 */
+
   --arrow-filter-hover: brightness(1.05);
 
   color: var(--color-text);
@@ -97,6 +102,9 @@
   --color-error-border: rgba(220, 38, 38, 0.5);
 
   --color-analysis-key: #004f88;
+
+  --color-tc-inactive-bg: #e7e7e7;
+
 }
 
 @media (prefers-color-scheme: dark) {
@@ -167,6 +175,10 @@
   /* Status-badge tints for this theme's muted / error colours (covered and review are unchanged). */
   --filter-status-none: invert(75%) sepia(26%) saturate(217%) hue-rotate(168deg) brightness(89%) contrast(90%);     /* #9db0c2 */
   --filter-status-error: invert(56%) sepia(76%) saturate(2760%) hue-rotate(322deg) brightness(102%) contrast(101%); /* #ff6565 */
+
+  /* Text-colour icon tints for this theme. */
+  --filter-text-heading: invert(95%) sepia(8%) saturate(179%) hue-rotate(187deg) brightness(103%) contrast(94%);  /* #f2f5f7 */
+  --filter-text-muted: invert(75%) sepia(26%) saturate(217%) hue-rotate(168deg) brightness(89%) contrast(90%);     /* #9db0c2 */
 
   --arrow-filter-hover: brightness(1.25);
   --color-arrow-text-hover: #fff;
@@ -246,10 +258,16 @@
   --filter-status-none: invert(75%) sepia(26%) saturate(217%) hue-rotate(168deg) brightness(89%) contrast(90%);     /* #9db0c2 */
   --filter-status-error: invert(56%) sepia(76%) saturate(2760%) hue-rotate(322deg) brightness(102%) contrast(101%); /* #ff6565 */
 
+  /* Text-colour icon tints for this theme. */
+  --filter-text-heading: invert(95%) sepia(8%) saturate(179%) hue-rotate(187deg) brightness(103%) contrast(94%);  /* #f2f5f7 */
+  --filter-text-muted: invert(75%) sepia(26%) saturate(217%) hue-rotate(168deg) brightness(89%) contrast(90%);     /* #9db0c2 */
+
   --arrow-filter-hover: brightness(1.25);
   --color-arrow-text-hover: #fff;
 
   --color-analysis-key: #0069B3;
+
+  --color-tc-inactive-bg: #131313;
 }
 
 @media (prefers-color-scheme: dark) {

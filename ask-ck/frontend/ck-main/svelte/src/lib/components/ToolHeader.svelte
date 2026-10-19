@@ -13,7 +13,7 @@
     <h1>{title}</h1>
   </div>
 </div>
-<hr class="page-header-rule" />
+<!-- <hr class="page-header-rule" /> -->
 
 <style>
   .page-header {

@@ -79,7 +79,7 @@
     color: #dfeef8;
     border: none;
     padding: 8px 20px 8px;
-    border-radius: 8px;
+    border-radius: 5px;
     text-align: left;
     cursor: pointer;
     transition: background 0.2s ease, color 0.2s ease;
