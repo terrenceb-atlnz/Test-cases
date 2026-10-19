@@ -5,11 +5,53 @@ verified: 2026-09-28
 
 **Purpose**: This file exists so future sessions can quickly understand exactly where we are, what has been built, what the priorities are, and how to continue seamlessly.
 
-**Last Updated**: 2026-10-19, later (by Claude, with Terrence; Generator objective + steps prompts rewritten on branch `gen-prompts-plain`, NOT merged, awaiting his review)
+**Last Updated**: 2026-10-20 (by Claude, with Terrence; Generator prompt rewrite merged and judged good on T33241; T33241 force-pushed to Zephyr; his PyTest script outline recorded in PLAN-pytest-creator)
 
 > **Reading note (2026-09-23 doc sweep).** Entries are frozen as written. Where an entry's
 > claim has since stopped being true, a ⚠ line under its heading says what changed.
 > Newest first. Paths in older entries predate these moves (the same as in CHANGELOG): `tool/` → `ask-ck/tools/`, `ask-ck/var/` → `ask-ck/db/`, `objective-drafting/` → `ask-ck/functions/generator/`, `pytest-create/` → `ask-ck/functions/pytest-creator/`, `js-tests/` → `tests/js/`, `ask-ck/ck-facelift/` → `ask-ck/plans/`, root reports → `docs/`, and completed plans `ask-ck/plans/` → `archive/plans/` (2026-09-11, 2026-09-23). Also retired 2026-09-23: the demo notes → `archive/plans/demo-2026-09-11/`, and `HANDOFF-generate-token-efficiency.md` + `Fragments_prompt.md` → `archive/records/`.
+
+## Latest session (2026-10-20) — Generator prompts merged and judged good; T33241 pushed to Zephyr
+
+Continues the 2026-10-19 (later) entry below. Its five open items are closed:
+1. **Both loopback examples:** kept as drafted (Terrence: "both are fine, i see no issues").
+2. **The design doc's General Principles** (reporting, special conditions): KEPT. Terrence: "we
+   will see the actual tool output with the current state of changes and only make changes
+   where necessary".
+3. **His PyTest-script outline:** recorded verbatim as *User decisions* #5 in
+   `ask-ck/plans/PLAN-pytest-creator.md`, with a status-header line. It is recorded only; the
+   Creator prompts have not been reviewed against it.
+4. **Merged:** `git merge --ff-only gen-prompts-plain` brought `main` to `44a2b5c`, live for
+   every seat with no restart. The live-tree gate was green (pytest 2108 / 1 skipped,
+   vitest 409). The worktree is torn down; the branch is fully merged. That commit's message
+   still says "DRAFT for Terrence's review"; it was left as is, not rewritten.
+5. **README / `TB470-HOST-NETWORKING.md`:** still open, not raised again.
+
+- **The first real output, AWPTCM-T33241** ("IPv4_Local Interfaces - Loopback Address",
+  exported 2026-10-20 08:12):
+  - **Terrence's verdict:** "new objectives are MUCH better", "great test steps, no issues".
+  - **Pushed to Zephyr at his "--force push"** (08:15 NZDT). These are the page's flags plus
+    `--force` (`--fix-title --new-version --verify --force --execute`), after a dry run of the
+    same command.
+  - **Result:** 835 chars / 8 steps → 676 / 6. Already at v2.0, so no new version was made.
+    `traceability.md` re-attached and 3 web links set.
+  - **Audit:** `zephyr-push-audit.jsonl` has intent, version and outcome, all ok; the intent
+    entry keeps the old objective.
+  - **Why `--force`:** the page's 08:13 push (no force) wrote nothing. That is the uploader's
+    "already appears refined — SKIP" guard; the case was already refined in Zephyr.
+- **⚠ The caveat on that verdict.** T33241's subject is loopback addresses, the same as the
+  prompts' worked examples. The model adapted rather than copied: it added a
+  physical-links-independence bullet and dropped "advertised" and "multiple". But step 3 is the
+  example's sentence nearly word for word. **The real test of the new level is the next case
+  on a different feature.**
+- **The T33241 bundle (`refined-cases/IPv4/AWPTCM-T33241/`) is NOT committed.** Terrence is
+  working on it in the PyTest Creator now. Commit it at the next wrap, once his PyTest work
+  settles.
+
+Open: the different-feature check above; the PyTest prompts against his outline (when he
+directs); the README symlink note. Also the items carried over in the entries below (ZTT D16
+edges and delivery, the orient-skill grep, the 43dd polling, the stranded slugs, R5, `RESULT`,
+agent 1.3.5).
 
 ## Latest session (2026-10-19, later) — Generator prompts rewritten for plain language, on a branch, awaiting review
 

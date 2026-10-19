@@ -21,6 +21,39 @@ current working thread see
 > `ask-ck/ck-facelift/`, `pytest-create/` and `CK-main/` plan paths moved to `ask-ck/plans/` on 2026-09-11 and, once complete, to `archive/plans/`.
 > `js-tests/` → `tests/js/`, `e2e/` → `tests/e2e/`, `static/js/` → `ask-ck/frontend/ck-main/current/<page>/` (2026-09-11).
 
+## 2026-10-20 — Generator: plain-language objectives and high-level test steps
+
+**What.**
+- **`generate_objectives.jinja`** now asks for a plain-language list of the things about the
+  feature that testing should prove work: an overview, not a deep-dive. There is no bullet
+  count and no character limit. Its worked example is Terrence's loopback list.
+- **`generate_steps.jinja`** ("6. Test Steps") asks for steps as high-level as the case allows.
+  One step may cover several bullets, and no two steps cover the same ground. Two evidence
+  labels that contradicted its rules are gone. The ban on naming commands and the empty
+  `expectedResult` stay.
+- **`OBJECTIVE_DRAFTING_PROCESS.md` Steps 1–2** agree with both prompts.
+- **Contract tests** pin the new rules, plus the absence of a count or a length limit.
+
+**Why.** Terrence was hand-editing every generated objective "because they're unreadable for
+the average person": "incredibly high-level engineer-speak, often FAR too specific in testing
+(this should be an overview test, not a set of full deep-dive tests)". The steps were "FAR too
+verbose" and "tend to overlap". Three causes:
+- *The worked example was T33234's own generated objective*, a six-bullet MDI/MDI-X deep-dive.
+  The model copies the example (memory `prompt-examples-are-the-spec`), so the tool was
+  re-teaching itself its own output; T33234's exported objective matched the example almost
+  word for word.
+- *The 1–10 cap and the ~140-character limit came in on 2026-09-18 with no ruling behind them*,
+  and nothing said what level to write at. The design doc only ever said "concise" and
+  "as many as needed". Terrence: "remove the character limit, its not expressly necessary.
+  same with any mention of the total amount of objectives."
+- *"Cover each major objective bullet" and "a step must add the setup, the data, the
+  variation"* produced one long step per bullet. Terrence: "There can be steps that cover
+  multiple objectives … Nothing prevents that, nor should there be."
+
+The design doc's General Principles (cover reporting, include special conditions) were kept
+deliberately: Terrence will change them only where real output shows a need. First result, on
+T33241 (loopback): objectives "MUCH better", steps "no issues"; pushed to Zephyr.
+
 ## 2026-10-16 — Run Scripts: finalized scripts, several at once, in order, from a shareable link
 
 **What.**

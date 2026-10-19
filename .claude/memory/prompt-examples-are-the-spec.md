@@ -49,4 +49,4 @@ example, and T33234's exported objective matched it nearly word for word. The mo
 its own deep-dive back as the standard, and Terrence was hand-editing every objective "because
 they're unreadable for the average person". **How to apply:** never use a previous output of a
 prompt as that prompt's worked example. Whose words go in instead is Terrence's call (this
-time: his loopback list for the objectives; the steps example is Claude's draft, for his review). Rewrite drafted on branch `gen-prompts-plain` (loopback example from his list).
+time: his loopback list for the objectives; the steps example is Claude's draft, for his review). Rewrite merged 2026-10-20 (`gen-prompts-plain`); Terrence: "new objectives are MUCH better", steps "no issues". Caveat: judged first on T33241, a LOOPBACK case, the same subject as the example, and one of its steps is the example's sentence nearly verbatim; a different-feature case is the real test.

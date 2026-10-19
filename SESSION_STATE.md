@@ -5168,3 +5168,15 @@ Steps 1–2 and their contract tests. The work is DRAFTED on branch `gen-prompts
 and NOT merged. Open: his corrections to the loopback examples, the General Principles' reporting
 and special-conditions lines, his PyTest-script outline (recorded verbatim in PROGRESS), and the
 merge. Detail: PROGRESS 2026-10-19 (later). Gate (main): pytest 2106 / 1 skipped, vitest 409.
+
+## Session Close / Handoff (2026-10-20) — Generator prompts merged and judged good; T33241 pushed to Zephyr
+
+Supersedes the 2026-10-19 (later) entry's "NOT merged": the branch `gen-prompts-plain` was
+fast-forwarded into `main` (`44a2b5c`) at Terrence's choice to test on live, and the live-tree gate
+was green. His review settled the rest: both loopback examples kept; the design doc's
+reporting/special-conditions principles kept until output shows a need; his PyTest-script outline
+recorded as PLAN-pytest-creator *User decisions* #5. First output, on T33241 (loopback): objectives
+"MUCH better", steps "no issues". It was force-pushed to Zephyr (676 chars / 6 steps, v2.0 kept,
+audit ok). Caveat: T33241 shares the examples' subject, so a different-feature case is the real
+test. The T33241 bundle is left uncommitted while he works on it in the PyTest Creator. Detail:
+PROGRESS 2026-10-20.

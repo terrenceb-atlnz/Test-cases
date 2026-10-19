@@ -23,6 +23,11 @@ verified: 2026-09-23
 > and server (`PLAN-test-validation.md` V4). "Phase C's first execution on a real testbox" above is
 > now Validation's job. Every Run/Validate/profile item in the body below is history.
 >
+> **2026-10-19 (Terrence): the shape of a generated script** is recorded as *User decisions* #5
+> (turn it on → verify on → configure → test → negative → each thing → show it → turn off →
+> verify off → verify it no longer works). Recorded only; the Creator's prompts are not yet
+> reviewed against it.
+>
 > Living tracker for the PyTest Creator build-out. Update the checklist and Progress Log
 > as milestones land (same convention as `archive/plans/PLAN-facelift.md`).
 > Approved: 2026-07-14.
@@ -281,6 +286,25 @@ Ask CK (`copilot/Test-cases/ask-ck/CK-main/CK_server/`) is a self-hosted FastAPI
 2. **Testing:** the tool executes generated scripts on a testbox. The UI presents a **dropdown of stored testboxes (IP address and tb number at minimum)** plus an **"Add new testbox…" option** that opens a form to populate the dropdown for repeated use.
 3. **Output:** function-based names organized by the refined-cases group structure — `ask-ck/functions/pytest-creator/generated/<Group>/<FunctionName>.py` (e.g. `generated/Port/MDIX_test.py`). At creation the tool proposes a group + name and **prompts the user to edit the naming** before saving. Promotion to testsuites_art is manual after validation.
 4. **Plan tracking:** this file is the living progress tracker.
+5. **The shape of a generated script** (Terrence, 2026-10-19 — recorded, NOT yet applied to the
+   Creator's prompts). Given while reviewing the Generator's prompts; he confirmed it is for the
+   PyTest **script**, not the manual steps. Verbatim:
+
+   > Can we turn it on
+   > Can we verify its on
+   > Configure it to do "the thing"
+   > Test "the thing"
+   > Negative test "the thing"
+   > If it does multiple things, do that for all things
+   > Show that the things are doing the thing, in whatever way makes sense
+   > Can we turn it off
+   > Can we verify it does turn off
+   > Can we verify "the thing" no longer works if its off
+   >
+   > And thats about it.
+
+   Not yet compared against `pt_extract_sequence.jinja` / `pt_generate_script.jinja`, the frame
+   (`TEMPLATE-SPEC.md`) or the ART suite shape. That review comes later, at his direction.
 
 ---
 
