@@ -4,7 +4,7 @@ description: "Where a prompt's prose and its code EXAMPLE disagree, the model im
 metadata: 
   node_type: memory
   type: feedback
-  verified: 2026-09-16
+  verified: 2026-10-19
   originSessionId: 14818525-5627-4f16-882d-6bbbef6aed41
   modified: 2026-07-27T22:44:41.806Z
 ---
@@ -42,3 +42,11 @@ our own guidance, not from model weakness:
 5. **Never gate a safety rule on optional context.** All the anti-false-green rules were
    inside `{% if cli_reference %}`, so they vanished for ~a third of cases. See
    [[checks-must-not-match-their-own-advice]] for the related prose-matching trap.
+
+**2026-10-19 — the example must not come from the tool it teaches.** The Generator's objectives
+prompt used T33234's own GENERATED objective (a six-bullet MDI/MDI-X deep-dive) as its worked
+example, and T33234's exported objective matched it nearly word for word. The model was copying
+its own deep-dive back as the standard, and Terrence was hand-editing every objective "because
+they're unreadable for the average person". **How to apply:** never use a previous output of a
+prompt as that prompt's worked example. Whose words go in instead is Terrence's call (this
+time: his loopback list for the objectives; the steps example is Claude's draft, for his review). Rewrite drafted on branch `gen-prompts-plain` (loopback example from his list).

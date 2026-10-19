@@ -5155,3 +5155,16 @@ to be agreed. The README was replaced after a check against the repo and `/healt
 edges and delivery, the orient-skill grep fix, the 43dd 404 polling, the stranded non-repo memory
 slugs, plus 2026-10-16's R5, `RESULT` markers and agent 1.3.5. Detail: PROGRESS 2026-10-19. Gate:
 pytest 2106 / 1 skipped, vitest 409.
+
+## Session Close / Handoff (2026-10-19, later) — Generator prompts rewritten on a branch, awaiting review
+
+Terrence: the Generator's objectives are "unreadable for the average person" (engineer-speak,
+deep-dive) and its steps "FAR too verbose", "overlap". The objectives example was T33234's own
+generated objective, which the export copied back; a 140-character limit and a 1–10 cap had been
+added on 2026-09-18 without his say; and two steps rules forced one long step per bullet. Both
+prompts are rewritten (plain language, an overview, no count or length; steps as high-level as
+required, several bullets per step allowed, command ban kept), together with the design doc's
+Steps 1–2 and their contract tests. The work is DRAFTED on branch `gen-prompts-plain` (one commit)
+and NOT merged. Open: his corrections to the loopback examples, the General Principles' reporting
+and special-conditions lines, his PyTest-script outline (recorded verbatim in PROGRESS), and the
+merge. Detail: PROGRESS 2026-10-19 (later). Gate (main): pytest 2106 / 1 skipped, vitest 409.

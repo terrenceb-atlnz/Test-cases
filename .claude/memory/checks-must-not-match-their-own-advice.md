@@ -2,7 +2,7 @@
 name: checks-must-not-match-their-own-advice
 description: "Any check that greps prose will fire on its own guidance text — happened 4x in one session; match structure, not strings"
 metadata: 
-  verified: 2026-09-23
+  verified: 2026-10-19
   node_type: memory
   type: feedback
   originSessionId: 14818525-5627-4f16-882d-6bbbef6aed41
@@ -40,3 +40,9 @@ Rules of thumb:
 - If a check must scan prose, exclude the lines that are *about* the pattern.
 
 Related: [[prompt-examples-are-the-spec]], [[scripts-must-be-hardware-agnostic]].
+
+**A fifth time, 2026-10-19:** a new test that `generate_steps.jinja` no longer says "cover each
+major objective bullet" failed on the prompt's own `{# #}` header, which quotes the removed rule
+to record why it went. `tests/test_steps_prompt_contract.py` reads the raw file, unlike the
+objectives test. Fix: `flat(strip_jinja_comments(TEXT))`. `strip_jinja_comments` is the fourth
+`_prose` helper; use it whenever a header comment documents a rule's history.

@@ -5,11 +5,81 @@ verified: 2026-09-28
 
 **Purpose**: This file exists so future sessions can quickly understand exactly where we are, what has been built, what the priorities are, and how to continue seamlessly.
 
-**Last Updated**: 2026-10-19 (by Claude, with Terrence; ZTT local-LLM-only planned as D16; README replaced; a silent server-worker death diagnosed)
+**Last Updated**: 2026-10-19, later (by Claude, with Terrence; Generator objective + steps prompts rewritten on branch `gen-prompts-plain`, NOT merged, awaiting his review)
 
 > **Reading note (2026-09-23 doc sweep).** Entries are frozen as written. Where an entry's
 > claim has since stopped being true, a ⚠ line under its heading says what changed.
 > Newest first. Paths in older entries predate these moves (the same as in CHANGELOG): `tool/` → `ask-ck/tools/`, `ask-ck/var/` → `ask-ck/db/`, `objective-drafting/` → `ask-ck/functions/generator/`, `pytest-create/` → `ask-ck/functions/pytest-creator/`, `js-tests/` → `tests/js/`, `ask-ck/ck-facelift/` → `ask-ck/plans/`, root reports → `docs/`, and completed plans `ask-ck/plans/` → `archive/plans/` (2026-09-11, 2026-09-23). Also retired 2026-09-23: the demo notes → `archive/plans/demo-2026-09-11/`, and `HANDOFF-generate-token-efficiency.md` + `Fragments_prompt.md` → `archive/records/`.
+
+## Latest session (2026-10-19, later) — Generator prompts rewritten for plain language, on a branch, awaiting review
+
+Terrence pointed at the objectives prompt's *"Produce between 1 and 10 bullets … prefer under
+about 140 characters"*, then: *"ive had to go back and hand-edit them because they're unreadable
+for the average person"* — the bullets are *"incredibly high-level engineer-speak, often FAR too
+specific in testing (this should be an overview test …)"*, and the steps *"are often FAR too
+verbose, tend to overlap"*. **Drafted, NOT live:** one commit on branch `gen-prompts-plain` (rebased onto this wrap), in
+the scratchpad worktree `81343ad6…/scratchpad/wt`. `main` and the live prompts are unchanged.
+- **The diagnosis** (read against the four exported Port bundles, T33233–36):
+  - Those bundles have 7–12 bullets averaging 131–156 characters, and 10–12 steps averaging
+    250–311 characters. The design doc's own T33233 example has 7 bullets of ~90 characters and
+    6 steps of ~200.
+  - **The objectives example was T33234's own generated objective**, which the export matches
+    almost word for word. The tool was copying its own deep-dive back as the standard.
+  - **Nothing set the level.** The 140-character limit and the 1–10 cap had come in with
+    `3c680c9` (2026-09-18); the design doc says only "concise", "typically 1–10" and "as many
+    as needed".
+  - **The steps prompt** had *"Cover each major objective bullet"* (one long step per bullet)
+    and *"add the setup, the data, the variation"* (every step carrying all three). Two of its
+    evidence labels contradicted its rules.
+- **Terrence's rulings:**
+  - Objectives are a plain-language list of *"things about the feature that we want to prove
+    work"*. For loopbacks: *"addressable, … usable as a source address, can be advertised,
+    there can be multiple of them, … cant add invalid addresses, removing them actually DOES
+    remove them"*.
+  - *"remove the character limit … same with any mention of the total amount of objectives."*
+  - Steps *"can be as high-level as required"*, and a step may cover several objectives.
+  - The command ban in manual steps STAYS.
+  - Rewrite both prompts, drafted for review first. He will re-run the objective call to judge.
+- **The draft:**
+  - **Both prompts:** the level and rules above, with a loopback worked example in each. The
+    objectives example is his list rephrased into sentences; the steps example is Claude's
+    draft, for his correction.
+  - **`OBJECTIVE_DRAFTING_PROCESS.md` Steps 1–2:** a dated note with his words; no set number
+    and no length limit; a step may cover several bullets.
+  - **Tests:** `test_objectives_prompt_contract.py` reverses the count and length pins, and
+    pins plain language, overview, and NO count or limit in the prompt or the SPEC.
+    `test_steps_prompt_contract.py` pins multi-bullet steps and the removed labels.
+  - **Mutations:** 5 + 4, each red.
+  - **Gate in the worktree:** green except the known worktree-only
+    `test_the_audit_log_is_not_committed` (it resolves through the db symlink). Vitest did not
+    run there (the gate is `set -e`); no JS changed.
+- **Terminology:** the Generator's "6. Test Steps (LLM)" is `generate_steps.jinja`, whose header
+  says "step 5". That mismatch caused a misunderstanding this session.
+
+**Terrence's outline for the PyTest Creator SCRIPT** (2026-10-19, verbatim; he confirmed it is
+for the script, not the manual steps; not yet acted on):
+> Can we turn it on / Can we verify its on / Configure it to do "the thing" / Test "the thing" /
+> Negative test "the thing" / If it does multiple things, do that for all things / Show that the
+> things are doing the thing, in whatever way makes sense / Can we turn it off / Can we verify it
+> does turn off / Can we verify "the thing" no longer works if its off / And thats about it.
+
+**Open (asked, not answered):**
+1. **His corrections to both loopback examples.**
+2. **The design doc's General Principles:** do "Explicitly call out observability/reporting"
+   and "Include special conditions (hot-swap, LPI, interop…)" go or soften? They push toward
+   deep-dives and were left unchanged.
+3. **The PyTest outline:** the next piece of work? Record it in `PLAN-pytest-creator.md`?
+4. **Merge:** on "merge", run `git merge --ff-only gen-prompts-plain` in the live tree. The
+   `.jinja` files are live on save, with no restart. Then run the full gate there, and tear
+   down the worktree (rm its three symlinks by literal path, then `git worktree remove --force`).
+5. **README:** `TB470-HOST-NETWORKING.md` is a symlink into device-testing; the README lists it
+   as a file.
+
+Also there: two older scratchpad worktrees (`79db4d44…/wt` on `tc-build`, `…/wt-rs` on
+`run-scripts`) from earlier sessions are still registered. They are not this session's, and
+were left alone.
+
+Gate (main): pytest 2106 / 1 skipped, vitest 409.
 
 ## Latest session (2026-10-19) — ZTT local-LLM-only planned (D16); README replaced; the server's worker died silently
 
