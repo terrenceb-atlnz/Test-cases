@@ -103,7 +103,12 @@
 
   --color-analysis-key: #004f88;
 
-  --color-tc-inactive-bg: #e7e7e7;
+  --color-tc-inactive-bg: #fbfbfb;
+
+  /* Home page background: a three-stop gradient, top to bottom. */
+  --color-home-grad-1: #bee3ff;
+  --color-home-grad-2: #eef3f6;
+  --color-home-grad-3: #bee3ff;
 
 }
 
@@ -188,6 +193,10 @@
 
   --color-analysis-key: #0069B3;
 
+  --color-home-grad-1: #0f1a24;
+  --color-home-grad-2: #E20052;
+  --color-home-grad-3: #1a1424;
+
   }
 }
 
@@ -268,6 +277,10 @@
   --color-analysis-key: #0069B3;
 
   --color-tc-inactive-bg: #131313;
+
+  --color-home-grad-1: #00111e;
+  --color-home-grad-2: #131313;
+  --color-home-grad-3: #00111e;
 }
 
 @media (prefers-color-scheme: dark) {

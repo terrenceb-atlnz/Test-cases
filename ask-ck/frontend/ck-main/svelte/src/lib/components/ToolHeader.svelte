@@ -39,13 +39,6 @@
     line-height: 1.6;
   }
 
-  .page-header-rule {
-    /* width: 100%; */
-    border: none;
-    border-bottom: 1px solid var(--color-border-surface);
-    margin-left: 80px;
-    margin-right: 80px;
-  }
 
   .tool-header {
     display: flex;

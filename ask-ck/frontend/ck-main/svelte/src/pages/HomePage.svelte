@@ -115,6 +115,7 @@
   }
 </script>
 
+<div class="home-page">
 <div class="home-hero">
     <button type="button" class="logo-button" on:click={handleLogoClick} aria-label="Ask CK logo">
       <img src={isAdmin ? askCKAdmin : askCKLogo} alt="Ask CK logo" />
@@ -124,20 +125,6 @@
       <p>Ask CK is a server-backed test-engineering workbench for the AWPTCM test-case program. It brings the tools for enriching manual test cases, mapping them to automation, and turning them into runnable scripts into one place. Pick a tool from below, or read the step-by-step guides inside the Help section. Most tools use an LLM via a local subscription CLI — set that up first under <span style="font-weight: bold;">Settings → LLM → LLM Provider Login</span>.</p>
     {/if}
   </div>
-
-<ConfirmModal
-  bind:open={confirmOpen}
-  title={confirmTitle}
-  message={confirmMessage}
-  onConfirm={confirmOnConfirm}
-/>
-
-<StatusModal
-  bind:open={statusOpen}
-  status={statusKind}
-  title={statusTitle}
-  message={statusMessage}
-/>
 
 {#if isAdmin}
   <div class="admin-panel">
@@ -167,8 +154,22 @@
     </div>
   </div>
 {/if}
+</div>
 
 <style>
+    /* Fills the content panel's full height (it is a flex column), and runs under its 16px
+       top/bottom padding so the gradient reaches both edges. Colours per theme in app.css. */
+    .home-page {
+        flex: 1;
+        margin: -16px 0;
+        padding: 16px 0;
+        /* background: linear-gradient(235deg, 
+          var(--color-home-grad-1) 20% 10%, 
+          var(--color-home-grad-2) 30% 70%, 
+          var(--color-home-grad-3) 100% 20%
+        ); */
+    }
+
     .home-hero {
         display: flex;
         flex-direction: column;

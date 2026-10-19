@@ -20,7 +20,7 @@
     grid-row: 1;
     height: 72px;
     background: var(--color-bg-topbar);
-    border-bottom: 1px solid var(--color-border-topbar);
+    /* border-bottom: 1px solid var(--color-border-topbar); */
     display: flex;
     align-items: center;
     transition: background-color 0.2s ease, border-color 0.2s ease;
