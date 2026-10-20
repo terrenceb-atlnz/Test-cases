@@ -3,7 +3,7 @@ name: dut-decides-every-port-every-device
 description: Terrence 2026-09-28 — a script never decides from a port type, module type or product whether a value is legal; it sends the command and the DUT's accept/reject IS the result (a rejection is verified, never failed); the sweep MAPS capabilities into a published record later steps consult. "Every device gets the same treatment" too.
 metadata:
   type: feedback
-verified: 2026-09-28
+verified: 2026-10-20
 ---
 
 **The DUT decides — every port and every device gets the same treatment.** Terrence, 2026-09-28,

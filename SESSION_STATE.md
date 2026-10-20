@@ -5180,3 +5180,15 @@ recorded as PLAN-pytest-creator *User decisions* #5. First output, on T33241 (lo
 audit ok). Caveat: T33241 shares the examples' subject, so a different-feature case is the real
 test. The T33241 bundle is left uncommitted while he works on it in the PyTest Creator. Detail:
 PROGRESS 2026-10-20.
+
+## Session Close / Handoff (2026-10-20, later) — an independent T33241 script beside the tool's; comparison next session
+
+Supersedes the line above about the T33241 bundle: it is committed now. Terrence had the tool
+generate T33241's script, then asked Claude to write its own from the same sequence and resources
+(not the chosen reference scripts, not the tool's output) to judge whether the tool should be
+improved or replaced. Claude's `generated/9002_IPv4/test-9002.33241.claude-independent.py` is
+beside the tool's `test-9002.33241.py`; it passes the tool's own lint 0/0 and Claude has not read
+the tool's. Both are committed as the frozen baseline. The comparison is next session's work, by
+both; the design differences to look for and the known risks are in PROGRESS 2026-10-20 (later).
+The bench today cannot run either (only an AR4050S on swi_e). The scratch ck.db copy from the
+lint run is deleted. Gate: pytest 2108 / 1 skipped, vitest 409.

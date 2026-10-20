@@ -5,11 +5,69 @@ verified: 2026-09-28
 
 **Purpose**: This file exists so future sessions can quickly understand exactly where we are, what has been built, what the priorities are, and how to continue seamlessly.
 
-**Last Updated**: 2026-10-20 (by Claude, with Terrence; Generator prompt rewrite merged and judged good on T33241; T33241 force-pushed to Zephyr; his PyTest script outline recorded in PLAN-pytest-creator)
+**Last Updated**: 2026-10-20, later (by Claude, with Terrence; an independent script for T33241 written beside the tool's for a head-to-head NEXT session; T33241 bundle + the tool's 9002_IPv4 output committed)
 
 > **Reading note (2026-09-23 doc sweep).** Entries are frozen as written. Where an entry's
 > claim has since stopped being true, a ⚠ line under its heading says what changed.
 > Newest first. Paths in older entries predate these moves (the same as in CHANGELOG): `tool/` → `ask-ck/tools/`, `ask-ck/var/` → `ask-ck/db/`, `objective-drafting/` → `ask-ck/functions/generator/`, `pytest-create/` → `ask-ck/functions/pytest-creator/`, `js-tests/` → `tests/js/`, `ask-ck/ck-facelift/` → `ask-ck/plans/`, root reports → `docs/`, and completed plans `ask-ck/plans/` → `archive/plans/` (2026-09-11, 2026-09-23). Also retired 2026-09-23: the demo notes → `archive/plans/demo-2026-09-11/`, and `HANDOFF-generate-token-efficiency.md` + `Fragments_prompt.md` → `archive/records/`.
+
+## Latest session (2026-10-20, later) — an independent T33241 script beside the tool's; the comparison is NEXT session
+
+Terrence, after generating T33241's script in the PyTest Creator: *"I want YOU to independently
+produce your OWN script. You are allowed the same resources … I suspect that the tool may be less
+efficient and less good at script generation, and i want to either improve it through these
+findings, or replace it entirely with a more effective process."* Then, at the wrap: *"we will
+both compare next session"*, *"put yours there, name it obviously differently"*, *"delete"* (the
+scratch db).
+
+**Where things are, for the comparison:**
+- **The tool's:** `ask-ck/functions/pytest-creator/generated/9002_IPv4/test-9002.33241.py` and
+  `library_9002.py` (08:37), plus `.meta/9002_IPv4/test-9002.33241/` and the `IPv4: 9002` family
+  registration. **Claude has NOT read the tool's script** (independence kept for the comparison).
+- **Claude's:** `generated/9002_IPv4/test-9002.33241.claude-independent.py` — 1,236 lines, 14
+  TestCases (one per sequence step), 71 verdict checkpoints, no library (its 13 helpers are in
+  the file). Compiles, pycodestyle-120 clean, **the tool's own `_lint_generated`: 0 errors,
+  0 warnings, all 5 Zephyr steps covered** (how: memory `run-pt-lint-offline`).
+- **What Claude used:** the confirmed step-2 sequence (NOT the step-3 script choices, at
+  Terrence's instruction), the objective, the frame template verbatim, the fill rules + domain
+  facts, TEMPLATE-SPEC / LOGGING-CONTRACT / TOPOLOGY-PROFILES, the CLI reference in ck.db
+  (`ip address`, `ping`, `show ip interface`, `show interface`), the framework surface, ART
+  exemplars (ping parsing, testbox capture, `interface lo` config), RFCs 1112/919/1122.
+- **Design choices Claude made that the tool likely did not** (to check in the comparison):
+  1. **Binds the testbox link only.** `_detect_links` would also demand a copper partner because
+     the sequence says "partner"; a loopback test needs no neighbour switch.
+  2. **Every case stands alone** — each `configure()` sets its precondition and `tear_down()`
+     undoes it; `TestSet.configure()` configures nothing.
+  3. **The bench's own `lo` config survives** — `ip address` on lo OVERWRITES a primary (CLI
+     reference), so the suite reads lo's lines first and restores them (confCheck).
+  4. **"Regardless of physical links" acts on every discovered data port**, never a stack port.
+  5. **The far end is the testbox** over a /30 of the script's own on a VLAN of its own, with a
+     host route back so the loopback-sourced ping gets replies; the verdict is the captured echo
+     requests' source address.
+  6. **Invalid addresses:** dropped the sequence's 127.0.0.1/8 (it IS a loopback address) and
+     240.0.0.1 (Linux accepts class E); added `256.1.1.1/32` and a `/33`. Refusal = AW+ `%`
+     error-line prefix, confirmed by the running-config not changing.
+- **Known risks in Claude's** (so the comparison is fair): `show interface lo` printing the IPv4
+  address is inferred from the tunnel/VLAN format (two checkpoints go false-red if lo omits it);
+  a trunk test port makes TC8 fail with a message saying so; `AsyncSniffer` is imported from
+  `scapy.all` on top of the frame's `ATPackets` import.
+- **Neither can run today:** `device-testing/bench-setup/tb470.setup.current` (2026-10-19) has
+  only an AR4050S on `swi_e`, no `swi_a`, no stack, no testbox link; the tb NICs are carrier DOWN.
+- **Pickers:** any `*.py` in `generated/<family>/` except `library_*` is listed by Validation and
+  Run Scripts (`tc_runs.list_scripts`), so the independent script appears there too, with no
+  provenance. Rename or move it if that is a nuisance.
+- **Committed this wrap:** the T33241 refined-cases bundle (exported 08:12, pushed to Zephyr), the
+  tool's 9002_IPv4 output and `.families.json` (so the comparison baseline is frozen in git — his
+  output, committed at the wrap, revert if unwanted), Claude's script, this entry.
+- **A hook false-positive:** `~/.claude/hooks/no-stray-py.py` refuses a Bash heredoc whose TEXT
+  names a `.py` path under `generated/` (it was a markdown edit). Use the Edit tool for such docs.
+
+**Next session:** the comparison, by both. Suggested shape: read both scripts cold against the
+sequence and the objective; score each TestCase on (a) does the verdict prove the objective slice,
+(b) false-red / false-green risks, (c) bench demands, (d) config hygiene (confCheck), (e)
+readability; then decide improve-vs-replace per `PLAN-pytest-creator` *User decisions* #5.
+
+Gate: pytest 2108 / 1 skipped, vitest 409.
 
 ## Latest session (2026-10-20) — Generator prompts merged and judged good; T33241 pushed to Zephyr
 

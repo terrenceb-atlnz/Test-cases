@@ -1,0 +1,34 @@
+{
+  "AWPTCM-T33241": {
+    "objective": "<ul>\n  <li>The device can have a local loopback address assigned to it, and that address is shown in the device's interface and address information.</li>\n  <li>The loopback address can be reached from the device itself.</li>\n  <li>The loopback address stays reachable regardless of the state of the device's physical links.</li>\n  <li>The loopback address can be used as the source address for traffic the device sends.</li>\n  <li>An address that is not valid for a loopback interface is refused, and the existing configuration is left unchanged.</li>\n  <li>Removing the loopback address really does remove it, so it is no longer shown and can no longer be reached.</li>\n</ul>",
+    "testScript": {
+      "type": "steps",
+      "steps": [
+        {
+          "description": "Note: Related ART Tests linked in Traceability.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Assign a valid local loopback address to the device. Confirm the address appears in the device's interface and address information, and can be reached from the device itself.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Change the state of the device's physical links, including taking all of them down. Confirm the loopback address remains reachable from the device throughout.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Send traffic from the device using the loopback address as its source. Confirm the far end sees the loopback address as the sender.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Try to assign addresses that are not valid for a loopback interface. Confirm each one is refused and the existing configuration is unchanged.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Remove the loopback address. Confirm it is no longer shown in the interface and address information and can no longer be reached.",
+          "expectedResult": ""
+        }
+      ]
+    }
+  }
+}

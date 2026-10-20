@@ -1,0 +1,120 @@
+{
+  "case_key": "AWPTCM-T33241",
+  "group": "IPv4",
+  "name": "test-9002.33241",
+  "saved_at": "2026-10-19T19:37:57.970915+00:00",
+  "iterations": 1,
+  "fragments": [
+    {
+      "source_id": "svt/libSvt/libSvt.py",
+      "symbol": "parseShowIntStatus",
+      "maps_to": [
+        1,
+        5,
+        6,
+        7
+      ]
+    },
+    {
+      "source_id": "art/1337_cli_walk/test-1337.1.py",
+      "symbol": "TestCase_1",
+      "maps_to": [
+        3
+      ]
+    },
+    {
+      "source_id": "legacy/6914_ATPyLib_training/library_6914.py",
+      "symbol": "ping_check",
+      "maps_to": [
+        4,
+        7,
+        11,
+        14
+      ]
+    },
+    {
+      "source_id": "art/6000_link_check/test-6000.1001.py",
+      "symbol": "TestCase_1",
+      "maps_to": [
+        5
+      ]
+    },
+    {
+      "source_id": "legacy/5049_validation_example/test-5049.2001.py",
+      "symbol": "TestCase_4",
+      "maps_to": [
+        5,
+        7
+      ]
+    },
+    {
+      "source_id": "legacy/8003_x8100/test-9999.083.py",
+      "symbol": "TestCase_1",
+      "maps_to": [
+        6,
+        7
+      ]
+    },
+    {
+      "source_id": "legacy/5704_Private_MIB/test-5704.9999-Private-Trap.py",
+      "symbol": "TestCase_0001",
+      "maps_to": [
+        6,
+        7
+      ]
+    },
+    {
+      "source_id": "svt/3009_pluggable_qualifications/libPluggableAutomateConfig.py",
+      "symbol": "checkPortStatusVerify",
+      "maps_to": [
+        7
+      ]
+    },
+    {
+      "source_id": "legacy/tools/auth_simulator/send_icmp.py",
+      "symbol": "send_icmp",
+      "maps_to": [
+        8,
+        9
+      ]
+    },
+    {
+      "source_id": "legacy/6913_ATPyLib_training/test-6913.1001.py",
+      "symbol": "TestCase_2",
+      "maps_to": [
+        8,
+        9
+      ]
+    },
+    {
+      "source_id": "art/1337_cli_walk/test-1337.1.py",
+      "symbol": "TestCase_17",
+      "maps_to": [
+        10
+      ]
+    },
+    {
+      "source_id": "svt/3009_pluggable_qualifications/libPluggableAutomateConfig.py",
+      "symbol": "checkInvalidCmd",
+      "maps_to": [
+        10,
+        12
+      ]
+    },
+    {
+      "source_id": "art/1337_cli_walk/library_1337.py",
+      "symbol": "add_command_to_history",
+      "maps_to": [
+        12
+      ]
+    },
+    {
+      "source_id": "art/1341_limits/test-1341.3001.py",
+      "symbol": "TestCase_5013",
+      "maps_to": [
+        13
+      ]
+    }
+  ],
+  "llm": {}
+}

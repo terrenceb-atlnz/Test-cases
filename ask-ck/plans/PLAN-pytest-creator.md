@@ -28,6 +28,13 @@ verified: 2026-09-23
 > verify off → verify it no longer works). Recorded only; the Creator's prompts are not yet
 > reviewed against it.
 >
+> **2026-10-20 (Terrence): a head-to-head on AWPTCM-T33241.** The tool generated
+> `generated/9002_IPv4/test-9002.33241.py` (+ `library_9002.py`); Claude, from the same confirmed
+> sequence and the same resources but without the chosen reference scripts or the tool's output,
+> wrote `generated/9002_IPv4/test-9002.33241.claude-independent.py` (no library; tool-lint 0/0).
+> Terrence: *"i want to either improve [the tool] through these findings, or replace it entirely
+> with a more effective process."* **The comparison is next session's work**, by both.
+>
 > Living tracker for the PyTest Creator build-out. Update the checklist and Progress Log
 > as milestones land (same convention as `archive/plans/PLAN-facelift.md`).
 > Approved: 2026-07-14.

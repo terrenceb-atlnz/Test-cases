@@ -3,7 +3,7 @@ name: framework-unsupported-needs-a-failure
 description: framework TestCase result = counts; in-main UNSUPPORTED = supported=False + self.failed() (costs a whole-bench restart); a case already unsupported at its turn is NOT RUN, no restart — via the declarative gate or an earlier case's mark; the generator teaches both since 2026-10-02
 metadata:
   type: reference
-  verified: 2026-10-02
+  verified: 2026-10-20
 ---
 
 Read from `/home/st-art/framework/ATTestCase.py` on tb470 (read-only), `_get_result` and `run`:

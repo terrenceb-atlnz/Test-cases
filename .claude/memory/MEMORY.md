@@ -47,6 +47,7 @@
 - [vLLM reasoning-model path](vllm-reasoning-model-path.md) — the org vLLM models are REASONING models (reasoning_content before content); llm.py hardened + streams
 - [Commit, don't push, at session end](commit-and-push-on-session-end.md) — /wrap-ck COMMITS to main without asking and STOPS; Claude cannot push from this seat (company permissions, denied every time) — Terrence pushes; never retry
 - [DB is permanent source](db-is-permanent-source.md) — ck.db built ONCE = permanent source of truth; LFS, delete couriers, no rebuild/APIs/re-fetch
+- [Run the PyTest Creator lint offline](run-pt-lint-offline.md) — `_lint_generated` over ANY script file via a PtSession from the stored pt- session + a scratch ck.db copy (delete the 465 MB copy after); any *.py in generated/<family>/ shows in the Validation/Run Scripts pickers
 - [grep shim honors .gitignore](grep-shim-honors-gitignore.md) — `grep` is a FUNCTION wrapping ugrep --ignore-files, so 0 hits in .venv/ node_modules/ var/ looks like absence; use `command grep`
 
 <!-- hardware / testbox lane (was a separate store keyed on ~/testbox_home until 2026-07-30) -->
