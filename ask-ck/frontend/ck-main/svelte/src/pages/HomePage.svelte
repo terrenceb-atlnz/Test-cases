@@ -9,6 +9,8 @@
   import askCKLogoDark from '../assets/askck-logo.png';
   import askCKLogoLight from '../assets/askck-logo-light.png';
   import askCKAdmin from '../assets/askck-admin.png';
+  import atLogoDark from '../assets/at-logo-2.png';
+  import atLogoLight from '../assets/at-logo-2-white.png';
   import testCaseIcon from '../assets/icons/clipboard-list.svg';
   import pytestIcon from '../assets/icons/pytest.svg';
   import testComposerIcon from '../assets/icons/list-check.svg';
@@ -27,6 +29,8 @@
   };
 
   $: askCKLogo = $resolvedTheme === 'dark' ? askCKLogoLight : askCKLogoDark;
+  // The banner's faded background logo follows the theme the same way (white on dark).
+  $: atLogo = $resolvedTheme === 'dark' ? atLogoDark : atLogoLight;
 
   let isAdmin = false;
   let adminStatusText = 'Loading status…';
@@ -116,15 +120,22 @@
 </script>
 
 <div class="home-page">
-<div class="home-hero">
-    <button type="button" class="logo-button" on:click={handleLogoClick} aria-label="Ask CK logo">
-      <img src={isAdmin ? askCKAdmin : askCKLogo} alt="Ask CK logo" />
-    </button>
-    <h1>{isAdmin ? 'Welcome Admin' : 'Welcome to Ask CK'}</h1>
-    {#if !isAdmin}
-      <p>Ask CK is a server-backed test-engineering workbench for the AWPTCM test-case program. It brings the tools for enriching manual test cases, mapping them to automation, and turning them into runnable scripts into one place. Pick a tool from below, or read the step-by-step guides inside the Help section. Most tools use an LLM via a local subscription CLI — set that up first under <span style="font-weight: bold;">Settings → LLM → LLM Provider Login</span>.</p>
-    {/if}
+  <div class="home-banner-container">
+    <div class="home-banner" style:--banner-logo={`url(${atLogo})`}>
+      <!-- <h1>Ask CK</h1> -->
+       <div class="home-hero">
+      <button type="button" class="logo-button" on:click={handleLogoClick} aria-label="Ask CK logo">
+        <img src={isAdmin ? askCKAdmin : askCKLogo} alt="Ask CK logo" />
+      </button>
+      <h1>{isAdmin ? 'Welcome Admin' : 'Welcome to Ask CK'}</h1>
+      {#if !isAdmin}
+        <p>Ask CK is a server-backed test-engineering workbench for the AWPTCM test-case program. It brings the tools for enriching manual test cases, mapping them to automation, and turning them into runnable scripts into one place. Pick a tool from below, or read the step-by-step guides inside the Help section. Most tools use an LLM via a local subscription CLI — set that up first under <span style="font-weight: bold;">Settings → LLM → LLM Provider Login</span>.</p>
+      {/if}
   </div>
+    </div>
+  </div>
+
+  
 
 {#if isAdmin}
   <div class="admin-panel">
@@ -159,23 +170,80 @@
 <style>
     /* Fills the content panel's full height (it is a flex column), and runs under its 16px
        top/bottom padding so the gradient reaches both edges. Colours per theme in app.css. */
-    .home-page {
-        flex: 1;
-        margin: -16px 0;
-        padding: 16px 0;
-        /* background: linear-gradient(235deg, 
-          var(--color-home-grad-1) 20% 10%, 
-          var(--color-home-grad-2) 30% 70%, 
-          var(--color-home-grad-3) 100% 20%
-        ); */
-    }
+  .home-page {
+      flex: 1;
+      margin: -16px 0;
+      padding: 4rem 8rem 0 8rem
+      /* background: linear-gradient(235deg, 
+        var(--color-home-grad-1) 20% 10%, 
+        var(--color-home-grad-2) 30% 70%, 
+        var(--color-home-grad-3) 100% 20%
+      ); */
+  }
 
-    .home-hero {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        text-align: center;
-    }
+  .home-banner-container {
+    position: relative;               /* ::after is measured from here */
+  }
+  .home-banner {
+    /* remove margin-top, margin-left, margin-right from here */
+    border-radius: 10px;
+    min-height: 10rem;
+    /* padding: 0.8rem; */
+    background-color: var(--color-banner-bg);
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;      
+    display: flex;
+  }
+
+  .home-banner::before {
+    content: '';
+    position: absolute;
+    inset: 0;                               
+    z-index: -1;                         
+    background: var(--banner-logo) right -80px top -240px / 820px auto no-repeat;
+    mix-blend-mode:m;
+    opacity: 0.15;                          
+    pointer-events: none;
+  }
+
+  /* .home-banner::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;            
+    background: linear-gradient(to bottom,
+    rgba(107, 107, 107, 0.25) 0%,    
+    transparent 45%);           
+    pointer-events: none;
+  } */
+
+
+  /* .home-banner-container::after {
+    content: '';
+    position: absolute;
+    left: 5rem;                       
+    top: -3.3rem;                      
+    width: 18rem;
+    height: 18rem;
+    z-index: 1;                       
+    background: url('../assets/askck-logo.png') center / contain no-repeat;
+    pointer-events: none;
+  } */
+  .home-banner h1 {
+    color: var(--color-banner-text); 
+    text-transform: uppercase;
+    font-size: 3rem;
+    max-width: 25rem;
+  }
+
+  .home-hero {
+      display: flex;
+      flex-direction: row;
+      /* flex-direction: column; */
+      align-items: center;
+      text-align: center;
+  }
     
     .logo-button {
         background: transparent;
@@ -185,7 +253,7 @@
     }
 
     .home-hero img {
-        width: 14em;
+        width: 12em;
         height: auto;
         margin-bottom: 1rem;
         margin-top: 1rem;
@@ -194,13 +262,19 @@
     .home-hero h1 {
         font-size: 2.5rem;
         margin-bottom: 1.5rem;
-        border-bottom: 2px solid var(--color-text-muted);
         padding-bottom: 0.5rem;
+        margin-left: 2rem;
+        padding-left: 2rem;
+        border-left: 3px solid var(--color-banner-accent);
+        display: flex;
+        align-items: flex-start;
+        text-align: left;
+        padding: 1rem;
     }
     
     .home-hero p {
-        font-size: 1rem;
-        color: var(--color-text-muted);
+      font-size: 1rem;
+      color: var(--color-banner-text);
     }
 
     .card-container {
@@ -208,13 +282,12 @@
         justify-content: center;
         align-items: center;
         text-align: center;
-        zoom: 0.8;
     }
 
     .card-grid {
         display: flex;
         flex-direction: row;
-        align-items: center;
+        align-items: start;
         justify-content: center;
         text-align: center;
     }

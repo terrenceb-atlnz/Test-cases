@@ -110,6 +110,9 @@
   --color-home-grad-2: #eef3f6;
   --color-home-grad-3: #bee3ff;
 
+  --color-banner-bg: #b9e2ff;
+  --color-banner-text: #000;
+  --color-banner-accent: #E20052;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -281,6 +284,10 @@
   --color-home-grad-1: #00111e;
   --color-home-grad-2: #131313;
   --color-home-grad-3: #00111e;
+
+  --color-banner-bg: #0c2a3f;
+  --color-banner-text: #fff;
+  --color-banner-accent: #E20052;
 }
 
 @media (prefers-color-scheme: dark) {
