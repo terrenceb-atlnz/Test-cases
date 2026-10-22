@@ -23,7 +23,7 @@
   let ticked = $state(new Set());
   let ai = $state(new Map());
   let folds = $state(new Map());
-  let manual = [];                     // [id, on] the user's own ticks, replayed over each poll
+  let manual = [];                     
 
   let url = $state('');
   let fields = $state({ version: '', product: '', middle: '', number: '' });
@@ -32,10 +32,10 @@
 
   let status = $state({ msg: '', bad: false });
   let confirmed = $state(false);
-  let previewed = $state(null);        // the selection API Upload listed — the one Write to Zephyr sends
-  let preview = $state(null);          // what API Upload returned for it
-  let run = $state(null);              // the latest GET /upload/run/{id}
-  let asking = $state(null);           // the open confirm modal's resolve()
+  let previewed = $state(null);      
+  let preview = $state(null);         
+  let run = $state(null);             
+  let asking = $state(null);          
 
   let analysing = $state(false);
   let analyseId = $state(null);
@@ -47,6 +47,8 @@
 
   let poll = null;
   let runPoll = null;
+
+  let expanded = $state(false);   // true once Organize with LLM has been clicked
 
   const templatesInfo = $derived.by(() => {
     if (!tree) return 'No templates imported yet.';
@@ -165,6 +167,7 @@
       const { id } = await api('/analyse', { method: 'POST', body: JSON.stringify({ url: u }) });
       job = { id, state: 'reading', plans: {} };
       analyseId = id;
+      expanded = true;
       await new Promise((resolve) => {
         finishAnalysis = resolve;
         poll = setInterval(() => pollOnce(id), pollMs);
@@ -391,11 +394,11 @@
   <div class="zt-cols">
     <div class="zt-col">
       <div class="zt-col-head">Results Analysis</div>
-      <div id="zt-analysis" class="zt-scroll"><ZtAnalysis {job} {tree} /></div>
+      <div id="zt-analysis" class="zt-scroll"class:expanded><ZtAnalysis {job} {tree} /></div>
     </div>
     <div class="zt-col">
       <div class="zt-col-head"><span>Test Plans / Cycles / Cases</span><span id="zt-tree-count" class="zt-small">{treeCount}</span></div>
-      <div id="zt-tree" class="zt-scroll"><ZtTree {tree} {ticked} {ai} {folds} ontoggle={toggle} onfold={fold} /></div>
+      <div id="zt-tree" class="zt-scroll" class:expanded><ZtTree {tree} {ticked} {ai} {folds} ontoggle={toggle} onfold={fold} /></div>
     </div>
   </div>
 
@@ -441,10 +444,7 @@
 
 
 <style>
-  /* Same look as SequenceStep's .step-notes (the "LLM Notes" line). */
   .zt-status {
-    /* border-top: 1px solid var(--color-border-surface);
-    border-bottom: 1px solid var(--color-border-surface); */
     color: var(--color-text-muted);
     font-size: 0.88rem;
     font-style: italic;
@@ -519,13 +519,16 @@
   .zt-scroll {
     padding-left: 24px;
     padding-right: 24px;
-
     font-size: 0.94rem;
-    height: 65vh;
+    height: 48vh;                    
+    transition: height 0.3s ease;
     overflow: scroll;
     scroll-behavior: auto;
     border-top: 3px solid var(--color-border-surface);
+  }
 
+  .zt-scroll.expanded {
+    height: 65vh;
   }
 
   #zt-templates-info {

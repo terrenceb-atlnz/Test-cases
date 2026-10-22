@@ -1,88 +1,161 @@
 <script>
-// @ts-nocheck
+  // @ts-nocheck
 
   // Test Composer — the "Run Scripts" tab. A placeholder until the page is built.
-  import { onMount, untrack } from 'svelte';
-  import AgentWindow from './AgentWindow.svelte';
-  import ResultsTable from './ResultsTable.svelte';
-  import RunsList from './RunsList.svelte';
-  import SetupFields from './SetupFields.svelte';
-  import Button from '../Button.svelte';
-  import { formatOutlets, loadSetup, runBody, saveSetup, scriptsLink } from './testComposerModel.js';
+  import { onMount, untrack } from "svelte";
+  import AgentWindow from "./AgentWindow.svelte";
+  import ResultsTable from "./ResultsTable.svelte";
+  import RunsList from "./RunsList.svelte";
+  import SetupFields from "./SetupFields.svelte";
+  import Button from "../Button.svelte";
+  import LlmButton from "../LlmButton.svelte";
+  import {
+    formatOutlets,
+    loadSetup,
+    runBody,
+    saveSetup,
+    scriptsLink,
+  } from "./testComposerModel.js";
 
-  import { httpServer, httpAgent } from '../../services/testcomposer/testComposerService.js';
-  let { server = httpServer(), agent = httpAgent(), link = null, openRun = null } = $props();
+  import {
+    httpServer,
+    httpAgent,
+  } from "../../services/testcomposer/testComposerService.js";
+  let {
+    server = httpServer(),
+    agent = httpAgent(),
+    link = null,
+    openRun = null,
+  } = $props();
 
-  const TERMINAL = ['done', 'stopped', 'error'];
+  const TERMINAL = ["done", "stopped", "error"];
   // Read once, at mount: a share link fills the page and is then forgotten.
   const given = untrack(() => link) || {};
 
   // Link fields win over this seat's remembered answers, which are not overwritten until Launch.
   // The email is never in a link: it is always this seat's own (R-D4).
-  let setup = $state(Object.assign({ testbox: '', consoles: '', pduIp: '', outlets: '', constraints: '', email: '' },
-    loadSetup(), given.setup || {}));
+  let setup = $state(
+    Object.assign(
+      {
+        testbox: "",
+        consoles: "",
+        pduIp: "",
+        outlets: "",
+        constraints: "",
+        email: "",
+      },
+      loadSetup(),
+      given.setup || {},
+    ),
+  );
   let sources = $state([]);
-  let sourceId = $state(given.source || 'generated');
-  let listing = $state(null);                // {enabled, reason, scripts}
-  let filter = $state('');
-  let order = $state([]);                    // ticked paths, in the order they run
-  let missing = $state([]);                  // paths a link or Run again named that are not available
+  let sourceId = $state(given.source || "generated");
+  let listing = $state(null); // {enabled, reason, scripts}
+  let filter = $state("");
+  let order = $state([]); // ticked paths, in the order they run
+  let missing = $state([]); // paths a link or Run again named that are not available
   let wanted = given.scripts && given.scripts.length ? given.scripts : null;
-  let startAfter = $state(given.start || '');
+  let startAfter = $state(given.start || "");
   let health = $state(null);
   let busy = $state(false);
-  let status = $state({ msg: '', bad: false });
-  let copyLabel = $state('Copy share link');
-  let run = $state(null);                    // {runId, sessionId}
+  let status = $state({ msg: "", bad: false });
+  let copyLabel = $state("Copy share link");
+  let run = $state(null); // {runId, sessionId}
   let runState = $state(null);
   let refreshKey = $state(0);
 
   const scripts = $derived(listing ? listing.scripts : []);
-  const byPath = $derived(new Map(scripts.map(s => [s.path, s])));
-  const shown = $derived(scripts.filter(s => !filter.trim()
-    || `${s.case_key || ''} ${s.path}`.toLowerCase().includes(filter.trim().toLowerCase())));
-  const groups = $derived([...new Set(shown.map(s => s.group))].map(g => ({ group: g, rows: shown.filter(s => s.group === g) })));
-  const sessionsOk = $derived(health && health.sessions && health.sessions.available);
-  const canLaunch = $derived(order.length > 0 && sessionsOk && setup.testbox && setup.consoles && !busy);
+  const byPath = $derived(new Map(scripts.map((s) => [s.path, s])));
+  const shown = $derived(
+    scripts.filter(
+      (s) =>
+        !filter.trim() ||
+        `${s.case_key || ""} ${s.path}`
+          .toLowerCase()
+          .includes(filter.trim().toLowerCase()),
+    ),
+  );
+  const groups = $derived(
+    [...new Set(shown.map((s) => s.group))].map((g) => ({
+      group: g,
+      rows: shown.filter((s) => s.group === g),
+    })),
+  );
+  const sessionsOk = $derived(
+    health && health.sessions && health.sessions.available,
+  );
+  const canLaunch = $derived(
+    order.length > 0 && sessionsOk && setup.testbox && setup.consoles && !busy,
+  );
 
-  function setStatus(msg, bad = false) { status = { msg, bad }; }
+// A launch only starts the seat session (the LLM work runs in it afterwards, shown in the
+  // agent window), so its LlmButton has nothing to cancel: a busy click does nothing.
+  const noStop = () => {};
+
+  function setStatus(msg, bad = false) {
+    status = { msg, bad };
+  }
 
   function toggle(path) {
-    order = order.includes(path) ? order.filter(p => p !== path) : [...order, path];
+    order = order.includes(path)
+      ? order.filter((p) => p !== path)
+      : [...order, path];
   }
 
   /** Tick the named scripts in their order; anything missing or no longer validated is reported. */
   function pick(paths) {
-    order = paths.filter(p => byPath.has(p));
-    missing = paths.filter(p => !byPath.has(p));
+    order = paths.filter((p) => byPath.has(p));
+    missing = paths.filter((p) => !byPath.has(p));
   }
 
   async function loadScripts() {
     try {
-      const d = await server(`/scripts?source=${encodeURIComponent(sourceId)}&validated=true`);
+      const d = await server(
+        `/scripts?source=${encodeURIComponent(sourceId)}&validated=true`,
+      );
       sources = d.sources || [];
-      listing = { enabled: d.enabled, reason: d.reason, scripts: d.scripts || [] };
+      listing = {
+        enabled: d.enabled,
+        reason: d.reason,
+        scripts: d.scripts || [],
+      };
     } catch (e) {
       listing = { enabled: false, reason: e.message, scripts: [] };
     }
-    if (wanted) { pick(wanted); wanted = null; }
+    if (wanted) {
+      pick(wanted);
+      wanted = null;
+    }
   }
 
   function chooseSource(id) {
     if (id === sourceId) return;
-    sourceId = id; order = []; missing = [];
+    sourceId = id;
+    order = [];
+    missing = [];
     loadScripts();
   }
 
   async function checkAgent() {
-    try { health = await agent.health(); } catch (e) { health = { error: e.message }; }
+    try {
+      health = await agent.health();
+    } catch (e) {
+      health = { error: e.message };
+    }
   }
 
   function body() {
     return {
       source: sourceId,
-      cases: order.map(p => ({ key: (byPath.get(p) || {}).case_key, kind: 'script', script: p })),
-      options: { email: (setup.email || '').trim() || null, start_after: startAfter || null },
+      cases: order.map((p) => ({
+        key: (byPath.get(p) || {}).case_key,
+        kind: "script",
+        script: p,
+      })),
+      options: {
+        email: (setup.email || "").trim() || null,
+        start_after: startAfter || null,
+      },
     };
   }
 
@@ -91,66 +164,117 @@
     busy = true;
     saveSetup(setup);
     try {
-      const b = runBody('scripts', setup, body());
-      const created = await server('/runs', { method: 'POST', body: JSON.stringify(b) });
+      const b = runBody("scripts", setup, body());
+      const created = await server("/runs", {
+        method: "POST",
+        body: JSON.stringify(b),
+      });
       if (b.options.start_after) {
-        setStatus(`Scheduled ${created.run_id} for ${startAfter} (${created.handoff.start_at}). Your seat agent starts it then — keep this seat on and logged in; no tab is needed. The results arrive in the runs list and by email.`);
+        setStatus(
+          `Scheduled ${created.run_id} for ${startAfter} (${created.handoff.start_at}). Your seat agent starts it then — keep this seat on and logged in; no tab is needed. The results arrive in the runs list and by email.`,
+        );
       } else {
-        const started = await agent.start({ run_id: created.run_id, handoff: created.handoff, mode: 'campaign' });
-        if (!started.ok) throw new Error(started.error || 'the seat agent refused the session');
+        const started = await agent.start({
+          run_id: created.run_id,
+          handoff: created.handoff,
+          mode: "campaign",
+        });
+        if (!started.ok)
+          throw new Error(
+            started.error || "the seat agent refused the session",
+          );
         run = { runId: created.run_id, sessionId: started.session_id };
         runState = null;
-        setStatus(`Launched ${created.run_id} on ${b.testbox}: ${order.length} script(s).`);
+        setStatus(
+          `Launched ${created.run_id} on ${b.testbox}: ${order.length} script(s).`,
+        );
       }
       refreshKey += 1;
     } catch (e) {
-      setStatus('Launch failed: ' + e.message, true);
-    } finally { busy = false; }
+      setStatus("Launch failed: " + e.message, true);
+    } finally {
+      busy = false;
+    }
   }
 
   // The button's own label says whether the copy worked (as Help's Copy), then resets.
   async function copyLink() {
-    const href = scriptsLink(window.location.href, { source: sourceId, scripts: order, setup, start: startAfter });
+    const href = scriptsLink(window.location.href, {
+      source: sourceId,
+      scripts: order,
+      setup,
+      start: startAfter,
+    });
     try {
       await navigator.clipboard.writeText(href);
-      copyLabel = 'Copied!';
-      setStatus('Share link copied. It carries the scripts and the bench settings, never your email.');
+      copyLabel = "Copied!";
+      setStatus(
+        "Share link copied. It carries the scripts and the bench settings, never your email.",
+      );
     } catch (_) {
-      copyLabel = 'Copy failed';
+      copyLabel = "Copy failed";
     }
-    setTimeout(() => (copyLabel = 'Copy share link'), 1500);
+    setTimeout(() => (copyLabel = "Copy share link"), 1500);
   }
 
   /** Refill the page from a finished run's hand-off: same scripts, order and bench; this seat's email. */
   async function runAgain() {
     try {
-      const h = (await server(`/runs/${encodeURIComponent(run.runId)}`)).handoff || {};
-      setup = Object.assign({}, setup, { testbox: h.testbox || '', consoles: h.consoles || '',
-        pduIp: (h.pdu && h.pdu.ip) || '', outlets: formatOutlets(h.pdu && h.pdu.outlets), constraints: h.constraints || '' });
-      startAfter = '';
-      const paths = (h.cases || []).map(c => c.path).filter(Boolean);
-      if ((h.source || 'generated') !== sourceId) { sourceId = h.source || 'generated'; wanted = paths; await loadScripts(); }
-      else pick(paths);
+      const h =
+        (await server(`/runs/${encodeURIComponent(run.runId)}`)).handoff || {};
+      setup = Object.assign({}, setup, {
+        testbox: h.testbox || "",
+        consoles: h.consoles || "",
+        pduIp: (h.pdu && h.pdu.ip) || "",
+        outlets: formatOutlets(h.pdu && h.pdu.outlets),
+        constraints: h.constraints || "",
+      });
+      startAfter = "";
+      const paths = (h.cases || []).map((c) => c.path).filter(Boolean);
+      if ((h.source || "generated") !== sourceId) {
+        sourceId = h.source || "generated";
+        wanted = paths;
+        await loadScripts();
+      } else pick(paths);
       setStatus(`Filled from ${run.runId}. Press Launch to run it again.`);
-    } catch (e) { setStatus('Could not read that run: ' + e.message, true); }
+    } catch (e) {
+      setStatus("Could not read that run: " + e.message, true);
+    }
   }
 
   onMount(() => {
     loadScripts();
     checkAgent();
     if (openRun) run = { runId: openRun, sessionId: null };
-    if (link) setStatus('Filled from a share link. Check the settings, then press Launch.');
+    if (link)
+      setStatus(
+        "Filled from a share link. Check the settings, then press Launch.",
+      );
   });
 </script>
 
 <div class="tool-page tc-page">
-  <div class="section-description">Run validated scripts on a test bench through your seat's agent, several at once, in the order you tick them. A script that fails does not stop the rest. There is no repair or review: that is Validation's job. The session still checks the bench before it runs anything.</div>
+  <div class="section-description">
+    Run validated scripts on a test bench through your seat's agent, several at
+    once, in the order you tick them. A script that fails does not stop the
+    rest. There is no repair or review: that is Validation's job. The session
+    still checks the bench before it runs anything.
+  </div>
 
   <div class="tc-step"><span class="tc-step-n">1</span> Source</div>
   <div class="tc-line rs-sources">
     {#each sources as s (s.id)}
-      <label class="tc-small" title={s.reason || ''}><input type="radio" name="rs-source" value={s.id} checked={sourceId === s.id}
-        disabled={!s.enabled} onchange={() => chooseSource(s.id)}> {s.label}{s.enabled ? '' : ' (not yet)'}</label>
+      <label class="tc-small" title={s.reason || ""}
+        ><input
+          type="radio"
+          name="rs-source"
+          value={s.id}
+          checked={sourceId === s.id}
+          disabled={!s.enabled}
+          onchange={() => chooseSource(s.id)}
+        />
+        {s.label}{s.enabled ? "" : " (not yet)"}</label
+      >
     {/each}
   </div>
 
@@ -160,80 +284,154 @@
     {#if listing && !listing.enabled}
       <div class="tc-problem">{listing.reason}</div>
     {/if}
-     <input id="rs-filter" class="form-input" placeholder="Filter by case key or path" bind:value={filter}>
-  <div class="rs-pick">
-    <div class="tc-scripts">
-      {#each groups as g (g.group)}
-        <div class="rs-group">{g.group}</div>
-        {#each g.rows as s (s.path)}
-          <label class="tc-script-row" class:is-chosen={order.includes(s.path)}>
-            <input type="checkbox" name="rs-script" value={s.path} checked={order.includes(s.path)} onchange={() => toggle(s.path)}>
-            <span class="tc-key">{s.case_key || '?'}</span> <span>{s.path}</span>
-            <span class="tc-small">validated {String(s.finalized_at || '').slice(0, 10)}</span>
-          </label>
+    <input
+      id="rs-filter"
+      class="form-input"
+      placeholder="Filter by case key or path"
+      bind:value={filter}
+    />
+    <div class="rs-pick">
+      <div class="tc-scripts">
+        {#each groups as g (g.group)}
+          <div class="rs-group">{g.group}</div>
+          {#each g.rows as s (s.path)}
+            <label
+              class="tc-script-row"
+              class:is-chosen={order.includes(s.path)}
+            >
+              <input
+                type="checkbox"
+                name="rs-script"
+                value={s.path}
+                checked={order.includes(s.path)}
+                onchange={() => toggle(s.path)}
+              />
+              <span class="tc-key">{s.case_key || "?"}</span>
+              <span>{s.path}</span>
+              <span class="tc-small"
+                >validated {String(s.finalized_at || "").slice(0, 10)}</span
+              >
+            </label>
+          {/each}
         {/each}
-      {/each}
-      {#if listing && listing.enabled && !scripts.length}
-        <div class="tc-small rs-empty">No validated scripts yet. A script appears here once Validation has finalized it.</div>
-      {/if}
+        {#if listing && listing.enabled && !scripts.length}
+          <div class="tc-small rs-empty">
+            No validated scripts yet. A script appears here once Validation has
+            finalized it.
+          </div>
+        {/if}
+      </div>
+      <div class="rs-order">
+        <div class="tc-small">Runs in this order</div>
+        {#if order.length}
+          <ol>
+            {#each order as p (p)}<li>
+                <span class="tc-key"
+                  >{(byPath.get(p) || {}).case_key || "?"}</span
+                > <span class="tc-small">{p}</span>
+              </li>{/each}
+          </ol>
+        {:else}<div class="tc-small">Nothing ticked.</div>{/if}
+      </div>
     </div>
-    <div class="rs-order">
-      <div class="tc-small">Runs in this order</div>
-      {#if order.length}
-        <ol>{#each order as p (p)}<li><span class="tc-key">{(byPath.get(p) || {}).case_key || '?'}</span> <span class="tc-small">{p}</span></li>{/each}</ol>
-      {:else}<div class="tc-small">Nothing ticked.</div>{/if}
-    </div>
-  </div>
-  {#each missing as p (p)}<div class="tc-problem rs-missing">not available: {p}</div>{/each}
+    {#each missing as p (p)}<div class="tc-problem rs-missing">
+        not available: {p}
+      </div>{/each}
   </div>
 
   <div class="tc-step"><span class="tc-step-n">3</span> Where it Runs</div>
   <div class="tc-line">
-      <SetupFields bind:setup />
+    <SetupFields bind:setup />
   </div>
 
   <div class="tc-step"><span class="tc-step-n">4</span> When and Launch</div>
   <div class="tc-line">
     <div class="launch-lines">
       <div class="launch-line">
-        <label class="tc-small">Run once, after hours, from <input id="rs-start" type="time" class="form-input tc-time" bind:value={startAfter}></label>
+        <label class="tc-small"
+          >Run once, after hours, from <input
+            id="rs-start"
+            type="time"
+            class="form-input tc-time"
+            bind:value={startAfter}
+          /></label
+        >
         <span class="tc-small">(blank = now)</span>
       </div>
       <div class="launch-line">
         <Button variant="primary" copy on:click={copyLink}>{copyLabel}</Button>
-        <Button variant="primary" loading={busy} disabled={!canLaunch} on:click={launch}>{busy ? 'Launching…' : `${startAfter ? 'Schedule' : 'Launch'} (${order.length})`}</Button>
-        <div class="tc-status" class:is-bad={status.bad} role="status">{status.msg}</div>
+        <LlmButton
+          label={`${startAfter ? "Schedule" : "Launch"} (${order.length})`}
+          verb={startAfter ? "Scheduling…" : "Launching…"}
+          disabled={!canLaunch}
+          onRun={launch}
+          onStop={noStop}
+        />
+        <div class="tc-status" class:is-bad={status.bad} role="status">
+          {status.msg}
+        </div>
       </div>
       <div class="launch-line">
         <span class="tc-small">
           {#if !health}checking your seat agent…
-          {:else if health.error}Your seat agent is not reachable ({health.error}) — run the seat setup from the home page.
-          {:else if !sessionsOk}Your seat agent cannot run sessions: {health.sessions ? health.sessions.reason : 'agent too old — re-run the seat setup'}
-          {:else}Seat agent {health.agent_version} ready · device-testing at {health.sessions.dt_root}{/if}
+          {:else if health.error}Your seat agent is not reachable ({health.error})
+            — run the seat setup from the home page.
+          {:else if !sessionsOk}Your seat agent cannot run sessions: {health.sessions
+              ? health.sessions.reason
+              : "agent too old — re-run the seat setup"}
+          {:else}Seat agent {health.agent_version} ready · device-testing at {health
+              .sessions.dt_root}{/if}
         </span>
       </div>
-
     </div>
-
   </div>
- 
 
   {#if run}
-    <div class="tc-step"><span class="tc-step-n">5</span> The session — {run.runId}</div>
+    <div class="tc-step">
+      <span class="tc-step-n">5</span> The session — {run.runId}
+    </div>
     {#key run.runId}
-      <AgentWindow runId={run.runId} sessionId={run.sessionId} {agent} {server} onstate={(s) => { runState = s; if (TERMINAL.includes(s)) refreshKey += 1; }} />
+      <div class="tc-line">
+        <AgentWindow
+          runId={run.runId}
+          sessionId={run.sessionId}
+          {agent}
+          {server}
+          onstate={(s) => {
+            runState = s;
+            if (TERMINAL.includes(s)) refreshKey += 1;
+          }}
+        />
+      </div>
       <div class="tc-step"><span class="tc-step-n">6</span> Results</div>
-      <ResultsTable runId={run.runId} {server} />
+      <div class="tc-line">
+        <ResultsTable runId={run.runId} {server} />
+      </div>
     {/key}
     <div class="tc-line">
-      <button type="button" id="rs-again" class="btn btn-secondary" disabled={!TERMINAL.includes(runState)} onclick={runAgain}>Run again</button>
-      <span class="tc-small">{TERMINAL.includes(runState) ? 'Fills the page with this run\'s scripts, order and bench.' : 'Available when the run has finished.'}</span>
+      <Button
+        variant="outline"
+        disabled={!TERMINAL.includes(runState)}
+        on:click={runAgain}>Run again</Button
+      >
+      <span class="tc-small"
+        >{TERMINAL.includes(runState)
+          ? "Fills the page with this run's scripts, order and bench."
+          : "Available when the run has finished."}</span
+      >
     </div>
   {/if}
+  <div class="tc-step tc-earlier">Earlier Runs</div>
 
-  <div class="tc-step">Earlier Runs</div>
-  <RunsList {server} kind="scripts" {refreshKey} onopen={(id) => { run = { runId: id, sessionId: null }; runState = null; }} />
-
+  <RunsList
+    {server}
+    kind="scripts"
+    {refreshKey}
+    onopen={(id) => {
+      run = { runId: id, sessionId: null };
+      runState = null;
+    }}
+  />
 </div>
 
 <style>
@@ -249,7 +447,6 @@
     padding-bottom: 1rem;
   }
 
-  /* --- Numbered step headings -------------------------------------------------------- */
   .tc-step {
     display: flex;
     align-items: center;
@@ -272,7 +469,10 @@
     font-size: 1.1rem;
   }
 
-  /* --- Lines, notes, status ---------------------------------------------------------- */
+  .tc-earlier {
+    margin: 2rem 0 1rem 0;
+  }
+
   .tc-line {
     display: flex;
     flex-wrap: wrap;
@@ -302,7 +502,6 @@
     font-size: 0.94rem;
   }
 
-  /* Same look as ZephyrPage's .zt-status. */
   .tc-status {
     min-height: 18px;
     margin: 6px 0;
@@ -318,7 +517,7 @@
   }
 
   .tc-key {
-    font-family: 'Roboto Mono Variable', 'Roboto Mono', monospace;
+    font-family: "Roboto Mono Variable", "Roboto Mono", monospace;
     font-size: 0.8rem;
     color: var(--color-analysis-key);
   }
@@ -339,7 +538,6 @@
     margin-left: 4px;
   }
 
-  /* --- 1 Source ---------------------------------------------------------------------- */
   .rs-sources {
     gap: 16px;
   }
@@ -351,7 +549,6 @@
     font-size: 0.9rem;
   }
 
-  /* --- 2 Scripts: the checklist and its run order side by side ---------------------- */
   .rs-pick {
     display: grid;
     grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
@@ -360,7 +557,9 @@
   }
 
   @media (max-width: 900px) {
-    .rs-pick { grid-template-columns: minmax(0, 1fr); }
+    .rs-pick {
+      grid-template-columns: minmax(0, 1fr);
+    }
   }
 
   .tc-scripts,
@@ -412,7 +611,6 @@
     background: color-mix(in srgb, var(--color-accent) 14%, transparent);
   }
 
-  /* The date sits at the right end of its row. */
   .tc-script-row .tc-small {
     margin-left: auto;
     white-space: nowrap;
@@ -421,5 +619,4 @@
   .rs-empty {
     padding: 8px 12px;
   }
-  
 </style>

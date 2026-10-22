@@ -12,6 +12,7 @@
   import SetupFields from './SetupFields.svelte';
   import TcTree from './TcTree.svelte';
   import Button from '../Button.svelte';
+  import LlmButton from '../LlmButton.svelte';
   import CodeEditor from '../CodeEditor.svelte';
   import { loadSetup, runBody, saveSetup } from './testComposerModel.js';
 
@@ -64,6 +65,10 @@
   const validated = $derived(probe === 'MATCH');
   const tickedCases = $derived(tree ? tree.plans.flatMap(p => p.cycles.flatMap(cy => cy.cases
     .filter(c => ticked.has(`${cy.key}/${c.key}`)).map(c => ({ key: c.key, cycle: cy.key })))) : []);
+
+// A launch only starts the seat session (the LLM work runs in it afterwards, shown in the
+  // agent window), so its LlmButton has nothing to cancel: a busy click does nothing.
+  const noStop = () => {};
 
   function setStatus(msg, bad = false) { status = { msg, bad }; }
   function kindOf(key) { return scriptByCase.has(key) ? 'script' : 'manual'; }
@@ -251,7 +256,7 @@
   <div class="tc-step"><span class="tc-step-n">3</span> Validate the Bench Against the Template</div>
   <div class="tc-line">
     <div class="tc-row">
-      <Button variant="primary" disabled={!template || !setup.testbox || !setup.consoles || !sessionsOk} on:click={validate}>Validate</Button>
+      <LlmButton label="Validate" verb="Validating…" disabled={!template || !setup.testbox || !setup.consoles || !sessionsOk} onRun={validate} onStop={noStop} />
       {#if validated}<span class="tc-check" title="the probe matched the template">✓ the bench matches {template}</span>
       {:else if probe}<span class="tc-problem">Probe: {probe} — the differences are in the session's report below.</span>
       {:else if validateState && ['done', 'stopped', 'error'].includes(validateState)}<span class="tc-problem">No probe result — see the notices below.</span>{/if}
@@ -291,7 +296,7 @@
     <div class="tc-row">
       <Button variant="outline" on:click={toggleDryRun}>{dryRun ? 'Hide' : 'Show'} the hand-off</Button>
       <Button variant="primary" copy on:click={shareLink}>{copyLabel}</Button>
-      <Button variant="primary" disabled={!tickedCases.length || !sessionsOk} on:click={start}>Start ({tickedCases.length})</Button>
+      <LlmButton label={`Start (${tickedCases.length})`} verb="Starting…" disabled={!tickedCases.length || !sessionsOk} onRun={start} onStop={noStop} />
       <div class="tc-status" class:is-bad={status.bad} role="status">{status.msg}</div>
     </div>
     {#if dryRun}
@@ -303,13 +308,19 @@
 
   {#if run}
     <div class="tc-step"><span class="tc-step-n">6</span> The Campaign — {run.runId}</div>
-    {#key run.runId}
-      <AgentWindow runId={run.runId} sessionId={run.sessionId} {agent} {server} onstate={(s) => { if (['done', 'stopped', 'error'].includes(s)) refreshKey += 1; }} />
-      <ResultsTable runId={run.runId} {server} />
-    {/key}
+    <div class="tc-line">
+      {#key run.runId}
+        <div class="tc-row tc-full">
+          <AgentWindow runId={run.runId} sessionId={run.sessionId} {agent} {server} onstate={(s) => { if (['done', 'stopped', 'error'].includes(s)) refreshKey += 1; }} />
+        </div>
+        <div class="tc-row tc-full">
+          <ResultsTable runId={run.runId} {server} />
+        </div>
+      {/key}
+    </div>
   {/if}
 
-  <div class="tc-step">Earlier Campaigns</div>
+  <div class="tc-step tc-earlier">Earlier Campaigns</div>
   <RunsList {server} kind="composer" {refreshKey} onopen={(id) => (run = { runId: id, sessionId: null })} />
 </div>
 
@@ -348,6 +359,10 @@
     background: var(--color-bg-content);
     color: var(--color-text-heading);
     font-size: 1.1rem;
+  }
+
+  .tc-earlier {
+    margin: 1rem 0 1rem 0;
   }
 
   /* --- Lines, rows, notes, status ---------------------------------------------------- */

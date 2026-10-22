@@ -29,3 +29,90 @@
     </button>
   {/each}
 </div>
+
+<style>
+  .tc-runs {
+    width: 100%;
+    max-height: 260px;
+    overflow: auto;
+    border: 1px solid var(--color-border-surface);
+    border-radius: 10px;
+    background: var(--color-bg-surface);
+  }
+
+  .tc-run-row {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 4px 12px;
+    width: 100%;
+    padding: 8px 12px;
+    border: 0;
+    border-bottom: 1px solid var(--color-border-surface);
+    background: none;
+    color: var(--color-text);
+    font: inherit;
+    font-size: 0.9rem;
+    text-align: left;
+    cursor: pointer;
+  }
+
+  .tc-run-row:last-child {
+    border-bottom: 0;
+  }
+
+  .tc-run-row:hover {
+    background: color-mix(in srgb, var(--color-accent) 6%, transparent);
+  }
+
+  .tc-run-row:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: -2px;
+  }
+
+  .tc-key {
+    font-family: 'Roboto Mono Variable', 'Roboto Mono', monospace;
+    font-size: 0.8rem;
+    color: var(--color-analysis-key);
+  }
+
+  .tc-small {
+    color: var(--color-text-muted);
+    font-size: 0.85rem;
+  }
+
+  .tc-runs > .tc-small,
+  .tc-problem {
+    padding: 8px 12px;
+  }
+
+  .tc-problem {
+    color: var(--color-error);
+  }
+
+  .tc-badge {
+    padding: 1px 8px;
+    border: 1px solid var(--color-border-surface);
+    border-radius: 10px;
+    color: var(--color-text-muted);
+    font-size: 0.75rem;
+    white-space: nowrap;
+  }
+
+  .tc-state-starting,
+  .tc-state-running {
+    color: var(--color-accent);
+    border-color: currentColor;
+  }
+
+  .tc-state-done {
+    color: var(--color-success);
+    border-color: currentColor;
+  }
+
+  .tc-state-error,
+  .tc-state-stopped {
+    color: var(--color-error);
+    border-color: currentColor;
+  }
+</style>

@@ -11,7 +11,7 @@
   import RunsList from './RunsList.svelte';
   import SetupFields from './SetupFields.svelte';
   import Button from '../Button.svelte';
-  import CodeEditor from '../CodeEditor.svelte';
+  import LlmButton from '../LlmButton.svelte';
   import { loadSetup, runBody, saveSetup } from './testComposerModel.js';
 
   import { httpServer, httpAgent } from '../../services/testcomposer/testComposerService.js';
@@ -105,6 +105,10 @@
     return loadScripts();
   }
 
+// A launch only starts the seat session (the LLM work runs in it afterwards, shown in the
+  // agent window), so its LlmButton has nothing to cancel: a busy click does nothing.
+  const noStop = () => {};
+
   function setStatus(msg, bad = false) { status = { msg, bad }; }
 
   async function loadScripts() {
@@ -182,7 +186,7 @@
   <div class="tc-step"><span class="tc-step-n">3</span> Launch</div>
   <div class="tc-line">
     <div class="tc-row">
-      <Button variant="primary" loading={busy} disabled={!canLaunch} on:click={launch}>{busy ? 'Launching…' : 'Launch Validation'}</Button>
+      <LlmButton label="Launch Validation" verb="Launching…" disabled={!canLaunch} onRun={launch} onStop={noStop} />
       <div class="tc-status" class:is-bad={status.bad} role="status">{status.msg}</div>
     </div>
     <div class="tc-row">
@@ -198,9 +202,17 @@
   {#if run}
     <div class="tc-step"><span class="tc-step-n">4</span> The Session — {run.runId}</div>
     {#key run.runId}
-      <AgentWindow runId={run.runId} sessionId={run.sessionId} {agent} {server} onstate={(s) => { runState = s; if (['done', 'stopped', 'error'].includes(s)) refreshKey += 1; }} />
+      <div class="tc-line">
+        <div class="tc-row tc-full">
+          <AgentWindow runId={run.runId} sessionId={run.sessionId} {agent} {server} onstate={(s) => { runState = s; if (['done', 'stopped', 'error'].includes(s)) refreshKey += 1; }} />
+        </div>
+      </div>
       <div class="tc-step"><span class="tc-step-n">5</span> Results</div>
-      <ResultsTable runId={run.runId} {server} />
+      <div class="tc-line">
+        <div class="tc-row tc-full">
+          <ResultsTable runId={run.runId} {server} />
+        </div>
+      </div>
     {/key}
 
     <div class="tc-step"><span class="tc-step-n">6</span> Review and Repaired Copy</div>
@@ -208,7 +220,7 @@
       {#each reviews as r (r.path)}
         <div class="tc-row tc-full">
           <div class="tc-card"><div class="tc-card-head">Review of {r.case}</div>
-            {#if reviewText[r.path]}<CodeEditor value={reviewText[r.path]} readonly language="none" height="auto" maxHeight="40vh" />
+            {#if reviewText[r.path]}<pre class="tc-pre">{reviewText[r.path]}</pre>
             {:else}<Button variant="outline" on:click={() => loadReview(r)}>Read the review</Button>{/if}
           </div>
         </div>
@@ -226,8 +238,8 @@
                 {@const d = changed(c.original, c.code)}
                 <div class="tc-small">{d.removed} line(s) removed, {d.added} added.</div>
                 <div class="tc-panes">
-                  <div><div class="tc-small">Saved</div><CodeEditor value={c.original} readonly height="auto" maxHeight="50vh" /></div>
-                  <div><div class="tc-small">Repaired</div><CodeEditor value={c.code} readonly height="auto" maxHeight="50vh" /></div>
+                  <div><div class="tc-small">Saved</div><pre class="tc-pre tc-pre-tall">{c.original}</pre></div>
+                  <div><div class="tc-small">Repaired</div><pre class="tc-pre tc-pre-tall">{c.code}</pre></div>
                 </div>
                 {#if c.saved}<span class="tc-check">✓ saved to the PyTest Creator</span>
                 {:else}<Button variant="primary" on:click={() => approve(r)}>Approve → save</Button>{/if}
@@ -252,7 +264,7 @@
     </div>
   {/if}
 
-  <div class="tc-step">Earlier Validation Runs</div>
+  <div class="tc-step tc-earlier">Earlier Validation Runs</div>
   <RunsList {server} kind="validation" {refreshKey} onopen={(id) => { run = { runId: id, sessionId: null }; markers = []; finalized = null; }} />
 </div>
 
@@ -291,6 +303,16 @@
     background: var(--color-bg-content);
     color: var(--color-text-heading);
     font-size: 1.1rem;
+  }
+
+  .tc-earlier {
+    margin: 1rem 0 1rem 0;
+    padding-top: 1rem;
+    border-top: 1px solid var(--color-border-surface);
+    width: 100%;
+    font-size: 0.88rem;
+    color: var(--color-text-muted);
+    text-transform: uppercase;
   }
 
   /* --- Lines, rows, notes, status ---------------------------------------------------- */
@@ -435,6 +457,27 @@
 
   @media (max-width: 900px) {
     .tc-panes { grid-template-columns: minmax(0, 1fr); }
+  }
+
+  /* The review and the saved / repaired scripts: plain text in the code font inside a rounded
+     border (as AgentWindow's tool output), not a code window. */
+  .tc-pre {
+    width: 100%;
+    max-height: 40vh;
+    margin: 0;
+    padding: 8px 12px;
+    overflow: auto;
+    border: 1px solid var(--color-border-surface);
+    border-radius: 10px;
+    color: var(--color-text);
+    font-family: Consolas, 'Courier New', monospace;
+    font-size: 12px;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+
+  .tc-pre-tall {
+    max-height: 50vh;
   }
 
   /* --- 7 Finalize ---------------------------------------------------------------------- */

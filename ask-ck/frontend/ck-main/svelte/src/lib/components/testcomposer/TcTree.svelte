@@ -46,3 +46,83 @@
     {/if}
   {/each}
 {/each}
+
+<style>
+  /* The project tree, drawn like ZtTree (Zephyr): plan → cycle → case indented by depth, keys
+     in the mono key colour, a muted fold arrow and counts. */
+  .zt-row {
+    padding: 6px 0 2px calc(var(--zt-depth) * 30px);
+  }
+
+  .zt-row label {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 6px;
+    cursor: pointer;
+  }
+
+  .zt-plan {
+    margin-top: 6px;
+    color: var(--color-text-heading);
+    font-weight: 600;
+  }
+
+  .zt-key {
+    color: var(--color-sidebar-nav-active-bg);
+    font-family: 'Roboto Mono Variable', 'Roboto Mono', monospace;
+    font-weight: 600;
+  }
+
+  .zt-fold {
+    width: 1.4em;
+    padding: 0;
+    border: none;
+    background: none;
+    color: var(--color-text-muted);
+    cursor: pointer;
+  }
+
+  .zt-fold-pad {
+    display: inline-block;
+    width: 1.4em;
+  }
+
+  .zt-count {
+    margin-left: 12px;
+    color: var(--color-text-muted);
+    font-size: 0.8rem;
+  }
+
+  .zt-empty {
+    color: var(--color-text-muted);
+    font-style: italic;
+  }
+
+  /* An unticked case fades back, as in ZtTree. */
+  .is-off label {
+    opacity: 0.55;
+  }
+
+  /* PyScript / Manual, and Previously Run — the same pills as the results table. */
+  .tc-kind,
+  .tc-prev {
+    padding: 1px 8px;
+    border: 1px solid var(--color-border-surface);
+    border-radius: 10px;
+    color: var(--color-text-muted);
+    font-size: 0.75rem;
+    white-space: nowrap;
+  }
+
+  .tc-kind-script {
+    color: var(--color-accent);
+    border-color: currentColor;
+  }
+
+  .tc-prev {
+    color: var(--color-warning);
+    border-color: currentColor;
+    background: color-mix(in srgb, var(--color-warning) 10%, transparent);
+  }
+</style>

@@ -7,6 +7,7 @@
   // the agent restarted), it falls back to reading the server's copy — view-only.
   import { onDestroy, onMount, untrack } from 'svelte';
   import { fmtDuration, fmtTokens, tokensOf } from './testComposerModel.js';
+  import Button from '../Button.svelte';
 
   let { runId, sessionId = null, agent, server, onstate = () => {}, compact = false } = $props();
 
@@ -185,7 +186,7 @@
     <span class="tc-small" title={`list-price estimate${updatesCost ? `, including $${updatesCost.toFixed(2)} for the running updates` : ''}`}>{cost != null ? `$${cost.toFixed(2)}` : ''}</span>
     <label class="tc-small"><input type="checkbox" bind:checked={follow}> Follow</label>
     <label class="tc-small" title="Also show the tester's (subagents') reasoning"><input type="checkbox" class="tc-verbose" checked={verbose} onchange={(ev) => setVerbose(ev.currentTarget.checked)}> Verbose</label>
-    {#if live}<button type="button" class="btn btn-secondary btn-compact-small tc-stop" onclick={stop}>Stop</button>{/if}
+    {#if live}<Button variant="outline" on:click={stop}>Stop</Button>{/if}
   </div>
   {#if error}<div class="tc-problem">{error}</div>{/if}
   <div class="tc-stream" bind:this={box} onscroll={() => { if (box) follow = box.scrollHeight - box.scrollTop - box.clientHeight < 40; }}>
@@ -217,9 +218,9 @@
             <div class="tc-q">{q.question}</div>
             {#if e.waits && live && !pendingIds.has(e.request_id) && !answered[e.request_id]}
               <div class="tc-opts">
-                {#each q.options || [] as o}<button type="button" class="btn btn-secondary btn-compact-small" title={o.description || ''} onclick={() => answerQuestion(e, q, o.label)}>{o.label}</button>{/each}
+                {#each q.options || [] as o}<Button variant="outline" title={o.description || ''} on:click={() => answerQuestion(e, q, o.label)}>{o.label}</Button>{/each}
                 <input class="form-input tc-other" placeholder="Other…" bind:value={other[e.request_id]}>
-                <button type="button" class="btn btn-primary btn-compact-small" onclick={() => answerQuestion(e, q, other[e.request_id] || '')}>Send</button>
+                <Button variant="primary" on:click={() => answerQuestion(e, q, other[e.request_id] || '')}>Send</Button>
               </div>
             {:else}
               <div class="tc-small">{answered[e.request_id] ? 'Answered here.' : e.waits ? 'Waiting for an answer…' : 'Not waited for: the campaign carries on (D5).'}</div>
@@ -231,8 +232,10 @@
           <div class="tc-card-head">Permission asked: {e.tool}</div>
           <pre class="tc-pre">{e.input}</pre>
           {#if e.waits && live && !pendingIds.has(e.request_id) && !answered[e.request_id]}
-            <button type="button" class="btn btn-primary btn-compact-small" onclick={() => approve(e, true)}>Allow</button>
-            <button type="button" class="btn btn-secondary btn-compact-small" onclick={() => approve(e, false)}>Deny</button>
+            <div class="tc-opts">
+              <Button variant="primary" on:click={() => approve(e, true)}>Allow</Button>
+              <Button variant="outline" on:click={() => approve(e, false)}>Deny</Button>
+            </div>
           {:else}<div class="tc-small">{answered[e.request_id] ? 'Answered here.' : 'Not approved: outside the session\'s permission profile (D6).'}</div>{/if}
         </div>
       {:else if e.kind === 'result'}
@@ -251,7 +254,281 @@
     <div class="tc-say">
       <input class="form-input" placeholder="Message the session (e.g. “don’t touch u3”)" bind:value={draft}
         onkeydown={(ev) => { if (ev.key === 'Enter') send(); }}>
-      <button type="button" class="btn btn-secondary" onclick={send}>Send</button>
+      <Button variant="primary" on:click={send}>Send</Button>
     </div>
   {/if}
 </div>
+
+
+<style>
+  /* The session window, in the new pages' look: a surface card (as the script lists), a head
+     row of readouts, then the event stream. Spans its step — the pages' .tc-line is a wrapping
+     flex row. */
+  .tc-window {
+    width: 100%;
+    border: 1px solid var(--color-border-surface);
+    border-radius: 10px;
+    background: var(--color-bg-surface);
+    overflow: hidden;
+  }
+
+  .tc-window-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 14px;
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--color-border-surface);
+    background: var(--color-table-header-bg);
+  }
+
+  .tc-window-head label {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+  }
+
+  .tc-spacer {
+    flex: 1 1 auto;
+  }
+
+  .tc-small {
+    color: var(--color-text-muted);
+    font-size: 0.85rem;
+  }
+
+  .tc-problem {
+    padding: 8px 12px;
+    color: var(--color-error);
+    font-size: 0.88rem;
+  }
+
+  /* --- State badge (same colours as RunsList) ------------------------------------------ */
+  .tc-badge {
+    padding: 1px 8px;
+    border: 1px solid var(--color-border-surface);
+    border-radius: 10px;
+    color: var(--color-text-muted);
+    font-size: 0.75rem;
+    white-space: nowrap;
+  }
+
+  .tc-state-starting,
+  .tc-state-running {
+    color: var(--color-accent);
+    border-color: currentColor;
+  }
+
+  .tc-state-done {
+    color: var(--color-success);
+    border-color: currentColor;
+  }
+
+  .tc-state-error,
+  .tc-state-stopped {
+    color: var(--color-error);
+    border-color: currentColor;
+  }
+
+  /* --- The stream ------------------------------------------------------------------------ */
+  .tc-stream {
+    max-height: 55vh;
+    overflow: auto;
+    padding: 10px 12px;
+    color: var(--color-text-muted);
+    font-size: 0.88rem;
+  }
+
+  .tc-compact .tc-stream {
+    max-height: 28vh;
+  }
+
+  .tc-ev {
+    margin: 4px 0;
+  }
+
+  /* A subagent's events, indented under a guide line. */
+  .tc-sub {
+    margin-left: 22px;
+    padding-left: 8px;
+    border-left: 2px solid var(--color-border-surface);
+  }
+
+  .tc-text {
+    color: var(--color-text);
+    white-space: pre-wrap;
+  }
+
+  /* Same look as the app's LLM notes: italic and muted. */
+  .tc-thinking {
+    color: var(--color-text);
+    font-style: italic;
+    white-space: pre-wrap;
+  }
+
+  .tc-thinking.tc-sub {
+    color: var(--color-text-muted);
+  }
+
+  .tc-reply {
+    padding-left: 8px;
+    border-left: 3px solid var(--color-accent);
+  }
+
+  .tc-reply-tag {
+    margin-right: 6px;
+    color: var(--color-accent);
+    font-size: 0.72rem;
+    font-style: normal;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .tc-update {
+    font-size: 0.82rem;
+  }
+
+  .tc-update.tc-attn {
+    padding-left: 8px;
+    border-left: 3px solid var(--color-warning);
+    color: var(--color-text);
+  }
+
+  .tc-attn-why {
+    color: var(--color-warning);
+  }
+
+  /* A tool call: a disclosure row (the browser's button look reset), status at the right. */
+  .tc-tool-row {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    width: 100%;
+    padding: 2px 0;
+    border: 0;
+    background: none;
+    color: var(--color-text-muted);
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+  }
+
+  .tc-tool-row:hover {
+    color: var(--color-text);
+  }
+
+  .tc-tool-status {
+    margin-left: auto;
+    font-size: 0.75rem;
+  }
+
+  .tc-tool-status.is-ok { color: var(--color-success); }
+  .tc-tool-status.is-error,
+  .tc-tool-status.is-denied { color: var(--color-error); }
+
+  /* A tool's command and its output: plain text in the code font inside a rounded border,
+     not a code window. */
+  .tc-pre {
+    max-height: 40vh;
+    margin: 6px 0;
+    padding: 8px 12px;
+    overflow: auto;
+    border: 1px solid var(--color-border-surface);
+    border-radius: 10px;
+    color: var(--color-text);
+    font-family: Consolas, 'Courier New', monospace;
+    font-size: 12px;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+
+  .tc-task,
+  .tc-turn,
+  .tc-statechg {
+    color: var(--color-text-muted);
+    font-size: 0.8rem;
+  }
+
+  /* device-testing's marker lines (PASS / FAIL / NOTIFY / ASKCK-DONE). */
+  .tc-marker {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 6px;
+    background: var(--color-bg-content);
+    font-family: 'Roboto Mono Variable', 'Roboto Mono', monospace;
+    font-size: 0.8rem;
+  }
+
+  .tc-m-pass { color: var(--color-success); }
+  .tc-m-fail { color: var(--color-error); }
+  .tc-m-notify {
+    color: var(--color-warning);
+    background: color-mix(in srgb, var(--color-warning) 12%, transparent);
+  }
+  .tc-m-other,
+  .tc-m-done { color: var(--color-text); }
+
+  .tc-user {
+    color: var(--color-accent);
+    text-align: right;
+  }
+
+  /* A question or a permission request: the warning colour, as it waits on a person. */
+  .tc-card {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 10px 12px;
+    border: 1px solid var(--color-warning);
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--color-warning) 8%, transparent);
+  }
+
+  .tc-card-head {
+    color: var(--color-text-heading);
+    font-weight: 600;
+  }
+
+  .tc-q {
+    color: var(--color-text);
+  }
+
+  .tc-opts {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .tc-empty {
+    color: var(--color-text-muted);
+    font-style: italic;
+  }
+
+  /* --- Message box --------------------------------------------------------------------- */
+  .tc-say {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-top: 1px solid var(--color-border-surface);
+  }
+
+  .form-input {
+    flex: 1 1 auto;
+    min-width: 0;
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--color-border-surface);
+    background: var(--color-bg-surface);
+    color: var(--color-text);
+    font: inherit;
+    font-size: 0.94rem;
+  }
+
+  .tc-other {
+    flex: 1 1 160px;
+  }
+</style>

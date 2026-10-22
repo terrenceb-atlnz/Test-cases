@@ -60,9 +60,9 @@
 </aside>
 
 <style>
-  .sidebar {
-    /* border-right: 2px solid var(--color-border-surface); */
-  }
+  /* .sidebar {
+    border-right: 2px solid var(--color-border-surface);
+  } */
   .sidebar-section-label {
     padding: 14px 12px 6px;
     font-size: 0.8rem;
