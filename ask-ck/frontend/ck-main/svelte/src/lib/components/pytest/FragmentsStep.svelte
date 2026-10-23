@@ -1,12 +1,15 @@
 <script>
-// @ts-nocheck
+  // @ts-nocheck
 
-  import ArrowStep from './ArrowStep.svelte';
-  import StatusBadge from '../StatusBadge.svelte';
-  import Button from '../Button.svelte';
-  import FragmentCard from '../FragmentCard.svelte';
-  import { scrollToTop, scrollToSection } from '../../utils/scroll.js';
-  import { newCallId, cancelLlmCall } from '../../services/llmProgressService.js';
+  import ArrowStep from "./ArrowStep.svelte";
+  import StatusBadge from "../StatusBadge.svelte";
+  import Button from "../Button.svelte";
+  import FragmentCard from "../FragmentCard.svelte";
+  import { scrollToTop, scrollToSection } from "../../utils/scroll.js";
+  import {
+    newCallId,
+    cancelLlmCall,
+  } from "../../services/llmProgressService.js";
 
   // --- Props: data ------------------------------------------------------------------
   /** @type {Array<{ n: number, action: string, verify: string }>} Read-only. Steps are keyed
@@ -94,14 +97,14 @@
     const cards = [];
     const shown = new Set();
     for (const entry of entriesForStep(n)) {
-      const chosenKey = (entry.chosen || []).join('||');
+      const chosenKey = (entry.chosen || []).join("||");
       const chosenFrag = fragByKey(chosenKey);
       if (chosenFrag) {
         cards.push({ frag: chosenFrag, recommended: true });
         shown.add(chosenKey);
       }
       for (const r of entry.redundant || []) {
-        const rKey = (r.key || []).join('||');
+        const rKey = (r.key || []).join("||");
         const rFrag = fragByKey(rKey);
         if (rFrag) {
           cards.push({ frag: rFrag, recommended: false, redundantWhy: r.why });
@@ -126,10 +129,10 @@
     return {
       name: f.symbol,
       source: f.source_id,
-      steps: (f.maps_to || []).join(', '),
-      description: f.why || '',
-      codeLines: (f.code || '').split('\n').length,
-      code: f.code || '',
+      steps: (f.maps_to || []).join(", "),
+      description: f.why || "",
+      codeLines: (f.code || "").split("\n").length,
+      code: f.code || "",
     };
   }
 
@@ -139,9 +142,9 @@
   function fragKeysForStep(n) {
     const keys = new Set();
     for (const entry of entriesForStep(n)) {
-      if (entry.chosen) keys.add(entry.chosen.join('||'));
+      if (entry.chosen) keys.add(entry.chosen.join("||"));
       for (const r of entry.redundant || []) {
-        if (r.key) keys.add(r.key.join('||'));
+        if (r.key) keys.add(r.key.join("||"));
       }
     }
     for (const f of fragmentsForStep(n)) keys.add(fragKey(f));
@@ -154,7 +157,7 @@
   }
 
   // --- Step navigation, statuses and progress ---------------------------------------
-  const FRAGMENTS_SUMMARY_STEP_ID = '__fragments_summary__';
+  const FRAGMENTS_SUMMARY_STEP_ID = "__fragments_summary__";
 
   let fragmentActiveStepId = null;
   let confirmedFragmentSteps = [];
@@ -162,7 +165,8 @@
   // Seeded once, as soon as the steps are known — later navigation must not re-add them.
   let confirmedSeeded = false;
   $: if (!confirmedSeeded && sequencedTestSteps.length > 0) {
-    if (stepAlreadyConfirmed) confirmedFragmentSteps = sequencedTestSteps.map((s) => s.n);
+    if (stepAlreadyConfirmed)
+      confirmedFragmentSteps = sequencedTestSteps.map((s) => s.n);
     confirmedSeeded = true;
   }
 
@@ -172,8 +176,11 @@
     }
   }
 
-  $: fragmentActiveStep = sequencedTestSteps.find((s) => s.n === fragmentActiveStepId) ?? null;
-  $: fragmentActiveStepIndex = sequencedTestSteps.findIndex((s) => s.n === fragmentActiveStepId);
+  $: fragmentActiveStep =
+    sequencedTestSteps.find((s) => s.n === fragmentActiveStepId) ?? null;
+  $: fragmentActiveStepIndex = sequencedTestSteps.findIndex(
+    (s) => s.n === fragmentActiveStepId,
+  );
 
   function selectFragmentStep(stepId) {
     fragmentActiveStepId = stepId;
@@ -185,36 +192,44 @@
   // so the two blocks below name them with `void` — without that, a gather would leave the
   // cards and statuses stale until the user switched steps and back.
   $: activeStepCards = (() => {
-    void fragmentPool; void accounting; void selectedKeys;
+    void fragmentPool;
+    void accounting;
+    void selectedKeys;
     return cardsForStep(fragmentActiveStepId);
   })();
 
   let fragmentStepStatuses = {};
   $: {
-    void selectedKeys; void accounting; void fragmentPool;
+    void selectedKeys;
+    void accounting;
+    void fragmentPool;
     const next = {};
     for (const step of sequencedTestSteps) {
       if (confirmedFragmentSteps.includes(step.n)) {
-        next[step.n] = 'covered';
+        next[step.n] = "covered";
       } else if (selectedKeysForStep(step.n).length > 0) {
-        next[step.n] = 'review';
+        next[step.n] = "review";
       } else {
-        next[step.n] = 'none';
+        next[step.n] = "none";
       }
     }
     fragmentStepStatuses = next;
   }
 
   $: fragmentsSummaryStatus =
-    sequencedTestSteps.length > 0 && sequencedTestSteps.every((s) => confirmedFragmentSteps.includes(s.n))
-      ? 'covered'
-      : 'none';
+    sequencedTestSteps.length > 0 &&
+    sequencedTestSteps.every((s) => confirmedFragmentSteps.includes(s.n))
+      ? "covered"
+      : "none";
 
   $: fragmentsCoveragePercent =
     sequencedTestSteps.length === 0
       ? 0
       : Math.round(
-          (Object.values(fragmentStepStatuses).filter((s) => s === 'covered').length / sequencedTestSteps.length) * 100
+          (Object.values(fragmentStepStatuses).filter((s) => s === "covered")
+            .length /
+            sequencedTestSteps.length) *
+            100,
         );
 
   // --- Gather (LLM) -------------------------------------------------------------------
@@ -224,7 +239,7 @@
   // PORTED FROM current/pytest-creator/pytest.js's ptGatherFragments busyLabel, plus the
   // click-to-stop affordance already added to Script Search's Suggest All Steps — gather_fragments
   // is a single whole-case call (no per-step count to show), so this is just a plain busy label.
-  $: gatherLabel = isGatheringFragments ? 'Gathering…' : 'Gather Fragments';
+  $: gatherLabel = isGatheringFragments ? "Gathering…" : "Gather Fragments";
 
   // A second click while gathering is the Stop button (a true server-side cancel).
   async function gatherFragments() {
@@ -235,7 +250,9 @@
     isGatheringFragments = true;
     currentGatherCallId = newCallId();
     try {
-      const result = await onGatherFragments({ 'X-CK-LLM-Call': currentGatherCallId });
+      const result = await onGatherFragments({
+        "X-CK-LLM-Call": currentGatherCallId,
+      });
       fragmentPool = result.fragments || [];
       selectedKeys = (result.selected || []).map(fragKey);
       accounting = result.accounting || {};
@@ -269,7 +286,9 @@
   }
 
   async function advanceFragmentStep() {
-    const updatedConfirmed = confirmedFragmentSteps.includes(fragmentActiveStepId)
+    const updatedConfirmed = confirmedFragmentSteps.includes(
+      fragmentActiveStepId,
+    )
       ? confirmedFragmentSteps
       : [...confirmedFragmentSteps, fragmentActiveStepId];
     confirmedFragmentSteps = updatedConfirmed;
@@ -281,13 +300,19 @@
     try {
       await onSaveFragments(buildKeepPayload());
     } catch (e) {
-      alert(`Failed to save fragment selections: ${(e && e.message) || String(e)}`);
+      alert(
+        `Failed to save fragment selections: ${(e && e.message) || String(e)}`,
+      );
     }
 
     // Next unconfirmed step, not just the next in order; Summary once all are confirmed.
-    const nextUnconfirmed = sequencedTestSteps.find((s) => !updatedConfirmed.includes(s.n));
-    fragmentActiveStepId = nextUnconfirmed ? nextUnconfirmed.n : FRAGMENTS_SUMMARY_STEP_ID;
-    scrollToSection('.step-intro');
+    const nextUnconfirmed = sequencedTestSteps.find(
+      (s) => !updatedConfirmed.includes(s.n),
+    );
+    fragmentActiveStepId = nextUnconfirmed
+      ? nextUnconfirmed.n
+      : FRAGMENTS_SUMMARY_STEP_ID;
+    scrollToSection(".step-intro");
   }
 
   async function handleConfirm() {
@@ -296,13 +321,20 @@
   }
 </script>
 
-<p class="step-intro">Re-use real code from the selected scripts, reviewed per sequence step. Gather Fragments proposes, for each step, the fragment(s) worth reusing (green) plus the redundant alternatives it was preferred over (red, nested below) — so the accounting of every candidate is visible. Page through the steps; tick a fragment to include it in Generate (untick a green one or tick a red one to override). Save, then confirm.</p>
+<p class="step-intro">
+  Re-use real code from the selected scripts, reviewed per sequence step. Gather
+  Fragments proposes, for each step, the fragment(s) worth reusing (green) plus
+  the redundant alternatives it was preferred over (red, nested below) — so the
+  accounting of every candidate is visible. Page through the steps; tick a
+  fragment to include it in Generate (untick a green one or tick a red one to
+  override). Save, then confirm.
+</p>
 
 <div class="arrow-step-row">
   {#each sequencedTestSteps as step, i (step.n)}
     <ArrowStep
       label={i + 1}
-      status={fragmentStepStatuses[step.n] ?? 'none'}
+      status={fragmentStepStatuses[step.n] ?? "none"}
       active={fragmentActiveStepId === step.n}
       loading={isGatheringFragments}
       onClick={() => selectFragmentStep(step.n)}
@@ -321,9 +353,24 @@
 </div>
 
 <div class="script-search-toolbar">
-  <Button variant="primary" sparkle disabled={sequencedTestSteps.length === 0} busy={isGatheringFragments} on:click={gatherFragments}>{gatherLabel}</Button>
-  <div class="script-search-progress" role="progressbar" aria-valuenow={fragmentsCoveragePercent} aria-valuemin="0" aria-valuemax="100">
-    <div class="script-search-progress-fill" style="width: {fragmentsCoveragePercent}%"></div>
+  <Button
+    variant="primary"
+    sparkle
+    disabled={sequencedTestSteps.length === 0}
+    busy={isGatheringFragments}
+    on:click={gatherFragments}>{gatherLabel}</Button
+  >
+  <div
+    class="script-search-progress"
+    role="progressbar"
+    aria-valuenow={fragmentsCoveragePercent}
+    aria-valuemin="0"
+    aria-valuemax="100"
+  >
+    <div
+      class="script-search-progress-fill"
+      style="width: {fragmentsCoveragePercent}%"
+    ></div>
   </div>
 </div>
 <div class="step-frame">
@@ -333,14 +380,20 @@
       {#each sequencedTestSteps as step, i (step.n)}
         <div class="script-summary-section">
           <div class="sequence-step-summary">
-            <StatusBadge status={fragmentStepStatuses[step.n] ?? 'none'} />
+            <StatusBadge status={fragmentStepStatuses[step.n] ?? "none"} />
             <p><strong>Sequence Step {i + 1}</strong> - {step.action}</p>
           </div>
           <div class="fragment-summary-list">
-            {#each selectedKeysForStep(step.n).map(fragByKey).filter(Boolean) as frag (fragKey(frag))}
-              <p class="fragment-summary-row"><code>{frag.symbol} — {frag.source_id}</code></p>
+            {#each selectedKeysForStep(step.n)
+              .map(fragByKey)
+              .filter(Boolean) as frag (fragKey(frag))}
+              <p class="fragment-summary-row">
+                <code>{frag.symbol} — {frag.source_id}</code>
+              </p>
             {:else}
-              <p class="fragment-summary-row fragment-summary-empty">No fragments selected for this step.</p>
+              <p class="fragment-summary-row fragment-summary-empty">
+                No fragments selected for this step.
+              </p>
             {/each}
           </div>
         </div>
@@ -348,12 +401,20 @@
     </div>
 
     <div class="step-actions">
-      <Button variant="primary" disabled={fragmentsSummaryStatus !== 'covered'} on:click={handleConfirm}>Review &amp; Confirm</Button>
+      <Button
+        variant="primary"
+        disabled={fragmentsSummaryStatus !== "covered"}
+        on:click={handleConfirm}>Review &amp; Confirm</Button
+      >
     </div>
   {:else if fragmentActiveStep}
     <div class="sequence-step-summary">
-      <StatusBadge status={fragmentStepStatuses[fragmentActiveStep.n] ?? 'none'} />
-      <p><strong>Sequence Step {fragmentActiveStepIndex + 1}</strong> - {fragmentActiveStep.action}</p>
+      <StatusBadge
+        status={fragmentStepStatuses[fragmentActiveStep.n] ?? "none"}
+      />
+      <p>
+        <strong>Sequence Step {fragmentActiveStepIndex + 1}</strong> - {fragmentActiveStep.action}
+      </p>
     </div>
 
     <div class="fragment-groups">
@@ -369,28 +430,41 @@
       {/each}
 
       {#if activeStepCards.some((c) => !c.recommended)}
-        <p class="fragment-redundant-label">Not selected — redundant to the above:</p>
+        <p class="fragment-redundant-label">
+          Not selected — redundant to the above:
+        </p>
         <div class="fragment-redundant-group">
           {#each activeStepCards.filter((c) => !c.recommended) as card (fragKey(card.frag))}
             <FragmentCard
-              fragment={{ ...toCardFragment(card.frag), redundantReason: card.redundantWhy }}
+              fragment={{
+                ...toCardFragment(card.frag),
+                redundantReason: card.redundantWhy,
+              }}
               recommended={false}
               selected={selectedKeys.includes(fragKey(card.frag))}
               expanded={expandedKeys.includes(fragKey(card.frag))}
-              onToggleSelected={() => toggleFragmentSelected(fragKey(card.frag))}
-              onToggleExpanded={() => toggleFragmentExpanded(fragKey(card.frag))}
+              onToggleSelected={() =>
+                toggleFragmentSelected(fragKey(card.frag))}
+              onToggleExpanded={() =>
+                toggleFragmentExpanded(fragKey(card.frag))}
             />
           {/each}
         </div>
       {/if}
 
       {#if !activeStepCards.length}
-        <p class="fragment-empty">No fragments gathered yet. Click "Gather Fragments" above.</p>
+        <p class="fragment-empty">
+          No fragments gathered yet. Click "Gather Fragments" above.
+        </p>
       {/if}
     </div>
 
     <div class="step-actions">
-      <Button variant="primary" disabled={!activeStepCards.length} on:click={advanceFragmentStep}>Confirm Fragments</Button>
+      <Button
+        variant="primary"
+        disabled={!activeStepCards.length}
+        on:click={advanceFragmentStep}>Confirm Fragments</Button
+      >
     </div>
   {/if}
 </div>

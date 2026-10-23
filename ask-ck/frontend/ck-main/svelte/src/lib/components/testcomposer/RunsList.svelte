@@ -1,31 +1,47 @@
 <script>
-
   //@ts-nocheck
   // Earlier runs of one kind, newest first; picking one reopens its window and table.
-  import { fmtTokens } from './testComposerModel.js';
+  import { fmtTokens } from "./testComposerModel.js";
+  import ErrorBanner from "../ErrorBanner.svelte";
 
   let { server, kind, onopen, refreshKey = 0 } = $props();
   let runs = $state([]);
   let error = $state(null);
 
   async function load() {
-    try { runs = (await server(`/runs?kind=${encodeURIComponent(kind)}&limit=25`)).runs; error = null; }
-    catch (e) { error = e.message; }
+    try {
+      runs = (await server(`/runs?kind=${encodeURIComponent(kind)}&limit=25`))
+        .runs;
+      error = null;
+    } catch (e) {
+      error = e.message;
+    }
   }
 
-  $effect(() => { refreshKey; load(); });
+  $effect(() => {
+    refreshKey;
+    load();
+  });
 </script>
 
 <div class="tc-runs">
-  {#if error}<div class="tc-problem">{error}</div>{/if}
+  <ErrorBanner message={error} />
   {#if !runs.length}<div class="tc-small">No runs yet.</div>{/if}
   {#each runs as r (r.run_id)}
     <button type="button" class="tc-run-row" onclick={() => onopen(r.run_id)}>
       <span class="tc-key">{r.run_id}</span>
       <span class="tc-badge tc-state-{r.state}">{r.state}</span>
-      <span class="tc-small">{r.testbox} · {(r.cases || []).join(', ') || 'no cases'}</span>
-      <span class="tc-small">{Object.entries(r.counts || {}).map(([k, v]) => `${v} ${k}`).join(', ')}</span>
-      <span class="tc-small">{r.tokens ? `${fmtTokens(r.tokens)} tokens` : ''}</span>
+      <span class="tc-small"
+        >{r.testbox} · {(r.cases || []).join(", ") || "no cases"}</span
+      >
+      <span class="tc-small"
+        >{Object.entries(r.counts || {})
+          .map(([k, v]) => `${v} ${k}`)
+          .join(", ")}</span
+      >
+      <span class="tc-small"
+        >{r.tokens ? `${fmtTokens(r.tokens)} tokens` : ""}</span
+      >
     </button>
   {/each}
 </div>
@@ -71,7 +87,7 @@
   }
 
   .tc-key {
-    font-family: 'Roboto Mono Variable', 'Roboto Mono', monospace;
+    font-family: "Roboto Mono Variable", "Roboto Mono", monospace;
     font-size: 0.8rem;
     color: var(--color-analysis-key);
   }
@@ -81,13 +97,8 @@
     font-size: 0.85rem;
   }
 
-  .tc-runs > .tc-small,
-  .tc-problem {
+  .tc-runs > .tc-small {
     padding: 8px 12px;
-  }
-
-  .tc-problem {
-    color: var(--color-error);
   }
 
   .tc-badge {

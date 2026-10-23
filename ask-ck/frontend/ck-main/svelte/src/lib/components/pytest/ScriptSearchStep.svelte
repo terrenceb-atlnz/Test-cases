@@ -1,17 +1,24 @@
 <script>
-// @ts-nocheck
+  // @ts-nocheck
 
-  import ArrowStep from './ArrowStep.svelte';
-  import StatusBadge from '../StatusBadge.svelte';
-  import Button from '../Button.svelte';
-  import Table from '../Table.svelte';
-  import SearchBox from '../SearchBox.svelte';
-  import ConfirmModal from '../ConfirmModal.svelte';
-  import CodeModal from '../CodeModal.svelte';
-  import LlmButton from '../LlmButton.svelte';
+  import ArrowStep from "./ArrowStep.svelte";
+  import StatusBadge from "../StatusBadge.svelte";
+  import Button from "../Button.svelte";
+  import Table from "../Table.svelte";
+  import SearchBox from "../SearchBox.svelte";
+  import ConfirmModal from "../ConfirmModal.svelte";
+  import CodeModal from "../CodeModal.svelte";
+  import LlmButton from "../LlmButton.svelte";
 
-  import { newCallId, cancelLlmCall } from '../../services/llmProgressService.js';
-  import { scrollToTop, scrollToSection, scrollToBottom } from '../../utils/scroll.js';
+  import {
+    newCallId,
+    cancelLlmCall,
+  } from "../../services/llmProgressService.js";
+  import {
+    scrollToTop,
+    scrollToSection,
+    scrollToBottom,
+  } from "../../utils/scroll.js";
 
   // --- Props: data ------------------------------------------------------------------
   /** @type {Array<{ n: number, action: string, verify: string }>} Read-only — reactive to
@@ -42,7 +49,7 @@
   export let onSearch = async () => [];
 
   /** @type {(id: string) => Promise<{source: string, start?: number, end?: number}>} */
-  export let onViewSource = async () => ({ source: '' });
+  export let onViewSource = async () => ({ source: "" });
 
   /** @type {(selections: Record<string, string[]>, records: Record<string, object>) => Promise<void>}
       Called at every per-step confirm and again from the Summary — always a full snapshot. */
@@ -52,7 +59,7 @@
   export let onConfirm = null;
 
   // --- Per-step state -----------------------------------------------------------------
-  const SUMMARY_STEP_ID = '__summary__';
+  const SUMMARY_STEP_ID = "__summary__";
 
   // Per sequenced-step search state, keyed by step.n — populated lazily below.
   let scriptSearchState = {};
@@ -71,11 +78,11 @@
         const savedIds = initialSelections[String(step.n)] || [];
         const chosen = savedIds.map((id) => initialRecords[id]).filter(Boolean);
         scriptSearchState[step.n] = {
-          search: '',
+          search: "",
           candidates: [],
           chosen,
           selectedCandidateIds: [],
-          selectedChosenIds: []
+          selectedChosenIds: [],
         };
         // Seeded alongside the step's own state, so exactly once per step.
         if (stepAlreadyConfirmed && !confirmedSteps.includes(step.n)) {
@@ -89,7 +96,9 @@
   }
 
   $: activeStep = sequencedTestSteps.find((s) => s.n === activeStepId) ?? null;
-  $: activeStepIndex = sequencedTestSteps.findIndex((s) => s.n === activeStepId);
+  $: activeStepIndex = sequencedTestSteps.findIndex(
+    (s) => s.n === activeStepId,
+  );
 
   function selectStep(stepId) {
     activeStepId = stepId;
@@ -106,26 +115,29 @@
     for (const step of sequencedTestSteps) {
       const state = scriptSearchState[step.n];
       if (confirmedSteps.includes(step.n)) {
-        next[step.n] = 'covered';
+        next[step.n] = "covered";
       } else if (state?.chosen.length > 0 || state?.candidates.length > 0) {
-        next[step.n] = 'review';
+        next[step.n] = "review";
       } else {
-        next[step.n] = 'none';
+        next[step.n] = "none";
       }
     }
     stepStatuses = next;
   }
 
   $: summaryStatus =
-    sequencedTestSteps.length > 0 && sequencedTestSteps.every((s) => confirmedSteps.includes(s.n))
-      ? 'covered'
-      : 'none';
+    sequencedTestSteps.length > 0 &&
+    sequencedTestSteps.every((s) => confirmedSteps.includes(s.n))
+      ? "covered"
+      : "none";
 
   $: coveragePercent =
     sequencedTestSteps.length === 0
       ? 0
       : Math.round(
-          (Object.values(stepStatuses).filter((s) => s === 'covered').length / sequencedTestSteps.length) * 100
+          (Object.values(stepStatuses).filter((s) => s === "covered").length /
+            sequencedTestSteps.length) *
+            100,
         );
 
   // --- Suggest (LLM): one step, or all steps in sequence ----------------------------
@@ -138,7 +150,10 @@
   async function suggestForStep(stepId, headers) {
     suggestingStepN = stepId;
     try {
-      scriptSearchState[stepId].candidates = await onSuggestForStep(stepId, headers);
+      scriptSearchState[stepId].candidates = await onSuggestForStep(
+        stepId,
+        headers,
+      );
       scriptSearchState[stepId].selectedCandidateIds = [];
       scriptSearchState = scriptSearchState;
     } finally {
@@ -154,10 +169,10 @@
   // PORTED FROM current/pytest-creator/pytest.js's saLabel — live progress text on the
   // button itself, doubling as the "click to stop" affordance discoverability.
   $: suggestAllLabel = !isSuggestingAllSteps
-    ? 'Suggest All Steps'
+    ? "Suggest All Steps"
     : stopRequested
-    ? 'Suggesting stopped…'
-    : `Suggesting step ${Math.min(suggestAllDone + 1, sequencedTestSteps.length)}/${sequencedTestSteps.length}…`;
+      ? "Suggesting stopped…"
+      : `Suggesting step ${Math.min(suggestAllDone + 1, sequencedTestSteps.length)}/${sequencedTestSteps.length}…`;
 
   // A tab Chromium treats as backgrounded can suspend a pending `await fetch` indefinitely
   // (see agentService.js's ckBrokerLoop comment — same phenomenon, different fetch): the
@@ -172,7 +187,9 @@
     const timeout = new Promise((_, reject) => {
       timeoutId = setTimeout(() => reject(new Error(message)), ms);
     });
-    return Promise.race([promise, timeout]).finally(() => clearTimeout(timeoutId));
+    return Promise.race([promise, timeout]).finally(() =>
+      clearTimeout(timeoutId),
+    );
   }
 
   // A second click while running is the Stop button: it cancels only the in-flight step
@@ -192,9 +209,9 @@
       currentCallId = newCallId();
       try {
         const matches = await withTimeout(
-          onSuggestForStep(step.n, { 'X-CK-LLM-Call': currentCallId }),
+          onSuggestForStep(step.n, { "X-CK-LLM-Call": currentCallId }),
           SUGGEST_STEP_TIMEOUT_MS,
-          `Suggest for step ${step.n} timed out client-side (tab may have been backgrounded) — try again`
+          `Suggest for step ${step.n} timed out client-side (tab may have been backgrounded) — try again`,
         );
         // Merged into the step's existing candidates, not replacing them.
         const existing = scriptSearchState[step.n].candidates;
@@ -223,7 +240,7 @@
     const results = await onSearch(scriptSearchState[stepId].search);
     scriptSearchState[stepId].candidates = results.map((r) => ({
       ...r,
-      coverage: r.coverage || 'partial',
+      coverage: r.coverage || "partial",
       covers_steps: [stepId],
     }));
     scriptSearchState[stepId].selectedCandidateIds = [];
@@ -233,10 +250,14 @@
   // --- Moving scripts between candidates and chosen ---------------------------------
   function chooseSelectedForStep(stepId) {
     const state = scriptSearchState[stepId];
-    const moving = state.candidates.filter((c) => state.selectedCandidateIds.includes(c.id));
+    const moving = state.candidates.filter((c) =>
+      state.selectedCandidateIds.includes(c.id),
+    );
     if (moving.length === 0) return;
     scriptSearchState[stepId].chosen = [...state.chosen, ...moving];
-    scriptSearchState[stepId].candidates = state.candidates.filter((c) => !state.selectedCandidateIds.includes(c.id));
+    scriptSearchState[stepId].candidates = state.candidates.filter(
+      (c) => !state.selectedCandidateIds.includes(c.id),
+    );
     scriptSearchState[stepId].selectedCandidateIds = [];
     scriptSearchState = scriptSearchState;
     scrollToBottom();
@@ -244,17 +265,24 @@
 
   function clearSelectedForStep(stepId) {
     const state = scriptSearchState[stepId];
-    const moving = state.chosen.filter((c) => state.selectedChosenIds.includes(c.id));
+    const moving = state.chosen.filter((c) =>
+      state.selectedChosenIds.includes(c.id),
+    );
     if (moving.length === 0) return;
     scriptSearchState[stepId].candidates = [...state.candidates, ...moving];
-    scriptSearchState[stepId].chosen = state.chosen.filter((c) => !state.selectedChosenIds.includes(c.id));
+    scriptSearchState[stepId].chosen = state.chosen.filter(
+      (c) => !state.selectedChosenIds.includes(c.id),
+    );
     scriptSearchState[stepId].selectedChosenIds = [];
     scriptSearchState = scriptSearchState;
   }
 
   function clearAllForStep(stepId) {
     const state = scriptSearchState[stepId];
-    scriptSearchState[stepId].candidates = [...state.candidates, ...state.chosen];
+    scriptSearchState[stepId].candidates = [
+      ...state.candidates,
+      ...state.chosen,
+    ];
     scriptSearchState[stepId].chosen = [];
     scriptSearchState[stepId].selectedChosenIds = [];
     scriptSearchState = scriptSearchState;
@@ -265,21 +293,21 @@
   // chosen, and the summary's per-step chosen table) gets it for free, matching current/'s
   // _ptMatchTable which adds the same "view" td to both kinds of script rows.
   let codeModalOpen = false;
-  let codeModalTitle = '';
-  let codeModalSubtitle = '';
-  let codeModalSource = '';
+  let codeModalTitle = "";
+  let codeModalSubtitle = "";
+  let codeModalSource = "";
   let codeModalLoading = false;
 
   async function viewSource(row) {
     codeModalOpen = true;
     codeModalLoading = true;
     codeModalTitle = row.id;
-    codeModalSubtitle = '';
-    codeModalSource = '';
+    codeModalSubtitle = "";
+    codeModalSource = "";
     try {
       const d = await onViewSource(row.id);
-      codeModalSource = d.source || '';
-      codeModalSubtitle = `lines ${d.start ?? 1}-${d.end ?? ''}`;
+      codeModalSource = d.source || "";
+      codeModalSubtitle = `lines ${d.start ?? 1}-${d.end ?? ""}`;
     } catch (e) {
       codeModalSource = (e && e.message) || String(e);
     } finally {
@@ -287,7 +315,15 @@
     }
   }
 
-  $: tableColumns = [...columns, { key: '_viewSource', label: '', width: 1, button: { label: 'View', onClick: viewSource } }];
+  $: tableColumns = [
+    ...columns,
+    {
+      key: "_viewSource",
+      label: "",
+      width: 1,
+      button: { label: "View", onClick: viewSource },
+    },
+  ];
 
   // --- Confirming a step, saving, and the Summary confirm ---------------------------
   function buildSaveMatchesPayload() {
@@ -329,15 +365,19 @@
       const { selections, records } = buildSaveMatchesPayload();
       await onSaveMatches(selections, records);
     } catch (e) {
-      alert(`Failed to save script selections: ${(e && e.message) || String(e)}`);
+      alert(
+        `Failed to save script selections: ${(e && e.message) || String(e)}`,
+      );
     }
 
     // Jump to the next step that isn't confirmed yet (not just the next one in order) — steps can
     // be confirmed out of sequence, so "next" must skip over ones already done. Once every step is
     // confirmed, land on the Summary arrow instead.
-    const nextUnconfirmed = sequencedTestSteps.find((s) => !updatedConfirmed.includes(s.n));
+    const nextUnconfirmed = sequencedTestSteps.find(
+      (s) => !updatedConfirmed.includes(s.n),
+    );
     activeStepId = nextUnconfirmed ? nextUnconfirmed.n : SUMMARY_STEP_ID;
-    scrollToSection('.step-intro');
+    scrollToSection(".step-intro");
   }
 
   async function handleConfirm() {
@@ -347,13 +387,18 @@
   }
 </script>
 
-<p class="step-intro">Find reusable scripts per sequence step so it's clear every step is covered. Page through the steps; for each, use its own Suggest (LLM) or keyword search to find scripts and choose the ones to reuse. Each step must be confirmed before being able to move on.</p>
+<p class="step-intro">
+  Find reusable scripts per sequence step so it's clear every step is covered.
+  Page through the steps; for each, use its own Suggest (LLM) or keyword search
+  to find scripts and choose the ones to reuse. Each step must be confirmed
+  before being able to move on.
+</p>
 
 <div class="arrow-step-row">
   {#each sequencedTestSteps as step, i (step.n)}
     <ArrowStep
       label={i + 1}
-      status={stepStatuses[step.n] ?? 'none'}
+      status={stepStatuses[step.n] ?? "none"}
       active={activeStepId === step.n}
       loading={suggestingStepN === step.n}
       onClick={() => selectStep(step.n)}
@@ -371,9 +416,25 @@
 </div>
 
 <div class="script-search-toolbar">
-  <Button variant="primary" sparkle disabled={sequencedTestSteps.length === 0 || (isSuggestingAllSteps && stopRequested)} busy={isSuggestingAllSteps} on:click={suggestAllSteps}>{suggestAllLabel}</Button>
-  <div class="script-search-progress" role="progressbar" aria-valuenow={coveragePercent} aria-valuemin="0" aria-valuemax="100">
-    <div class="script-search-progress-fill" style="width: {coveragePercent}%"></div>
+  <Button
+    variant="primary"
+    sparkle
+    disabled={sequencedTestSteps.length === 0 ||
+      (isSuggestingAllSteps && stopRequested)}
+    busy={isSuggestingAllSteps}
+    on:click={suggestAllSteps}>{suggestAllLabel}</Button
+  >
+  <div
+    class="script-search-progress"
+    role="progressbar"
+    aria-valuenow={coveragePercent}
+    aria-valuemin="0"
+    aria-valuemax="100"
+  >
+    <div
+      class="script-search-progress-fill"
+      style="width: {coveragePercent}%"
+    ></div>
   </div>
 </div>
 <div class="step-frame">
@@ -383,21 +444,31 @@
       {#each sequencedTestSteps as step, i (step.n)}
         <div class="script-summary-section">
           <div class="sequence-step-summary">
-            <StatusBadge status={stepStatuses[step.n] ?? 'none'} />
+            <StatusBadge status={stepStatuses[step.n] ?? "none"} />
             <p><strong>Sequence Step {i + 1}</strong> - {step.action}</p>
           </div>
-          <Table columns={tableColumns} rows={scriptSearchState[step.n]?.chosen ?? []} selectable={false} />
+          <Table
+            columns={tableColumns}
+            rows={scriptSearchState[step.n]?.chosen ?? []}
+            selectable={false}
+          />
         </div>
       {/each}
     </div>
 
     <div class="step-actions">
-      <Button variant="primary" disabled={summaryStatus !== 'covered'} on:click={handleConfirm}>Review &amp; Confirm</Button>
+      <Button
+        variant="primary"
+        disabled={summaryStatus !== "covered"}
+        on:click={handleConfirm}>Review &amp; Confirm</Button
+      >
     </div>
   {:else if activeStep}
     <div class="sequence-step-summary">
-      <StatusBadge status={stepStatuses[activeStep.n] ?? 'none'} />
-      <p><strong>Sequence Step {activeStepIndex + 1}</strong> - {activeStep.action}</p>
+      <StatusBadge status={stepStatuses[activeStep.n] ?? "none"} />
+      <p>
+        <strong>Sequence Step {activeStepIndex + 1}</strong> - {activeStep.action}
+      </p>
     </div>
 
     <div class="step-actions">
@@ -411,25 +482,47 @@
         label="Suggest for Step {activeStepIndex + 1}"
         verb="Suggesting…"
         onRun={(headers) => suggestForStep(activeStep.n, headers)}
-      />    
+      />
     </div>
-    <p class="step-table-label">Candidates — tick rows and choose to shortlist them for this step</p>
-    <Table columns={tableColumns} rows={scriptSearchState[activeStepId].candidates} bind:selected={scriptSearchState[activeStepId].selectedCandidateIds} />
+    <p class="step-table-label">
+      Candidates — tick rows and choose to shortlist them for this step
+    </p>
+    <Table
+      columns={tableColumns}
+      rows={scriptSearchState[activeStepId].candidates}
+      bind:selected={scriptSearchState[activeStepId].selectedCandidateIds}
+    />
 
     <div class="testlink-choose-actions">
-      <Button variant="outline" on:click={() => chooseSelectedForStep(activeStep.n)}>↓ Choose selected</Button>
+      <Button
+        variant="outline"
+        on:click={() => chooseSelectedForStep(activeStep.n)}
+        >↓ Choose selected</Button
+      >
     </div>
 
     <p class="step-table-label">Chosen for this sequence step</p>
-    <Table columns={tableColumns} rows={scriptSearchState[activeStepId].chosen} bind:selected={scriptSearchState[activeStepId].selectedChosenIds} />
+    <Table
+      columns={tableColumns}
+      rows={scriptSearchState[activeStepId].chosen}
+      bind:selected={scriptSearchState[activeStepId].selectedChosenIds}
+    />
 
     <div class="testlink-final-actions">
-      <Button variant="outline" on:click={() => clearSelectedForStep(activeStep.n)}>Clear Selected</Button>
-      <Button variant="outline" on:click={() => clearAllForStep(activeStep.n)}>Clear All</Button>
+      <Button
+        variant="outline"
+        on:click={() => clearSelectedForStep(activeStep.n)}
+        >Clear Selected</Button
+      >
+      <Button variant="outline" on:click={() => clearAllForStep(activeStep.n)}
+        >Clear All</Button
+      >
     </div>
 
     <div class="step-actions">
-      <Button variant="primary" on:click={handleConfirmScriptsClick}>Confirm Scripts</Button>
+      <Button variant="primary" on:click={handleConfirmScriptsClick}
+        >Confirm Scripts</Button
+      >
     </div>
 
     <ConfirmModal

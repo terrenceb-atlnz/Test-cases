@@ -1,5 +1,5 @@
 <script>
-  import CodeEditor from './CodeEditor.svelte';
+  import CodeEditor from "./CodeEditor.svelte";
 
   /** @type {{ name: string, source: string, steps: number, description?: string, redundantReason?: string, codeLines: number, code: string }} */
   export let fragment;
@@ -22,27 +22,45 @@
 
 <!-- Card color follows the live selection state (green once ticked, red once unticked) — the
      `recommended` grouping/wording below stays fixed to the LLM's original reasoning. -->
-<div class="fragment-card" class:fragment-recommended={selected} class:fragment-redundant={!selected}>
+<div
+  class="fragment-card"
+  class:fragment-recommended={selected}
+  class:fragment-redundant={!selected}
+>
   <label class="fragment-card-header">
     <input type="checkbox" checked={selected} on:change={onToggleSelected} />
     <span class="fragment-name">{fragment.name}</span>
-    <span class="fragment-source">from {fragment.source} · steps {fragment.steps}</span>
+    <span class="fragment-source"
+      >from {fragment.source} · steps {fragment.steps}</span
+    >
   </label>
 
   {#if recommended}
     <p class="fragment-description">{fragment.description}</p>
   {:else}
-    <p class="fragment-redundant-reason"><strong>redundant:</strong> {fragment.redundantReason}</p>
+    <p class="fragment-redundant-reason">
+      <strong>redundant:</strong>
+      {fragment.redundantReason}
+    </p>
   {/if}
 
-  <button type="button" class="fragment-code-toggle" on:click={onToggleExpanded}>
+  <button
+    type="button"
+    class="fragment-code-toggle"
+    on:click={onToggleExpanded}
+  >
     <span class="fragment-code-caret" class:expanded>▸</span>
     code ({fragment.codeLines} lines)
   </button>
 
   {#if expanded}
     <div class="fragment-code-block">
-      <CodeEditor value={fragment.code} readonly height="auto" maxHeight="300px" />
+      <CodeEditor
+        value={fragment.code}
+        readonly
+        height="auto"
+        maxHeight="300px"
+      />
     </div>
   {/if}
 </div>
@@ -52,17 +70,27 @@
     border: 1px solid var(--color-border-surface);
     border-radius: 10px;
     padding: 12px 16px;
-    transition: border-color 0.15s ease, background-color 0.15s ease;
+    transition:
+      border-color 0.15s ease,
+      background-color 0.15s ease;
   }
 
   .fragment-recommended {
     border-color: var(--color-success);
-    background: color-mix(in srgb, var(--color-success) 6%, var(--color-bg-surface));
+    background: color-mix(
+      in srgb,
+      var(--color-success) 6%,
+      var(--color-bg-surface)
+    );
   }
 
   .fragment-redundant {
     border-color: var(--color-error);
-    background: color-mix(in srgb, var(--color-error) 5%, var(--color-bg-surface));
+    background: color-mix(
+      in srgb,
+      var(--color-error) 5%,
+      var(--color-bg-surface)
+    );
   }
 
   .fragment-card-header {
@@ -72,13 +100,13 @@
     cursor: pointer;
   }
 
-  .fragment-card-header input[type='checkbox'] {
+  .fragment-card-header input[type="checkbox"] {
     width: 16px;
     height: 16px;
     accent-color: var(--color-success);
   }
 
-  .fragment-redundant .fragment-card-header input[type='checkbox'] {
+  .fragment-redundant .fragment-card-header input[type="checkbox"] {
     accent-color: var(--color-error);
   }
 

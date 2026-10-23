@@ -3,10 +3,12 @@
 // search_zephyr), matching search_testlink.
 
 // @ts-nocheck
-const WIZARD_API = '/api/wizard';
+const WIZARD_API = "/api/wizard";
 
 export async function fetchStepCandidates(key) {
-  const res = await fetch(`${WIZARD_API}/step_candidates/${encodeURIComponent(key)}/3`);
+  const res = await fetch(
+    `${WIZARD_API}/step_candidates/${encodeURIComponent(key)}/3`,
+  );
   const data = await res.json();
   return spliceTitleFromDescription(data.candidates) || [];
 }
@@ -17,7 +19,8 @@ function toSelection(row, order) {
   return {
     id_or_key: row.id,
     title: row.title || row.id,
-    justification: row.description || row.justification || row.reason || row.snippet || '',
+    justification:
+      row.description || row.justification || row.reason || row.snippet || "",
     order,
   };
 }
@@ -27,7 +30,10 @@ function spliceTitleFromDescription(candidates) {
   return candidates.map((candidate) => {
     const { id, title, score, justification, description, source } = candidate;
     if (title && description && description.startsWith(title)) {
-      return { ...candidate, description: description.slice(title.length).trim() };
+      return {
+        ...candidate,
+        description: description.slice(title.length).trim(),
+      };
     }
     return candidate;
   });
@@ -35,11 +41,14 @@ function spliceTitleFromDescription(candidates) {
 
 export async function confirmStep(key, chosen) {
   const selections = (chosen || []).map(toSelection);
-  const res = await fetch(`${WIZARD_API}/confirm_step/${encodeURIComponent(key)}/3`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ selections }),
-  });
+  const res = await fetch(
+    `${WIZARD_API}/confirm_step/${encodeURIComponent(key)}/3`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ selections }),
+    },
+  );
   if (!res.ok) {
     const t = await res.text();
     throw new Error(t.slice(0, 200) || `HTTP ${res.status}`);
@@ -48,18 +57,21 @@ export async function confirmStep(key, chosen) {
 }
 
 export async function searchAtpylib(query) {
-  const params = new URLSearchParams({ q: query || '' });
+  const params = new URLSearchParams({ q: query || "" });
   const res = await fetch(`${WIZARD_API}/search_atp?${params}`);
   const data = await res.json();
   return spliceTitleFromDescription(data.results) || [];
 }
 
 export async function suggestAtpylib(key, headers) {
-  const res = await fetch(`${WIZARD_API}/suggest_atp/${encodeURIComponent(key)}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...headers },
-    body: '{}',
-  });
+  const res = await fetch(
+    `${WIZARD_API}/suggest_atp/${encodeURIComponent(key)}`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...headers },
+      body: "{}",
+    },
+  );
   if (!res.ok) {
     const t = await res.text();
     throw new Error(t.slice(0, 200) || `HTTP ${res.status}`);

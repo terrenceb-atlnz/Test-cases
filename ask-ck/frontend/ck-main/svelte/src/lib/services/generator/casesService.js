@@ -2,10 +2,15 @@
 
 // @ts-nocheck
 
-const WIZARD_API = '/api/wizard';
+const WIZARD_API = "/api/wizard";
 
 function toOption(c) {
-  return { id: c.key, label: c.title, status: c.status, progress: c.progress || null };
+  return {
+    id: c.key,
+    label: c.title,
+    status: c.status,
+    progress: c.progress || null,
+  };
 }
 
 // One in-flight/cached fetch shared by listOpenPartialCases/listCompleteCases/findCase —
@@ -17,7 +22,9 @@ let _flatCases = [];
 function fetchCasesOnce() {
   if (!_casesPromise) {
     _casesPromise = fetch(`${WIZARD_API}/cases`).then((r) => r.json());
-    _casesPromise.then((data) => { _flatCases = (data.cases || []).map(toOption); });
+    _casesPromise.then((data) => {
+      _flatCases = (data.cases || []).map(toOption);
+    });
   }
   return _casesPromise;
 }
@@ -43,7 +50,9 @@ function toGroups(groups) {
     label: g.label,
     cases: (g.cases || []).map((c) => {
       const flat = _flatCases.find((f) => f.id === c.key);
-      return flat || { id: c.key, label: c.title, status: undefined, progress: null };
+      return (
+        flat || { id: c.key, label: c.title, status: undefined, progress: null }
+      );
     }),
   }));
 }
@@ -67,7 +76,10 @@ export async function findCase(caseId) {
 // `read_only`/`lock`/`message` when someone else already holds it. Not yet called from
 // GeneratorPage.svelte — that's the next step (session-object + read-only banner wiring).
 export async function loadCase(key) {
-  const res = await fetch(`${WIZARD_API}/load_case/${encodeURIComponent(key)}`, { method: 'POST' });
+  const res = await fetch(
+    `${WIZARD_API}/load_case/${encodeURIComponent(key)}`,
+    { method: "POST" },
+  );
   return await res.json();
 }
 

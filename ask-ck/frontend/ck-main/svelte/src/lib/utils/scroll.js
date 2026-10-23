@@ -1,4 +1,4 @@
-import { tick } from 'svelte';
+import { tick } from "svelte";
 
 // @ts-nocheck
 // Waits for Svelte to flush the pending DOM update (a step/unit swap) before scrolling —
@@ -9,7 +9,7 @@ import { tick } from 'svelte';
 // way to the top of the page.
 export async function scrollToTop() {
   await tick();
-  window.scrollTo({ top: 0, behavior: 'smooth' });
+  window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
 // Scrolls to the very bottom of the page — used after moving rows into a Chosen table
@@ -17,7 +17,10 @@ export async function scrollToTop() {
 // without the user having to scroll down manually to find it.
 export async function scrollToBottom() {
   await tick();
-  window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'smooth' });
+  window.scrollTo({
+    top: document.documentElement.scrollHeight,
+    behavior: "smooth",
+  });
 }
 
 /**
@@ -27,8 +30,8 @@ export async function scrollToSection(section) {
   await tick();
   const intro = document.querySelector(section);
   if (intro) {
-    intro.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    intro.scrollIntoView({ behavior: "smooth", block: "start" });
   } else {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }
 }

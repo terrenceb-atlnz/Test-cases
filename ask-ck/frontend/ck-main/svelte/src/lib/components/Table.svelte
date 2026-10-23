@@ -1,29 +1,24 @@
 <script>
-// @ts-nocheck
+  // @ts-nocheck
 
-  import Button from './Button.svelte';
+  import Button from "./Button.svelte";
 
-  /** @type {Array<{ key: string, label: string, width?: number, pillClass?: (value: any) => string,
-      button?: { label: string, onClick: (row: any) => void } }>} A `button` column renders one
-      action button per row instead of a plain value (e.g. "view source") — stops propagation so
-      it doesn't also toggle the row's selection. */
   export let columns = [];
 
-  /** @type {Array<Record<string, any> & { id: string | number }>} */
   export let rows = [];
 
-  /** @type {boolean} Show a checkbox column and make rows selectable */
   export let selectable = true;
 
-  /** @type {Array<string | number>} Bindable list of selected row ids */
   export let selected = [];
 
   function toggleRow(id) {
-    selected = selected.includes(id) ? selected.filter((s) => s !== id) : [...selected, id];
+    selected = selected.includes(id)
+      ? selected.filter((s) => s !== id)
+      : [...selected, id];
   }
 
   function handleRowKeydown(event, id) {
-    if (event.key === 'Enter' || event.key === ' ') {
+    if (event.key === "Enter" || event.key === " ") {
       event.preventDefault();
       toggleRow(id);
     }
@@ -36,7 +31,10 @@
       <div class="data-table-cell data-table-checkbox-cell"></div>
     {/if}
     {#each columns as col}
-      <div class="data-table-cell data-table-header-cell" style="flex: {col.width ?? 1}">
+      <div
+        class="data-table-cell data-table-header-cell"
+        style="flex: {col.width ?? 1}"
+      >
         {col.label}
       </div>
     {/each}
@@ -67,13 +65,21 @@
         {#each columns as col}
           <div class="data-table-cell" style="flex: {col.width ?? 1}">
             {#if col.button}
-              <Button variant="outline" on:click={(e) => { e.stopPropagation(); col.button.onClick(row); }}>{col.button.label}</Button>
+              <Button
+                variant="outline"
+                on:click={(e) => {
+                  e.stopPropagation();
+                  col.button.onClick(row);
+                }}>{col.button.label}</Button
+              >
             {:else if col.pillClass}
-              <span class="pill {col.pillClass(row[col.key])}">{row[col.key] ?? ''}</span>
+              <span class="pill {col.pillClass(row[col.key])}"
+                >{row[col.key] ?? ""}</span
+              >
             {:else if col.code}
-              <code>{row[col.key] ?? ''}</code>
+              <code>{row[col.key] ?? ""}</code>
             {:else}
-              {row[col.key] ?? ''}
+              {row[col.key] ?? ""}
             {/if}
           </div>
         {/each}
@@ -99,7 +105,6 @@
     align-items: center;
     padding: 10px 16px 10px 16px;
     height: 100%;
-    /* border-bottom: 1px solid var(--color-border-surface); */
   }
 
   .data-table-row:last-child {
@@ -121,7 +126,7 @@
     position: sticky;
     top: 0;
     z-index: 6;
-    box-shadow: 0 -2px 0 var(--color-table-header-bg);   /* cover anything left above it */
+    box-shadow: 0 -2px 0 var(--color-table-header-bg); /* cover anything left above it */
   }
 
   .data-table-header-cell {
@@ -131,7 +136,6 @@
     text-transform: uppercase;
     color: var(--color-text);
     z-index: 6;
-
   }
 
   .data-table-cell {
@@ -139,7 +143,6 @@
     min-width: 0;
     font-size: 0.825rem;
     color: var(--color-text-muted);
-    /* white-space: nowrap; */
     overflow: hidden;
     text-overflow: ellipsis;
     margin-left: 24px;

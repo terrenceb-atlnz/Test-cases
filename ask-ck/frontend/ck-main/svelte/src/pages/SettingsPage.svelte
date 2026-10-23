@@ -16,6 +16,7 @@
   import claudeLlmIconDark from '../assets/claude-llm.png';
   import claudeLlmIconLight from '../assets/claude-llm-light.png';
   import UnderConstruction from '../lib/components/UnderConstruction.svelte';
+  import ErrorBanner from '../lib/components/ErrorBanner.svelte';
   import { onMount } from 'svelte';
   import { applyConfig, loadConfig, checkHealth, describeLLMStatus, seatLlmRetiredNotice } from '../lib/services/llmConfigService.js';
   import { checkLocalAgent as probeLocalAgent, describeAgentStatus, ckBrokerLoop } from '../lib/services/agentService.js';
@@ -194,18 +195,29 @@
           <Button variant="outline" on:click={checkMyLocalAgent} disabled={checking}>
             {checking ? 'Checking…' : 'Check my local agent'}
           </Button>
+          <!-- Error tones show in the ErrorBanner; ok / warn stay inline status text. -->
           {#if llmStatus}
-            <span class="provider-inline-status tone-{llmStatus.tone}">{llmStatus.text}</span>
+            {#if llmStatus.tone === 'error'}
+              <ErrorBanner message={llmStatus.text} />
+            {:else}
+              <span class="provider-inline-status tone-{llmStatus.tone}">{llmStatus.text}</span>
+            {/if}
           {/if}
           {#if healthResult}
-            <span class="provider-inline-status tone-{healthResult.ok ? 'ok' : 'error'}">
-              {healthResult.ok ? 'Backend reachable' : (healthResult.detail || 'Backend unreachable')}
-            </span>
+            {#if healthResult.ok}
+              <span class="provider-inline-status tone-ok">Backend reachable</span>
+            {:else}
+              <ErrorBanner message={healthResult.detail || 'Backend unreachable'} />
+            {/if}
           {/if}
           {#if agentStatus}
-            <span class="provider-inline-status tone-{agentStatus.tone}">
-              {#each agentStatus.lines as line}{line}<br />{/each}
-            </span>
+            {#if agentStatus.tone === 'error'}
+              <ErrorBanner message={agentStatus.lines.join(' ')} />
+            {:else}
+              <span class="provider-inline-status tone-{agentStatus.tone}">
+                {#each agentStatus.lines as line}{line}<br />{/each}
+              </span>
+            {/if}
           {/if}
         </div>
 

@@ -7,6 +7,7 @@
 
   import ZtRun from './ZtRun.svelte';
   import Table from '../Table.svelte';
+  import ErrorBanner from '../ErrorBanner.svelte';
 
   let { d, sel, run, runBusy, onrun } = $props();
   const t = $derived(d.targets || {});
@@ -40,7 +41,7 @@
       <ul>{#each d.duplicates as x}<li><span class="zt-key">{x.key}</span> → {x.name} exists</li>{/each}</ul></div>
   {/if}
   {#if (d.problems || []).length}
-    <ul>{#each d.problems as p}<li class="zt-problem">{p}</li>{/each}</ul>
+    {#each d.problems as p}<ErrorBanner message={p} />{/each}
   {/if}
 </div>
 
@@ -85,7 +86,7 @@
   }
 
   .zt-key {
-    color: var(--color-sidebar-nav-active-bg);
+    color: var(--color-sidebar-nav-active-side);
     font-family: 'Roboto Mono Variable', 'Roboto Mono', monospace;
     font-weight: 600;
   }

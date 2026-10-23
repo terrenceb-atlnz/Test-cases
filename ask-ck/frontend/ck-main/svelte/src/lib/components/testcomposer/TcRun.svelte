@@ -9,6 +9,7 @@
   import SetupFields from "./SetupFields.svelte";
   import Button from "../Button.svelte";
   import LlmButton from "../LlmButton.svelte";
+  import ErrorBanner from "../ErrorBanner.svelte";
   import {
     formatOutlets,
     loadSetup,
@@ -282,7 +283,7 @@
 
   <div class="tc-line">
     {#if listing && !listing.enabled}
-      <div class="tc-problem">{listing.reason}</div>
+      <ErrorBanner message={listing.reason} />
     {/if}
     <input
       id="rs-filter"
@@ -367,21 +368,23 @@
           onRun={launch}
           onStop={noStop}
         />
-        <div class="tc-status" class:is-bad={status.bad} role="status">
-          {status.msg}
-        </div>
+        {#if status.bad}
+          <ErrorBanner message={status.msg} />
+        {:else}
+          <div class="tc-status" role="status">{status.msg}</div>
+        {/if}
       </div>
       <div class="launch-line">
-        <span class="tc-small">
-          {#if !health}checking your seat agent…
-          {:else if health.error}Your seat agent is not reachable ({health.error})
-            — run the seat setup from the home page.
-          {:else if !sessionsOk}Your seat agent cannot run sessions: {health.sessions
-              ? health.sessions.reason
-              : "agent too old — re-run the seat setup"}
-          {:else}Seat agent {health.agent_version} ready · device-testing at {health
-              .sessions.dt_root}{/if}
-        </span>
+        {#if health && health.error}
+          <ErrorBanner message={`Your seat agent is not reachable (${health.error}) — run the seat setup from the home page.`} />
+        {:else if health && !sessionsOk}
+          <ErrorBanner message={`Your seat agent cannot run sessions: ${health.sessions ? health.sessions.reason : "agent too old — re-run the seat setup"}`} />
+        {:else}
+          <span class="tc-small">
+            {#if !health}checking your seat agent…
+            {:else}Seat agent {health.agent_version} ready · device-testing at {health.sessions.dt_root}{/if}
+          </span>
+        {/if}
       </div>
     </div>
   </div>
@@ -510,7 +513,6 @@
     font-style: italic;
   }
 
-  .tc-status.is-bad,
   .tc-problem {
     color: var(--color-error);
     font-style: normal;

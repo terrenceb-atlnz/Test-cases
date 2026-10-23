@@ -60,35 +60,17 @@
 
   .generic-page {
   flex: 1;
-    /* background: var(--color-bg-surface); */
-
   min-height: 0;
   }
 
-  .tab-icon {
-    /* display: flex;
-    flex-direction: row; */
-  }
-
-  /* .section-description {
-    padding: 0rem 5rem 2rem 5rem;
-    color: var(--color-text-muted);
-    font-size: 0.94rem;
-  } */
   .composer-tabs {
     display: flex;
     align-items: center;
-    gap: 2px;                 /* keeps neighbouring tabs' side borders from doubling up */
-    width: 100%;
-    /* padding: 0 0 12px; */
-    /* margin-bottom: 20px; */
+    gap: 2px;                 
     border-bottom: 3px solid var(--color-border-surface);
     padding-left: 32px;        
   }
 
-  /* Every tab is outlined on all four sides, sitting ON the row's 3px line (margin -3px).
-     `border: 3px solid` sets width AND style for every side — with only border-color set, a
-     button keeps its default `outset` style and the sides render as a darker bevel. */
   .composer-tab {
     display: flex;
     align-items: center;
@@ -108,8 +90,6 @@
     cursor: pointer;
   }
 
-  /* Tab icons take the same colour as the tab's label: muted for inactive tabs, heading
-     colour for the active one (filters from app.css, per theme). */
   .tab-icon {
     width: 18px;
     height: 18px;
@@ -125,8 +105,6 @@
     background: rgba(0, 83, 143, 0.06);
   }
 
-  /* The active tab has no bottom border: painting it the page colour hides the row's line
-     under it, so the tab opens into the page below. */
   .composer-tab.active {
     background: var(--color-bg-content);
     border-bottom-color: var(--color-bg-content);

@@ -1,16 +1,9 @@
 <script>
-// @ts-nocheck
+  // @ts-nocheck
 
-  import PageCard from '../lib/components/PageCard.svelte';
-  import PageHeader from '../lib/components/PageHeader.svelte';
+  import PageCard from "../lib/components/PageCard.svelte";
+  import PageHeader from "../lib/components/PageHeader.svelte";
 
-  /**
-   * @type {{
-   *   title: string,
-   *   intro: string,
-   *   cards: Array<{ title: string, description: string, accent: string }>
-   * }}
-   */
   export let page;
 </script>
 

@@ -9,6 +9,7 @@
   import LogViewer from './LogViewer.svelte';
   import Button from '../Button.svelte';
   import LlmButton from '../LlmButton.svelte';
+  import ErrorBanner from '../ErrorBanner.svelte';
 
   let { runId, server, refreshMs = 5000 } = $props();
 
@@ -64,7 +65,7 @@
 </script>
 
 <div class="tc-results-block">
-{#if error}<div class="tc-problem">{error}</div>{/if}
+<ErrorBanner message={error} />
 {#if rec}
   <div class="tc-readout">
     {#each counts as c}<span class="tc-count tc-v-{c.verdict.replace(' ', '-')}"><b>{c.n}</b> {c.verdict}</span>{/each}
@@ -108,7 +109,7 @@
           {/if}
           {#if fb[row.case] && (fb[row.case].text || fb[row.case].error)}
             <tr class="tc-subrow"><td colspan="5"><div class="tc-feedback">
-              {#if fb[row.case].error}<div class="tc-problem">{fb[row.case].error}</div>{/if}
+              <ErrorBanner message={fb[row.case].error} />
               <pre class="tc-pre">{fb[row.case].text || ''}</pre></div></td></tr>
           {/if}
           {#if logOpen === row.case}
@@ -157,11 +158,6 @@
   .tc-small {
     color: var(--color-text-muted);
     font-size: 0.85rem;
-  }
-
-  .tc-problem {
-    color: var(--color-error);
-    font-size: 0.88rem;
   }
 
   .tc-cycle {

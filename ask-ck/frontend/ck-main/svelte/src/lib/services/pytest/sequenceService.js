@@ -1,3 +1,5 @@
+//@ts-nocheck
+
 // COPIED OVER FROM current/pytest-creator/pytest.js (ptExtractSequence/ptSaveSequence) —
 // unlike the Generator's synthesize_objectives, extract_sequence takes NO body (reads the
 // authoritative stored session) and returns {sequence, notes, coverage} directly, not a

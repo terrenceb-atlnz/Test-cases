@@ -1,11 +1,11 @@
 <script>
-// @ts-nocheck
+  // @ts-nocheck
 
-  import Button from '../Button.svelte';
-  import Table from '../Table.svelte';
-  import SequenceTable from '../SequenceTable.svelte';
-  import LlmButton from '../LlmButton.svelte';
-  import ErrorBanner from '../ErrorBanner.svelte';
+  import Button from "../Button.svelte";
+  import Table from "../Table.svelte";
+  import SequenceTable from "../SequenceTable.svelte";
+  import LlmButton from "../LlmButton.svelte";
+  import ErrorBanner from "../ErrorBanner.svelte";
 
   // --- Props: data ------------------------------------------------------------------
   /** @type {Array<{description: string, expectedResult: string}>} The refined case's
@@ -31,11 +31,15 @@
 
   // --- The "before" table -----------------------------------------------------------
   const manualColumns = [
-    { key: 'stepNumber', label: '#', width: 1 },
-    { key: 'description', label: 'Description', width: 36 }
+    { key: "stepNumber", label: "#", width: 1 },
+    { key: "description", label: "Description", width: 36 },
   ];
 
-  $: manualRows = refinedSteps.map((s, i) => ({ id: `refined-${i}`, stepNumber: i + 1, description: s.description }));
+  $: manualRows = refinedSteps.map((s, i) => ({
+    id: `refined-${i}`,
+    stepNumber: i + 1,
+    description: s.description,
+  }));
 
   // --- The "after" table: editable sequence rows ------------------------------------
   // SequenceTable's own row shape ({id, from, action, verify}) <-> the API's
@@ -44,9 +48,9 @@
   function toRows(seq) {
     return (seq || []).map((s, i) => ({
       id: `seq-${i}`,
-      from: typeof s.zephyr_step_idx === 'number' ? s.zephyr_step_idx : '—',
-      action: s.action || '',
-      verify: s.verify || '',
+      from: typeof s.zephyr_step_idx === "number" ? s.zephyr_step_idx : "—",
+      action: s.action || "",
+      verify: s.verify || "",
       zephyr_step_idx: s.zephyr_step_idx,
     }));
   }
@@ -54,9 +58,11 @@
   function toSequence(rows) {
     return rows
       .map((r) => ({
-        action: (r.action || '').trim(),
-        verify: (r.verify || '').trim(),
-        ...(typeof r.zephyr_step_idx === 'number' ? { zephyr_step_idx: r.zephyr_step_idx } : {}),
+        action: (r.action || "").trim(),
+        verify: (r.verify || "").trim(),
+        ...(typeof r.zephyr_step_idx === "number"
+          ? { zephyr_step_idx: r.zephyr_step_idx }
+          : {}),
       }))
       .filter((s) => s.action)
       .map((s, i) => ({ ...s, n: i + 1 }));
@@ -78,7 +84,7 @@
   $: hasRows = rows.length > 0;
 
   // --- Extract (LLM) ----------------------------------------------------------------
-  let notes = '';
+  let notes = "";
 
   function handleSynthesizeResult(result) {
     // onSynthesize already updated the parent's `sequence`/session; the fingerprint check
@@ -88,16 +94,16 @@
 
   // --- Save edits ---------------------------------------------------------------------
   let isSaving = false;
-  let saveError = '';
-  let saveMessage = '';
+  let saveError = "";
+  let saveMessage = "";
 
   async function handleSaveEdits() {
     isSaving = true;
-    saveError = '';
-    saveMessage = '';
+    saveError = "";
+    saveMessage = "";
     try {
       await onSaveEdits(toSequence(rows));
-      saveMessage = 'Saved.';
+      saveMessage = "Saved.";
     } catch (e) {
       saveError = (e && e.message) || String(e);
     } finally {
@@ -107,12 +113,12 @@
 
   // --- Confirm ------------------------------------------------------------------------
   let isConfirming = false;
-  let confirmError = '';
+  let confirmError = "";
 
   async function handleConfirm() {
     if (!onConfirm) return;
     isConfirming = true;
-    confirmError = '';
+    confirmError = "";
     try {
       await onConfirm();
     } catch (e) {
@@ -123,7 +129,12 @@
   }
 </script>
 
-<p class="step-intro">The refined case's test steps are shown first (the "before"). Extract Sequence asks the LLM to convert them into a prescriptive, runnable execution order (the "after") — the From column links each extracted row back to its source step so any re-sequencing is visible. Review/edit, then confirm.</p>
+<p class="step-intro">
+  The refined case's test steps are shown first (the "before"). Extract Sequence
+  asks the LLM to convert them into a prescriptive, runnable execution order
+  (the "after") — the From column links each extracted row back to its source
+  step so any re-sequencing is visible. Review/edit, then confirm.
+</p>
 
 <p class="step-table-label">Test Steps (Manual)</p>
 <Table columns={manualColumns} rows={manualRows} selectable={false} />
@@ -136,13 +147,21 @@
     onResult={handleSynthesizeResult}
   />
 </div>
-{#if notes}<p class="step-notes"><span class="llm-note-header">LLM Notes: </span> {notes}</p>{/if}
+{#if notes}<p class="step-notes">
+    <span class="llm-note-header">LLM Notes: </span>
+    {notes}
+  </p>{/if}
 
 <p class="step-table-label">Test Steps (Sequenced)</p>
 
 <SequenceTable bind:rows>
   <svelte:fragment slot="extra-actions">
-    <Button variant="outline" disabled={!hasRows} loading={isSaving} on:click={handleSaveEdits}>Save Edits</Button>
+    <Button
+      variant="outline"
+      disabled={!hasRows}
+      loading={isSaving}
+      on:click={handleSaveEdits}>Save Edits</Button
+    >
     {#if saveMessage}<span class="step-save-message">{saveMessage}</span>{/if}
   </svelte:fragment>
 </SequenceTable>
@@ -151,7 +170,12 @@
 <ErrorBanner message={confirmError && `Confirm failed: ${confirmError}`} />
 
 <div class="step-actions">
-  <Button variant="primary" disabled={!hasRows} loading={isConfirming} on:click={handleConfirm}>Confirm Step 2</Button>
+  <Button
+    variant="primary"
+    disabled={!hasRows}
+    loading={isConfirming}
+    on:click={handleConfirm}>Confirm Step 2</Button
+  >
 </div>
 
 <style>

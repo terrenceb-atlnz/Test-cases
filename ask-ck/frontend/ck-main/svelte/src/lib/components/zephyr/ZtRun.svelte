@@ -2,6 +2,7 @@
   // The real upload's progress and outcome, GET /upload/run/{id} (was renderRun).
   // @ts-nocheck
   import { RUN_HEADS } from './zephyrModel.js';
+  import ErrorBanner from '../ErrorBanner.svelte';
 
   let { job } = $props();
   const res = $derived((job && job.result) || {});
@@ -10,7 +11,7 @@
 
 {#if job}
   <div class="zt-state zt-state-{job.state}">{RUN_HEADS[job.state] || job.state}</div>
-  {#if err}<div class="zt-problem">{err}</div>{/if}
+  <ErrorBanner message={err} />
   {#if res.stopped_at}<div class="zt-small">Stopped in {res.stopped_at}.</div>{/if}
   {#if (res.created || []).length}
     <div class="zt-small">Created in Zephyr: {res.created.map(x => `${x.kind} ${x.id} (from ${x.from || ''})`).join(', ')}.</div>

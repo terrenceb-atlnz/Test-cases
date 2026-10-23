@@ -1,10 +1,10 @@
 <script>
-// @ts-nocheck
+  // @ts-nocheck
 
-  export let variant = 'primary'; // 'primary' | 'outline' | 'success'
-  export let type = 'button';
+  export let variant = "primary"; // 'primary' | 'outline' | 'success'
+  export let type = "button";
   export let disabled = false;
-  export let title = '';
+  export let title = "";
 
   /** @type {boolean} Mid-call (e.g. an LLM response is pending) — disables the button and adds
       the `btn-loading` class as a hook for a loading animation. Design the animation via that
@@ -22,7 +22,7 @@
   /** @type {boolean} Show the copy icon — use for buttons that copy text to the clipboard */
   export let copy = false;
 
-  let className = '';
+  let className = "";
   export { className as class };
 </script>
 
@@ -48,7 +48,9 @@
       stroke-linejoin="round"
       aria-hidden="true"
     >
-      <path d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z" />
+      <path
+        d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z"
+      />
       <path d="M20 2v4" />
       <path d="M22 4h-4" />
       <circle cx="4" cy="20" r="2" />
@@ -81,7 +83,7 @@
      by animating its angle through @property, so the beam hugs the button's own border-radius.
      Swapped their :hover/:focus-visible trigger for the `.btn-loading` class instead. */
   @property --btn-spin-angle {
-    syntax: '<angle>';
+    syntax: "<angle>";
     inherits: false;
     initial-value: 0deg;
   }
@@ -95,7 +97,7 @@
   }
 
   .btn {
-    --btn-beam: #E20052;
+    --btn-beam: #e20052;
     isolation: isolate;
     display: inline-flex;
     align-items: center;
@@ -107,19 +109,33 @@
     font-weight: 600;
     font-size: 0.85rem;
     cursor: pointer;
-    transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, filter 0.2s ease;
+    transition:
+      background-color 0.2s ease,
+      border-color 0.2s ease,
+      color 0.2s ease,
+      filter 0.2s ease;
   }
 
   .btn::before,
   .btn::after {
-    content: '';
+    content: "";
     position: absolute;
     inset: -1px;
     border-radius: inherit;
     padding: 2px;
-    background: conic-gradient(from var(--btn-spin-angle), transparent 0 82%, color-mix(in oklab, var(--btn-beam) 45%, transparent) 88%, var(--btn-beam) 93%, transparent 97%);
-    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-    mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    background: conic-gradient(
+      from var(--btn-spin-angle),
+      transparent 0 82%,
+      color-mix(in oklab, var(--btn-beam) 45%, transparent) 88%,
+      var(--btn-beam) 93%,
+      transparent 97%
+    );
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
     -webkit-mask-composite: xor;
     mask-composite: exclude;
     opacity: 0;

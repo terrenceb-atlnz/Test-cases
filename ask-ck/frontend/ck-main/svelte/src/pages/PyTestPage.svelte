@@ -1,24 +1,24 @@
 <script>
-// @ts-nocheck
+  // @ts-nocheck
 
-  import { onMount, onDestroy } from 'svelte';
-  import { scrollToTop } from '../lib/utils/scroll.js';
-  import ToolHeader from '../lib/components/ToolHeader.svelte';
-  import Stepper from '../lib/components/Stepper.svelte';
-  import CasePicker from '../lib/components/CasePicker.svelte';
-  import Button from '../lib/components/Button.svelte';
-  import SequenceStep from '../lib/components/pytest/SequenceStep.svelte';
-  import ScriptSearchStep from '../lib/components/pytest/ScriptSearchStep.svelte';
-  import FragmentsStep from '../lib/components/pytest/FragmentsStep.svelte';
-  import GenerateStep from '../lib/components/pytest/GenerateStep.svelte';
-  import UnderConstruction from '../lib/components/UnderConstruction.svelte';
+  import { onMount, onDestroy } from "svelte";
+  import { scrollToTop } from "../lib/utils/scroll.js";
+  import ToolHeader from "../lib/components/ToolHeader.svelte";
+  import Stepper from "../lib/components/Stepper.svelte";
+  import CasePicker from "../lib/components/CasePicker.svelte";
+  import Button from "../lib/components/Button.svelte";
+  import SequenceStep from "../lib/components/pytest/SequenceStep.svelte";
+  import ScriptSearchStep from "../lib/components/pytest/ScriptSearchStep.svelte";
+  import FragmentsStep from "../lib/components/pytest/FragmentsStep.svelte";
+  import GenerateStep from "../lib/components/pytest/GenerateStep.svelte";
+  import UnderConstruction from "../lib/components/UnderConstruction.svelte";
 
-  import * as casesService from '../lib/services/pytest/casesService.js';
-  import * as sequenceService from '../lib/services/pytest/sequenceService.js';
-  import * as scriptSearchService from '../lib/services/pytest/scriptSearchService.js';
-  import * as fragmentsService from '../lib/services/pytest/fragmentsService.js';
-  import * as generateService from '../lib/services/pytest/generateService.js';
-  import * as lockService from '../lib/services/lockService.js';
+  import * as casesService from "../lib/services/pytest/casesService.js";
+  import * as sequenceService from "../lib/services/pytest/sequenceService.js";
+  import * as scriptSearchService from "../lib/services/pytest/scriptSearchService.js";
+  import * as fragmentsService from "../lib/services/pytest/fragmentsService.js";
+  import * as generateService from "../lib/services/pytest/generateService.js";
+  import * as lockService from "../lib/services/lockService.js";
 
   /** @type {((pageId: string) => void) | null} */
   export let onNavigate = null;
@@ -29,20 +29,20 @@
   /** @type {string | null} */
   export let initialCaseId = null;
 
-  import briefcaseIcon from '../assets/icons/briefcase.svg';
-  import listSortIcon from '../assets/icons/list-sort-descending.svg';
-  import folderSearchIcon from '../assets/icons/folder-search.svg';
-  import puzzleIcon from '../assets/icons/puzzle.svg';
-  import codeIcon from '../assets/icons/code.svg';
-  import checkIcon from '../assets/icons/circle-check-big.svg';
-  import pyTestIcon from '../assets/icons/pytest.svg';
+  import briefcaseIcon from "../assets/icons/briefcase.svg";
+  import listSortIcon from "../assets/icons/list-sort-descending.svg";
+  import folderSearchIcon from "../assets/icons/folder-search.svg";
+  import puzzleIcon from "../assets/icons/puzzle.svg";
+  import codeIcon from "../assets/icons/code.svg";
+  import checkIcon from "../assets/icons/circle-check-big.svg";
+  import pyTestIcon from "../assets/icons/pytest.svg";
 
   const steps = [
-    { id: 'cases', label: 'Cases', icon: briefcaseIcon },
-    { id: 'sequence', label: 'Sequence', icon: listSortIcon },
-    { id: 'script-search', label: 'Script Search', icon: folderSearchIcon },
-    { id: 'fragments', label: 'Fragments', icon: puzzleIcon },
-    { id: 'generate', label: 'Generate', icon: codeIcon }
+    { id: "cases", label: "Cases", icon: briefcaseIcon },
+    { id: "sequence", label: "Sequence", icon: listSortIcon },
+    { id: "script-search", label: "Script Search", icon: folderSearchIcon },
+    { id: "fragments", label: "Fragments", icon: puzzleIcon },
+    { id: "generate", label: "Generate", icon: codeIcon },
   ];
 
   let currentStep = 0;
@@ -60,7 +60,7 @@
   let openPartialGroups = [];
   let completeGroups = [];
 
-  let title = 'No case loaded. Please select a test case to work on.';
+  let title = "No case loaded. Please select a test case to work on.";
 
   // The server-authoritative PtSession — every mutating call (extract/save_sequence,
   // confirm_step) returns or implies a new one; re-fetched via casesService.getSession
@@ -71,7 +71,7 @@
   // beside the session by load_case and GET session, never stored on it.
   let genState = null;
   let readOnly = false;
-  let lockMessage = '';
+  let lockMessage = "";
   let lockInfo = null;
   let stopLockLifecycle = null;
 
@@ -89,8 +89,11 @@
       // than letting it idle out (matches current/'s onCaseLoaded: "switching cases: drop
       // the lock we held on the previous case so others aren't kept waiting for it to idle
       // out"). Must come before stopping the heartbeat so the two can't race.
-      if (stopLockLifecycle) { stopLockLifecycle(); stopLockLifecycle = null; }
-      if (session?.key && !readOnly) lockService.releaseLock('pt', session.key);
+      if (stopLockLifecycle) {
+        stopLockLifecycle();
+        stopLockLifecycle = null;
+      }
+      if (session?.key && !readOnly) lockService.releaseLock("pt", session.key);
       onCreateAnother && onCreateAnother(caseId);
       return;
     }
@@ -104,14 +107,21 @@
     genState = result.gen_state || null;
     readOnly = !!result.read_only;
     lockInfo = result.lock || null;
-    lockMessage = readOnly ? lockService.formatLockMessage('pt', caseId, lockInfo) : '';
-    caseInfo = { title: result.case_title, groupDisplay: result.group_display,
-                 objective: result.objective, steps: result.steps || [] };
+    lockMessage = readOnly
+      ? lockService.formatLockMessage("pt", caseId, lockInfo)
+      : "";
+    caseInfo = {
+      title: result.case_title,
+      groupDisplay: result.group_display,
+      objective: result.objective,
+      steps: result.steps || [],
+    };
     if (result.case_title) title = result.case_title;
 
     // Only a real editor heartbeats/arms release — a read-only viewer holds no lock to
     // keep alive.
-    if (!readOnly) stopLockLifecycle = lockService.startLockLifecycle('pt', session.key);
+    if (!readOnly)
+      stopLockLifecycle = lockService.startLockLifecycle("pt", session.key);
 
     // Resume where the session is up to: every step the server already has confirmed is
     // unlocked, and the page opens on the furthest one — no re-confirming Sequence → Fragments
@@ -127,10 +137,10 @@
   // unlocks the next one. Internal step keys diverge from the stepper (step5 is Fragments,
   // step6 is Generate — the old step4 was folded into Fragments).
   function furthestUnlockedStep(sess) {
-    if (sess?.step5?.confirmed) return 4;   // Fragments confirmed → Generate
-    if (sess?.step3?.confirmed) return 3;   // Script Search confirmed → Fragments
-    if (sess?.step2?.confirmed) return 2;   // Sequence confirmed → Script Search
-    return 1;                               // Sequence
+    if (sess?.step5?.confirmed) return 4; // Fragments confirmed → Generate
+    if (sess?.step3?.confirmed) return 3; // Script Search confirmed → Fragments
+    if (sess?.step2?.confirmed) return 2; // Sequence confirmed → Script Search
+    return 1; // Sequence
   }
 
   // Unlike the Generator, this page is destroyed/recreated on every navigation away (it's
@@ -144,12 +154,12 @@
 
   async function handleTakeOver() {
     if (!session?.key) return;
-    const state = await lockService.acquireLock('pt', session.key);
+    const state = await lockService.acquireLock("pt", session.key);
     if (state && state.by_me) {
       onCreateAnother && onCreateAnother(session.key);
     } else {
       lockInfo = state;
-      lockMessage = lockService.formatLockMessage('pt', session.key, lockInfo);
+      lockMessage = lockService.formatLockMessage("pt", session.key, lockInfo);
     }
   }
 
@@ -169,12 +179,17 @@
   });
 
   $: sequencedTestSteps = session?.step2?.sequence || [];
-
 </script>
 
-<ToolHeader title={title} tool="PYTEST CREATOR" icon={pyTestIcon} />
+<ToolHeader {title} tool="PYTEST CREATOR" icon={pyTestIcon} />
 
-<Stepper {steps} {currentStep} {maxStepReached} {stepperCompleted} onStepClick={goToStep} />
+<Stepper
+  {steps}
+  {currentStep}
+  {maxStepReached}
+  {stepperCompleted}
+  onStepClick={goToStep}
+/>
 
 {#if readOnly}
   <p class="read-only-banner">
@@ -195,152 +210,193 @@
       onExport={casesService.exportSession}
     />
   {:else}
-  <!-- Only steps 1-4 become read-only when another tab/user holds the lock — Cases stays
+    <!-- Only steps 1-4 become read-only when another tab/user holds the lock — Cases stays
        usable so a viewer can still switch to a different, unlocked case. A native
        <fieldset disabled> propagates to every real control nested inside, including ones
        inside child components. -->
-  <fieldset class="tool-fieldset" disabled={readOnly}>
-  {#if currentStep === 1}
-    <SequenceStep
-      refinedSteps={caseInfo?.steps || []}
-      sequence={session?.step2?.sequence || []}
-      onSynthesize={async (headers) => {
-        const result = await sequenceService.extractSequence(session.key, headers);
-        const sessResult = await casesService.getSession(session.key);
-        session = sessResult.session;
-        return result;
-      }}
-      onSaveEdits={async (seq) => {
-        await sequenceService.saveSequence(session.key, seq);
-        const sessResult = await casesService.getSession(session.key);
-        session = sessResult.session;
-      }}
-      onConfirm={async () => {
-        const result = await sequenceService.confirmStep(session.key, 2);
-        session = result.session;
-        currentStep = 2;
-        scrollToTop();
-      }}
-    />
-  {:else if currentStep === 2}
-    <ScriptSearchStep
-      {sequencedTestSteps}
-      columns={scriptSearchService.scriptColumns}
-      onSuggestForStep={(stepN, headers) => scriptSearchService.suggestStep(session.key, stepN, headers)}
-      onSearch={scriptSearchService.searchScripts}
-      onViewSource={scriptSearchService.getScriptSource}
-      initialSelections={session?.step3?.selections || {}}
-      initialRecords={session?.step3?.records || {}}
-      stepAlreadyConfirmed={!!session?.step3?.confirmed}
-      onConfirm={async () => {
-        const result = await sequenceService.confirmStep(session.key, 3);
-        session = result.session;
-        currentStep = 3;
-        scrollToTop();
-      }}      onSaveMatches={async (selections, records) => {
-        await scriptSearchService.saveMatches(session.key, selections, records);
-        const sessResult = await casesService.getSession(session.key);
-        session = sessResult.session;
-      }}
-    />                            
-  {:else if currentStep === 3}
-    <FragmentsStep
-      {sequencedTestSteps}
-      initialFragments={session?.step5?.fragments || []}
-      initialAccounting={session?.step5?.accounting || {}}
-      initialSelected={session?.step5?.selected || []}
-      stepAlreadyConfirmed={!!session?.step5?.confirmed}
-      onGatherFragments={async (headers) => {
-        const result = await fragmentsService.gatherFragments(session.key, headers);
-        const sessResult = await casesService.getSession(session.key);
-        session = sessResult.session;
-        return result;
-      }}
-      onSaveFragments={async (keep) => {
-        await fragmentsService.saveFragments(session.key, keep);
-        const sessResult = await casesService.getSession(session.key);
-        session = sessResult.session;
-      }}
-      onConfirm={ async () => { 
-        const result = await sequenceService.confirmStep(session.key, 5);
-        currentStep = 4; 
-        session = result.session;
-        scrollToTop(); 
-      }}
-    />
-  {:else if currentStep === 4}
-    <GenerateStep
-      {sequencedTestSteps}
-      {title}
-      initialGroup={session?.step6?.naming?.group || caseInfo?.groupDisplay || ''}
-      initialName={session?.step6?.naming?.name || ''}
-      caseTitle={title}
-      initialAssembledCode={session?.step6?.files?.test?.code || ''}
-      initialLintResults={generateService.toLintResults(session?.step6?.lint)}
-      onSaveNaming={async (group, name) => {
-        const result = await generateService.saveNaming(session.key, group, name);
-        session = { ...session, step6: { ...(session.step6 || {}), naming: result.naming } };
-      }}
-      onLoadUnits={() => generateService.loadUnits(session.key)}
-      onDispatchUnits={(items) => generateService.dispatchUnits(session.key, items)}
-      onPollStatus={() => generateService.getUnitsStatus(session.key)}
-      onFetchUnitCode={(unitId) => generateService.getUnitCode(session.key, unitId)}
-      onAssemble={async (group, name) => {
-        const result = await generateService.assembleScript(session.key, group, name);
-        const sessResult = await casesService.getSession(session.key);
-        session = sessResult.session;
-        genState = sessResult.gen_state || null;
-        return result;
-      }}
-      initialReview={session?.step6?.review || null}
-      {genState}
-      onPushCodeEdits={(code) => generateService.pushCodeEdits(session.key, code)}
-      onRelint={async (code) => {
-        await generateService.pushCodeEdits(session.key, code);
-        const lint = await generateService.lintScript(session.key);
-        const sessResult = await casesService.getSession(session.key);
-        session = sessResult.session;
-        genState = sessResult.gen_state || null;
-        return generateService.toLintResults(lint);
-      }}
-      onReview={async (headers, extraRound) => {
-        const result = await generateService.reviewScript(session.key, headers, extraRound);
-        const sessResult = await casesService.getSession(session.key);
-        session = sessResult.session;
-        genState = sessResult.gen_state || null;
-        return result;
-      }}
-      onFixScript={(headers) => generateService.fixScript(session.key, headers)}
-      onFixUnits={(units) => generateService.fixUnits(session.key, units)}
-      onApplyHeld={(units) => generateService.applyHeldFixes(session.key, units)}
-      onRechunk={() => generateService.rechunk(session.key)}
-      onRefreshStep6={async () => {
-        const sessResult = await casesService.getSession(session.key);
-        session = sessResult.session;
-        genState = sessResult.gen_state || null;
-        const step6 = session?.step6 || {};
-        return {
-          code: step6.files?.test?.code || '',
-          lintResults: generateService.toLintResults(step6.lint),
-          review: step6.review || null,
-          fixUnits: step6.fix_units || {},
-        };
-      }}
-      onSave={async (group, name, code) => {
-        const result = await generateService.saveAndFinish(session.key, group, name, code);
-        const sessResult = await casesService.getSession(session.key);
-        session = sessResult.session;
-        genState = sessResult.gen_state || null;
-        return result;
-      }}
-      {onNavigate}
-      {onCreateAnother}
-      onFinished={() => (stepperCompleted = true)}
-    />
-  {:else}
-    <UnderConstruction />
-  {/if}
-  </fieldset>
+    <fieldset class="tool-fieldset" disabled={readOnly}>
+      {#if currentStep === 1}
+        <SequenceStep
+          refinedSteps={caseInfo?.steps || []}
+          sequence={session?.step2?.sequence || []}
+          onSynthesize={async (headers) => {
+            const result = await sequenceService.extractSequence(
+              session.key,
+              headers,
+            );
+            const sessResult = await casesService.getSession(session.key);
+            session = sessResult.session;
+            return result;
+          }}
+          onSaveEdits={async (seq) => {
+            await sequenceService.saveSequence(session.key, seq);
+            const sessResult = await casesService.getSession(session.key);
+            session = sessResult.session;
+          }}
+          onConfirm={async () => {
+            const result = await sequenceService.confirmStep(session.key, 2);
+            session = result.session;
+            currentStep = 2;
+            scrollToTop();
+          }}
+        />
+      {:else if currentStep === 2}
+        <ScriptSearchStep
+          {sequencedTestSteps}
+          columns={scriptSearchService.scriptColumns}
+          onSuggestForStep={(stepN, headers) =>
+            scriptSearchService.suggestStep(session.key, stepN, headers)}
+          onSearch={scriptSearchService.searchScripts}
+          onViewSource={scriptSearchService.getScriptSource}
+          initialSelections={session?.step3?.selections || {}}
+          initialRecords={session?.step3?.records || {}}
+          stepAlreadyConfirmed={!!session?.step3?.confirmed}
+          onConfirm={async () => {
+            const result = await sequenceService.confirmStep(session.key, 3);
+            session = result.session;
+            currentStep = 3;
+            scrollToTop();
+          }}
+          onSaveMatches={async (selections, records) => {
+            await scriptSearchService.saveMatches(
+              session.key,
+              selections,
+              records,
+            );
+            const sessResult = await casesService.getSession(session.key);
+            session = sessResult.session;
+          }}
+        />
+      {:else if currentStep === 3}
+        <FragmentsStep
+          {sequencedTestSteps}
+          initialFragments={session?.step5?.fragments || []}
+          initialAccounting={session?.step5?.accounting || {}}
+          initialSelected={session?.step5?.selected || []}
+          stepAlreadyConfirmed={!!session?.step5?.confirmed}
+          onGatherFragments={async (headers) => {
+            const result = await fragmentsService.gatherFragments(
+              session.key,
+              headers,
+            );
+            const sessResult = await casesService.getSession(session.key);
+            session = sessResult.session;
+            return result;
+          }}
+          onSaveFragments={async (keep) => {
+            await fragmentsService.saveFragments(session.key, keep);
+            const sessResult = await casesService.getSession(session.key);
+            session = sessResult.session;
+          }}
+          onConfirm={async () => {
+            const result = await sequenceService.confirmStep(session.key, 5);
+            currentStep = 4;
+            session = result.session;
+            scrollToTop();
+          }}
+        />
+      {:else if currentStep === 4}
+        <GenerateStep
+          {sequencedTestSteps}
+          {title}
+          initialGroup={session?.step6?.naming?.group ||
+            caseInfo?.groupDisplay ||
+            ""}
+          initialName={session?.step6?.naming?.name || ""}
+          caseTitle={title}
+          initialAssembledCode={session?.step6?.files?.test?.code || ""}
+          initialLintResults={generateService.toLintResults(
+            session?.step6?.lint,
+          )}
+          onSaveNaming={async (group, name) => {
+            const result = await generateService.saveNaming(
+              session.key,
+              group,
+              name,
+            );
+            session = {
+              ...session,
+              step6: { ...(session.step6 || {}), naming: result.naming },
+            };
+          }}
+          onLoadUnits={() => generateService.loadUnits(session.key)}
+          onDispatchUnits={(items) =>
+            generateService.dispatchUnits(session.key, items)}
+          onPollStatus={() => generateService.getUnitsStatus(session.key)}
+          onFetchUnitCode={(unitId) =>
+            generateService.getUnitCode(session.key, unitId)}
+          onAssemble={async (group, name) => {
+            const result = await generateService.assembleScript(
+              session.key,
+              group,
+              name,
+            );
+            const sessResult = await casesService.getSession(session.key);
+            session = sessResult.session;
+            genState = sessResult.gen_state || null;
+            return result;
+          }}
+          initialReview={session?.step6?.review || null}
+          {genState}
+          onPushCodeEdits={(code) =>
+            generateService.pushCodeEdits(session.key, code)}
+          onRelint={async (code) => {
+            await generateService.pushCodeEdits(session.key, code);
+            const lint = await generateService.lintScript(session.key);
+            const sessResult = await casesService.getSession(session.key);
+            session = sessResult.session;
+            genState = sessResult.gen_state || null;
+            return generateService.toLintResults(lint);
+          }}
+          onReview={async (headers, extraRound) => {
+            const result = await generateService.reviewScript(
+              session.key,
+              headers,
+              extraRound,
+            );
+            const sessResult = await casesService.getSession(session.key);
+            session = sessResult.session;
+            genState = sessResult.gen_state || null;
+            return result;
+          }}
+          onFixScript={(headers) =>
+            generateService.fixScript(session.key, headers)}
+          onFixUnits={(units) => generateService.fixUnits(session.key, units)}
+          onApplyHeld={(units) =>
+            generateService.applyHeldFixes(session.key, units)}
+          onRechunk={() => generateService.rechunk(session.key)}
+          onRefreshStep6={async () => {
+            const sessResult = await casesService.getSession(session.key);
+            session = sessResult.session;
+            genState = sessResult.gen_state || null;
+            const step6 = session?.step6 || {};
+            return {
+              code: step6.files?.test?.code || "",
+              lintResults: generateService.toLintResults(step6.lint),
+              review: step6.review || null,
+              fixUnits: step6.fix_units || {},
+            };
+          }}
+          onSave={async (group, name, code) => {
+            const result = await generateService.saveAndFinish(
+              session.key,
+              group,
+              name,
+              code,
+            );
+            const sessResult = await casesService.getSession(session.key);
+            session = sessResult.session;
+            genState = sessResult.gen_state || null;
+            return result;
+          }}
+          {onNavigate}
+          {onCreateAnother}
+          onFinished={() => (stepperCompleted = true)}
+        />
+      {:else}
+        <UnderConstruction />
+      {/if}
+    </fieldset>
   {/if}
 </div>
 

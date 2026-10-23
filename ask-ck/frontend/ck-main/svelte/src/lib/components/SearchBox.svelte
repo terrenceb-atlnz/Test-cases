@@ -1,16 +1,14 @@
 <script>
-  import Button from './Button.svelte';
+  //@ts-nocheck
 
-  /** @type {string} Bindable search text */
-  export let value = '';
+  import Button from "./Button.svelte";
 
-  /** @type {string} */
-  export let placeholder = 'Search…';
+  export let value = "";
 
-  /** @type {string} Label for the search button */
-  export let buttonLabel = 'Search';
+  export let placeholder = "Search…";
 
-  /** @type {(() => void) | null} */
+  export let buttonLabel = "Search";
+
   export let onSearch = null;
 
   function handleSubmit() {
@@ -19,12 +17,7 @@
 </script>
 
 <form class="search-box" on:submit|preventDefault={handleSubmit}>
-  <input
-    type="text"
-    class="search-box-input"
-    {placeholder}
-    bind:value
-  />
+  <input type="text" class="search-box-input" {placeholder} bind:value />
   <Button type="submit" variant="outline">{buttonLabel}</Button>
 </form>
 

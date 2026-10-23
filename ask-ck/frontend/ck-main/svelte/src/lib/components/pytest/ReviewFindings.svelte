@@ -1,9 +1,9 @@
 <script>
-// @ts-nocheck
+  // @ts-nocheck
 
-  import StatusBadge from '../StatusBadge.svelte';
-  import CodeEditor from '../CodeEditor.svelte';
-  import chevronIcon from '../../../assets/icons/chevron-right.svg';
+  import StatusBadge from "../StatusBadge.svelte";
+  import CodeEditor from "../CodeEditor.svelte";
+  import chevronIcon from "../../../assets/icons/chevron-right.svg";
 
   // The holistic review's findings (ported from current/'s ptRenderReview). A review returns
   // FINDINGS, never a rewrite — a finding becomes a change only through a fix.
@@ -19,43 +19,47 @@
   export let stale = false;
 
   /** @type {string} The script as it is now — what a stale finding's evidence is checked against. */
-  export let code = '';
+  export let code = "";
 
   // --- Derived ------------------------------------------------------------------------
   $: findings = review?.findings || [];
-  $: counts = ['high', 'medium', 'low']
+  $: counts = ["high", "medium", "low"]
     .map((sv) => ({ sv, n: findings.filter((f) => f.severity === sv).length }))
     .filter((c) => c.n)
     .map((c) => `${c.n} ${c.sv}`)
-    .join(' · ');
+    .join(" · ");
 
   // Each severity shows as the status icon of the same colour used across the app: high = the
   // red Critical icon, medium = the amber In Review icon, low = the grey Not started icon.
-  const SEV_STATUS = { high: 'error', medium: 'review', low: 'none' };
+  const SEV_STATUS = { high: "error", medium: "review", low: "none" };
 
   // Presence check ignores ALL whitespace, so re-indenting doesn't read as "gone".
-  function normWs(t) { return String(t || '').replace(/\s+/g, ''); }
+  function normWs(t) {
+    return String(t || "").replace(/\s+/g, "");
+  }
   function evidencePresent(text, evidence) {
     const ev = normWs(evidence);
-    if (!ev) return null;   // nothing quoted: nothing to check
+    if (!ev) return null;
     return normWs(text).includes(ev);
   }
 </script>
 
 {#if review?.at}
   <div class="review-result">
-    <p class="review-head">
-      <!-- <span class="review-badge review-badge-medium">Comparison aginst earlier finding(s) is available</span> -->
-      <!-- <span class="review-note">{findings.length} finding(s) from {review.at} — the code has changed since. Re-run Review for findings about what is on screen.</span> -->
-    </p>
     {#if findings.length === 0}
-      <!-- "No findings" is a real result, not an empty state — say so, or a clean review
-           can't be told apart from one that never ran. -->
-      <p class="review-head"><span class="review-badge review-badge-success">Review: No findings</span></p>
-      <p class="review-note">Reviewed {review.at} — nothing found beyond the static checks.</p>
+      <p class="review-head">
+        <span class="review-badge review-badge-success"
+          >Review: No findings</span
+        >
+      </p>
+      <p class="review-note">
+        Reviewed {review.at} — nothing found beyond the static checks.
+      </p>
     {:else if stale}
       <div>
-        <div class="review-note">{findings.length} stale finding(s) — {counts}</div>
+        <div class="review-note">
+          {findings.length} stale finding(s) — {counts}
+        </div>
         {@render findingsList()}
       </div>
     {:else}
@@ -69,7 +73,10 @@
 {/if}
 {#if !review?.at}
   <div>
-    <p class="review-note">Review with LLM to produce a holistic review of each error in the assembled script.</p>
+    <p class="review-note">
+      Review with LLM to produce a holistic review of each error in the
+      assembled script.
+    </p>
   </div>
 {/if}
 
@@ -78,40 +85,55 @@
     {#each findings as f}
       {@const present = stale ? evidencePresent(code, f.evidence) : null}
 
-      <div class="review-finding review-{f.severity}" class:review-gone={present === false}>
+      <div
+        class="review-finding review-{f.severity}"
+        class:review-gone={present === false}
+      >
         <details>
           <summary class="finding-head">
-              <img class="finding-chevron" src={chevronIcon} alt="" aria-hidden="true" />
-              <StatusBadge status={SEV_STATUS[f.severity] || 'none'} />
-              <b>{f.where || '(script)'}</b>
-              {#if f.step}<span class="review-note">step {f.step}</span>{/if}
-              <span class="review-note">{f.kind}</span>
-              {#if stale && f.evidence}
-                {#if present}
-                  <span class="review-badge review-badge-medium" title="The quoted lines are still in the current script">Evidence still present</span>
-                {:else}
-                  <span class="review-badge review-badge-success" title="The quoted lines are no longer in the current script">Evidence gone</span>
-                {/if}
+            <img
+              class="finding-chevron"
+              src={chevronIcon}
+              alt=""
+              aria-hidden="true"
+            />
+            <StatusBadge status={SEV_STATUS[f.severity] || "none"} />
+            <b>{f.where || "(script)"}</b>
+            {#if f.step}<span class="review-note">step {f.step}</span>{/if}
+            <span class="review-note">{f.kind}</span>
+            {#if stale && f.evidence}
+              {#if present}
+                <span
+                  class="review-badge review-badge-medium"
+                  title="The quoted lines are still in the current script"
+                  >Evidence still present</span
+                >
+              {:else}
+                <span
+                  class="review-badge review-badge-success"
+                  title="The quoted lines are no longer in the current script"
+                  >Evidence gone</span
+                >
               {/if}
-            </summary>
+            {/if}
+          </summary>
           <div>{f.what}</div>
           {@render findingsDetails(f.evidence, f.suggestion)}
         </details>
-        <!-- {#if f.evidence}<pre class="review-evidence">{f.evidence}</pre>{/if}
-        {#if f.suggestion}<div class="review-note">suggested: {f.suggestion}</div>{/if} -->
       </div>
     {/each}
   </div>
 {/snippet}
 
 {#snippet findingsDetails(evidence, suggestion)}
-    {#if evidence}
-      <div class="review-evidence">
-        <CodeEditor value={evidence} readonly height="auto" maxHeight="240px" />
-      </div>
-    {/if}
-    {#if suggestion}<div class="review-note">suggested: {suggestion}</div>{/if}
+  {#if evidence}
+    <div class="review-evidence">
+      <CodeEditor value={evidence} readonly height="auto" maxHeight="240px" />
+    </div>
+  {/if}
+  {#if suggestion}<div class="review-note">suggested: {suggestion}</div>{/if}
 {/snippet}
+
 <style>
   .review-result {
     margin: 0 0 24px;
@@ -151,8 +173,6 @@
     font-size: 0.85rem;
   }
 
-  /* Points right while closed, down while the finding is open. It is a currentColor SVG via
-     <img> (draws black), so it takes the muted-grey status filter to read in every theme. */
   .finding-chevron {
     flex: 0 0 auto;
     width: 16px;
@@ -164,8 +184,6 @@
   details[open] > summary .finding-chevron {
     transform: rotate(90deg);
   }
-
-  /* The chevron replaces the browser's own disclosure triangle. */
   summary.finding-head {
     list-style: none;
     cursor: pointer;
@@ -190,13 +208,8 @@
     overflow: scroll;
     max-height: 55vh;
     padding: 12px;
-    /* background-color: var(--color-bg-surface); */
     border-top: 5px solid var(--color-border-surface);
     border-bottom: 5px solid var(--color-border-surface);
-
-
-    /* -webkit-mask-image: linear-gradient(to bottom, white 80%, transparent 100%);
-    mask-image: linear-gradient(to bottom, white 80%, transparent 100%); */
   }
 
   .review-finding {
@@ -208,15 +221,17 @@
     overflow-wrap: anywhere;
   }
 
-  .review-high { 
-    border-color: var(--color-error); 
+  .review-high {
+    border-color: var(--color-error);
   }
 
-  .review-medium { 
-    border-color: var(--color-warning); 
+  .review-medium {
+    border-color: var(--color-warning);
   }
 
-  .review-gone { opacity: 0.35; }
+  .review-gone {
+    opacity: 0.35;
+  }
 
   .review-evidence {
     margin: 8px 0;

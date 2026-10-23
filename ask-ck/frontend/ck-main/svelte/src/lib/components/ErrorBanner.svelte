@@ -1,9 +1,9 @@
 <script>
-// @ts-nocheck
+  // @ts-nocheck
 
   /** @type {string} The full, already-composed error text (e.g. "Save failed: ..."). Renders
       nothing when falsy, so callers can bind it directly to their error state. */
-  export let message = '';
+  export let message = "";
 </script>
 
 {#if message}

@@ -43,7 +43,7 @@
   <div class="zt-block">
     <div class="zt-h">5. Gaps — required, no template <span class="zt-count">{v.gaps.items.length}</span></div>
     {#if v.gaps.state === 'error'}
-     <div class="zt-problem">{v.gaps.error}</div>
+     <ErrorBanner message={v.gaps.error} />
     {/if}
     {#if v.gaps.items.length}
       <ul>{#each v.gaps.items as x}

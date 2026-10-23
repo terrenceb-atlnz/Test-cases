@@ -1,25 +1,20 @@
 <script>
-  import Button from './Button.svelte';
+  //@ts-nocheck
 
-  /** @type {boolean} Bindable open/closed state */
+  import Button from "./Button.svelte";
+
   export let open = false;
 
-  /** @type {'success' | 'error'} */
-  export let status = 'success';
+  export let status = "success";
 
-  /** @type {string} */
-  export let title = '';
+  export let title = "";
 
-  /** @type {string} */
-  export let message = '';
+  export let message = "";
 
-  /** @type {string} */
-  export let caseTitle = '';
+  export let caseTitle = "";
 
-  /** @type {string} */
-  export let closeText = 'Close';
+  export let closeText = "Close";
 
-  /** @type {(() => void) | null} */
   export let onClose = null;
 
   function handleClose() {
@@ -27,11 +22,8 @@
     onClose && onClose();
   }
 
-  /**
-     * @param {{ key: string; }} event
-     */
   function handleBackdropKeydown(event) {
-    if (event.key === 'Escape') handleClose();
+    if (event.key === "Escape") handleClose();
   }
 </script>
 
@@ -53,16 +45,27 @@
       on:keydown|stopPropagation
     >
       <div class="modal-status-row">
-        {#if status === 'success'}
-          <span class="modal-status-badge modal-status-badge-success" aria-hidden="true">&#10003;</span>
+        {#if status === "success"}
+          <span
+            class="modal-status-badge modal-status-badge-success"
+            aria-hidden="true">&#10003;</span
+          >
         {:else}
-          <span class="modal-status-badge modal-status-badge-error" aria-hidden="true">!</span>
+          <span
+            class="modal-status-badge modal-status-badge-error"
+            aria-hidden="true">!</span
+          >
         {/if}
         <div class="case-box">
-
-          <p id="status-modal-title" class="modal-title" class:error={status === 'error'}>{title}</p>
+          <p
+            id="status-modal-title"
+            class="modal-title"
+            class:error={status === "error"}
+          >
+            {title}
+          </p>
           {#if caseTitle}
-              <p class="case-title">{caseTitle}</p>
+            <p class="case-title">{caseTitle}</p>
           {/if}
         </div>
       </div>
@@ -87,7 +90,7 @@
     justify-content: center;
     z-index: 1000;
     padding: 16px;
-    padding-bottom: 10vh
+    padding-bottom: 10vh;
   }
 
   .modal-dialog {

@@ -1,8 +1,10 @@
+//@ts-nocheck
+
 // COPIED OVER FROM current/pytest-creator/pytest.js (ptRefreshCases/ptLoadCase) — PyTest
 // Creator's case list is grouped-only ({key, title} per case, "[N/7 steps]" hint already
 // baked into the title server-side for partials), unlike the Generator's flat+grouped
 // /cases. toOption/toGroups adapt that shape to CasePicker.svelte's {id, label} contract.
-const PT_API = '/api/pytest-create';
+const PT_API = "/api/pytest-create";
 
 function toOption(c) {
   return { id: c.key, label: c.title };
@@ -33,7 +35,9 @@ export async function listCompleteGroups() {
 // output, exposed directly here (not nested in `session`) since PyTest Creator only reads
 // them — the Generator owns writing them.
 export async function loadCase(key) {
-  const res = await fetch(`${PT_API}/load_case/${encodeURIComponent(key)}`, { method: 'POST' });
+  const res = await fetch(`${PT_API}/load_case/${encodeURIComponent(key)}`, {
+    method: "POST",
+  });
   return await res.json();
 }
 

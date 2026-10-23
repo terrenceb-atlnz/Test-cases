@@ -12,4 +12,14 @@ export default defineConfig({
       '/api': 'http://127.0.0.1:8000',
     },
   },
+  test: {
+    environment: 'jsdom',
+    include: ['tests/**/*.spec.js'],
+    exclude: ['tests/e2e/**', 'node_modules/**'],
+    setupFiles: ['./tests/setup.js'],     // added: runs before every spec file
+    globals: true,
+    restoreMocks: true,
+    clearMocks: true,
+  },
+
 })

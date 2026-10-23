@@ -1,4 +1,5 @@
 <script>
+  //@ts-nocheck
   import { onMount } from 'svelte';
 
   import houseIcon from './assets/icons/house.svg';

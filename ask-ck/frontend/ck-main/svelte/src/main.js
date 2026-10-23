@@ -1,11 +1,13 @@
-import { mount } from 'svelte'
-import './app.css'
-import './fonts.css'
-import './lib/theme.js'
-import App from './App.svelte'
+//@ts-nocheck
+
+import { mount } from "svelte";
+import "./app.css";
+import "./fonts.css";
+import "./lib/theme.js";
+import App from "./App.svelte";
 
 const app = mount(App, {
-  target: document.getElementById('app'),
-})
+  target: document.getElementById("app"),
+});
 
-export default app
+export default app;

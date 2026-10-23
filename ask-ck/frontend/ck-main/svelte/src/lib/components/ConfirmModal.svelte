@@ -1,20 +1,20 @@
 <script>
-  import Button from './Button.svelte';
+  import Button from "./Button.svelte";
 
   /** @type {boolean} Bindable open/closed state */
   export let open = false;
 
   /** @type {string} */
-  export let title = 'Are you sure?';
+  export let title = "Are you sure?";
 
   /** @type {string} */
-  export let message = '';
+  export let message = "";
 
   /** @type {string} */
-  export let confirmText = 'Continue';
+  export let confirmText = "Continue";
 
   /** @type {string} */
-  export let cancelText = 'Cancel';
+  export let cancelText = "Cancel";
 
   /** @type {(() => void) | null} */
   export let onConfirm = null;
@@ -33,10 +33,10 @@
   }
 
   /**
-     * @param {{ key: string; }} event
-     */
+   * @param {{ key: string; }} event
+   */
   function handleBackdropKeydown(event) {
-    if (event.key === 'Escape') handleCancel();
+    if (event.key === "Escape") handleCancel();
   }
 </script>
 
@@ -63,7 +63,8 @@
       {/if}
       <div class="modal-actions">
         <Button variant="outline" on:click={handleCancel}>{cancelText}</Button>
-        <Button variant="primary" on:click={handleConfirm}>{confirmText}</Button>
+        <Button variant="primary" on:click={handleConfirm}>{confirmText}</Button
+        >
       </div>
     </div>
   </div>

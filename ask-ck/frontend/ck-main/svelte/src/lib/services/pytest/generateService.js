@@ -1,6 +1,6 @@
 // @ts-nocheck
 
-const PT_API = '/api/pytest-create';
+const PT_API = "/api/pytest-create";
 
 // Every unit with its prompt rendered server-side — ids are the server's own ("setup",
 // "tc1", "tc2", …), the ones generate_units/unit_code key on. Each unit also carries its
@@ -13,7 +13,7 @@ export async function loadUnits(key) {
     const t = await res.text();
     throw new Error(t.slice(0, 200) || `HTTP ${res.status}`);
   }
-  const data = await res.json();   // {units, skeleton_chars}
+  const data = await res.json(); // {units, skeleton_chars}
   return data.units || [];
 }
 
@@ -26,16 +26,19 @@ export async function loadUnits(key) {
 // `items` is [{id}] or [{id, prompt, edited: true}] — only a prompt the reviewer actually
 // edited travels with the request. Every other unit is rendered fresh server-side.
 export async function dispatchUnits(key, items) {
-  const res = await fetch(`${PT_API}/generate_units/${encodeURIComponent(key)}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ units: items }),
-  });
+  const res = await fetch(
+    `${PT_API}/generate_units/${encodeURIComponent(key)}`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ units: items }),
+    },
+  );
   if (!res.ok) {
     const t = await res.text();
     throw new Error(t.slice(0, 200) || `HTTP ${res.status}`);
   }
-  return await res.json();   // {dispatched, already_running, max_concurrent, primed}
+  return await res.json(); // {dispatched, already_running, max_concurrent, primed}
 }
 
 // Cheap enough to poll every couple of seconds — deliberately carries no code.
@@ -45,17 +48,19 @@ export async function getUnitsStatus(key) {
     const t = await res.text();
     throw new Error(t.slice(0, 200) || `HTTP ${res.status}`);
   }
-  return await res.json();   // {units: {id: {status, error, at, chars, running?}}, running, changed_at}
+  return await res.json(); // {units: {id: {status, error, at, chars, running?}}, running, changed_at}
 }
 
 // ONE unit's stored reply — fetched once per landed unit, since the status poll ships no code.
 export async function getUnitCode(key, unitId) {
-  const res = await fetch(`${PT_API}/unit_code/${encodeURIComponent(key)}/${encodeURIComponent(unitId)}`);
+  const res = await fetch(
+    `${PT_API}/unit_code/${encodeURIComponent(key)}/${encodeURIComponent(unitId)}`,
+  );
   if (!res.ok) {
     const t = await res.text();
     throw new Error(t.slice(0, 200) || `HTTP ${res.status}`);
   }
-  return await res.json();   // {unit, status, code, raw, error, at, edited}
+  return await res.json(); // {unit, status, code, raw, error, at, edited}
 }
 
 // Persists Group/script-name on their own, with no generated file required — the only writer
@@ -64,15 +69,15 @@ export async function getUnitCode(key, unitId) {
 // point a rename has to move the file on disk too, which is save_script's job, not this one.
 export async function saveNaming(key, group, name) {
   const res = await fetch(`${PT_API}/save_naming/${encodeURIComponent(key)}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ group, name }),
   });
   if (!res.ok) {
     const t = await res.text();
     throw new Error(t.slice(0, 200) || `HTTP ${res.status}`);
   }
-  return await res.json();   // {naming: {group, name}}
+  return await res.json(); // {naming: {group, name}}
 }
 
 // No LLM — splices the frame + already-generated units deterministically, then lints
@@ -80,26 +85,34 @@ export async function saveNaming(key, group, name) {
 // falls back to session.step6.naming when omitted. 409s if any unit is still missing code —
 // the server's own words, not restated here, so callers surface its message directly.
 export async function assembleScript(key, group, name) {
-  const res = await fetch(`${PT_API}/assemble_script/${encodeURIComponent(key)}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ group, name }),
-  });
+  const res = await fetch(
+    `${PT_API}/assemble_script/${encodeURIComponent(key)}`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ group, name }),
+    },
+  );
   if (!res.ok) {
     const t = await res.text();
     throw new Error(t.slice(0, 300) || `HTTP ${res.status}`);
   }
-  const data = await res.json();   // {files, lint: {errors, warnings}, manifest, units}
-  const assembledCode = data.files?.test?.code || '';
-  return { assembledCode, lintResults: toLintResults(data.lint), files: data.files, manifest: data.manifest };
+  const data = await res.json(); // {files, lint: {errors, warnings}, manifest, units}
+  const assembledCode = data.files?.test?.code || "";
+  return {
+    assembledCode,
+    lintResults: toLintResults(data.lint),
+    files: data.files,
+    manifest: data.manifest,
+  };
 }
 
 // Adapts the server's lint {errors, warnings} string arrays into the {level, message} shape
 // the Summary panel renders — shared by a fresh assembly and a restore from session.step6.lint.
 export function toLintResults(lint) {
   return [
-    ...(lint?.errors || []).map((message) => ({ level: 'error', message })),
-    ...(lint?.warnings || []).map((message) => ({ level: 'warn', message })),
+    ...(lint?.errors || []).map((message) => ({ level: "error", message })),
+    ...(lint?.warnings || []).map((message) => ({ level: "warn", message })),
   ];
 }
 
@@ -110,34 +123,39 @@ export function toLintResults(lint) {
 // session's naming exactly as it is.
 export async function pushCodeEdits(key, code) {
   const res = await fetch(`${PT_API}/save_script/${encodeURIComponent(key)}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ code, write_files: false }),
   });
   if (!res.ok) throw new Error(await errorDetail(res));
-  return await res.json();   // {written, lint, naming}
+  return await res.json(); // {written, lint, naming}
 }
 
 // Re-runs the same offline lint Assemble runs (py_compile, structure, house rules, coverage,
 // PEP 8) on the session's CURRENT script — push the on-screen edits first (pushCodeEdits), as
 // current/'s ptLintScript does, so it judges what the user sees. No LLM.
 export async function lintScript(key) {
-  const res = await fetch(`${PT_API}/lint_script/${encodeURIComponent(key)}`, { method: 'POST' });
+  const res = await fetch(`${PT_API}/lint_script/${encodeURIComponent(key)}`, {
+    method: "POST",
+  });
   if (!res.ok) throw new Error(await errorDetail(res));
-  return await res.json();   // the lint dict: {ok, errors, warnings, pep8, coverage, ...}
+  return await res.json(); // the lint dict: {ok, errors, warnings, pep8, coverage, ...}
 }
 
 // Pass C — the holistic review. Returns FINDINGS, never a rewrite. 409s with a message
 // starting "review round cap:" once the script's free review rounds are used; resending
 // with extraRound = true is the reviewer's explicit "send another round anyway".
 export async function reviewScript(key, headers, extraRound = false) {
-  const res = await fetch(`${PT_API}/review_script/${encodeURIComponent(key)}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...headers },
-    body: JSON.stringify(extraRound ? { extra_round: true } : {}),
-  });
+  const res = await fetch(
+    `${PT_API}/review_script/${encodeURIComponent(key)}`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...headers },
+      body: JSON.stringify(extraRound ? { extra_round: true } : {}),
+    },
+  );
   if (!res.ok) throw new Error(await errorDetail(res));
-  return await res.json();   // {findings, at, review_rounds, review_rounds_free, counts}
+  return await res.json(); // {findings, at, review_rounds, review_rounds_free, counts}
 }
 
 // One LLM call that rewrites the WHOLE script from the session's own reasons (lint errors,
@@ -145,12 +163,12 @@ export async function reviewScript(key, headers, extraRound = false) {
 // clears the review. A following Assemble re-splices the units and would discard it.
 export async function fixScript(key, headers) {
   const res = await fetch(`${PT_API}/fix_script/${encodeURIComponent(key)}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...headers },
-    body: '{}',
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...headers },
+    body: "{}",
   });
   if (!res.ok) throw new Error(await errorDetail(res));
-  return await res.json();   // {files, iterations, lint, previous_archived}
+  return await res.json(); // {files, iterations, lint, previous_archived}
 }
 
 // Re-generates ONLY the units the current reasons name, and returns at once — progress comes
@@ -160,21 +178,23 @@ export async function fixScript(key, headers) {
 // those unit ids (each still gets ALL of its own current reasons).
 export async function fixUnits(key, units) {
   const res = await fetch(`${PT_API}/fix_units/${encodeURIComponent(key)}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(units ? { units } : {}),
   });
   if (!res.ok) throw new Error(await errorDetail(res));
-  return await res.json();   // {dispatched, already_running, unmapped, structural, stale, primed}
+  return await res.json(); // {dispatched, already_running, unmapped, structural, stale, primed}
 }
 
 // Re-cuts the units from the assembled script (local, no LLM): after a whole-script fix the
 // units still hold the OLD code and the server refuses Assemble / Fix Units as "diverged"
 // until this runs. Returns which units changed and which no longer exist in the script.
 export async function rechunk(key) {
-  const res = await fetch(`${PT_API}/rechunk/${encodeURIComponent(key)}`, { method: 'POST' });
+  const res = await fetch(`${PT_API}/rechunk/${encodeURIComponent(key)}`, {
+    method: "POST",
+  });
   if (!res.ok) throw new Error(await errorDetail(res));
-  return await res.json();   // {changed, dropped, units, gen_state}
+  return await res.json(); // {changed, dropped, units, gen_state}
 }
 
 // A review- or run-driven unit fix is HELD on its unit, never spliced on arrival (G7/D2):
@@ -182,12 +202,12 @@ export async function rechunk(key) {
 // (omitted = all), then re-assembles and re-lints.
 export async function applyHeldFixes(key, units) {
   const res = await fetch(`${PT_API}/apply_held/${encodeURIComponent(key)}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(units ? { units } : {}),
   });
   if (!res.ok) throw new Error(await errorDetail(res));
-  return await res.json();   // {applied, assembled, lint_ok, lint_errors, previous_archived}
+  return await res.json(); // {applied, assembled, lint_ok, lint_errors, previous_archived}
 }
 
 // FastAPI errors arrive as {"detail": "..."}; callers match on the message itself (e.g. the
@@ -196,8 +216,10 @@ async function errorDetail(res) {
   const t = await res.text();
   try {
     const d = JSON.parse(t).detail;
-    if (typeof d === 'string') return d;
-  } catch (_) { /* not JSON — fall through to the raw text */ }
+    if (typeof d === "string") return d;
+  } catch (_) {
+    /* not JSON — fall through to the raw text */
+  }
   return t.slice(0, 300) || `HTTP ${res.status}`;
 }
 
@@ -211,26 +233,41 @@ async function errorDetail(res) {
 export async function saveAndFinish(key, group, name, code) {
   let saved;
   try {
-    const res = await fetch(`${PT_API}/save_script/${encodeURIComponent(key)}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ group, name, code, write_files: true }),
-    });
+    const res = await fetch(
+      `${PT_API}/save_script/${encodeURIComponent(key)}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ group, name, code, write_files: true }),
+      },
+    );
     if (!res.ok) throw new Error(await errorDetail(res));
-    saved = await res.json();   // {written, lint, naming, gen_state}
+    saved = await res.json(); // {written, lint, naming, gen_state}
   } catch (e) {
-    return { status: 'error', message: `Save failed: ${(e && e.message) || e}` };
+    return {
+      status: "error",
+      message: `Save failed: ${(e && e.message) || e}`,
+    };
   }
-  const written = (saved.written || []).join(', ') || '(no files written)';
+  const written = (saved.written || []).join(", ") || "(no files written)";
   try {
-    const res = await fetch(`${PT_API}/confirm_step/${encodeURIComponent(key)}/6`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: '{}',
-    });
+    const res = await fetch(
+      `${PT_API}/confirm_step/${encodeURIComponent(key)}/6`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: "{}",
+      },
+    );
     if (!res.ok) throw new Error(await errorDetail(res));
   } catch (e) {
-    return { status: 'error', message: `Saved (${written}), but Generate could not be confirmed: ${(e && e.message) || e}` };
+    return {
+      status: "error",
+      message: `Saved (${written}), but Generate could not be confirmed: ${(e && e.message) || e}`,
+    };
   }
-  return { status: 'success', message: `Saved ${written} and confirmed Generate.` };
+  return {
+    status: "success",
+    message: `Saved ${written} and confirmed Generate.`,
+  };
 }

@@ -1,19 +1,15 @@
 <script>
-  import arrowRightIcon from '../../assets/icons/arrow-right.svg';
+  //@ts-nocheck
+  import arrowRightIcon from "../../assets/icons/arrow-right.svg";
 
-  /** @type {Array<{ id: string, label: string, icon?: string }>} */
   export let steps = [];
 
-  /** @type {number} Index of the current step */
   export let currentStep = 0;
 
-  /** @type {number} Furthest step index reached so far (stays put when navigating back) */
   export let maxStepReached = 0;
 
-  /** @type {boolean} Furthest step index reached so far (stays put when navigating back) */
   export let stepperCompleted = false;
 
-  /** @type {((index: number) => void) | null} Called when a visited step's node is clicked */
   export let onStepClick = null;
 </script>
 
@@ -33,14 +29,25 @@
         class:current={i === currentStep}
         class:pending={i > maxStepReached}
         disabled={!(onStepClick && i !== currentStep && i <= maxStepReached)}
-        on:click={() => onStepClick && i !== currentStep && i <= maxStepReached && onStepClick(i)}
-        aria-current={i === currentStep ? 'step' : undefined}
+        on:click={() =>
+          onStepClick &&
+          i !== currentStep &&
+          i <= maxStepReached &&
+          onStepClick(i)}
+        aria-current={i === currentStep ? "step" : undefined}
         aria-label={step.label}
       >
-        <img class="stepper-icon" src={step.icon || arrowRightIcon} alt="" aria-hidden="true" />
+        <img
+          class="stepper-icon"
+          src={step.icon || arrowRightIcon}
+          alt=""
+          aria-hidden="true"
+        />
       </button>
 
-      <span class="stepper-label" class:current={i === currentStep}>{i + 1}. {step.label}</span>
+      <span class="stepper-label" class:current={i === currentStep}
+        >{i + 1}. {step.label}</span
+      >
     </div>
   {/each}
 </div>
@@ -68,11 +75,13 @@
   }
 
   .stepper-step:not(:first-child)::before {
-    content: '';
+    content: "";
     position: absolute;
     top: 2.2rem;
     left: calc(-50% + var(--stepper-node-radius) + var(--stepper-line-gap));
-    width: calc(100% - (2 * (var(--stepper-node-radius) + var(--stepper-line-gap))));
+    width: calc(
+      100% - (2 * (var(--stepper-node-radius) + var(--stepper-line-gap)))
+    );
     height: 4px;
     background: var(--color-stepper-outline);
     border-radius: 999px;
@@ -80,11 +89,13 @@
   }
 
   .stepper-step:not(:first-child)::after {
-    content: '';
+    content: "";
     position: absolute;
     top: 2.2rem;
     left: calc(-50% + var(--stepper-node-radius) + var(--stepper-line-gap));
-    width: calc(100% - (2 * (var(--stepper-node-radius) + var(--stepper-line-gap))));
+    width: calc(
+      100% - (2 * (var(--stepper-node-radius) + var(--stepper-line-gap)))
+    );
     height: 4px;
     background: var(--color-accent);
     border-radius: 999px;
@@ -111,12 +122,13 @@
     justify-content: center;
     padding: 0;
     cursor: default;
-    transition: background-color 0.2s ease, border-color 0.5s ease;
+    transition:
+      background-color 0.2s ease,
+      border-color 0.5s ease;
   }
 
   .stepper-node.current {
     border-color: var(--color-accent);
-    /* background: var(--color-accent); */
   }
 
   .stepper-node.completed {
@@ -139,7 +151,7 @@
     background: var(--color-success);
   }
 
-  .stepper-node.current.finished{
+  .stepper-node.current.finished {
     border-color: var(--color-success);
     background: var(--color-bg-content);
   }
@@ -160,7 +172,7 @@
   }
 
   .stepper-label {
-    font-size: 1..1rem;
+    font-size: 1.1rem;
     color: var(--color-stepper-outline);
     font-weight: 600;
     text-align: center;

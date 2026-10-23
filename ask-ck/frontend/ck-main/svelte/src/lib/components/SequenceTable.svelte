@@ -1,27 +1,18 @@
 <script>
-// @ts-nocheck
+  // @ts-nocheck
 
-  import Button from './Button.svelte';
-  import squarePenIcon from '../../assets/icons/square-pen.svg';
-  import trashIcon from '../../assets/icons/trash.svg';
+  import Button from "./Button.svelte";
+  import squarePenIcon from "../../assets/icons/square-pen.svg";
+  import trashIcon from "../../assets/icons/trash.svg";
 
-  /** @type {Array<{ id: string | number, from: string | number, action: string, verify: string }>} Bindable list of sequenced rows */
   export let rows = [];
 
-  /** @type {string} */
-  export let emptyMessage = '';
+  export let emptyMessage = "";
 
-  /**
-     * @type {string | null}
-     */
   let editingRowId = null;
-  /**
-     * @type {number | null}
-     */
+
   let draggedIndex = null;
-  /**
-     * @type {{ index: any; position: any; } | null}
-     */
+
   let dropIndicator = null; // { index, position: 'above' | 'below' }
 
   function toggleEditRow(id) {
@@ -38,7 +29,12 @@
   }
 
   function addStep() {
-    const newRow = { id: `seq-${Date.now()}`, from: '', action: '', verify: '' };
+    const newRow = {
+      id: `seq-${Date.now()}`,
+      from: "",
+      action: "",
+      verify: "",
+    };
     rows = [...rows, newRow];
     editingRowId = newRow.id;
   }
@@ -51,7 +47,7 @@
     event.preventDefault();
     const rect = event.currentTarget.getBoundingClientRect();
     const isAfter = event.clientY - rect.top > rect.height / 2;
-    dropIndicator = { index, position: isAfter ? 'below' : 'above' };
+    dropIndicator = { index, position: isAfter ? "below" : "above" };
   }
 
   function handleDragLeave(index) {
@@ -63,8 +59,8 @@
       resetDrag();
       return;
     }
-    const position = dropIndicator?.position ?? 'above';
-    let desiredIndex = position === 'below' ? index + 1 : index;
+    const position = dropIndicator?.position ?? "above";
+    let desiredIndex = position === "below" ? index + 1 : index;
     const updated = [...rows];
     const [moved] = updated.splice(draggedIndex, 1);
     if (desiredIndex > draggedIndex) desiredIndex -= 1;
@@ -98,8 +94,10 @@
         class="sequence-editor-row"
         class:sequence-editor-row-dragging={draggedIndex === i}
         class:sequence-editor-row-editing={editingRowId === row.id}
-        class:drop-indicator-above={dropIndicator?.index === i && dropIndicator.position === 'above'}
-        class:drop-indicator-below={dropIndicator?.index === i && dropIndicator.position === 'below'}
+        class:drop-indicator-above={dropIndicator?.index === i &&
+          dropIndicator.position === "above"}
+        class:drop-indicator-below={dropIndicator?.index === i &&
+          dropIndicator.position === "below"}
         role="listitem"
         draggable="true"
         on:dragstart={() => handleDragStart(i)}
@@ -112,8 +110,16 @@
         <div class="col-from">{row.from}</div>
         <div class="col-num">{i + 1}</div>
         {#if editingRowId === row.id}
-          <input class="sequence-editor-input col-text" type="text" bind:value={row.action} />
-          <input class="sequence-editor-input col-text" type="text" bind:value={row.verify} />
+          <input
+            class="sequence-editor-input col-text"
+            type="text"
+            bind:value={row.action}
+          />
+          <input
+            class="sequence-editor-input col-text"
+            type="text"
+            bind:value={row.verify}
+          />
         {:else}
           <div class="col-text">{row.action}</div>
           <div class="col-text">{row.verify}</div>
@@ -124,8 +130,8 @@
               variant="primary"
               class="sequence-save-btn"
               disabled={!row.action.trim() || !row.verify.trim()}
-              on:click={saveRow}
-            >Save Changes</Button>
+              on:click={saveRow}>Save Changes</Button
+            >
           {:else}
             <button
               type="button"
@@ -133,7 +139,12 @@
               on:click={() => toggleEditRow(row.id)}
               aria-label="Edit step"
             >
-              <img class="row-icon" src={squarePenIcon} alt="" aria-hidden="true" />
+              <img
+                class="row-icon"
+                src={squarePenIcon}
+                alt=""
+                aria-hidden="true"
+              />
             </button>
             <button
               type="button"
@@ -185,7 +196,7 @@
 
   .drop-indicator-above::before,
   .drop-indicator-below::after {
-    content: '';
+    content: "";
     position: absolute;
     left: 0;
     right: 0;

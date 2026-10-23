@@ -1,5 +1,5 @@
 <script>
-  import windowSidebarIcon from '../../assets/icons/panel-left.svg';
+  import windowSidebarIcon from "../../assets/icons/panel-left.svg";
 
   /**
    * @type {{
@@ -10,7 +10,7 @@
   export let items = { main: [], tool: [] };
 
   /** @type {string} */
-  export let activePage = 'home';
+  export let activePage = "home";
 
   /** @type {boolean} */
   export let collapsed = false;
@@ -22,8 +22,13 @@
   export let onToggle = () => {};
 </script>
 
-<aside class="sidebar" class:collapsed={collapsed}>
-  <button class="collapse-toggle" type="button" on:click={onToggle} aria-label="Toggle sidebar">
+<aside class="sidebar" class:collapsed>
+  <button
+    class="collapse-toggle"
+    type="button"
+    on:click={onToggle}
+    aria-label="Toggle sidebar"
+  >
     <img src={windowSidebarIcon} alt="Toggle sidebar" />
   </button>
 
@@ -56,13 +61,12 @@
       {#if !collapsed}<span class="nav-label">{item.label}</span>{/if}
     </button>
   {/each}
-   {#if !collapsed}<p class="sidebar-footer" aria-hidden="true">© 2026 Allied Telesis</p>{/if}
+  {#if !collapsed}<p class="sidebar-footer" aria-hidden="true">
+      © 2026 Allied Telesis
+    </p>{/if}
 </aside>
 
 <style>
-  /* .sidebar {
-    border-right: 2px solid var(--color-border-surface);
-  } */
   .sidebar-section-label {
     padding: 14px 12px 6px;
     font-size: 0.8rem;
@@ -85,7 +89,6 @@
     border-radius: 5px;
     text-align: left;
     cursor: pointer;
-    transition: background 0.2s ease, color 0.2s ease;
     font-weight: 600;
   }
 
@@ -96,6 +99,8 @@
   .nav-item.active {
     background: var(--color-sidebar-nav-active-bg);
     color: var(--color-sidebar-nav-active-text);
+    border-left: 7px solid var(--color-sidebar-nav-active-side);
+    padding-left: 1.3rem;
   }
 
   .nav-icon-svg {

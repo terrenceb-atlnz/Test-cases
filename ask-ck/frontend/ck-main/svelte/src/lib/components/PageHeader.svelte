@@ -1,13 +1,12 @@
 <script>
-  export let title = '';
-  export let intro = '';
+  export let title = "";
+  export let intro = "";
 </script>
 
 <div class="page-header">
   <h1>{title}</h1>
   {#if intro}<p>{intro}</p>{/if}
 </div>
-<hr class="page-header-rule" />
 
 <style>
   .page-header {
@@ -29,12 +28,5 @@
     color: var(--color-text-muted);
     font-size: 1rem;
     line-height: 1.6;
-  }
-
-  .page-header-rule {
-    /* width: 100%; */
-    border: none;
-    border-top: 1px solid var(--color-border-surface);
-    margin: 16px 48px 16px;
   }
 </style>

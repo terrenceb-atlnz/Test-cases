@@ -1,24 +1,24 @@
 <script>
-// @ts-nocheck
+  // @ts-nocheck
 
-  import Button from '../Button.svelte';
-  import ConfirmModal from '../ConfirmModal.svelte';
-  import StatusModal from '../StatusModal.svelte';
-  import LlmButton from '../LlmButton.svelte';
-  import ErrorBanner from '../ErrorBanner.svelte';
-  import UploadIcon from '../../../assets/icons/upload.svg';
-  import trashIcon from '../../../assets/icons/trash.svg';
+  import Button from "../Button.svelte";
+  import ConfirmModal from "../ConfirmModal.svelte";
+  import StatusModal from "../StatusModal.svelte";
+  import LlmButton from "../LlmButton.svelte";
+  import ErrorBanner from "../ErrorBanner.svelte";
+  import UploadIcon from "../../../assets/icons/upload.svg";
+  import trashIcon from "../../../assets/icons/trash.svg";
 
-  import { scrollToBottom } from '../../utils/scroll.js';
+  import { scrollToBottom } from "../../utils/scroll.js";
 
   // --- Props: data ------------------------------------------------------------------
   /** Shown in the push confirmation; identifies the Zephyr case being pushed. */
-  export let caseKey = '';
+  export let caseKey = "";
 
-  export let caseTitle = '';
+  export let caseTitle = "";
 
   /** The confirmed objective the steps are synthesized from. */
-  export let objective = '';
+  export let objective = "";
 
   /** @type {Array<{ description: string, expectedResult?: string }>} */
   export let steps = [];
@@ -49,10 +49,13 @@
   let isEditing = false;
   let draftSteps = [];
   let isSaving = false;
-  let saveError = '';
+  let saveError = "";
 
   function startEdit() {
-    draftSteps = steps.map((s) => ({ description: s.description || '', expectedResult: s.expectedResult || '' }));
+    draftSteps = steps.map((s) => ({
+      description: s.description || "",
+      expectedResult: s.expectedResult || "",
+    }));
     isEditing = true;
   }
 
@@ -61,7 +64,7 @@
   }
 
   function addStep() {
-    draftSteps = [...draftSteps, { description: '', expectedResult: '' }];
+    draftSteps = [...draftSteps, { description: "", expectedResult: "" }];
   }
 
   function removeStep(idx) {
@@ -70,12 +73,14 @@
 
   async function saveChanges() {
     isSaving = true;
-    saveError = '';
+    saveError = "";
     try {
-      await onSaveSteps(draftSteps.map((s) => ({
-        description: (s.description || '').trim(),
-        expectedResult: (s.expectedResult || '').trim(),
-      })));
+      await onSaveSteps(
+        draftSteps.map((s) => ({
+          description: (s.description || "").trim(),
+          expectedResult: (s.expectedResult || "").trim(),
+        })),
+      );
       isEditing = false;
     } catch (e) {
       saveError = (e && e.message) || String(e);
@@ -89,9 +94,9 @@
   // bundle fails validation), so success is read from the body, not from the request.
   let isExporting = false;
   let showExportModal = false;
-  let exportStatus = 'success';   // 'success' | 'error'
-  let exportTitle = '';
-  let exportMessage = '';
+  let exportStatus = "success"; // 'success' | 'error'
+  let exportTitle = "";
+  let exportMessage = "";
 
   async function handleExport() {
     isExporting = true;
@@ -99,22 +104,31 @@
       const data = await onExport();
       const v = data.validation || {};
       if (data.wrote_bundle === false) {
-        exportStatus = 'error';
-        exportTitle = 'Export blocked';
-        const headline = data.message ? data.message.split('\n')[0] : 'Export blocked — no bundle written.';
-        const issues = (v.issues && v.issues.length) ? ' Issues: ' + v.issues.join('; ') : '';
+        exportStatus = "error";
+        exportTitle = "Export blocked";
+        const headline = data.message
+          ? data.message.split("\n")[0]
+          : "Export blocked — no bundle written.";
+        const issues =
+          v.issues && v.issues.length ? " Issues: " + v.issues.join("; ") : "";
         exportMessage = headline + issues;
       } else {
-        exportStatus = 'success';
-        exportTitle = 'Export successful';
-        const files = (data.saved_files && data.saved_files.length) ? data.saved_files.join(', ') : '';
-        const warnings = (v.warnings && v.warnings.length) ? ' Advisory warnings: ' + v.warnings.join('; ') : '';
+        exportStatus = "success";
+        exportTitle = "Export successful";
+        const files =
+          data.saved_files && data.saved_files.length
+            ? data.saved_files.join(", ")
+            : "";
+        const warnings =
+          v.warnings && v.warnings.length
+            ? " Advisory warnings: " + v.warnings.join("; ")
+            : "";
         exportMessage = `Saved to ${data.saved_to}/ (${files}).${warnings}`;
         onFinished && onFinished();
       }
     } catch (e) {
-      exportStatus = 'error';
-      exportTitle = 'Export failed';
+      exportStatus = "error";
+      exportTitle = "Export failed";
       exportMessage = (e && e.message) || String(e);
     } finally {
       isExporting = false;
@@ -127,32 +141,36 @@
   // writes to the LIVE Zephyr server and so goes through a confirm modal first.
   let isPushingPreview = false;
   let isPushingExecute = false;
-  let pushOutput = '';
+  let pushOutput = "";
   let showPushConfirmModal = false;
 
-  $: pushConfirmMessage = `Push ${caseKey} to the LIVE Zephyr server?\n\n`
-    + 'This will:\n'
-    + '  1. Strip a leading "(N)" group from the test-case title\n'
-    + '  2. Create a NEW version (e.g. 1.0 → 2.0)\n'
-    + '  3. Upload the objective + test steps onto the new version\n'
-    + '  4. Attach traceability.md + web links\n\n'
-    + 'Tip: run "Preview Push (dry-run)" first. Continue?';
+  $: pushConfirmMessage =
+    `Push ${caseKey} to the LIVE Zephyr server?\n\n` +
+    "This will:\n" +
+    '  1. Strip a leading "(N)" group from the test-case title\n' +
+    "  2. Create a NEW version (e.g. 1.0 → 2.0)\n" +
+    "  3. Upload the objective + test steps onto the new version\n" +
+    "  4. Attach traceability.md + web links\n\n" +
+    'Tip: run "Preview Push (dry-run)" first. Continue?';
 
   function formatPushOutput(data, execute) {
-    const header = data.ok === false
-      ? `⚠ Push ${execute ? 'FAILED' : 'preview reported problems'} (exit ${data.returncode}) — check JIRA_KEY in secrets.md and output below:\n\n`
-      : (execute ? '✓ Push complete:\n\n' : 'Dry-run preview (no changes made):\n\n');
-    return header + (data.output || '');
+    const header =
+      data.ok === false
+        ? `⚠ Push ${execute ? "FAILED" : "preview reported problems"} (exit ${data.returncode}) — check JIRA_KEY in secrets.md and output below:\n\n`
+        : execute
+          ? "✓ Push complete:\n\n"
+          : "Dry-run preview (no changes made):\n\n";
+    return header + (data.output || "");
   }
 
   async function handlePreviewPush() {
     isPushingPreview = true;
-    pushOutput = 'Previewing (dry-run, no writes)…';
+    pushOutput = "Previewing (dry-run, no writes)…";
     try {
       const data = await onPushToZephyr({ dryRun: true });
       pushOutput = formatPushOutput(data, false);
     } catch (e) {
-      pushOutput = 'Push preview failed: ' + ((e && e.message) || String(e));
+      pushOutput = "Push preview failed: " + ((e && e.message) || String(e));
     } finally {
       isPushingPreview = false;
     }
@@ -164,23 +182,29 @@
 
   async function executePush() {
     isPushingExecute = true;
-    pushOutput = 'Pushing to Zephyr…';
+    pushOutput = "Pushing to Zephyr…";
     try {
       const data = await onPushToZephyr({ dryRun: false });
       pushOutput = formatPushOutput(data, true);
     } catch (e) {
-      pushOutput = 'Push failed: ' + ((e && e.message) || String(e));
+      pushOutput = "Push failed: " + ((e && e.message) || String(e));
     } finally {
       isPushingExecute = false;
     }
   }
 </script>
 
-<p class="cases-intro">Generate verification steps from the finalized objective plus review context. The first step is always the server-built traceability note. Export the repeatable bundle when ready.</p>
+<p class="cases-intro">
+  Generate verification steps from the finalized objective plus review context.
+  The first step is always the server-built traceability note. Export the
+  repeatable bundle when ready.
+</p>
 
 <p class="testlink-table-label">Objective</p>
 <div class="objectives-window">
-  <div class="objectives-html">{@html objective || '<em>No objective on session.</em>'}</div>
+  <div class="objectives-html">
+    {@html objective || "<em>No objective on session.</em>"}
+  </div>
 </div>
 
 <div class="objectives-actions">
@@ -205,8 +229,16 @@
           <div class="editable-step">
             <div class="editable-step-num">{i + 1}.</div>
             <div class="editable-step-fields">
-              <input class="step-field" bind:value={step.description} placeholder="Step description" />
-              <input class="step-field" bind:value={step.expectedResult} placeholder="Expected result (optional)" />
+              <input
+                class="step-field"
+                bind:value={step.description}
+                placeholder="Step description"
+              />
+              <input
+                class="step-field"
+                bind:value={step.expectedResult}
+                placeholder="Expected result (optional)"
+              />
             </div>
             <!-- <Button variant="outline" on:click={() => removeStep(i)}>Remove</Button> -->
             <button
@@ -225,7 +257,9 @@
         <Button variant="outline" on:click={addStep}>+ Add step</Button>
       </div>
       <div class="objectives-window-actions">
-        <Button variant="primary" loading={isSaving} on:click={saveChanges}>Save Changes</Button>
+        <Button variant="primary" loading={isSaving} on:click={saveChanges}
+          >Save Changes</Button
+        >
         <Button variant="outline" on:click={cancelEdit}>Cancel</Button>
       </div>
     {:else}
@@ -234,7 +268,10 @@
           <li>
             <div>{step.description}</div>
             {#if step.expectedResult}
-              <div class="step-expected"><em>Expected:</em> {step.expectedResult}</div>
+              <div class="step-expected">
+                <em>Expected:</em>
+                {step.expectedResult}
+              </div>
             {/if}
           </li>
         {/each}
@@ -246,14 +283,31 @@
   </div>
 
   <div class="export-actions">
-    <Button variant="success" loading={isExporting} on:click={handleExport}>Export Repeatable Bundle</Button>
+    <Button variant="success" loading={isExporting} on:click={handleExport}
+      >Export Repeatable Bundle</Button
+    >
   </div>
 
   <div class="push-actions">
-    <Button variant="outline" loading={isPushingPreview} on:click={handlePreviewPush}>Preview Push (dry-run)</Button>
-    <Button variant="primary" loading={isPushingExecute} on:click={handlePushClick}>Push to Zephyr</Button>
+    <Button
+      variant="outline"
+      loading={isPushingPreview}
+      on:click={handlePreviewPush}>Preview Push (dry-run)</Button
+    >
+    <Button
+      variant="primary"
+      loading={isPushingExecute}
+      on:click={handlePushClick}>Push to Zephyr</Button
+    >
   </div>
-  <p class="push-note">Push uses the <strong>last exported bundle on disk</strong> (click <em>Export Repeatable Bundle</em> first if you've made edits). On the live Zephyr case it strips a leading <code>(N)</code> title group, ensures version 2.0, and uploads the objective + steps + traceability onto it. Run <em>Preview</em> first.</p>
+  <p class="push-note">
+    Push uses the <strong>last exported bundle on disk</strong> (click
+    <em>Export Repeatable Bundle</em>
+    first if you've made edits). On the live Zephyr case it strips a leading
+    <code>(N)</code>
+    title group, ensures version 2.0, and uploads the objective + steps +
+    traceability onto it. Run <em>Preview</em> first.
+  </p>
   {#if pushOutput}<pre class="push-output">{pushOutput}</pre>{/if}
 {/if}
 
@@ -271,7 +325,7 @@
   status={exportStatus}
   title={exportTitle}
   message={exportMessage}
-  caseTitle ={caseTitle}
+  {caseTitle}
 />
 
 <style>
@@ -380,7 +434,6 @@
     font: inherit;
     font-size: 0.9rem;
   }
-
 
   .objectives-window-actions {
     display: flex;

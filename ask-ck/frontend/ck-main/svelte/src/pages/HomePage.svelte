@@ -70,8 +70,6 @@
     if (logoClickCount < ADMIN_CLICKS_REQUIRED) return;
     isAdmin = true;
   }
-
-
 </script>
 
 <div class="home-page">
@@ -87,29 +85,27 @@
           <img src={isAdmin ? askCKAdmin : askCKLogo} alt="Ask CK logo" />
         </button>
         <h1>{isAdmin ? "Welcome Admin" : "Welcome to Ask CK"}</h1>
-          <p class="home-intro">
-            Ask CK is a server-backed test-engineering workbench for the AWPTCM
-            test-case program. It brings the tools for enriching manual test
-            cases, mapping them to automation, and turning them into runnable
-            scripts into one place. Pick a tool from below, or read the
-            step-by-step guides inside the Help section. Most tools use an LLM
-            via a local subscription CLI — set that up first under <span
-              style="font-weight: bold;"
-              >Settings → LLM → LLM Provider Login</span
-            >.
-          </p>
+        <p class="home-intro">
+          Ask CK is a server-backed test-engineering workbench for the AWPTCM
+          test-case program. It brings the tools for enriching manual test
+          cases, mapping them to automation, and turning them into runnable
+          scripts into one place. Pick a tool from below, or read the
+          step-by-step guides inside the Help section. Most tools use an LLM via
+          a local subscription CLI — set that up first under <span
+            style="font-weight: bold;">Settings → LLM → LLM Provider Login</span
+          >.
+        </p>
       </div>
     </div>
   </div>
 
-
-    <div class="card-container">
-      <div class="card-grid">
-        {#each page.cards as card}
-          <PageCard {card} on:click={() => onNavigate(card.pageId)} />
-        {/each}
-      </div>
+  <div class="card-container">
+    <div class="card-grid">
+      {#each page.cards as card}
+        <PageCard {card} on:click={() => onNavigate(card.pageId)} />
+      {/each}
     </div>
+  </div>
 
   {#if isAdmin}
     <AdminPanel />
@@ -117,7 +113,6 @@
 </div>
 
 <style>
-
   .home-page {
     flex: 1;
     margin: -16px 0;
@@ -128,13 +123,11 @@
     padding: 12px;
   }
   .home-banner-container {
-    position: relative; /* ::after is measured from here */
+    position: relative;
   }
   .home-banner {
-    /* remove margin-top, margin-left, margin-right from here */
     border-radius: 10px;
     min-height: 10rem;
-    /* padding: 0.8rem; */
     background-color: var(--color-banner-bg);
     position: relative;
     isolation: isolate;
@@ -154,13 +147,15 @@
   }
 
   .home-banner::after {
-    content: '';
+    content: "";
     position: absolute;
     inset: 0;
-    z-index: -1;            
-    background: linear-gradient(to bottom,
-     var(--color-banner-gradient) 0%,    
-    transparent 45%);           
+    z-index: -1;
+    background: linear-gradient(
+      to bottom,
+      var(--color-banner-gradient) 0%,
+      transparent 45%
+    );
     pointer-events: none;
   }
 
@@ -174,7 +169,6 @@
   .home-hero {
     display: flex;
     flex-direction: row;
-    /* flex-direction: column; */
     align-items: center;
     text-align: center;
   }
@@ -183,7 +177,6 @@
     background: transparent;
     border: none;
     padding: 0;
-    /* cursor: pointer; */
   }
 
   .home-hero img {
@@ -225,5 +218,4 @@
     justify-content: center;
     text-align: center;
   }
-
 </style>

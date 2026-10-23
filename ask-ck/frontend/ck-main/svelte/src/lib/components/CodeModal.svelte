@@ -1,20 +1,20 @@
 <script>
-// @ts-nocheck
+  // @ts-nocheck
 
-  import Button from './Button.svelte';
-  import CodeEditor from './CodeEditor.svelte';
+  import Button from "./Button.svelte";
+  import CodeEditor from "./CodeEditor.svelte";
 
   /** @type {boolean} Bindable open/closed state */
   export let open = false;
 
   /** @type {string} e.g. the script id */
-  export let title = '';
+  export let title = "";
 
   /** @type {string} e.g. "lines 1-120" */
-  export let subtitle = '';
+  export let subtitle = "";
 
   /** @type {string} */
-  export let code = '';
+  export let code = "";
 
   /** @type {boolean} */
   export let loading = false;
@@ -28,7 +28,7 @@
   }
 
   function handleBackdropKeydown(event) {
-    if (event.key === 'Escape') handleClose();
+    if (event.key === "Escape") handleClose();
   }
 </script>
 

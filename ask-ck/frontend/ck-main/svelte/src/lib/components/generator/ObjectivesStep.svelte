@@ -1,12 +1,12 @@
 <script>
-// @ts-nocheck
+  // @ts-nocheck
 
-  import Button from '../Button.svelte';
-  import Table from '../Table.svelte';
-  import ConfirmModal from '../ConfirmModal.svelte';
-  import LlmButton from '../LlmButton.svelte';
-  import ErrorBanner from '../ErrorBanner.svelte';
-  import { scrollToSection, scrollToBottom } from '../../utils/scroll.js';
+  import Button from "../Button.svelte";
+  import Table from "../Table.svelte";
+  import ConfirmModal from "../ConfirmModal.svelte";
+  import LlmButton from "../LlmButton.svelte";
+  import ErrorBanner from "../ErrorBanner.svelte";
+  import { scrollToSection, scrollToBottom } from "../../utils/scroll.js";
 
   // --- Props: data ------------------------------------------------------------------
   export let summaryColumns = [];
@@ -16,7 +16,7 @@
   export let chosenForObjectives = [];
 
   /** The objective as HTML (a <ul> of <li> lines). Edited as plain lines, stored back as HTML. */
-  export let objective = '';
+  export let objective = "";
 
   // --- Props: callbacks -------------------------------------------------------------
   /** @type {() => Promise<any>} Run by the LLM button. */
@@ -30,14 +30,14 @@
 
   // --- Local state ------------------------------------------------------------------
   let isEditing = false;
-  let draft = '';
+  let draft = "";
   let isSaving = false;
-  let saveError = '';
+  let saveError = "";
   let isConfirming = false;
-  let confirmError = '';
+  let confirmError = "";
 
   $: canReviewObjectives = !!(objective && objective.trim());
-  $: draftRows = Math.max(draft.split('\n').length, 4);
+  $: draftRows = Math.max(draft.split("\n").length, 4);
 
   // --- No-candidates gate -----------------------------------------------------------
   // The LLM button awaits onBeforeRun before it starts. With nothing chosen, the gate parks
@@ -68,27 +68,35 @@
   // <li> at all comes back as a single line rather than being lost.
   function htmlToLines(html) {
     if (!html) return [];
-    const doc = new DOMParser().parseFromString(html, 'text/html');
-    const items = [...doc.querySelectorAll('li')];
-    if (items.length) return items.map((li) => li.textContent.trim()).filter(Boolean);
-    const text = (doc.body.textContent || '').trim();
+    const doc = new DOMParser().parseFromString(html, "text/html");
+    const items = [...doc.querySelectorAll("li")];
+    if (items.length)
+      return items.map((li) => li.textContent.trim()).filter(Boolean);
+    const text = (doc.body.textContent || "").trim();
     return text ? [text] : [];
   }
 
   // Edited lines are typed by the user and later rendered with {@html}, so they are escaped.
   function escapeHtml(s) {
-    return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
   }
 
   function linesToHtml(text) {
-    const items = text.split('\n').map((l) => l.trim()).filter(Boolean);
-    if (!items.length) return '';
-    return '<ul>\n' + items.map((l) => `<li>${escapeHtml(l)}</li>`).join('\n') + '\n</ul>';
+    const items = text
+      .split("\n")
+      .map((l) => l.trim())
+      .filter(Boolean);
+    if (!items.length) return "";
+    return (
+      "<ul>\n" +
+      items.map((l) => `<li>${escapeHtml(l)}</li>`).join("\n") +
+      "\n</ul>"
+    );
   }
 
   // --- Editing ------------------------------------------------------------------------
   function startEdit() {
-    draft = htmlToLines(objective).join('\n');
+    draft = htmlToLines(objective).join("\n");
     isEditing = true;
   }
 
@@ -99,7 +107,7 @@
 
   async function saveDraft() {
     isSaving = true;
-    saveError = '';
+    saveError = "";
     try {
       await onSaveObjective(linesToHtml(draft));
       isEditing = false;
@@ -114,7 +122,7 @@
   async function handleConfirm() {
     if (!onConfirm) return;
     isConfirming = true;
-    confirmError = '';
+    confirmError = "";
     try {
       await onConfirm();
     } catch (e) {
@@ -125,7 +133,11 @@
   }
 </script>
 
-<p class="cases-intro">Generate declarative objective artefacts from the confirmed review summary (TestLink / Zephyr / ATPyLib). Review and edit, then confirm before synthesizing test steps in Step 6.</p>
+<p class="cases-intro">
+  Generate declarative objective artefacts from the confirmed review summary
+  (TestLink / Zephyr / ATPyLib). Review and edit, then confirm before
+  synthesizing test steps in Step 6.
+</p>
 <p class="testlink-table-label">Summary</p>
 <Table columns={summaryColumns} rows={summaryRows} selectable={false} />
 
@@ -153,11 +165,16 @@
   <p class="testlink-table-label">Generated Objective</p>
   <div class="objectives-window">
     {#if isEditing}
-      <textarea class="objectives-textarea" bind:value={draft} rows={draftRows}></textarea>
-      <p class="objectives-edit-note">One objective per line. Keep declarative language.</p>
+      <textarea class="objectives-textarea" bind:value={draft} rows={draftRows}
+      ></textarea>
+      <p class="objectives-edit-note">
+        One objective per line. Keep declarative language.
+      </p>
       <ErrorBanner message={saveError && `Save failed: ${saveError}`} />
       <div class="objectives-window-actions">
-        <Button variant="primary" loading={isSaving} on:click={saveDraft}>Save Draft</Button>
+        <Button variant="primary" loading={isSaving} on:click={saveDraft}
+          >Save Draft</Button
+        >
         <Button variant="outline" on:click={cancelEdit}>Cancel</Button>
       </div>
     {:else}
@@ -169,7 +186,12 @@
   </div>
   {#if !isEditing}
     <ErrorBanner message={confirmError && `Confirm failed: ${confirmError}`} />
-    <Button variant="primary" disabled={!canReviewObjectives} loading={isConfirming} on:click={handleConfirm}>Review &amp; Confirm</Button>
+    <Button
+      variant="primary"
+      disabled={!canReviewObjectives}
+      loading={isConfirming}
+      on:click={handleConfirm}>Review &amp; Confirm</Button
+    >
   {/if}
 {/if}
 
@@ -200,7 +222,6 @@
     gap: 16px;
     padding: 24px;
     margin-bottom: 12px;
-    /* border: 1px solid var(--color-border-surface); */
     border-radius: 8px;
     background: var(--color-bg-surface);
     flex: 1;
@@ -226,7 +247,6 @@
     color: var(--color-text-muted);
     font-size: 0.85rem;
   }
-
 
   .objectives-textarea {
     width: 100%;

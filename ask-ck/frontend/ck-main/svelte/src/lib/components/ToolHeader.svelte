@@ -1,7 +1,7 @@
 <script>
-  export let title = '';
-  export let tool = '';
-  export let icon = '';
+  export let title = "";
+  export let tool = "";
+  export let icon = "";
 </script>
 
 <div class="page-header">
@@ -13,7 +13,6 @@
     <h1>{title}</h1>
   </div>
 </div>
-<!-- <hr class="page-header-rule" /> -->
 
 <style>
   .page-header {
@@ -39,7 +38,6 @@
     line-height: 1.6;
   }
 
-
   .tool-header {
     display: flex;
     flex-direction: column;
@@ -52,6 +50,5 @@
     margin-right: 20px;
     vertical-align: middle;
     filter: var(--icon-filter-node-current);
-
   }
 </style>

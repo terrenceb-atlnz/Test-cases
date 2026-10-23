@@ -1,18 +1,18 @@
 <script>
-  import Button from './Button.svelte';
-  import CodeEditor from './CodeEditor.svelte';
+  import Button from "./Button.svelte";
+  import CodeEditor from "./CodeEditor.svelte";
 
   /** @type {string} Bindable committed value */
-  export let value = '';
+  export let value = "";
 
   /** @type {'text' | 'code'} */
-  export let type = 'text';
+  export let type = "text";
 
   /** @type {string} */
-  export let placeholder = '';
+  export let placeholder = "";
 
   /** @type {string} CSS height for the display/edit box */
-  export let height = '450px';
+  export let height = "450px";
 
   let editing = false;
   let draft = value;
@@ -38,15 +38,14 @@
 </script>
 
 {#if editing}
-  {#if type === 'code'}
+  {#if type === "code"}
     <CodeEditor bind:value={draft} {placeholder} {height} />
   {:else}
     <textarea
       class="editable-field-textarea"
       style="height: {height}"
       bind:value={draft}
-      {placeholder}
-    ></textarea>
+      {placeholder}></textarea>
   {/if}
 
   <div class="editable-field-actions">
@@ -54,13 +53,19 @@
     <Button variant="outline" on:click={cancelEdit}>Cancel</Button>
   </div>
 {:else}
-  {#if type === 'code'}
+  {#if type === "code"}
     <!-- Read-only CodeMirror (no blue border until Edit) rather than a plain <pre>. -->
     <div class="code-view">
       <CodeEditor {value} readonly {height} {placeholder} />
     </div>
   {:else}
-    <div class="editable-field-view" class:is-placeholder={!value} style="height: {height}">{value || placeholder}</div>
+    <div
+      class="editable-field-view"
+      class:is-placeholder={!value}
+      style="height: {height}"
+    >
+      {value || placeholder}
+    </div>
   {/if}
 
   <div class="editable-field-actions">

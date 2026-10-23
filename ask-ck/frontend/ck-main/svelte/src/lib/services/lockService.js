@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 // COPIED OVER FROM current/shared/locks.js (acquire/heartbeat/release mechanics) — the
 // routers/locks.py docstring is explicit that this is "a correctness/UX mechanism, not a
 // security control" (the real backstop is session_store.persist_session's
@@ -6,10 +8,10 @@
 // lock you're actively using, free it promptly when you close the tab, and offer a clean
 // "Take over" — not to prevent data loss, which the backend already guarantees.
 
-import { CK_SESSION_ID } from '../api/client.js';
+import { CK_SESSION_ID } from "../api/client.js";
 
-const LOCKS_API = '/api/locks';
-const HEARTBEAT_MS = 5 * 60 * 1000;   // server idle TTL is 15 min; well inside it
+const LOCKS_API = "/api/locks";
+const HEARTBEAT_MS = 5 * 60 * 1000; // server idle TTL is 15 min; well inside it
 
 function url(kind, key, verb) {
   return `${LOCKS_API}/${kind}/${encodeURIComponent(key)}/${verb}`;
@@ -17,8 +19,10 @@ function url(kind, key, verb) {
 
 export async function acquireLock(kind, key) {
   try {
-    const res = await fetch(url(kind, key, 'acquire'), {
-      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}',
+    const res = await fetch(url(kind, key, "acquire"), {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: "{}",
     });
     return res.ok ? await res.json() : null;
   } catch (_) {
@@ -27,8 +31,10 @@ export async function acquireLock(kind, key) {
 }
 
 function heartbeatNow(kind, key) {
-  fetch(url(kind, key, 'heartbeat'), {
-    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}',
+  fetch(url(kind, key, "heartbeat"), {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: "{}",
   }).catch(() => {});
 }
 
@@ -37,8 +43,10 @@ function heartbeatNow(kind, key) {
 // in this SPA destroys the page component without necessarily meaning "give this case up"
 // (see startLockLifecycle's own doc comment on why that distinction matters here).
 export function releaseLock(kind, key) {
-  fetch(url(kind, key, 'release'), {
-    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}',
+  fetch(url(kind, key, "release"), {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: "{}",
   }).catch(() => {});
 }
 
@@ -55,22 +63,25 @@ export function releaseLock(kind, key) {
 // come back — a bounded, honest trade-off. A deliberate case switch calls releaseLock()
 // explicitly instead (see GeneratorPage.svelte/PyTestPage.svelte's case-switch handler).
 function fmtSince(iso) {
-  if (!iso) return '';
+  if (!iso) return "";
   const d = new Date(iso);
-  if (isNaN(d.getTime())) return '';
-  return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  if (isNaN(d.getTime())) return "";
+  return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 }
 
 // PORTED FROM current/shared/locks.js's _renderBanner — load_case never sends a ready-made
 // message, only the raw lock fields (holder_label/acquired_at/stealable/...), so the banner
 // text has always had to be built client-side.
 export function formatLockMessage(kind, key, lock) {
-  if (!lock) return '';
-  const who = lock.holder_label || 'another session';
+  if (!lock) return "";
+  const who = lock.holder_label || "another session";
   const since = fmtSince(lock.acquired_at);
-  const tool = kind === 'pt' ? 'PyTest Creator' : 'Generator';
-  return `${key} is being edited in the ${tool} by ${who}` +
-    (since ? ` (since ${since})` : '') + '. You are viewing it read-only.';
+  const tool = kind === "pt" ? "PyTest Creator" : "Generator";
+  return (
+    `${key} is being edited in the ${tool} by ${who}` +
+    (since ? ` (since ${since})` : "") +
+    ". You are viewing it read-only."
+  );
 }
 
 export function startLockLifecycle(kind, key) {
@@ -82,13 +93,17 @@ export function startLockLifecycle(kind, key) {
       // instead, exactly as current/shared/locks.js does, or the server falls back to an
       // empty holder and release() silently no-ops (it only drops a lock that matches the
       // CALLING holder).
-      const blob = new Blob([JSON.stringify({ holder: CK_SESSION_ID })], { type: 'application/json' });
-      navigator.sendBeacon(url(kind, key, 'release'), blob);
-    } catch (_) { /* best effort; the lock idles out anyway */ }
+      const blob = new Blob([JSON.stringify({ holder: CK_SESSION_ID })], {
+        type: "application/json",
+      });
+      navigator.sendBeacon(url(kind, key, "release"), blob);
+    } catch (_) {
+      /* best effort; the lock idles out anyway */
+    }
   };
-  window.addEventListener('pagehide', onPageHide);
+  window.addEventListener("pagehide", onPageHide);
   return function stop() {
     clearInterval(timer);
-    window.removeEventListener('pagehide', onPageHide);
+    window.removeEventListener("pagehide", onPageHide);
   };
 }

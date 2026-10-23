@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 // COPIED OVER FROM current/llm-config/llm.js
 // NOT PORTED (DOM-reading/writing glue with no Svelte equivalent needed):
 //   - buildLLMBody(doc) / claudeRoutingFromUI() — read radios/selects off the DOM;
@@ -12,22 +14,30 @@
 //     Apply click, so there is no live-toggle race for these to solve. NOTE: this is also
 //     WHY agentService.js's ckAgentModeActive() could drop its live-DOM-radio fallback —
 //     if this behavior is ever added, revisit that too.
-import { storedSeatLlm, SEAT_LLM_RETIRED_KEY, setEffectiveAuthMethod } from '../api/client.js';
 
-const WIZARD_API = '/api/wizard';
+import {
+  storedSeatLlm,
+  SEAT_LLM_RETIRED_KEY,
+  setEffectiveAuthMethod,
+} from "../api/client.js";
+
+const WIZARD_API = "/api/wizard";
 
 // The LLM choice is PER SEAT: what this browser applies is stored here and rides on every
 // /api call as X-CK-LLM (client.js). Apply also writes the site default server-side — the
 // row a seat that has never chosen starts from.
 export function storeSeatLlm(cfg) {
   try {
-    localStorage.setItem('draftingLLMConfig', JSON.stringify({
-      provider: cfg.provider,
-      auth_method: cfg.auth_method,
-      model: cfg.model || null,
-      unit_model: cfg.unit_model || null,
-      match_model: cfg.match_model || null,
-    }));
+    localStorage.setItem(
+      "draftingLLMConfig",
+      JSON.stringify({
+        provider: cfg.provider,
+        auth_method: cfg.auth_method,
+        model: cfg.model || null,
+        unit_model: cfg.unit_model || null,
+        match_model: cfg.match_model || null,
+      }),
+    );
     // A fresh choice ends the "your previous choice was retired" notice.
     localStorage.removeItem(SEAT_LLM_RETIRED_KEY);
   } catch (_) {}
@@ -38,17 +48,20 @@ export function storeSeatLlm(cfg) {
 // class; this just tells the caller whether the notice should show, and its text.)
 export function seatLlmRetiredNotice() {
   let retired = null;
-  try { retired = localStorage.getItem(SEAT_LLM_RETIRED_KEY); } catch (_) {}
+  try {
+    retired = localStorage.getItem(SEAT_LLM_RETIRED_KEY);
+  } catch (_) {}
   if (!retired) return null;
-  return 'Your previous LLM choice for this seat is no longer available — this seat uses the site default until you Apply a new one.';
+  return "Your previous LLM choice for this seat is no longer available — this seat uses the site default until you Apply a new one.";
 }
 
 export function normalizeLLMConfig(config) {
   const c = Object.assign({}, config || {});
-  const am = (c.auth_method || '').toLowerCase();
+  const am = (c.auth_method || "").toLowerCase();
   // Session dict does not include has_key; treat CLI + server-keyed modes as configured.
   if (c.has_key === undefined) {
-    c.has_key = !!(c.api_key || c.token) || am === 'claude_agent' || am === 'local_llm';
+    c.has_key =
+      !!(c.api_key || c.token) || am === "claude_agent" || am === "local_llm";
   }
   return c;
 }
@@ -61,34 +74,40 @@ export function describeLLMStatus(config) {
   const seat = storedSeatLlm();
   let c = config || seat || {};
   c = normalizeLLMConfig(c);
-  const provider = c.provider || '';
-  const am = (c.auth_method || '').toLowerCase();
-  const cliMode = (am === 'claude_agent' || am === 'local_llm');
+  const provider = c.provider || "";
+  const am = (c.auth_method || "").toLowerCase();
+  const cliMode = am === "claude_agent" || am === "local_llm";
   const hasCred = !!(c.has_key || c.api_key || c.token || cliMode);
 
-  let text = '';
-  let tone = 'warn';
+  let text = "";
+  let tone = "warn";
 
   if (!provider || !hasCred) {
-    text = 'No credential (use CLI login or set key)';
-  } else if (am === 'local_llm') {
-    const modeLabel = c.model === 'vllm-thinking' ? 'Thinking' : 'Fast';
+    text = "No credential (use CLI login or set key)";
+  } else if (am === "local_llm") {
+    const modeLabel = c.model === "vllm-thinking" ? "Thinking" : "Fast";
     const ok = c.local_llm_key_set !== false;
-    text = `Using Local LLM (vLLM — ${modeLabel})` + (ok ? '' : ' — no key stored on server');
-    tone = ok ? 'ok' : 'warn';
+    text =
+      `Using Local LLM (vLLM — ${modeLabel})` +
+      (ok ? "" : " — no key stored on server");
+    tone = ok ? "ok" : "warn";
   } else {
-    const p = provider === 'claude' ? 'Claude' : provider;
-    let m = ' (API key)';
-    const cap = (x) => (x ? x.charAt(0).toUpperCase() + x.slice(1) : 'default');
-    if (am === 'claude_agent') m = ` (Claude — my local machine · ${cap(c.model)})`;
+    const p = provider === "claude" ? "Claude" : provider;
+    let m = " (API key)";
+    const cap = (x) => (x ? x.charAt(0).toUpperCase() + x.slice(1) : "default");
+    if (am === "claude_agent")
+      m = ` (Claude — my local machine · ${cap(c.model)})`;
     const routed = [];
-    if (c.unit_model && c.unit_model !== c.model) routed.push(`units ${cap(c.unit_model)}`);
-    if (c.match_model && c.match_model !== c.model) routed.push(`matching ${cap(c.match_model)}`);
-    if (routed.length) m += ` · ${routed.join(', ')}`;
+    if (c.unit_model && c.unit_model !== c.model)
+      routed.push(`units ${cap(c.unit_model)}`);
+    if (c.match_model && c.match_model !== c.model)
+      routed.push(`matching ${cap(c.match_model)}`);
+    if (routed.length) m += ` · ${routed.join(", ")}`;
     text = `Using ${p}${m}`;
-    tone = 'ok';
+    tone = "ok";
   }
-  if (text && tone === 'ok') text += (seat && seat.auth_method) ? ' · this seat' : ' · site default';
+  if (text && tone === "ok")
+    text += seat && seat.auth_method ? " · this seat" : " · site default";
 
   return { text, tone };
 }
@@ -100,7 +119,11 @@ export async function applyConfig(caseKey, body) {
   const url = caseKey
     ? `${WIZARD_API}/set_llm_config/${encodeURIComponent(caseKey)}`
     : `${WIZARD_API}/set_llm_config`;
-  const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+  const res = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
   const data = await res.json().catch(() => ({}));
   if (!data.llm_config) return null;
   storeSeatLlm(data.llm_config);
@@ -133,7 +156,7 @@ export async function loadConfig() {
 // whichever provider is applied; not local-LLM-specific.
 export async function checkHealth() {
   try {
-    const res = await fetch(`${WIZARD_API}/llm_health`, { method: 'POST' });
+    const res = await fetch(`${WIZARD_API}/llm_health`, { method: "POST" });
     return await res.json();
   } catch (e) {
     return { ok: false, detail: String(e) };

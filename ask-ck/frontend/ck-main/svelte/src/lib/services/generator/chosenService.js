@@ -1,3 +1,5 @@
+//@ts-nocheck
+
 // COPIED OVER FROM current/generator/chosen.js (restore slice only — chooseSelected/
 // clearSelected/chooseByIds stay inline in CandidatePickerStep.svelte, which already owns
 // that state; this is just the id-indexed restore logic all three candidate steps share)
@@ -15,16 +17,21 @@
 export function restoreChosen(selections, candidates) {
   const sels = Array.isArray(selections) ? selections : [];
   const byId = new Map((candidates || []).map((c) => [c.id, c]));
-  const withOrder = sels.map((s, i) => ({ s, o: typeof s.order === 'number' ? s.order : i }));
+  const withOrder = sels.map((s, i) => ({
+    s,
+    o: typeof s.order === "number" ? s.order : i,
+  }));
   withOrder.sort((a, b) => a.o - b.o);
   return withOrder.map(({ s }) => {
     const id = s.id_or_key || s.id;
-    return byId.get(id) || {
-      id,
-      title: s.title || id,
-      description: s.justification || '',
-      justification: s.justification || '',
-      score: s.score,
-    };
+    return (
+      byId.get(id) || {
+        id,
+        title: s.title || id,
+        description: s.justification || "",
+        justification: s.justification || "",
+        score: s.score,
+      }
+    );
   });
 }

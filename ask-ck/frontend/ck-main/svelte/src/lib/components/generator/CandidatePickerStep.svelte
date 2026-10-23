@@ -1,19 +1,19 @@
 <script>
-// @ts-nocheck
+  // @ts-nocheck
 
-  import Button from '../Button.svelte';
-  import Table from '../Table.svelte';
-  import SearchBox from '../SearchBox.svelte';
-  import LlmButton from '../LlmButton.svelte';
-  import ErrorBanner from '../ErrorBanner.svelte';
-  import { scrollToSection, scrollToBottom } from '../../utils/scroll.js';
+  import Button from "../Button.svelte";
+  import Table from "../Table.svelte";
+  import SearchBox from "../SearchBox.svelte";
+  import LlmButton from "../LlmButton.svelte";
+  import ErrorBanner from "../ErrorBanner.svelte";
+  import { scrollToSection, scrollToBottom } from "../../utils/scroll.js";
 
   // --- Props: display text ---------------------------------------------------------
-  export let introText = '';
-  export let searchPlaceholder = 'Search…';
-  export let searchButtonLabel = 'Search';
-  export let candidateLabel = 'Candidates';
-  export let chosenLabel = 'Chosen';
+  export let introText = "";
+  export let searchPlaceholder = "Search…";
+  export let searchButtonLabel = "Search";
+  export let candidateLabel = "Candidates";
+  export let chosenLabel = "Chosen";
 
   // --- Props: data ------------------------------------------------------------------
   /** Column definitions, shared by both tables. */
@@ -37,12 +37,12 @@
   export let onConfirm = null;
 
   // --- Local state ------------------------------------------------------------------
-  let search = '';
+  let search = "";
   let candidates = [];
   let selectedCandidateIds = [];
   let selectedChosenIds = [];
   let isConfirming = false;
-  let confirmError = '';
+  let confirmError = "";
 
   // Seed ONCE: after the first non-empty initialCandidates, the list belongs to the user —
   // a later prop change must not overwrite what they have searched or moved since.
@@ -63,18 +63,20 @@
   async function handleSearch() {
     candidates = excludeChosen(await onSearch(search));
     selectedCandidateIds = [];
-    scrollToSection('.cases-intro');
+    scrollToSection(".cases-intro");
   }
 
   function handleSuggestResult(result) {
     candidates = excludeChosen(result);
     selectedCandidateIds = [];
-    scrollToSection('.cases-intro');
+    scrollToSection(".cases-intro");
   }
 
   // --- Moving rows between the two tables -------------------------------------------
   function chooseSelected() {
-    const moving = candidates.filter((c) => selectedCandidateIds.includes(c.id));
+    const moving = candidates.filter((c) =>
+      selectedCandidateIds.includes(c.id),
+    );
     if (moving.length === 0) return;
     chosen = [...chosen, ...moving];
     candidates = candidates.filter((c) => !selectedCandidateIds.includes(c.id));
@@ -88,21 +90,21 @@
     candidates = [...candidates, ...moving];
     chosen = chosen.filter((c) => !selectedChosenIds.includes(c.id));
     selectedChosenIds = [];
-    scrollToSection('.cases-intro');
+    scrollToSection(".cases-intro");
   }
 
   function clearAll() {
     candidates = [...candidates, ...chosen];
     chosen = [];
     selectedChosenIds = [];
-    scrollToSection('.cases-intro');
+    scrollToSection(".cases-intro");
   }
 
   // --- Confirm ------------------------------------------------------------------------
   async function handleConfirm() {
     if (!onConfirm) return;
     isConfirming = true;
-    confirmError = '';
+    confirmError = "";
     try {
       await onConfirm();
     } catch (e) {
@@ -122,7 +124,12 @@
     buttonLabel={searchButtonLabel}
     onSearch={handleSearch}
   />
-  <LlmButton label="Suggest with LLM" verb="Suggesting…" onRun={onSuggest} onResult={handleSuggestResult} />
+  <LlmButton
+    label="Suggest with LLM"
+    verb="Suggesting…"
+    onRun={onSuggest}
+    onResult={handleSuggestResult}
+  />
 </div>
 
 <p class="testlink-table-label">{candidateLabel}</p>
@@ -140,7 +147,9 @@
 </div>
 <ErrorBanner message={confirmError && `Confirm failed: ${confirmError}`} />
 <div class="testlink-final-actions">
-  <Button variant="primary" loading={isConfirming} on:click={handleConfirm}>Review &amp; Confirm</Button>
+  <Button variant="primary" loading={isConfirming} on:click={handleConfirm}
+    >Review &amp; Confirm</Button
+  >
 </div>
 
 <style>

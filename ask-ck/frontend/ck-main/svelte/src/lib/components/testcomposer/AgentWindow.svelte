@@ -1,31 +1,38 @@
 <script>
-
-//@ts-nocheck
+  //@ts-nocheck
   // The agent window (PLAN-agent-sessions §7): W1 a read-only stream of the seat session, W2 question
   // and approval cards, W3 a message box. One long-poll at a time to the seat agent (K4); every new
   // event is relayed to the server's run record. If this tab cannot reach the agent (another seat, or
   // the agent restarted), it falls back to reading the server's copy — view-only.
-  import { onDestroy, onMount, untrack } from 'svelte';
-  import { fmtDuration, fmtTokens, tokensOf } from './testComposerModel.js';
-  import Button from '../Button.svelte';
+  import { onDestroy, onMount, untrack } from "svelte";
+  import { fmtDuration, fmtTokens, tokensOf } from "./testComposerModel.js";
+  import Button from "../Button.svelte";
+  import ErrorBanner from "../ErrorBanner.svelte";
 
-  let { runId, sessionId = null, agent, server, onstate = () => {}, compact = false } = $props();
+  let {
+    runId,
+    sessionId = null,
+    agent,
+    server,
+    onstate = () => {},
+    compact = false,
+  } = $props();
 
   let events = $state([]);
   // The window is re-created per run ({#key runId}), so the INITIAL sessionId is what matters.
   const liveAtStart = untrack(() => !!sessionId);
-  let sid = untrack(() => sessionId);                 // the seat session this window talks to, if any
-  let state = $state(liveAtStart ? 'starting' : 'viewing');
+  let sid = untrack(() => sessionId); // the seat session this window talks to, if any
+  let state = $state(liveAtStart ? "starting" : "viewing");
   let error = $state(null);
-  let mode = $state(liveAtStart ? 'live' : 'server');   // live = from the agent; server = the record
+  let mode = $state(liveAtStart ? "live" : "server"); // live = from the agent; server = the record
   let follow = $state(true);
-  let open = $state({});                              // tool_use id → expanded
-  let draft = $state('');
+  let open = $state({}); // tool_use id → expanded
+  let draft = $state("");
   // Reasoning (agent 1.3.5): the sentinel's is always shown, since it sometimes answers the user only
   // there (run 2026-10-13T1454-val-43dd); Verbose adds the tester's (subagents'). Remembered per browser.
   let verbose = $state(readVerbose());
-  let other = $state({});                             // request_id → typed "Other" answer
-  let answered = $state({});                          // request_id → true once answered here
+  let other = $state({}); // request_id → typed "Other" answer
+  let answered = $state({}); // request_id → true once answered here
   let stopped = false;
   let box;
 
@@ -36,44 +43,108 @@
     const out = new Set();
     let waiting = false;
     for (const e of events) {
-      if (e.kind === 'user_message') waiting = true;
-      else if (waiting && !e.parent && (e.kind === 'text' || e.kind === 'thinking') && e.text) { out.add(e.seq); waiting = false; }
+      if (e.kind === "user_message") waiting = true;
+      else if (
+        waiting &&
+        !e.parent &&
+        (e.kind === "text" || e.kind === "thinking") &&
+        e.text
+      ) {
+        out.add(e.seq);
+        waiting = false;
+      }
     }
     return out;
   });
   // Claude Code reports shell commands and monitors as tasks too, so only a task with a subagent_type
   // is a subagent. A foreground command's task rows repeat its tool row, and a subagent's progress
   // rows repeat its tool rows, so both are hidden; task_updated repeats the notification.
-  const taskStarts = $derived(new Map(events.filter(e => e.kind === 'task' && e.subtype === 'task_started').map(e => [e.task_id, e])));
+  const taskStarts = $derived(
+    new Map(
+      events
+        .filter((e) => e.kind === "task" && e.subtype === "task_started")
+        .map((e) => [e.task_id, e]),
+    ),
+  );
   function taskLabel(e) {
-    if (e.subtype === 'task_updated' || e.subtype === 'task_progress') return null;
-    const s = (e.subtype === 'task_started' ? e : taskStarts.get(e.task_id)) || e;
+    if (e.subtype === "task_updated" || e.subtype === "task_progress")
+      return null;
+    const s =
+      (e.subtype === "task_started" ? e : taskStarts.get(e.task_id)) || e;
     if (!s.subagent_type && !s.background) return null;
-    const what = s.subagent_type ? `subagent ${s.subagent_type}` : 'background task';
-    const how = e.subtype === 'task_started' ? 'started' : (e.status || e.subtype.replace('task_', ''));
-    const toks = e.usage && e.usage.total_tokens ? ` · ${fmtTokens(e.usage.total_tokens)} tokens` : '';
-    return `${what} ${s.description || ''} — ${how}${toks}`;
+    const what = s.subagent_type
+      ? `subagent ${s.subagent_type}`
+      : "background task";
+    const how =
+      e.subtype === "task_started"
+        ? "started"
+        : e.status || e.subtype.replace("task_", "");
+    const toks =
+      e.usage && e.usage.total_tokens
+        ? ` · ${fmtTokens(e.usage.total_tokens)} tokens`
+        : "";
+    return `${what} ${s.description || ""} — ${how}${toks}`;
   }
-  const results = $derived(new Map(events.filter(e => e.kind === 'tool_result').map(e => [e.id, e])));
-  const lastResult = $derived([...events].reverse().find(e => e.kind === 'result'));
+  const results = $derived(
+    new Map(
+      events.filter((e) => e.kind === "tool_result").map((e) => [e.id, e]),
+    ),
+  );
+  const lastResult = $derived(
+    [...events].reverse().find((e) => e.kind === "result"),
+  );
   // The session's own cost plus the sentinel's Haiku updates (billed apart, device-testing orient-dt §10).
-  const updatesCost = $derived(events.reduce((a, e) => a + (e.kind === 'update' && typeof e.cost_usd === 'number' ? e.cost_usd : 0), 0));
-  const cost = $derived(lastResult || updatesCost ? ((lastResult && lastResult.total_cost_usd) || 0) + updatesCost : null);
+  const updatesCost = $derived(
+    events.reduce(
+      (a, e) =>
+        a +
+        (e.kind === "update" && typeof e.cost_usd === "number"
+          ? e.cost_usd
+          : 0),
+      0,
+    ),
+  );
+  const cost = $derived(
+    lastResult || updatesCost
+      ? ((lastResult && lastResult.total_cost_usd) || 0) + updatesCost
+      : null,
+  );
   const tokens = $derived(lastResult ? tokensOf(lastResult.model_usage) : null);
-  const elapsed = $derived(events.length ? Math.round((events[events.length - 1].t || 0) * 1000) : null);
-  const pendingIds = $derived(new Set(events.filter(e => e.kind === 'answered').map(e => e.request_id)));
-  const live = $derived(['starting', 'running'].includes(state) && mode === 'live');
+  const elapsed = $derived(
+    events.length
+      ? Math.round((events[events.length - 1].t || 0) * 1000)
+      : null,
+  );
+  const pendingIds = $derived(
+    new Set(
+      events.filter((e) => e.kind === "answered").map((e) => e.request_id),
+    ),
+  );
+  const live = $derived(
+    ["starting", "running"].includes(state) && mode === "live",
+  );
 
   function readVerbose() {
-    try { return localStorage.getItem('ckAgentVerbose') === '1'; } catch { return false; }
+    try {
+      return localStorage.getItem("ckAgentVerbose") === "1";
+    } catch {
+      return false;
+    }
   }
   function setVerbose(v) {
     verbose = v;
-    try { localStorage.setItem('ckAgentVerbose', v ? '1' : '0'); } catch { /* not remembered; still applies */ }
+    try {
+      localStorage.setItem("ckAgentVerbose", v ? "1" : "0");
+    } catch {
+      /* not remembered; still applies */
+    }
   }
 
   function scroll() {
-    if (follow && box) queueMicrotask(() => { box.scrollTop = box.scrollHeight; });
+    if (follow && box)
+      queueMicrotask(() => {
+        box.scrollTop = box.scrollHeight;
+      });
   }
 
   // Events not yet acknowledged by the server: a failed relay (a server restart, a network blip)
@@ -83,80 +154,122 @@
     unsent = unsent.concat(evs);
     if (!unsent.length) return;
     try {
-      await server(`/runs/${encodeURIComponent(runId)}/events`, { method: 'POST', body: JSON.stringify({ events: unsent, session_id: sid }) });
+      await server(`/runs/${encodeURIComponent(runId)}/events`, {
+        method: "POST",
+        body: JSON.stringify({ events: unsent, session_id: sid }),
+      });
       unsent = [];
-      if (error && error.startsWith('Could not save')) error = null;
-    } catch (e) { error = `Could not save ${unsent.length} event(s) to the run record (will retry): ${e.message}`; }
+      if (error && error.startsWith("Could not save")) error = null;
+    } catch (e) {
+      error = `Could not save ${unsent.length} event(s) to the run record (will retry): ${e.message}`;
+    }
   }
 
   function take(evs) {
     if (!evs.length) return;
-    const have = new Set(events.map(e => e.seq));
-    const fresh = evs.filter(e => !have.has(e.seq));
+    const have = new Set(events.map((e) => e.seq));
+    const fresh = evs.filter((e) => !have.has(e.seq));
     if (!fresh.length) return;
     events = [...events, ...fresh].sort((a, b) => a.seq - b.seq);
-    for (const e of fresh) if (e.kind === 'state') { state = e.state; onstate(e.state); }
+    for (const e of fresh)
+      if (e.kind === "state") {
+        state = e.state;
+        onstate(e.state);
+      }
     scroll();
   }
 
   async function pollAgent() {
     let after = 0;
-    while (!stopped && mode === 'live') {
+    while (!stopped && mode === "live") {
       try {
         const d = await agent.events(sid, after, 20);
         take(d.events);
         await relay(d.events);
         after = d.next;
-        if (d.state && d.state !== state) { state = d.state; onstate(d.state); }
-        if (['done', 'error', 'stopped'].includes(d.state) && !d.events.length) break;
+        if (d.state && d.state !== state) {
+          state = d.state;
+          onstate(d.state);
+        }
+        if (["done", "error", "stopped"].includes(d.state) && !d.events.length)
+          break;
       } catch (e) {
         error = `Lost the seat agent (${e.message}) — showing the server's copy.`;
-        mode = 'server';
+        mode = "server";
       }
     }
-    if (mode === 'server' && !stopped) pollServer();
+    if (mode === "server" && !stopped) pollServer();
   }
 
   async function pollServer() {
     let after = events.length ? events[events.length - 1].seq : -1;
-    while (!stopped && mode === 'server') {
+    while (!stopped && mode === "server") {
       try {
-        const d = await server(`/runs/${encodeURIComponent(runId)}/events?after=${after}`);
+        const d = await server(
+          `/runs/${encodeURIComponent(runId)}/events?after=${after}`,
+        );
         take(d.events);
         if (d.events.length) after = d.events[d.events.length - 1].seq;
-        if (['done', 'error', 'stopped'].includes(state)) break;
-      } catch (e) { error = e.message; }
-      await new Promise(r => setTimeout(r, 3000));
+        if (["done", "error", "stopped"].includes(state)) break;
+      } catch (e) {
+        error = e.message;
+      }
+      await new Promise((r) => setTimeout(r, 3000));
     }
   }
 
   async function answerQuestion(ev, q, label) {
     const answers = {};
     answers[q.question] = label;
-    try { await agent.answer(sid, { request_id: ev.request_id, answers }); answered = { ...answered, [ev.request_id]: true }; }
-    catch (e) { error = e.message; }
+    try {
+      await agent.answer(sid, { request_id: ev.request_id, answers });
+      answered = { ...answered, [ev.request_id]: true };
+    } catch (e) {
+      error = e.message;
+    }
   }
 
   async function approve(ev, allow) {
-    try { await agent.answer(sid, { request_id: ev.request_id, allow, message: allow ? '' : 'Denied in Ask-CK.' }); answered = { ...answered, [ev.request_id]: true }; }
-    catch (e) { error = e.message; }
+    try {
+      await agent.answer(sid, {
+        request_id: ev.request_id,
+        allow,
+        message: allow ? "" : "Denied in Ask-CK.",
+      });
+      answered = { ...answered, [ev.request_id]: true };
+    } catch (e) {
+      error = e.message;
+    }
   }
 
   async function send() {
     const text = draft.trim();
     if (!text) return;
-    try { await agent.message(sid, text); draft = ''; } catch (e) { error = e.message; }
+    try {
+      await agent.message(sid, text);
+      draft = "";
+    } catch (e) {
+      error = e.message;
+    }
   }
 
   async function stop() {
-    try { await agent.stop(sid); } catch (e) { error = e.message; }
+    try {
+      await agent.stop(sid);
+    } catch (e) {
+      error = e.message;
+    }
   }
 
   function markerClass(line) {
-    if (line.startsWith('NOTIFY')) return 'tc-m-notify';
-    if (line.startsWith('ASKCK-DONE')) return 'tc-m-done';
-    const v = (line.split(/\s+/)[2] || '').toUpperCase();
-    return v === 'PASS' ? 'tc-m-pass' : ['FAIL', 'ERROR'].includes(v) ? 'tc-m-fail' : 'tc-m-other';
+    if (line.startsWith("NOTIFY")) return "tc-m-notify";
+    if (line.startsWith("ASKCK-DONE")) return "tc-m-done";
+    const v = (line.split(/\s+/)[2] || "").toUpperCase();
+    return v === "PASS"
+      ? "tc-m-pass"
+      : ["FAIL", "ERROR"].includes(v)
+        ? "tc-m-fail"
+        : "tc-m-other";
   }
 
   // A run opened from the list, a deep link or a reload starts from the record. If THIS seat's agent
@@ -166,104 +279,233 @@
   async function attach() {
     try {
       const d = await agent.sessions();
-      const mine = (d.sessions || []).filter(x => x.run_id === runId).sort((a, b) => (b.started || 0) - (a.started || 0))[0];
-      if (mine && !stopped) { sid = mine.session_id; mode = 'live'; state = mine.state; pollAgent(); return; }
-    } catch (_) { /* no agent here, or it cannot list sessions: the record is all there is */ }
+      const mine = (d.sessions || [])
+        .filter((x) => x.run_id === runId)
+        .sort((a, b) => (b.started || 0) - (a.started || 0))[0];
+      if (mine && !stopped) {
+        sid = mine.session_id;
+        mode = "live";
+        state = mine.state;
+        pollAgent();
+        return;
+      }
+    } catch (_) {
+      /* no agent here, or it cannot list sessions: the record is all there is */
+    }
     if (!stopped) pollServer();
   }
 
-  onMount(() => { if (mode === 'live') pollAgent(); else attach(); });
-  onDestroy(() => { stopped = true; });
+  onMount(() => {
+    if (mode === "live") pollAgent();
+    else attach();
+  });
+  onDestroy(() => {
+    stopped = true;
+  });
 </script>
 
 <div class="tc-window" class:tc-compact={compact}>
   <div class="tc-window-head">
     <span class="tc-badge tc-state-{state}">{state}</span>
-    <span class="tc-small">{mode === 'live' ? 'live from this seat' : 'from the run record'}</span>
+    <span class="tc-small"
+      >{mode === "live" ? "live from this seat" : "from the run record"}</span
+    >
     <span class="tc-spacer"></span>
-    <span class="tc-small" title="wall clock since the session's first event">time {fmtDuration(elapsed)}</span>
-    <span class="tc-small" title="all models, subagents included">tokens {fmtTokens(tokens)}</span>
-    <span class="tc-small" title={`list-price estimate${updatesCost ? `, including $${updatesCost.toFixed(2)} for the running updates` : ''}`}>{cost != null ? `$${cost.toFixed(2)}` : ''}</span>
-    <label class="tc-small"><input type="checkbox" bind:checked={follow}> Follow</label>
-    <label class="tc-small" title="Also show the tester's (subagents') reasoning"><input type="checkbox" class="tc-verbose" checked={verbose} onchange={(ev) => setVerbose(ev.currentTarget.checked)}> Verbose</label>
+    <span class="tc-small" title="wall clock since the session's first event"
+      >time {fmtDuration(elapsed)}</span
+    >
+    <span class="tc-small" title="all models, subagents included"
+      >tokens {fmtTokens(tokens)}</span
+    >
+    <span
+      class="tc-small"
+      title={`list-price estimate${updatesCost ? `, including $${updatesCost.toFixed(2)} for the running updates` : ""}`}
+      >{cost != null ? `$${cost.toFixed(2)}` : ""}</span
+    >
+    <label class="tc-small"
+      ><input type="checkbox" bind:checked={follow} /> Follow</label
+    >
+    <label
+      class="tc-small"
+      title="Also show the tester's (subagents') reasoning"
+      ><input
+        type="checkbox"
+        class="tc-verbose"
+        checked={verbose}
+        onchange={(ev) => setVerbose(ev.currentTarget.checked)}
+      /> Verbose</label
+    >
     {#if live}<Button variant="outline" on:click={stop}>Stop</Button>{/if}
   </div>
-  {#if error}<div class="tc-problem">{error}</div>{/if}
-  <div class="tc-stream" bind:this={box} onscroll={() => { if (box) follow = box.scrollHeight - box.scrollTop - box.clientHeight < 40; }}>
+  <div class="tc-error"><ErrorBanner message={error} /></div>
+  <div
+    class="tc-stream"
+    bind:this={box}
+    onscroll={() => {
+      if (box)
+        follow = box.scrollHeight - box.scrollTop - box.clientHeight < 40;
+    }}
+  >
     {#each events as e (e.seq)}
-      {#if e.kind === 'text'}
-        <div class="tc-ev tc-text" class:tc-sub={e.parent} class:tc-reply={replies.has(e.seq)}>{#if replies.has(e.seq)}<span class="tc-reply-tag">reply</span>{/if}{e.text}</div>
-      {:else if e.kind === 'thinking'}
-        {#if e.text && (!e.parent || verbose)}<div class="tc-ev tc-thinking" class:tc-sub={e.parent} class:tc-reply={replies.has(e.seq)}>{#if replies.has(e.seq)}<span class="tc-reply-tag">reply</span>{/if}{e.text}</div>{/if}
-      {:else if e.kind === 'tool_use'}
+      {#if e.kind === "text"}
+        <div
+          class="tc-ev tc-text"
+          class:tc-sub={e.parent}
+          class:tc-reply={replies.has(e.seq)}
+        >
+          {#if replies.has(e.seq)}<span class="tc-reply-tag">reply</span
+            >{/if}{e.text}
+        </div>
+      {:else if e.kind === "thinking"}
+        {#if e.text && (!e.parent || verbose)}<div
+            class="tc-ev tc-thinking"
+            class:tc-sub={e.parent}
+            class:tc-reply={replies.has(e.seq)}
+          >
+            {#if replies.has(e.seq)}<span class="tc-reply-tag">reply</span
+              >{/if}{e.text}
+          </div>{/if}
+      {:else if e.kind === "tool_use"}
         {@const r = results.get(e.id)}
         <div class="tc-ev tc-tool" class:tc-sub={e.parent}>
-          <button type="button" class="tc-tool-row" onclick={() => (open = { ...open, [e.id]: !open[e.id] })} aria-expanded={!!open[e.id]}>
-            <span>{open[e.id] ? '▾' : '▸'}</span> <b>{e.name}</b> <span class="tc-small">{e.summary}</span>
-            <span class="tc-tool-status {r ? (r.denied ? 'is-denied' : r.is_error ? 'is-error' : 'is-ok') : 'is-running'}">{r ? (r.denied ? 'denied' : r.is_error ? 'error' : 'ok') : '…'}</span>
+          <button
+            type="button"
+            class="tc-tool-row"
+            onclick={() => (open = { ...open, [e.id]: !open[e.id] })}
+            aria-expanded={!!open[e.id]}
+          >
+            <span>{open[e.id] ? "▾" : "▸"}</span> <b>{e.name}</b>
+            <span class="tc-small">{e.summary}</span>
+            <span
+              class="tc-tool-status {r
+                ? r.denied
+                  ? 'is-denied'
+                  : r.is_error
+                    ? 'is-error'
+                    : 'is-ok'
+                : 'is-running'}"
+              >{r
+                ? r.denied
+                  ? "denied"
+                  : r.is_error
+                    ? "error"
+                    : "ok"
+                : "…"}</span
+            >
           </button>
-          {#if open[e.id]}<pre class="tc-pre">{e.input}{r ? '\n— result —\n' + r.excerpt : ''}</pre>{/if}
+          {#if open[e.id]}<pre class="tc-pre">{e.input}{r
+                ? "\n— result —\n" + r.excerpt
+                : ""}</pre>{/if}
         </div>
-      {:else if e.kind === 'task'}
+      {:else if e.kind === "task"}
         {@const label = taskLabel(e)}
         {#if label}<div class="tc-ev tc-task">{label}</div>{/if}
-      {:else if e.kind === 'update'}
-        <div class="tc-ev tc-update" class:tc-attn={!!e.attention}>{e.at ? `${e.at} ` : ''}{e.text}{#if e.attention}<div class="tc-attn-why">Needs a look: {e.attention}</div>{/if}</div>
-      {:else if e.kind === 'marker'}
+      {:else if e.kind === "update"}
+        <div class="tc-ev tc-update" class:tc-attn={!!e.attention}>
+          {e.at ? `${e.at} ` : ""}{e.text}{#if e.attention}<div
+              class="tc-attn-why"
+            >
+              Needs a look: {e.attention}
+            </div>{/if}
+        </div>
+      {:else if e.kind === "marker"}
         <div class="tc-ev tc-marker {markerClass(e.line)}">{e.line}</div>
-      {:else if e.kind === 'question'}
+      {:else if e.kind === "question"}
         <div class="tc-ev tc-card">
           <div class="tc-card-head">The session asks</div>
           {#each (e.input && e.input.questions) || [] as q}
             <div class="tc-q">{q.question}</div>
             {#if e.waits && live && !pendingIds.has(e.request_id) && !answered[e.request_id]}
               <div class="tc-opts">
-                {#each q.options || [] as o}<Button variant="outline" title={o.description || ''} on:click={() => answerQuestion(e, q, o.label)}>{o.label}</Button>{/each}
-                <input class="form-input tc-other" placeholder="Other…" bind:value={other[e.request_id]}>
-                <Button variant="primary" on:click={() => answerQuestion(e, q, other[e.request_id] || '')}>Send</Button>
+                {#each q.options || [] as o}<Button
+                    variant="outline"
+                    title={o.description || ""}
+                    on:click={() => answerQuestion(e, q, o.label)}
+                    >{o.label}</Button
+                  >{/each}
+                <input
+                  class="form-input tc-other"
+                  placeholder="Other…"
+                  bind:value={other[e.request_id]}
+                />
+                <Button
+                  variant="primary"
+                  on:click={() =>
+                    answerQuestion(e, q, other[e.request_id] || "")}
+                  >Send</Button
+                >
               </div>
             {:else}
-              <div class="tc-small">{answered[e.request_id] ? 'Answered here.' : e.waits ? 'Waiting for an answer…' : 'Not waited for: the campaign carries on (D5).'}</div>
+              <div class="tc-small">
+                {answered[e.request_id]
+                  ? "Answered here."
+                  : e.waits
+                    ? "Waiting for an answer…"
+                    : "Not waited for: the campaign carries on (D5)."}
+              </div>
             {/if}
           {/each}
         </div>
-      {:else if e.kind === 'approval'}
+      {:else if e.kind === "approval"}
         <div class="tc-ev tc-card">
           <div class="tc-card-head">Permission asked: {e.tool}</div>
           <pre class="tc-pre">{e.input}</pre>
           {#if e.waits && live && !pendingIds.has(e.request_id) && !answered[e.request_id]}
             <div class="tc-opts">
-              <Button variant="primary" on:click={() => approve(e, true)}>Allow</Button>
-              <Button variant="outline" on:click={() => approve(e, false)}>Deny</Button>
+              <Button variant="primary" on:click={() => approve(e, true)}
+                >Allow</Button
+              >
+              <Button variant="outline" on:click={() => approve(e, false)}
+                >Deny</Button
+              >
             </div>
-          {:else}<div class="tc-small">{answered[e.request_id] ? 'Answered here.' : 'Not approved: outside the session\'s permission profile (D6).'}</div>{/if}
+          {:else}<div class="tc-small">
+              {answered[e.request_id]
+                ? "Answered here."
+                : "Not approved: outside the session's permission profile (D6)."}
+            </div>{/if}
         </div>
-      {:else if e.kind === 'result'}
-        <div class="tc-ev tc-turn">turn finished · {e.num_turns} turns · {fmtDuration(e.duration_ms)}{e.total_cost_usd != null ? ` · $${e.total_cost_usd.toFixed(2)}` : ''}</div>
-      {:else if e.kind === 'user_message'}
+      {:else if e.kind === "result"}
+        <div class="tc-ev tc-turn">
+          turn finished · {e.num_turns} turns · {fmtDuration(
+            e.duration_ms,
+          )}{e.total_cost_usd != null
+            ? ` · $${e.total_cost_usd.toFixed(2)}`
+            : ""}
+        </div>
+      {:else if e.kind === "user_message"}
         <div class="tc-ev tc-user">{e.text}</div>
-      {:else if e.kind === 'state'}
-        <div class="tc-ev tc-statechg">session {e.state}{e.error ? ': ' + e.error : ''}</div>
-      {:else if e.kind === 'init'}
-        <div class="tc-ev tc-statechg">session started · {e.model || ''} · permission mode {e.permission_mode || '?'} · Claude Code {e.cli_version || '?'}</div>
+      {:else if e.kind === "state"}
+        <div class="tc-ev tc-statechg">
+          session {e.state}{e.error ? ": " + e.error : ""}
+        </div>
+      {:else if e.kind === "init"}
+        <div class="tc-ev tc-statechg">
+          session started · {e.model || ""} · permission mode {e.permission_mode ||
+            "?"} · Claude Code {e.cli_version || "?"}
+        </div>
       {/if}
     {/each}
-    {#if !events.length}<div class="tc-empty">Waiting for the session's first event…</div>{/if}
+    {#if !events.length}<div class="tc-empty">
+        Waiting for the session's first event…
+      </div>{/if}
   </div>
   {#if live}
     <div class="tc-say">
-      <input class="form-input" placeholder="Message the session (e.g. “don’t touch u3”)" bind:value={draft}
-        onkeydown={(ev) => { if (ev.key === 'Enter') send(); }}>
+      <input
+        class="form-input"
+        placeholder="Message the session (e.g. “don’t touch u3”)"
+        bind:value={draft}
+        onkeydown={(ev) => {
+          if (ev.key === "Enter") send();
+        }}
+      />
       <Button variant="primary" on:click={send}>Send</Button>
     </div>
   {/if}
 </div>
 
-
 <style>
-  /* The session window, in the new pages' look: a surface card (as the script lists), a head
-     row of readouts, then the event stream. Spans its step — the pages' .tc-line is a wrapping
-     flex row. */
   .tc-window {
     width: 100%;
     border: 1px solid var(--color-border-surface);
@@ -298,13 +540,12 @@
     font-size: 0.85rem;
   }
 
-  .tc-problem {
-    padding: 8px 12px;
-    color: var(--color-error);
-    font-size: 0.88rem;
+  /* The window's error, inset like the stream. Styled through the banner itself (not the
+     wrapper), so an empty wrapper adds no space when there is no error. */
+  .tc-error :global(.error-banner) {
+    margin: 8px 12px 0;
   }
 
-  /* --- State badge (same colours as RunsList) ------------------------------------------ */
   .tc-badge {
     padding: 1px 8px;
     border: 1px solid var(--color-border-surface);
@@ -331,7 +572,6 @@
     border-color: currentColor;
   }
 
-  /* --- The stream ------------------------------------------------------------------------ */
   .tc-stream {
     max-height: 55vh;
     overflow: auto;
@@ -348,7 +588,6 @@
     margin: 4px 0;
   }
 
-  /* A subagent's events, indented under a guide line. */
   .tc-sub {
     margin-left: 22px;
     padding-left: 8px;
@@ -360,7 +599,6 @@
     white-space: pre-wrap;
   }
 
-  /* Same look as the app's LLM notes: italic and muted. */
   .tc-thinking {
     color: var(--color-text);
     font-style: italic;
@@ -400,7 +638,6 @@
     color: var(--color-warning);
   }
 
-  /* A tool call: a disclosure row (the browser's button look reset), status at the right. */
   .tc-tool-row {
     display: flex;
     align-items: baseline;
@@ -424,12 +661,14 @@
     font-size: 0.75rem;
   }
 
-  .tc-tool-status.is-ok { color: var(--color-success); }
+  .tc-tool-status.is-ok {
+    color: var(--color-success);
+  }
   .tc-tool-status.is-error,
-  .tc-tool-status.is-denied { color: var(--color-error); }
+  .tc-tool-status.is-denied {
+    color: var(--color-error);
+  }
 
-  /* A tool's command and its output: plain text in the code font inside a rounded border,
-     not a code window. */
   .tc-pre {
     max-height: 40vh;
     margin: 6px 0;
@@ -438,7 +677,7 @@
     border: 1px solid var(--color-border-surface);
     border-radius: 10px;
     color: var(--color-text);
-    font-family: Consolas, 'Courier New', monospace;
+    font-family: Consolas, "Courier New", monospace;
     font-size: 12px;
     white-space: pre-wrap;
     overflow-wrap: anywhere;
@@ -451,31 +690,35 @@
     font-size: 0.8rem;
   }
 
-  /* device-testing's marker lines (PASS / FAIL / NOTIFY / ASKCK-DONE). */
   .tc-marker {
     display: inline-block;
     padding: 2px 8px;
     border-radius: 6px;
     background: var(--color-bg-content);
-    font-family: 'Roboto Mono Variable', 'Roboto Mono', monospace;
+    font-family: "Roboto Mono Variable", "Roboto Mono", monospace;
     font-size: 0.8rem;
   }
 
-  .tc-m-pass { color: var(--color-success); }
-  .tc-m-fail { color: var(--color-error); }
+  .tc-m-pass {
+    color: var(--color-success);
+  }
+  .tc-m-fail {
+    color: var(--color-error);
+  }
   .tc-m-notify {
     color: var(--color-warning);
     background: color-mix(in srgb, var(--color-warning) 12%, transparent);
   }
   .tc-m-other,
-  .tc-m-done { color: var(--color-text); }
+  .tc-m-done {
+    color: var(--color-text);
+  }
 
   .tc-user {
     color: var(--color-accent);
     text-align: right;
   }
 
-  /* A question or a permission request: the warning colour, as it waits on a person. */
   .tc-card {
     display: flex;
     flex-direction: column;
@@ -507,7 +750,6 @@
     font-style: italic;
   }
 
-  /* --- Message box --------------------------------------------------------------------- */
   .tc-say {
     display: flex;
     align-items: center;

@@ -1,20 +1,28 @@
 <script>
-// @ts-nocheck
-  import ToolHeader from '../lib/components/ToolHeader.svelte';
-  import ErrorBanner from '../lib/components/ErrorBanner.svelte';
-  import zephyrIcon from '../assets/icons/getzephyr-icon.svg';
+  // @ts-nocheck
+  import ToolHeader from "../lib/components/ToolHeader.svelte";
+  import ErrorBanner from "../lib/components/ErrorBanner.svelte";
+  import zephyrIcon from "../assets/icons/getzephyr-icon.svg";
 
-  import { onDestroy, onMount } from 'svelte';
-  import LlmButton from '../lib/components/LlmButton.svelte';
-  import Button from '../lib/components/Button.svelte';
-  import ZtAnalysis from '../lib/components/zephyr/ZtAnalysis.svelte';
-  import ZtConfirm from '../lib/components/zephyr/ZtConfirm.svelte';
-  import ZtTree from '../lib/components/zephyr/ZtTree.svelte';
-  import ZtUpload from '../lib/components/zephyr/ZtUpload.svelte';
-  import { applyProposals, cleanField, isOpen, setTick, tickSummary, treeRows, uploadSelection } from '../lib/components/zephyr/zephyrModel.js';
+  import { onDestroy, onMount } from "svelte";
+  import LlmButton from "../lib/components/LlmButton.svelte";
+  import Button from "../lib/components/Button.svelte";
+  import ZtAnalysis from "../lib/components/zephyr/ZtAnalysis.svelte";
+  import ZtConfirm from "../lib/components/zephyr/ZtConfirm.svelte";
+  import ZtTree from "../lib/components/zephyr/ZtTree.svelte";
+  import ZtUpload from "../lib/components/zephyr/ZtUpload.svelte";
+  import {
+    applyProposals,
+    cleanField,
+    isOpen,
+    setTick,
+    tickSummary,
+    treeRows,
+    uploadSelection,
+  } from "../lib/components/zephyr/zephyrModel.js";
 
-  import { scrollToSection } from '../lib/utils/scroll';
-  import { httpApi } from '../lib/services/zephyr/zephyrService.js';
+  import { scrollToSection } from "../lib/utils/scroll";
+  import { httpApi } from "../lib/services/zephyr/zephyrService.js";
 
   let { api = httpApi(), pollMs = 2000 } = $props();
 
@@ -23,19 +31,24 @@
   let ticked = $state(new Set());
   let ai = $state(new Map());
   let folds = $state(new Map());
-  let manual = [];                     
+  let manual = [];
 
-  let url = $state('');
-  let fields = $state({ version: '', product: '', middle: '', number: '' });
-  let touched = { version: false, product: false, middle: false, number: false };
-  let versionNote = $state('');
+  let url = $state("");
+  let fields = $state({ version: "", product: "", middle: "", number: "" });
+  let touched = {
+    version: false,
+    product: false,
+    middle: false,
+    number: false,
+  };
+  let versionNote = $state("");
 
-  let status = $state({ msg: '', bad: false });
+  let status = $state({ msg: "", bad: false });
   let confirmed = $state(false);
-  let previewed = $state(null);      
-  let preview = $state(null);         
-  let run = $state(null);             
-  let asking = $state(null);          
+  let previewed = $state(null);
+  let preview = $state(null);
+  let run = $state(null);
+  let asking = $state(null);
 
   let analysing = $state(false);
   let analyseId = $state(null);
@@ -48,52 +61,64 @@
   let poll = null;
   let runPoll = null;
 
-  let expanded = $state(false);   // true once Organize with LLM has been clicked
+  let expanded = $state(false); // true once Organize with LLM has been clicked
 
   const templatesInfo = $derived.by(() => {
-    if (!tree) return 'No templates imported yet.';
+    if (!tree) return "No templates imported yet.";
     const c = tree.counts || {};
-    return `Templates imported ${String(tree.imported_at || '').slice(0, 16).replace('T', ' ')} UTC: ${c.plans} plans, ${c.cycles} cycles, ${c.cases} cases.`;
+    return `Templates imported ${String(tree.imported_at || "")
+      .slice(0, 16)
+      .replace(
+        "T",
+        " ",
+      )} UTC: ${c.plans} plans, ${c.cycles} cycles, ${c.cases} cases.`;
   });
-  const treeCount = $derived(tree ? tickSummary(tree, ticked) : '');
+  const treeCount = $derived(tree ? tickSummary(tree, ticked) : "");
 
-  function setStatus(msg, bad = false) { status = { msg: msg || '', bad: !!bad }; }
+  function setStatus(msg, bad = false) {
+    status = { msg: msg || "", bad: !!bad };
+  }
 
   function doFlash(name, ok) {
-    flash[name] = ok ? 'done' : 'error';
-    setTimeout(() => { flash[name] = null; }, 1200);
+    flash[name] = ok ? "done" : "error";
+    setTimeout(() => {
+      flash[name] = null;
+    }, 1200);
   }
 
   const headerTitle = $derived.by(() => {
-    const parts = [
-      fields.number,
-      fields.product,
-      fields.version,
-    ].filter(Boolean);
-    return parts.length ? 
-      'Project ' + parts[0] + ' - ' +  parts[1] + ' v' + parts[2]
+    const parts = [fields.number, fields.product, fields.version].filter(
+      Boolean,
+    );
+    return parts.length
+      ? "Project " + parts[0] + " - " + parts[1] + " v" + parts[2]
       : "No project loaded. Please paste a project link from the ATWiki to organise.";
   });
 
   /** What the upload targets — all four from the fields, which the analysis fills and the user may
    *  correct (Terrence 2026-10-07: a reload or a stopped analysis no longer loses them). */
   function project() {
-    return { version: cleanField(fields.version) || '', product: cleanField(fields.product) || '',
-             middle: cleanField(fields.middle), number: cleanField(fields.number) };
+    return {
+      version: cleanField(fields.version) || "",
+      product: cleanField(fields.product) || "",
+      middle: cleanField(fields.middle),
+      number: cleanField(fields.number),
+    };
   }
 
   function setConfirmed(on) {
     confirmed = on;
-    if (!on && !run) {                 // the selection changed: the listed calls no longer apply
+    if (!on && !run) {
+      // the selection changed: the listed calls no longer apply
       previewed = null;
       preview = null;
     }
   }
 
   async function loadTree() {
-    const d = await api('/templates');
+    const d = await api("/templates");
     tree = d.snapshot;
-    ticked = new Set(treeRows(tree).map(r => r.id));
+    ticked = new Set(treeRows(tree).map((r) => r.id));
     ai = new Map();
     manual = [];
     folds = new Map();
@@ -110,9 +135,11 @@
 
   function fillProject(p) {
     if (!p) return;
-    for (const k of ['version', 'product', 'middle', 'number']) if (!touched[k]) fields[k] = p[k] || '';
+    for (const k of ["version", "product", "middle", "number"])
+      if (!touched[k]) fields[k] = p[k] || "";
     versionNote = p.version
-      ? `from the ${p.version_source}${p.project_version ? ` — the project page says ${p.project_version}` : ''}` : '';
+      ? `from the ${p.version_source}${p.project_version ? ` — the project page says ${p.project_version}` : ""}`
+      : "";
   }
 
   // Resolved when the analysis ends, however it ends (done / error / cancelled / a failed poll /
@@ -121,33 +148,54 @@
   let finishAnalysis = null;
 
   function stopPolling() {
-    if (poll) { clearInterval(poll); poll = null; }
+    if (poll) {
+      clearInterval(poll);
+      poll = null;
+    }
     analyseId = null;
     cancelling = false;
-    if (finishAnalysis) { const done = finishAnalysis; finishAnalysis = null; done(); }
+    if (finishAnalysis) {
+      const done = finishAnalysis;
+      finishAnalysis = null;
+      done();
+    }
   }
 
   async function pollOnce(id) {
     let d;
-    try { d = await api('/analyse/' + encodeURIComponent(id)); } catch (e) {
-      stopPolling(); analysing = false; setStatus(e.message, true); return;
+    try {
+      d = await api("/analyse/" + encodeURIComponent(id));
+    } catch (e) {
+      stopPolling();
+      analysing = false;
+      setStatus(e.message, true);
+      return;
     }
     job = d;
     fillProject(d.project);
     rebuildTicks();
     setConfirmed(false);
-    if (['done', 'error', 'cancelled'].includes(d.state)) {
+    if (["done", "error", "cancelled"].includes(d.state)) {
       stopPolling();
       analysing = false;
-      doFlash('analyse', d.state === 'done');
-      setStatus(d.state === 'done' ? 'Review the ticks, then Confirm.' : '', d.state === 'error');
+      doFlash("analyse", d.state === "done");
+      setStatus(
+        d.state === "done" ? "Review the ticks, then Confirm." : "",
+        d.state === "error",
+      );
     }
   }
 
   // Checked before the LLM button goes busy — resolving false stops it there.
   async function readyToAnalyse() {
-    if (!url.trim()) { setStatus('Paste the project page URL first.', true); return false; }
-    if (!tree) { setStatus('No templates imported yet — Refresh templates first.', true); return false; }
+    if (!url.trim()) {
+      setStatus("Paste the project page URL first.", true);
+      return false;
+    }
+    if (!tree) {
+      setStatus("No templates imported yet — Refresh templates first.", true);
+      return false;
+    }
     return !analysing;
   }
 
@@ -162,20 +210,23 @@
     touched = { version: false, product: false, middle: false, number: false };
     run = null;
     setConfirmed(false);
-    setStatus('');
+    setStatus("");
     try {
-      const { id } = await api('/analyse', { method: 'POST', body: JSON.stringify({ url: u }) });
-      job = { id, state: 'reading', plans: {} };
+      const { id } = await api("/analyse", {
+        method: "POST",
+        body: JSON.stringify({ url: u }),
+      });
+      job = { id, state: "reading", plans: {} };
       analyseId = id;
       expanded = true;
       await new Promise((resolve) => {
         finishAnalysis = resolve;
         poll = setInterval(() => pollOnce(id), pollMs);
       });
-      scrollToSection('.section-description');
+      scrollToSection(".section-description");
     } catch (e) {
       analysing = false;
-      doFlash('analyse', false);
+      doFlash("analyse", false);
       setStatus(e.message, true);
     }
   }
@@ -184,8 +235,10 @@
     if (!analyseId) return;
     cancelling = true;
     try {
-      await api('/analyse/' + encodeURIComponent(analyseId) + '/cancel', { method: 'POST' });
-      setStatus('Stopping — the calls with the model are being cancelled.');
+      await api("/analyse/" + encodeURIComponent(analyseId) + "/cancel", {
+        method: "POST",
+      });
+      setStatus("Stopping — the calls with the model are being cancelled.");
     } catch (e) {
       setStatus(e.message, true);
       cancelling = false;
@@ -212,9 +265,14 @@
   function confirm() {
     if (!tree) return;
     const sel = uploadSelection(tree, ticked, project());
-    if (!sel.plans.length) { setStatus('Nothing is ticked.', true); return; }
+    if (!sel.plans.length) {
+      setStatus("Nothing is ticked.", true);
+      return;
+    }
     setConfirmed(true);
-    setStatus(`Confirmed: ${sel.plans.length} plan(s). API Upload shows what it would do — nothing is written yet.`);
+    setStatus(
+      `Confirmed: ${sel.plans.length} plan(s). API Upload shows what it would do — nothing is written yet.`,
+    );
   }
 
   async function upload() {
@@ -223,7 +281,10 @@
     let ok = false;
     try {
       const sel = uploadSelection(tree, ticked, project());
-      const d = await api('/upload/preview', { method: 'POST', body: JSON.stringify(sel) });
+      const d = await api("/upload/preview", {
+        method: "POST",
+        body: JSON.stringify(sel),
+      });
       previewed = sel;
       preview = d;
       run = null;
@@ -232,28 +293,42 @@
       setStatus(e.message, true);
     } finally {
       uploadBusy = false;
-      doFlash('upload', ok);
+      doFlash("upload", ok);
     }
   }
 
   function stopRunPolling() {
-    if (runPoll) { clearInterval(runPoll); runPoll = null; }
+    if (runPoll) {
+      clearInterval(runPoll);
+      runPoll = null;
+    }
   }
 
   async function pollRun(id) {
     let d;
-    try { d = await api('/upload/run/' + encodeURIComponent(id)); } catch (e) {
-      stopRunPolling(); setStatus(e.message, true); return;
+    try {
+      d = await api("/upload/run/" + encodeURIComponent(id));
+    } catch (e) {
+      stopRunPolling();
+      setStatus(e.message, true);
+      return;
     }
     run = d;
-    if (d.state !== 'running') {
+    if (d.state !== "running") {
       stopRunPolling();
-      setStatus(d.state === 'done' ? 'Upload complete.' : 'The upload did not complete — see below.', d.state !== 'done');
+      setStatus(
+        d.state === "done"
+          ? "Upload complete."
+          : "The upload did not complete — see below.",
+        d.state !== "done",
+      );
     }
   }
 
   function askToWrite() {
-    return new Promise(resolve => { asking = resolve; });
+    return new Promise((resolve) => {
+      asking = resolve;
+    });
   }
 
   function answer(yes) {
@@ -269,9 +344,16 @@
     if (!(await askToWrite())) return;
     runBusy = true;
     try {
-      const { id } = await api('/upload/run', { method: 'POST',
-        body: JSON.stringify(Object.assign({}, sel, { confirm_product: sel.product, confirm_version: sel.version })) });
-      run = { id, state: 'running', steps: [] };
+      const { id } = await api("/upload/run", {
+        method: "POST",
+        body: JSON.stringify(
+          Object.assign({}, sel, {
+            confirm_product: sel.product,
+            confirm_version: sel.version,
+          }),
+        ),
+      });
+      run = { id, state: "running", steps: [] };
       stopRunPolling();
       runPoll = setInterval(() => pollRun(id), pollMs);
     } catch (e) {
@@ -285,120 +367,147 @@
     refreshBusy = true;
     let ok = false;
     try {
-      const d = await api('/templates/refresh', { method: 'POST' });
+      const d = await api("/templates/refresh", { method: "POST" });
       await loadTree();
       if (job) rebuildTicks();
       setConfirmed(false);
-      setStatus(`Templates refreshed: ${d.written ? d.written.plans + ' plans' : 'done'}.`);
+      setStatus(
+        `Templates refreshed: ${d.written ? d.written.plans + " plans" : "done"}.`,
+      );
       ok = true;
     } catch (e) {
       setStatus(e.message, true);
     } finally {
       refreshBusy = false;
-      doFlash('refresh', ok);
+      doFlash("refresh", ok);
     }
   }
 
   onMount(async () => {
-    try { await loadTree(); } catch (e) { setStatus('Could not load the templates: ' + e.message, true); }
+    try {
+      await loadTree();
+    } catch (e) {
+      setStatus("Could not load the templates: " + e.message, true);
+    }
   });
 
-  onDestroy(() => { stopPolling(); stopRunPolling(); });
-
-  
+  onDestroy(() => {
+    stopPolling();
+    stopRunPolling();
+  });
 </script>
 
-<ToolHeader title={headerTitle} tool="ZEPHYR TEMPLATING" icon={zephyrIcon}/>
-
+<ToolHeader title={headerTitle} tool="ZEPHYR TEMPLATING" icon={zephyrIcon} />
 
 <div class="tool-page">
+  <div class="section-description">
+    Paste a project's wiki page. The model reads its Test Strategy, TPS and
+    Feature Page and proposes which template plans, cycles and cases to leave
+    out — every proposal cites its source, and anything it does not mention
+    stays ticked. Review the ticks, Confirm, then API Upload shows exactly what
+    it would send to Zephyr.
+  </div>
 
-  <div class="section-description">Paste a project's wiki page. The model reads its Test Strategy, TPS and Feature Page and proposes which template plans, cycles and cases to leave out — every proposal cites its source, and anything it does not mention stays ticked. Review the ticks, Confirm, then API Upload shows exactly what it would send to Zephyr.</div>
-  
   <div class="zt-line">
-    <input 
-      id="zt-url" 
-      class="form-input" 
-      type="url" bind:value={url}
-      placeholder="https://wiki.atlnz.lc/awpwiki/index.php/Project:3296_IE520_Software" 
-      aria-label="Project wiki page URL">
+    <input
+      id="zt-url"
+      class="form-input"
+      type="url"
+      bind:value={url}
+      placeholder="https://wiki.atlnz.lc/awpwiki/index.php/Project:3296_IE520_Software"
+      aria-label="Project wiki page URL"
+    />
     <!-- Click it while busy to stop: onStop cancels the analysis job itself
          (POST /analyse/{id}/cancel) rather than the button's own call id. -->
-    <LlmButton 
-      label="Organise with LLM" 
-      verb="Organizing…" 
-      onBeforeRun={readyToAnalyse} 
-      onRun={analyse} 
+    <LlmButton
+      label="Organise with LLM"
+      verb="Organizing…"
+      onBeforeRun={readyToAnalyse}
+      onRun={analyse}
       onStop={cancel}
     />
   </div>
 
   <div class="zt-line">
     <div class="zt-field">
-      <label for="zt-version">What Version (AW+) - <span id="zt-version-note" class="zt-small">{versionNote}</span></label>
-      <input 
-        id="zt-version" class="form-input"
-        placeholder="filled in by the analysis" 
-        bind:value={fields.version} 
-        oninput={() => fieldInput('version')}
+      <label for="zt-version"
+        >What Version (AW+) - <span id="zt-version-note" class="zt-small"
+          >{versionNote}</span
+        ></label
       >
+      <input
+        id="zt-version"
+        class="form-input"
+        placeholder="filled in by the analysis"
+        bind:value={fields.version}
+        oninput={() => fieldInput("version")}
+      />
     </div>
     <div class="zt-field">
       <label for="zt-product">What Product (DUT)</label>
-      <input 
-        id="zt-product" 
+      <input
+        id="zt-product"
         class="form-input"
-        placeholder="filled in by the analysis" 
-        bind:value={fields.product} 
-        oninput={() => fieldInput('product')}
-      >
+        placeholder="filled in by the analysis"
+        bind:value={fields.product}
+        oninput={() => fieldInput("product")}
+      />
     </div>
     <div class="zt-field">
       <label for="zt-middle">What Team Subfolder</label>
-      <input 
-        id="zt-middle" 
+      <input
+        id="zt-middle"
         class="form-input"
-        placeholder="e.g. Tomahawk — blank if none" 
-        bind:value={fields.middle} 
-        oninput={() => fieldInput('middle')}
-      >
+        placeholder="e.g. Tomahawk — blank if none"
+        bind:value={fields.middle}
+        oninput={() => fieldInput("middle")}
+      />
     </div>
     <div class="zt-field">
       <label for="zt-number">What Project Number</label>
-      <input 
-        id="zt-number" 
+      <input
+        id="zt-number"
         class="form-input"
-        placeholder="e.g. 3001 — blank or N/A if none" 
-        bind:value={fields.number} 
-        oninput={() => fieldInput('number')}
-      >
+        placeholder="e.g. 3001 — blank or N/A if none"
+        bind:value={fields.number}
+        oninput={() => fieldInput("number")}
+      />
     </div>
   </div>
 
-
   <div class="zt-line zt-small">
     <span id="zt-templates-info">{templatesInfo}</span>
-    <Button 
-      variant="outline" loading={refreshBusy} 
+    <Button
+      variant="outline"
+      loading={refreshBusy}
       title="Re-read the template plans, cycles and cases from Zephyr (read only)"
       on:click={refreshTemplates}
       >Refresh templates
     </Button>
-      {#if status.bad}
-        <ErrorBanner message={status.msg} />
-      {:else if status.msg}
-        <p id="zt-status" class="zt-status" role="status">{status.msg}</p>
-      {/if}
+    {#if status.bad}
+      <ErrorBanner message={status.msg} />
+    {:else if status.msg}
+      <p id="zt-status" class="zt-status" role="status">{status.msg}</p>
+    {/if}
   </div>
 
   <div class="zt-cols">
     <div class="zt-col">
       <div class="zt-col-head">Results Analysis</div>
-      <div id="zt-analysis" class="zt-scroll"class:expanded><ZtAnalysis {job} {tree} /></div>
+      <div id="zt-analysis" class="zt-scroll" class:expanded>
+        <ZtAnalysis {job} {tree} />
+      </div>
     </div>
     <div class="zt-col">
-      <div class="zt-col-head"><span>Test Plans / Cycles / Cases</span><span id="zt-tree-count" class="zt-small">{treeCount}</span></div>
-      <div id="zt-tree" class="zt-scroll" class:expanded><ZtTree {tree} {ticked} {ai} {folds} ontoggle={toggle} onfold={fold} /></div>
+      <div class="zt-col-head">
+        <span>Test Plans / Cycles / Cases</span><span
+          id="zt-tree-count"
+          class="zt-small">{treeCount}</span
+        >
+      </div>
+      <div id="zt-tree" class="zt-scroll" class:expanded>
+        <ZtTree {tree} {ticked} {ai} {folds} ontoggle={toggle} onfold={fold} />
+      </div>
     </div>
   </div>
 
@@ -409,15 +518,15 @@
       <Button
         variant="outline"
         disabled={analysing}
-        title={analysing ? 'Wait for the analysis to finish' : ''}
+        title={analysing ? "Wait for the analysis to finish" : ""}
         on:click={confirm}
-        >{confirmed ? 'Confirmed ✓' : 'Confirm'}
+        >{confirmed ? "Confirmed ✓" : "Confirm"}
       </Button>
     </div>
     <div>
-      <Button 
-        variant="primary" 
-        loading={uploadBusy} 
+      <Button
+        variant="primary"
+        loading={uploadBusy}
         disabled={!confirmed}
         title="Lists the calls first — nothing is written until you type the product and version and press Write to Zephyr"
         on:click={upload}
@@ -428,20 +537,19 @@
 
   <div id="zt-upload-result">
     {#if preview && previewed}
-      <ZtUpload 
-        d={preview} 
-        sel={previewed} 
-        {run} {runBusy} 
-        onrun={writeToZephyr} 
+      <ZtUpload
+        d={preview}
+        sel={previewed}
+        {run}
+        {runBusy}
+        onrun={writeToZephyr}
       />{/if}
   </div>
 
   {#if asking && preview && previewed}
     <ZtConfirm d={preview} sel={previewed} onanswer={answer} />
   {/if}
-</div>  
-
-
+</div>
 
 <style>
   .zt-status {
@@ -454,7 +562,7 @@
     color: var(--color-text-muted);
     font-weight: 400;
     font-size: 0.94rem;
-    white-space: nowrap; 
+    white-space: nowrap;
   }
 
   .section-description {
@@ -485,12 +593,7 @@
     align-items: baseline;
     gap: 24px;
     width: 100%;
-    /* margin-top: 0px; */
     margin-bottom: 12px;
-
-    /* border: 1px solid var(--color-border-surface);
-    border-radius: 10px;
-    background-color: var(--color-bg-surface); */
   }
 
   .zt-col {
@@ -510,17 +613,17 @@
     font-weight: 800;
     font-size: 1rem;
     display: flex;
-    justify-content: space-between;   /* title on the left, count on the far right */
+    justify-content: space-between; /* title on the left, count on the far right */
     align-items: center;
     color: var(--color-text);
-    padding: 16px
+    padding: 16px;
   }
 
   .zt-scroll {
     padding-left: 24px;
     padding-right: 24px;
     font-size: 0.94rem;
-    height: 48vh;                    
+    height: 48vh;
     transition: height 0.3s ease;
     overflow: scroll;
     scroll-behavior: auto;
@@ -533,7 +636,7 @@
 
   #zt-templates-info {
     font-size: 0.94rem;
-    color: var(--color-text-muted)
+    color: var(--color-text-muted);
   }
 
   .zt-actions {

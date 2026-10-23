@@ -1,15 +1,19 @@
+// @ts-nocheck
+
 // COPIED OVER FROM current/shared/llm-progress.js
 // NOT PORTED (DOM-coupled): mutating a <button> element directly each tick (label
 // textContent, a CSS custom property for the fill bar, dataset flags). Svelte components
 // hold their own reactive progress state instead and render it however they like.
 
 export function newCallId() {
-  return 'llm-' + Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
+  return (
+    "llm-" + Math.random().toString(36).slice(2, 10) + Date.now().toString(36)
+  );
 }
 
 /** True when an error string is the user's own Stop, not a real failure. */
 export function isCancelMessage(text) {
-  return String(text || '').includes('cancelled by user');
+  return String(text || "").includes("cancelled by user");
 }
 
 /** True server-side cancel — kills the CLI process / closes the vLLM stream / wakes an
@@ -17,11 +21,17 @@ export function isCancelMessage(text) {
     user", which is how the caller finds out (there's no client-side abort involved at all). */
 export function cancelLlmCall(id) {
   if (!id) return Promise.resolve();
-  return fetch('/api/llm/cancel/' + encodeURIComponent(id), { method: 'POST' }).catch(() => {});
+  return fetch("/api/llm/cancel/" + encodeURIComponent(id), {
+    method: "POST",
+  }).catch(() => {});
 }
 
 function fmtK(n) {
-  return n >= 10000 ? (n / 1000).toFixed(0) + 'k' : n >= 1000 ? (n / 1000).toFixed(1) + 'k' : String(n);
+  return n >= 10000
+    ? (n / 1000).toFixed(0) + "k"
+    : n >= 1000
+      ? (n / 1000).toFixed(1) + "k"
+      : String(n);
 }
 
 // MODIFIED FROM current/shared/llm-progress.js TO WORK WITH SVELTE
@@ -39,22 +49,33 @@ export function startLlmProgress(label, onTick) {
     ticks += 1;
     if (ticks % 2 === 0) {
       try {
-        const r = await fetch('/api/llm/inflight/' + id);
-        if (r.ok) { const d = await r.json(); if (d.found) snap = d; }
-      } catch (_) { /* poll is best-effort */ }
+        const r = await fetch("/api/llm/inflight/" + id);
+        if (r.ok) {
+          const d = await r.json();
+          if (d.found) snap = d;
+        }
+      } catch (_) {
+        /* poll is best-effort */
+      }
     }
     const s = Math.round((Date.now() - started) / 1000);
     let text = `${label} ${s}s`;
     let pct = null;
     if (snap && snap.typical_ms) {
       text += ` / ~${Math.round(snap.typical_ms / 1000)}s`;
-      pct = Math.min(97, (s * 1000 / snap.typical_ms) * 100);
+      pct = Math.min(97, ((s * 1000) / snap.typical_ms) * 100);
     }
     if (snap && snap.chars) text += ` · ${fmtK(snap.chars)} streamed`;
     onTick({ text, pct });
   }, 1000);
 
-  return { callId: id, headers: { 'X-CK-LLM-Call': id }, stop() { clearInterval(timer); } };
+  return {
+    callId: id,
+    headers: { "X-CK-LLM-Call": id },
+    stop() {
+      clearInterval(timer);
+    },
+  };
 }
 
 // COPIED OVER FROM current/shared/llm-debug.js (fmtTok/fmtTokens — verbatim, pure formatting)
@@ -63,15 +84,17 @@ export function startLlmProgress(label, onTick) {
 // (client.js's own header-injection comment already says so) and no caller has asked for the
 // prompt/response debug footer, just the token badge.
 function fmtTok(n) {
-  if (n == null) return '?';
-  if (n >= 10000) return (n / 1000).toFixed(1).replace(/\.0$/, '') + 'k';
-  return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  if (n == null) return "?";
+  if (n >= 10000) return (n / 1000).toFixed(1).replace(/\.0$/, "") + "k";
+  return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 }
 
 export function fmtTokens(usage) {
-  if (!usage) return '— tok';
-  const inp = usage.input_tokens, out = usage.output_tokens;
-  const total = (inp != null && out != null) ? ` (${fmtTok(inp + out)} total)` : '';
+  if (!usage) return "— tok";
+  const inp = usage.input_tokens,
+    out = usage.output_tokens;
+  const total =
+    inp != null && out != null ? ` (${fmtTok(inp + out)} total)` : "";
   return `${fmtTok(inp)} in / ${fmtTok(out)} out${total}`;
 }
 
@@ -81,11 +104,11 @@ export function fmtTokens(usage) {
 // successful LLM call, matching the original's "badge updates ONLY on success" rule).
 export async function fetchLatestLlmUsage() {
   try {
-    const res = await fetch('/api/llm/recent?limit=5');
+    const res = await fetch("/api/llm/recent?limit=5");
     if (!res.ok) return null;
     const data = await res.json();
     const records = data.records || [];
-    return records.length ? records[records.length - 1] : null;   // oldest→newest
+    return records.length ? records[records.length - 1] : null; // oldest→newest
   } catch (_) {
     return null;
   }

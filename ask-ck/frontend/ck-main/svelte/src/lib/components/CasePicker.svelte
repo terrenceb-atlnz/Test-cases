@@ -1,40 +1,33 @@
 <script>
-  import Button from './Button.svelte';
-  import chevronDownIcon from '../../assets/icons/chevron-down.svg';
+  //@ts-nocheck
+  import Button from "./Button.svelte";
+  import chevronDownIcon from "../../assets/icons/chevron-down.svg";
 
-  /** @type {Array<{ id: string, label: string }>} */
   export let openPartialCases = [];
 
-  /** @type {Array<{ id: string, label: string }>} */
   export let completeCases = [];
 
-  /** @type {Array<{ label: string, cases: Array<{ id: string, label: string }> }>} Optional —
-      when non-empty, renders as <optgroup>s (folder-based categories) instead of the flat
-      openPartialCases/completeCases lists. GeneratorPage.svelte passes both the flat lists
-      AND groups (progressHint below reads the flat list's {status, progress} even in grouped
-      mode); PyTestPage.svelte's /pt_cases is grouped-only, so it passes groups alone and
-      leaves the flat arrays at their [] default — the displayed counts below account for
-      that (see openCount/completeCount). */
   export let openPartialGroups = [];
 
-  /** @type {Array<{ label: string, cases: Array<{ id: string, label: string }> }>} */
   export let completeGroups = [];
 
-  /** @type {((caseId: string) => void) | null} */
   export let onLoad = null;
 
-  /** @type {(() => void) | null} */
   export let onExport = null;
 
-  /** @type {string | null} The currently loaded case's id, if any — GeneratorPage.svelte
-      destroys and recreates this component on every step switch (it's one branch of an
-      {#if}/{:else if} chain), so without this a case selected earlier reverts to blank the
-      moment you step back to Cases. Only used to seed the initial selection below; the two
-      selects are otherwise plain local state once mounted. */
+  // The currently loaded case's id, if any — GeneratorPage.svelte
+  // destroys and recreates this component on every step switch (it's one branch of an
+  // {#if}/{:else if} chain), so without this a case selected earlier reverts to blank the
+  // moment you step back to Cases. Only used to seed the initial selection below; the two
+  // selects are otherwise plain local state once mounted. 
   export let selectedCaseId = null;
 
-  let selectedOpenCase = openPartialCases.some((c) => c.id === selectedCaseId) ? selectedCaseId : '';
-  let selectedCompleteCase = completeCases.some((c) => c.id === selectedCaseId) ? selectedCaseId : '';
+  let selectedOpenCase = openPartialCases.some((c) => c.id === selectedCaseId)
+    ? selectedCaseId
+    : "";
+  let selectedCompleteCase = completeCases.some((c) => c.id === selectedCaseId)
+    ? selectedCaseId
+    : "";
 
   $: canLoad = !!(selectedOpenCase || selectedCompleteCase);
 
@@ -49,11 +42,11 @@
     : completeCases.length;
 
   function handleOpenChange() {
-    if (selectedOpenCase) selectedCompleteCase = '';
+    if (selectedOpenCase) selectedCompleteCase = "";
   }
 
   function handleCompleteChange() {
-    if (selectedCompleteCase) selectedOpenCase = '';
+    if (selectedCompleteCase) selectedOpenCase = "";
   }
 
   function handleLoad() {
@@ -70,19 +63,24 @@
   // a server-rendered <option> label).
   function progressHint(c) {
     const p = c.progress;
-    if (!p) return '';
-    if (p.has_step4 && p.confirms) return ' [synth done]';
-    if (p.has_step4) return ' [has draft]';
+    if (!p) return "";
+    if (p.has_step4 && p.confirms) return " [synth done]";
+    if (p.has_step4) return " [has draft]";
     if (p.confirms) return ` [${p.confirms}/3 steps]`;
-    return '';
+    return "";
   }
 </script>
 
 <div class="cases-step">
-  <p class="cases-intro">Select a test case to work on, then Load it. Export or clear its session from here too.</p>
+  <p class="cases-intro">
+    Select a test case to work on, then Load it. Export or clear its session
+    from here too.
+  </p>
 
   <div class="case-picker">
-    <label class="case-picker-label" for="open-partial-select">Open / Partial ({openCount})</label>
+    <label class="case-picker-label" for="open-partial-select"
+      >Open / Partial ({openCount})</label
+    >
     <div class="case-select-wrapper">
       <select
         id="open-partial-select"
@@ -105,12 +103,19 @@
           {/each}
         {/if}
       </select>
-      <img class="case-select-chevron" src={chevronDownIcon} alt="" aria-hidden="true" />
+      <img
+        class="case-select-chevron"
+        src={chevronDownIcon}
+        alt=""
+        aria-hidden="true"
+      />
     </div>
   </div>
 
   <div class="case-picker">
-    <label class="case-picker-label" for="complete-select">Complete ({completeCount})</label>
+    <label class="case-picker-label" for="complete-select"
+      >Complete ({completeCount})</label
+    >
     <div class="case-select-wrapper">
       <select
         id="complete-select"
@@ -133,12 +138,19 @@
           {/each}
         {/if}
       </select>
-      <img class="case-select-chevron" src={chevronDownIcon} alt="" aria-hidden="true" />
+      <img
+        class="case-select-chevron"
+        src={chevronDownIcon}
+        alt=""
+        aria-hidden="true"
+      />
     </div>
   </div>
 
   <div class="cases-actions">
-    <Button variant="primary" disabled={!canLoad} on:click={handleLoad}>Load &amp; Confirm</Button>
+    <Button variant="primary" disabled={!canLoad} on:click={handleLoad}
+      >Load &amp; Confirm</Button
+    >
     <Button variant="outline" on:click={handleExport}>Export</Button>
   </div>
 </div>

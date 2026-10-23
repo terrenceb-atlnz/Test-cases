@@ -1,6 +1,7 @@
 <script>
   // @ts-nocheck
   import Button from '../Button.svelte';
+  import ErrorBanner from '../ErrorBanner.svelte';
 
   // A port of the ART Log Viewer's DESIGN (author's permission, 2026-10-09): two panes, any file in
   // either pane so timestamps line up, the tail first and "Load earlier" in chunks, download, copy.
@@ -55,7 +56,7 @@
 </script>
 
 <div class="tc-logs">
-  {#if error}<div class="tc-problem">{error}</div>{/if}
+  <ErrorBanner message={error} />
   {#if camp && !camp.found}
     <div class="tc-small">No campaign files yet — device-testing writes them as the run goes (its queue file names this run).</div>
   {:else if camp}
@@ -93,11 +94,6 @@
   .tc-small {
     color: var(--color-text-muted);
     font-size: 0.85rem;
-  }
-
-  .tc-problem {
-    color: var(--color-error);
-    font-size: 0.88rem;
   }
 
   .tc-panes {

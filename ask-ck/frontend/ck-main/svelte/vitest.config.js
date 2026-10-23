@@ -15,9 +15,16 @@ export default defineConfig({
     environment: 'jsdom',
     include: ['tests/**/*.spec.js'],
     exclude: ['tests/e2e/**', 'node_modules/**'],
-    // Same as the root vitest.config.js, so specs read the same in both suites.
+    setupFiles: ['./tests/setup.js'],     // added: runs before every spec file
     globals: true,
     restoreMocks: true,
     clearMocks: true,
+    coverage: {
+      provider: 'v8', // or 'istanbul'
+      include: ['src/**/*.{js,svelte}'],   // measure your app code, not the tests
+      // Write the report even when a spec fails (e.g. an empty placeholder spec) — by
+      // default Vitest skips the report on any failure.
+      reportOnFailure: true,
+    },
   },
 });
