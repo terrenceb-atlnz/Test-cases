@@ -6,10 +6,10 @@
   // project tree filtered to runnable cases → Start → results. Launches go through THIS seat's
   // ck-agent (D7). Ported from current/svelte-src/src/tc/TcPage.svelte.
   import { onMount } from "svelte";
-  import AgentWindow from "./AgentWindow.svelte";
-  import ResultsTable from "./ResultsTable.svelte";
-  import RunsList from "./RunsList.svelte";
-  import SetupFields from "./SetupFields.svelte";
+  import TcAgentWindow from "./TcAgentWindow.svelte";
+  import TcResultsTable from "./TcResultsTable.svelte";
+  import TcRunsList from "./TcRunsList.svelte";
+  import TcSetupFields from "./TcSetupFields.svelte";
   import TcTree from "./TcTree.svelte";
   import Button from "../Button.svelte";
   import LlmButton from "../LlmButton.svelte";
@@ -448,7 +448,7 @@
     <span class="tc-step-n">2</span> Test Bench and Template
   </div>
   <div class="tc-line">
-    <SetupFields bind:setup />
+    <TcSetupFields bind:setup />
     <div class="tc-row">
       <select id="tc-template" class="form-input" bind:value={template}>
         <option value="">— topology template —</option>
@@ -499,7 +499,7 @@
     {#if validateRun}
       <div class="tc-row tc-full">
         {#key validateRun.runId}
-          <AgentWindow
+          <TcAgentWindow
             runId={validateRun.runId}
             sessionId={validateRun.sessionId}
             {agent}
@@ -595,7 +595,7 @@
     <div class="tc-line">
       {#key run.runId}
         <div class="tc-row tc-full">
-          <AgentWindow
+          <TcAgentWindow
             runId={run.runId}
             sessionId={run.sessionId}
             {agent}
@@ -606,14 +606,14 @@
           />
         </div>
         <div class="tc-row tc-full">
-          <ResultsTable runId={run.runId} {server} />
+          <TcResultsTable runId={run.runId} {server} />
         </div>
       {/key}
     </div>
   {/if}
 
   <div class="tc-step tc-earlier">Earlier Campaigns</div>
-  <RunsList
+  <TcRunsList
     {server}
     kind="composer"
     {refreshKey}

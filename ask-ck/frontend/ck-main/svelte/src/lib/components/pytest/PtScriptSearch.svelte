@@ -1,7 +1,7 @@
 <script>
   // @ts-nocheck
 
-  import ArrowStep from "./ArrowStep.svelte";
+  import PtArrow from "./PtArrow.svelte";
   import StatusBadge from "../StatusBadge.svelte";
   import Button from "../Button.svelte";
   import Table from "../Table.svelte";
@@ -396,7 +396,7 @@
 
 <div class="arrow-step-row">
   {#each sequencedTestSteps as step, i (step.n)}
-    <ArrowStep
+    <PtArrow
       label={i + 1}
       status={stepStatuses[step.n] ?? "none"}
       active={activeStepId === step.n}
@@ -405,7 +405,7 @@
     />
   {/each}
   {#if sequencedTestSteps.length > 0}
-    <ArrowStep
+    <PtArrow
       label="Summary"
       wide={true}
       status={summaryStatus}

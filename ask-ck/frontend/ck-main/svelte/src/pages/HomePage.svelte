@@ -74,7 +74,11 @@
 
 <div class="home-page">
   <div class="home-banner-container">
-    <div class="home-banner" class:admin={isAdmin} style:--banner-logo={`url(${atLogo})`}>
+    <div
+      class="home-banner"
+      class:admin={isAdmin}
+      style:--banner-logo={`url(${atLogo})`}
+    >
       <div class="home-hero">
         <button
           type="button"
@@ -149,17 +153,6 @@
     opacity: 0.15;
     pointer-events: none;
   }
-
-  /* .home-banner::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    z-index: -1;
-    background: var(--at-logo) right -80px top -240px / 820px auto no-repeat;
-    mix-blend-mode: m;
-    opacity: 0.15;
-    pointer-events: none;
-  } */
 
   .home-banner::after {
     content: "";

@@ -6,7 +6,7 @@
   // the grading tier list; the verdict itself is never overwritten), clickable logs, Feedback on a
   // script case that failed or errored, and the header readout: counts, time, tokens, cost.
   import { byCycle, effectiveVerdict, fmtDuration, fmtTokens, verdictCounts, VERDICT_ORDER } from './testComposerModel';
-  import LogViewer from './LogViewer.svelte';
+  import TcLogViewer from './TcLogViewer.svelte';
   import Button from '../Button.svelte';
   import LlmButton from '../LlmButton.svelte';
   import ErrorBanner from '../ErrorBanner.svelte';
@@ -113,7 +113,7 @@
               <pre class="tc-pre">{fb[row.case].text || ''}</pre></div></td></tr>
           {/if}
           {#if logOpen === row.case}
-            <tr class="tc-subrow"><td colspan="5"><LogViewer {runId} {server} caseKey={row.case} /></td></tr>
+            <tr class="tc-subrow"><td colspan="5"><TcLogViewer {runId} {server} caseKey={row.case} /></td></tr>
           {/if}
         {/each}
       </tbody>

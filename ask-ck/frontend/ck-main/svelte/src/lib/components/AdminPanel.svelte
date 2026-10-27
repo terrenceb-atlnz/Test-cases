@@ -2,7 +2,8 @@
   // @ts-nocheck
 
   // The home page's admin panel (shown after the logo is clicked enough times): the server's
-  // status line, plus confirm-first actions to reset sessions and restart the server.
+  // status line, the lint trends card, plus confirm-first actions to reset sessions and restart
+  // the server.
   import { onMount } from "svelte";
   import Button from "./Button.svelte";
   import ConfirmModal from "./ConfirmModal.svelte";
@@ -10,17 +11,23 @@
   import {
     fetchAdminStatus,
     describeAdminStatus,
+    fetchLintTrends,
+    describeLintTrends,
     resetWorkspaceLlmConfig,
     resetAllSessions,
     restartServer,
   } from "../services/adminService.js";
 
   let adminStatusText = "Loading status…";
+  let lintTrends = { note: "Loading lint trends…" };
 
   // The panel is only mounted once admin mode is on, so the status is fetched when it appears.
   onMount(() => {
     fetchAdminStatus().then((data) => {
       adminStatusText = describeAdminStatus(data);
+    });
+    fetchLintTrends().then((data) => {
+      lintTrends = describeLintTrends(data);
     });
   });
 
@@ -124,6 +131,32 @@
 <div class="admin-panel">
   <p class="admin-status">{adminStatusText}</p>
 
+  <!-- Always visible: a card shown only on alarm would make "nothing is wrong" and "nothing
+       was ever recorded" look identical. Turns red when a threshold is crossed. -->
+  <div class="admin-section">
+    <p class="admin-section-label">Lint trends</p>
+    {#if lintTrends.note}
+      <p class="admin-status">{lintTrends.note}</p>
+    {:else if lintTrends.alarms.length}
+      <div class="lint-alarm">
+        <p class="lint-alarm-title">Lint trend alarm</p>
+        <ul>
+          {#each lintTrends.alarms as alarm}
+            <li>{alarm}</li>
+          {/each}
+        </ul>
+        {#each lintTrends.lines as line}
+          <p class="admin-status">{line}</p>
+        {/each}
+      </div>
+    {:else}
+      {#each lintTrends.lines as line}
+        <p class="admin-status">{line}</p>
+      {/each}
+      <p class="admin-status">no threshold crossed</p>
+    {/if}
+  </div>
+
   <div class="admin-section">
     <p class="admin-section-label">Session state</p>
     <div class="admin-actions">
@@ -171,6 +204,25 @@
     letter-spacing: 0.06em;
     text-transform: uppercase;
     color: var(--color-text-muted);
+  }
+
+  .lint-alarm {
+    padding: 8px 12px;
+    border: 1px solid var(--color-error-border);
+    border-radius: 4px;
+    background: var(--color-error-surface);
+  }
+
+  .lint-alarm-title {
+    margin: 0;
+    font-weight: 700;
+    color: var(--color-error);
+  }
+
+  .lint-alarm ul {
+    margin: 4px 0 8px;
+    padding-left: 1.2rem;
+    color: var(--color-error);
   }
 
   .admin-actions {

@@ -7,10 +7,10 @@
   import Stepper from "../lib/components/Stepper.svelte";
   import CasePicker from "../lib/components/CasePicker.svelte";
   import Button from "../lib/components/Button.svelte";
-  import SequenceStep from "../lib/components/pytest/SequenceStep.svelte";
-  import ScriptSearchStep from "../lib/components/pytest/ScriptSearchStep.svelte";
-  import FragmentsStep from "../lib/components/pytest/FragmentsStep.svelte";
-  import GenerateStep from "../lib/components/pytest/GenerateStep.svelte";
+  import PtSequence from "../lib/components/pytest/PtSequence.svelte";
+  import PtScriptSearch from "../lib/components/pytest/PtScriptSearch.svelte";
+  import PtFragments from "../lib/components/pytest/PtFragments.svelte";
+  import PtGenerate from "../lib/components/pytest/PtGenerate.svelte";
   import UnderConstruction from "../lib/components/UnderConstruction.svelte";
 
   import * as casesService from "../lib/services/pytest/casesService.js";
@@ -216,7 +216,7 @@
        inside child components. -->
     <fieldset class="tool-fieldset" disabled={readOnly}>
       {#if currentStep === 1}
-        <SequenceStep
+        <PtSequence
           refinedSteps={caseInfo?.steps || []}
           sequence={session?.step2?.sequence || []}
           onSynthesize={async (headers) => {
@@ -241,7 +241,7 @@
           }}
         />
       {:else if currentStep === 2}
-        <ScriptSearchStep
+        <PtScriptSearch
           {sequencedTestSteps}
           columns={scriptSearchService.scriptColumns}
           onSuggestForStep={(stepN, headers) =>
@@ -268,7 +268,7 @@
           }}
         />
       {:else if currentStep === 3}
-        <FragmentsStep
+        <PtFragments
           {sequencedTestSteps}
           initialFragments={session?.step5?.fragments || []}
           initialAccounting={session?.step5?.accounting || {}}
@@ -296,7 +296,7 @@
           }}
         />
       {:else if currentStep === 4}
-        <GenerateStep
+        <PtGenerate
           {sequencedTestSteps}
           {title}
           initialGroup={session?.step6?.naming?.group ||

@@ -56,3 +56,53 @@ export async function resetAllSessions() {
 export async function restartServer() {
   return post("/restart");
 }
+
+// --- R5 lint trends (PLAN-self-healing-generation.md §6.4) ---
+// COPIED OVER FROM current/admin/admin.js (refreshLintTrends / renderLintTrendsCard).
+// /lint_trends answers in three shapes: a normal aggregate, a thin one ({runs: 0}) and a
+// failure ({error}). Read every field defensively. Read-only: the thresholds are server
+// constants in routers/pytest_create.py.
+export async function fetchLintTrends() {
+  try {
+    const r = await fetch("/api/pytest-create/lint_trends");
+    if (r.ok) return await r.json();
+    return { error: "HTTP " + r.status };
+  } catch (e) {
+    return { error: String(e) };
+  }
+}
+
+// MODIFIED FROM current/admin/admin.js TO WORK WITH SVELTE
+// (renderLintTrendsCard returned an HTML string + class name; this returns the pieces so the
+// component renders them.) `note` is a single quiet line; otherwise `lines` are the numbers and
+// `alarms` the crossed thresholds (empty = "no threshold crossed").
+export function describeLintTrends(d) {
+  if (!d) return { note: "Lint trends unavailable." };
+  if (d.error) return { note: "Lint trends unavailable: " + String(d.error) };
+  if (!d.runs) {
+    return {
+      note: "No assembly runs recorded yet — the trend starts at the first Assemble.",
+    };
+  }
+  const byClass =
+    Object.entries(d.by_class || {})
+      .map(([k, v]) => `${k}:${v}`)
+      .join(" · ") || "none";
+  const rr =
+    d.return_rate == null
+      ? "n/a (no repairs attempted)"
+      : Math.round(d.return_rate * 100) + "%";
+  const head =
+    `${d.runs} run(s)` +
+    (d.window ? ` in a window of ${d.window}` : "") +
+    (d.total_units != null ? ` · ${d.total_units} unit(s)` : "") +
+    (d.prompt_version ? ` · prompt version ${d.prompt_version}` : "");
+  return {
+    lines: [
+      head,
+      `lint errors by class — ${byClass}`,
+      `repair return rate — ${rr}`,
+    ],
+    alarms: (d.alarms || []).map((a) => a.detail || a.class || ""),
+  };
+}

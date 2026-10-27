@@ -172,7 +172,7 @@
   }
 
   .stepper-label {
-    font-size: 1.1rem;
+    font-size: 1rem;
     color: var(--color-stepper-outline);
     font-weight: 600;
     text-align: center;

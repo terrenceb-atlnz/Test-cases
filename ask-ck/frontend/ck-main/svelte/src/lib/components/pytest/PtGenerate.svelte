@@ -1,7 +1,7 @@
 <script>
   // @ts-nocheck
 
-  import ArrowStep from "./ArrowStep.svelte";
+  import PtArrow from "./PtArrow.svelte";
   import StatusBadge from "../StatusBadge.svelte";
   import Button from "../Button.svelte";
   import EditableField from "../EditableField.svelte";
@@ -9,7 +9,7 @@
   import StatusModal from "../StatusModal.svelte";
   import ConfirmModal from "../ConfirmModal.svelte";
   import LlmButton from "../LlmButton.svelte";
-  import ReviewFindings from "./ReviewFindings.svelte";
+  import PtReviewFindings from "./PtReviewFindings.svelte";
   import ErrorBanner from "../ErrorBanner.svelte";
   import { onMount, onDestroy } from "svelte";
   import { scrollToSection } from "../../utils/scroll.js";
@@ -518,7 +518,7 @@
   let review = initialReview;
 
   // A review describes ONE version of the script; once the code has moved on (a save or hand
-  // edit) it is stale. Shown by ReviewFindings; also read by the red-unit logic below.
+  // edit) it is stale. Shown by PtReviewFindings; also read by the red-unit logic below.
   $: reviewStale = !!genState?.review_stale;
   $: reviewFindings = review?.findings || [];
 
@@ -886,7 +886,7 @@
 
 <div class="arrow-step-row">
   {#each generateUnits as unit (unit.id)}
-    <ArrowStep
+    <PtArrow
       label={unit.label}
       wide={unit.kind === "setup"}
       status={generateUnitStatuses[unit.id] ?? "none"}
@@ -896,14 +896,14 @@
     />
   {/each}
   {#if generateUnits.length > 0}
-    <ArrowStep
+    <PtArrow
       label="Summary"
       wide={true}
       status={generateSummaryStatus}
       active={generateActiveUnitId === GENERATE_SUMMARY_STEP_ID}
       onClick={() => selectGenerateUnit(GENERATE_SUMMARY_STEP_ID)}
     />
-    <ArrowStep
+    <PtArrow
       label="Review/Fix"
       wide={true}
       status={generateReviewStatus}
@@ -1077,7 +1077,7 @@
             />
           </div>
         {/if}
-        <ReviewFindings {review} stale={reviewStale} code={assembledCode} />
+        <PtReviewFindings {review} stale={reviewStale} code={assembledCode} />
       </div>
     </div>
 

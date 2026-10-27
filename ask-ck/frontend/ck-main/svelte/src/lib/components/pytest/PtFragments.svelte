@@ -1,7 +1,7 @@
 <script>
   // @ts-nocheck
 
-  import ArrowStep from "./ArrowStep.svelte";
+  import PtArrow from "./PtArrow.svelte";
   import StatusBadge from "../StatusBadge.svelte";
   import Button from "../Button.svelte";
   import FragmentCard from "../FragmentCard.svelte";
@@ -18,7 +18,7 @@
 
   // Already-saved session.step5 state — this component is destroyed/recreated every time
   // PyTestPage switches away from it, so these are what let it repopulate on remount instead
-  // of starting empty (mirrors ScriptSearchStep's initialSelections/initialRecords).
+  // of starting empty (mirrors PtScriptSearch's initialSelections/initialRecords).
   /** @type {Array} session.step5.fragments — the whole gathered pool. */
   export let initialFragments = [];
   /** @type {Object} session.step5.accounting — {stepN(str): [{chosen, redundant}]}. */
@@ -39,7 +39,7 @@
 
   /** @type {(keep: Array<{source_id: string, symbol: string}>) => Promise<void>} Persists the
       selected fragments — at every per-step confirm and again from the Summary's Review &
-      Confirm, always the full selection (same pattern as ScriptSearchStep's onSaveMatches). */
+      Confirm, always the full selection (same pattern as PtScriptSearch's onSaveMatches). */
   export let onSaveFragments = async () => {};
 
   /** @type {(() => void) | null} Called after the Summary's Review & Confirm has saved. */
@@ -294,7 +294,7 @@
     confirmedFragmentSteps = updatedConfirmed;
 
     // Persist at every per-step confirm, not just the Summary's final Review & Confirm —
-    // same fix as ScriptSearchStep's advanceScriptSearchStep, same reason: navigating away
+    // same fix as PtScriptSearch's advanceScriptSearchStep, same reason: navigating away
     // before ever reaching the Summary would otherwise lose everything, since this
     // component's own state is destroyed the moment PyTestPage switches steps away from it.
     try {
@@ -332,7 +332,7 @@
 
 <div class="arrow-step-row">
   {#each sequencedTestSteps as step, i (step.n)}
-    <ArrowStep
+    <PtArrow
       label={i + 1}
       status={fragmentStepStatuses[step.n] ?? "none"}
       active={fragmentActiveStepId === step.n}
@@ -341,7 +341,7 @@
     />
   {/each}
   {#if sequencedTestSteps.length > 0}
-    <ArrowStep
+    <PtArrow
       label="Summary"
       wide={true}
       status={fragmentsSummaryStatus}

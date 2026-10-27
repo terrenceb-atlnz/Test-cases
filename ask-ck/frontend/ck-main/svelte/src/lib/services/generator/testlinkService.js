@@ -55,7 +55,7 @@ export async function searchTestLink(query) {
 // `key` is required server-side (the suggestion is scoped to this case's loaded session).
 // `headers` carries X-CK-LLM-Call (llmProgressService.startLlmProgress) so the server can
 // track/cancel this exact call — GeneratorPage.svelte supplies both via a closure, since
-// CandidatePickerStep's onSuggest only knows about the headers, not the case key.
+// OgCandidatePicker's onSuggest only knows about the headers, not the case key.
 export async function suggestTestLink(key, headers) {
   const res = await fetch(
     `${WIZARD_API}/suggest_testlink/${encodeURIComponent(key)}`,

@@ -3,10 +3,10 @@
 
   // Test Composer — the "Run Scripts" tab. A placeholder until the page is built.
   import { onMount, untrack } from "svelte";
-  import AgentWindow from "./AgentWindow.svelte";
-  import ResultsTable from "./ResultsTable.svelte";
-  import RunsList from "./RunsList.svelte";
-  import SetupFields from "./SetupFields.svelte";
+  import TcAgentWindow from "./TcAgentWindow.svelte";
+  import TcResultsTable from "./TcResultsTable.svelte";
+  import TcRunsList from "./TcRunsList.svelte";
+  import TcSetupFields from "./TcSetupFields.svelte";
   import Button from "../Button.svelte";
   import LlmButton from "../LlmButton.svelte";
   import ErrorBanner from "../ErrorBanner.svelte";
@@ -342,7 +342,7 @@
 
   <div class="tc-step"><span class="tc-step-n">3</span> Where it Runs</div>
   <div class="tc-line">
-    <SetupFields bind:setup />
+    <TcSetupFields bind:setup />
   </div>
 
   <div class="tc-step"><span class="tc-step-n">4</span> When and Launch</div>
@@ -395,7 +395,7 @@
     </div>
     {#key run.runId}
       <div class="tc-line">
-        <AgentWindow
+        <TcAgentWindow
           runId={run.runId}
           sessionId={run.sessionId}
           {agent}
@@ -408,7 +408,7 @@
       </div>
       <div class="tc-step"><span class="tc-step-n">6</span> Results</div>
       <div class="tc-line">
-        <ResultsTable runId={run.runId} {server} />
+        <TcResultsTable runId={run.runId} {server} />
       </div>
     {/key}
     <div class="tc-line">
@@ -426,7 +426,7 @@
   {/if}
   <div class="tc-step tc-earlier">Earlier Runs</div>
 
-  <RunsList
+  <TcRunsList
     {server}
     kind="scripts"
     {refreshKey}

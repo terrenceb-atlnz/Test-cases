@@ -1,7 +1,7 @@
 //@ts-nocheck
 
 // COPIED OVER FROM current/generator/chosen.js (restore slice only — chooseSelected/
-// clearSelected/chooseByIds stay inline in CandidatePickerStep.svelte, which already owns
+// clearSelected/chooseByIds stay inline in OgCandidatePicker.svelte, which already owns
 // that state; this is just the id-indexed restore logic all three candidate steps share)
 
 // MODIFIED FROM current/generator/chosen.js's restoreChosenFromSelections TO WORK WITH

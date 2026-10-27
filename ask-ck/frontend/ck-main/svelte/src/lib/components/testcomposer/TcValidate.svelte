@@ -6,10 +6,10 @@
   // clean, review) → approve the repaired copy → Finalize. Launch goes through THIS seat's ck-agent
   // (PLAN-agent-sessions D7). Ported from current/svelte-src/src/vd/VdPage.svelte.
   import { onMount } from "svelte";
-  import AgentWindow from "./AgentWindow.svelte";
-  import ResultsTable from "./ResultsTable.svelte";
-  import RunsList from "./RunsList.svelte";
-  import SetupFields from "./SetupFields.svelte";
+  import TcAgentWindow from "./TcAgentWindow.svelte";
+  import TcResultsTable from "./TcResultsTable.svelte";
+  import TcRunsList from "./TcRunsList.svelte";
+  import TcSetupFields from "./TcSetupFields.svelte";
   import Button from "../Button.svelte";
   import LlmButton from "../LlmButton.svelte";
   import ErrorBanner from "../ErrorBanner.svelte";
@@ -316,7 +316,7 @@
 
   <div class="tc-step"><span class="tc-step-n">2</span> Where it Runs</div>
   <div class="tc-line">
-    <SetupFields bind:setup />
+    <TcSetupFields bind:setup />
   </div>
 
   <div class="tc-step"><span class="tc-step-n">3</span> Launch</div>
@@ -359,7 +359,7 @@
     {#key run.runId}
       <div class="tc-line">
         <div class="tc-row tc-full">
-          <AgentWindow
+          <TcAgentWindow
             runId={run.runId}
             sessionId={run.sessionId}
             {agent}
@@ -374,7 +374,7 @@
       <div class="tc-step"><span class="tc-step-n">5</span> Results</div>
       <div class="tc-line">
         <div class="tc-row tc-full">
-          <ResultsTable runId={run.runId} {server} />
+          <TcResultsTable runId={run.runId} {server} />
         </div>
       </div>
     {/key}
@@ -474,7 +474,7 @@
   {/if}
 
   <div class="tc-step tc-earlier">Earlier Validation Runs</div>
-  <RunsList
+  <TcRunsList
     {server}
     kind="validation"
     {refreshKey}

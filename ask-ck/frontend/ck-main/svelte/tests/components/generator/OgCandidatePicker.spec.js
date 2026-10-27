@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeAll, beforeEach } from "vitest";
 import { render, screen, fireEvent, within } from "@testing-library/svelte";
 import { scrollToSection, scrollToBottom, scrollToTop } from "../../../src/lib/utils/scroll.js";
 
-import CandidatePickerStep from "../../../src/lib/components/generator/CandidatePickerStep.svelte";
+import OgCandidatePicker from "../../../src/lib/components/generator/OgCandidatePicker.svelte";
 
 // The scroll helpers call window.scrollTo / scrollIntoView, which jsdom does not implement —
 // replaced with no-ops so they cannot fail a test.
@@ -75,18 +75,18 @@ const atpylibPicker = {
   initialCandidates: mockCandidates,
 };
 
-describe("CandidatePickerStep", () => {
+describe("OgCandidatePicker", () => {
   describe("displays text", () => {
     describe("displays introText", () => {
       it.each([testLinkPicker, zephyrPicker, atpylibPicker])((picker) => {
-        render(CandidatePickerStep, { props: { ...picker } });
+        render(OgCandidatePicker, { props: { ...picker } });
         expect(screen.getByText(picker.introText)).toBeInTheDocument();
       });
     });
 
     describe("displays searchPlaceholder", () => {
       it.each([testLinkPicker, zephyrPicker, atpylibPicker])((picker) => {
-        render(CandidatePickerStep, { props: { ...picker } });
+        render(OgCandidatePicker, { props: { ...picker } });
         expect(
           screen.getAllByPlaceholderText(picker.searchPlaceholder),
         ).toBeInTheDocument();
@@ -95,7 +95,7 @@ describe("CandidatePickerStep", () => {
 
     describe("displays searchButtonLabel", () => {
       it.each([testLinkPicker, zephyrPicker, atpylibPicker])((picker) => {
-        render(CandidatePickerStep, { props: { ...picker } });
+        render(OgCandidatePicker, { props: { ...picker } });
         expect(
           screen.getAllByLabelText(picker.searchButtonLabel),
         ).toBeInTheDocument();
@@ -104,7 +104,7 @@ describe("CandidatePickerStep", () => {
 
     describe("displays candidateLabel", () => {
       it.each([testLinkPicker, zephyrPicker, atpylibPicker])((picker) => {
-        render(CandidatePickerStep, { props: { ...picker } });
+        render(OgCandidatePicker, { props: { ...picker } });
         expect(
           screen.getAllByLabelText(picker.candidateLabel),
         ).toBeInTheDocument();
@@ -113,7 +113,7 @@ describe("CandidatePickerStep", () => {
 
     describe("displays chosenLabel", () => {
       it.each([testLinkPicker, zephyrPicker, atpylibPicker])((picker) => {
-        render(CandidatePickerStep, { props: { ...picker } });
+        render(OgCandidatePicker, { props: { ...picker } });
         expect(
           screen.getAllByLabelText(picker.chosenLabel),
         ).toBeInTheDocument();
@@ -122,7 +122,7 @@ describe("CandidatePickerStep", () => {
 
     describe("displays columns", () => {
       it.each([testLinkPicker, zephyrPicker, atpylibPicker])((picker) => {
-        render(CandidatePickerStep, { props: { ...picker } });
+        render(OgCandidatePicker, { props: { ...picker } });
         expect(
           screen.getAllByLabelText(candidateColumns[0].label),
         ).toBeInTheDocument();
@@ -144,7 +144,7 @@ describe("CandidatePickerStep", () => {
     it.each(mockCandidates)(
       "shows every field of $id in the candidates table",
       (c) => {
-        const { container } = render(CandidatePickerStep, {
+        const { container } = render(OgCandidatePicker, {
           props: { ...testLinkPicker, initialCandidates: mockCandidates },
         });
         const candidates = within(tables(container).candidates);
@@ -157,7 +157,7 @@ describe("CandidatePickerStep", () => {
     );
 
     it("leaves the chosen table empty", () => {
-      const { container } = render(CandidatePickerStep, {
+      const { container } = render(OgCandidatePicker, {
         props: { ...testLinkPicker, initialCandidates: mockCandidates },
       });
       expect(within(tables(container).chosen).queryByText("AWP-9208")).toBe(
@@ -166,7 +166,7 @@ describe("CandidatePickerStep", () => {
     });
 
     it("leaves out a candidate that is already chosen", () => {
-      const { container } = render(CandidatePickerStep, {
+      const { container } = render(OgCandidatePicker, {
         props: {
           ...testLinkPicker,
           initialCandidates: mockCandidates,
@@ -181,7 +181,7 @@ describe("CandidatePickerStep", () => {
     });
 
     it("seeds only once: a later initialCandidates does not replace the list", async () => {
-      const { container, rerender } = render(CandidatePickerStep, {
+      const { container, rerender } = render(OgCandidatePicker, {
         props: { ...testLinkPicker, initialCandidates: mockCandidates },
       });
 
@@ -202,7 +202,7 @@ describe("CandidatePickerStep", () => {
     });
 
     it("waits for the first non-empty list before seeding", async () => {
-      const { container, rerender } = render(CandidatePickerStep, {
+      const { container, rerender } = render(OgCandidatePicker, {
         props: { ...testLinkPicker, initialCandidates: [] },
       });
       expect(within(tables(container).candidates).queryByText("AWP-9208")).toBe(
@@ -232,7 +232,7 @@ describe("CandidatePickerStep", () => {
 
     it("calls onSearch with the typed query", async () => {
       const onSearch = vi.fn(async () => []);
-      render(CandidatePickerStep, { props: { ...testLinkPicker, onSearch } });
+      render(OgCandidatePicker, { props: { ...testLinkPicker, onSearch } });
 
       await searchFor(testLinkPicker, "Master");
 
@@ -242,7 +242,7 @@ describe("CandidatePickerStep", () => {
 
     it("searches on Enter too", async () => {
       const onSearch = vi.fn(async () => []);
-      render(CandidatePickerStep, { props: { ...testLinkPicker, onSearch } });
+      render(OgCandidatePicker, { props: { ...testLinkPicker, onSearch } });
 
       const input = screen.getByPlaceholderText(
         testLinkPicker.searchPlaceholder,
@@ -255,7 +255,7 @@ describe("CandidatePickerStep", () => {
 
     it("replaces the candidates with the results", async () => {
       const onSearch = vi.fn(async () => searchResults);
-      const { container } = render(CandidatePickerStep, {
+      const { container } = render(OgCandidatePicker, {
         props: {
           ...testLinkPicker,
           initialCandidates: mockCandidates,
@@ -273,7 +273,7 @@ describe("CandidatePickerStep", () => {
 
     it("leaves out results that are already chosen", async () => {
       const onSearch = vi.fn(async () => searchResults);
-      const { container } = render(CandidatePickerStep, {
+      const { container } = render(OgCandidatePicker, {
         props: { ...testLinkPicker, chosen: [searchResults[0]], onSearch },
       });
 
@@ -289,7 +289,7 @@ describe("CandidatePickerStep", () => {
 
     it("shows an empty table when nothing matches", async () => {
       const onSearch = vi.fn(async () => []);
-      const { container } = render(CandidatePickerStep, {
+      const { container } = render(OgCandidatePicker, {
         props: {
           ...testLinkPicker,
           initialCandidates: mockCandidates,
@@ -308,7 +308,7 @@ describe("CandidatePickerStep", () => {
 
     it("clears ticked candidates, so Choose selected then moves nothing", async () => {
       const onSearch = vi.fn(async () => mockCandidates); // same rows come back
-      const { container } = render(CandidatePickerStep, {
+      const { container } = render(OgCandidatePicker, {
         props: {
           ...testLinkPicker,
           initialCandidates: mockCandidates,
@@ -333,7 +333,7 @@ describe("CandidatePickerStep", () => {
     });
 
     it("scrolls back up to the intro", async () => {
-      render(CandidatePickerStep, {
+      render(OgCandidatePicker, {
         props: { ...testLinkPicker, onSearch: vi.fn(async () => []) },
       });
 

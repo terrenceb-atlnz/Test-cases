@@ -4,7 +4,7 @@
   // A button that triggers an LLM call, consistently, anywhere in the app: live progress
   // text while busy, click-to-stop (true server-side cancel, not a client-only abort — see
   // llmProgressService's own doc comment on why), and a token-usage badge on success. First
-  // extracted from CandidatePickerStep.svelte's Suggest-with-LLM button; every other
+  // extracted from OgCandidatePicker.svelte's Suggest-with-LLM button; every other
   // LLM-triggering button (Objectives/Test Steps synthesis, Zephyr/ATP suggest) should use
   // this instead of re-wiring the same five functions inline.
   import Button from "./Button.svelte";

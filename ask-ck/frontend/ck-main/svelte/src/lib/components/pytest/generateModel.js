@@ -1,7 +1,7 @@
 // @ts-nocheck
 
-// Pure logic for the Generate step (GenerateStep.svelte): data in, data out — no component
-// state, no server calls, no DOM. Split out of GenerateStep so it can be unit-tested directly,
+// Pure logic for the Generate step (PtGenerate.svelte): data in, data out — no component
+// state, no server calls, no DOM. Split out of PtGenerate so it can be unit-tested directly,
 // the same split as zephyrModel.js / testComposerModel.js beside their components.
 
 // --- Arrow-step ids -----------------------------------------------------------------------
