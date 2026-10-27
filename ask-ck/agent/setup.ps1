@@ -4,7 +4,7 @@ Ask CK seat setup — Windows (PowerShell 5.1+).
 Served by the Ask CK server at <server>/setup/setup.ps1 and run with ONE line copied from
 the Ask CK home page:
 
-    irm http://10.33.22.17:8000/setup/setup.ps1 | iex
+    irm http://10.33.22.13:8000/setup/setup.ps1 | iex
 
 What it does, every time it runs (re-running is how you update or repair):
   Install ✔  find the Claude Code CLI, install it if absent, fix the user PATH, `claude update`
@@ -24,7 +24,7 @@ Knobs (environment variables, because `irm | iex` cannot take parameters):
 $ErrorActionPreference = 'Stop'
 
 $CK_SERVER = if ($env:CK_SERVER) { $env:CK_SERVER } else { '__CK_SERVER__' }
-if ($CK_SERVER -like '__CK_*') { $CK_SERVER = 'http://10.33.22.17:8000' }
+if ($CK_SERVER -like '__CK_*') { $CK_SERVER = 'http://10.33.22.13:8000' }
 $CK_SERVER = $CK_SERVER.TrimEnd('/')
 $AgentPort = if ($env:CK_AGENT_PORT) { [int]$env:CK_AGENT_PORT } else { 8765 }
 $AgentUrl = "http://127.0.0.1:$AgentPort"

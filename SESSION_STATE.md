@@ -5192,3 +5192,18 @@ the tool's. Both are committed as the frozen baseline. The comparison is next se
 both; the design differences to look for and the known risks are in PROGRESS 2026-10-20 (later).
 The bench today cannot run either (only an AR4050S on swi_e). The scratch ck.db copy from the
 lint run is deleted. Gate: pytest 2108 / 1 skipped, vitest 409.
+
+## Session Close / Handoff (2026-10-27) — terrenceb-dl rebuilt on 10-23; server repaired; pointers 10.33.22.17 → 10.33.22.13
+
+No product work. The host had been reinstalled on 2026-10-23 and the reinstall dropped
+python3.13, linger, the fstab automount, git-lfs and pwsh, and moved the DHCP lease to
+10.33.22.13 (`.17` is another laptop now). Terrence installed python3.13 (deadsnakes) and
+re-enabled linger; Claude restored the automount (`/etc/fstab.bak-2026-10-27`), installed
+git-lfs, re-pointed and restarted the seat agent (its unit's `CK_AGENT_ORIGIN` env overrides
+`ck-agent.conf`), and moved every live pointer in the repo, the memories and the host-local
+files to the IP (Terrence chose IP over the DNS name). Frozen records untouched; Zephyr links
+written before 10-23 and other seats' agents deliberately not chased; pwsh not reinstalled.
+Server healthy at http://10.33.22.13:8000/. Details and the "after any rebuild" checklist:
+PROGRESS 2026-10-27 and memory `askck-lan-hosting`. Terrence pushed the 10-19/10-20 commits
+during this session (main was at parity with origin before this wrap's commit). Gate: pytest
+2103 / 6 skipped (5 = pwsh), vitest 409. Next: the T33241 head-to-head.

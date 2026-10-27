@@ -4,7 +4,7 @@
 # Served by the Ask CK server at <server>/setup/setup.sh and run with ONE line copied from
 # the Ask CK home page:
 #
-#     curl -fsSL http://10.33.22.17:8000/setup/setup.sh | bash
+#     curl -fsSL http://10.33.22.13:8000/setup/setup.sh | bash
 #
 # What it does, every time it runs (re-running is how you update or repair):
 #   Install ✔  find the Claude Code CLI, install it if absent, fix PATH, `claude update`
@@ -23,7 +23,7 @@
 set -u
 
 CK_SERVER="${CK_SERVER:-__CK_SERVER__}"
-case "$CK_SERVER" in __CK_*) CK_SERVER="http://10.33.22.17:8000";; esac
+case "$CK_SERVER" in __CK_*) CK_SERVER="http://10.33.22.13:8000";; esac
 CK_SERVER="${CK_SERVER%/}"
 AGENT_PORT="${CK_AGENT_PORT:-8765}"
 AGENT_URL="http://127.0.0.1:${AGENT_PORT}"

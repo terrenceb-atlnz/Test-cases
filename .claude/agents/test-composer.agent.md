@@ -71,7 +71,7 @@ and lints *are* the product; calling a model directly tests the model instead of
 produces nothing `ck.db` knows about. Design docs: `ask-ck/plans/PLAN-pytest-creator.md`
 and `TOPOLOGY-PROFILES.md` — read the status header before changing that subsystem.
 
-Server of record is the LAN host `http://10.33.22.17:8000/`; use
+Server of record is the LAN host `http://10.33.22.13:8000/`; use
 `ask-ck/tools/run_scratch_server.sh` for anything exploratory. API prefix `/api/pytest-create`.
 
 ```

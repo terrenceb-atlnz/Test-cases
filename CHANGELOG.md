@@ -21,6 +21,28 @@ current working thread see
 > `ask-ck/ck-facelift/`, `pytest-create/` and `CK-main/` plan paths moved to `ask-ck/plans/` on 2026-09-11 and, once complete, to `archive/plans/`.
 > `js-tests/` → `tests/js/`, `e2e/` → `tests/e2e/`, `static/js/` → `ask-ck/frontend/ck-main/current/<page>/` (2026-09-11).
 
+## 2026-10-27 — Server of record is `http://10.33.22.13:8000/`; installer fallbacks and docs follow
+
+**What.** terrenceb-dl was reinstalled on 2026-10-23 and its DHCP lease moved from
+`10.33.22.17` to `10.33.22.13` (the old address now belongs to another laptop). The hosted
+server, seat agent, fstab automount, linger and git-lfs on that host were restored on
+2026-10-27 (host-local, nothing in the repo — memory `askck-lan-hosting` is the record). In the
+repo: the fallback address compiled into `ask-ck/agent/setup.sh` / `setup.ps1` (used only when
+a copy is run straight from the tree; the served copies are filled from the request's Host
+header), the usage examples in `ck-agent.ps1` and `ask-ck/agent/README.md`, the Host-header
+fixture in `tests/test_seat_setup_route.py`, the seat fixture in `tests/test_test_composer.py`,
+SERVER-README "Hosted deployment", the `test-composer` agent definition and two plans now say
+`.13`. A ⚠ line under the 2026-08-26 entry marks the old address as history.
+
+**Why.** Every pointer to the LAN host was a bare DHCP lease, and a lease moved for real for
+the first time. The one that mattered was outside the repo — the seat agent's unit pins
+`CK_AGENT_ORIGIN`, which overrides the config file the splash re-run had already corrected, so
+the agent refused the page it was meant to serve. Terrence chose the IP over the DNS name
+(`terrenceb-dl.ws.atlnz.lc`, which would follow the lease) — the origin check is an exact
+string match, so seats must browse by whichever form the agent was installed from, and the
+splash fills that from the address the browser used. Links Finalize already wrote into Zephyr,
+and agents installed on other seats before 10-23, still say `.17` (deliberately not chased).
+
 ## 2026-10-20 — Generator: plain-language objectives and high-level test steps
 
 **What.**
@@ -1909,6 +1931,11 @@ case's lock after `browser.close()` (pagehide/sendBeacon skipped), so consecutiv
 restart the scratch server or use distinct cases.
 
 ## 2026-08-26 — PyTest Creator UI conformance, refresh-safe UI state, the `claude_code` radio (a deliberate reversal), and LAN hosting
+
+> ⚠ **2026-10-27:** the address below is stale. terrenceb-dl was rebuilt on 2026-10-23 and its
+> DHCP lease moved to **`http://10.33.22.13:8000/`** (10.33.22.17 now belongs to another laptop);
+> the rebuild also dropped python3.13, linger, the fstab automount and git-lfs, all restored
+> 2026-10-27. Memory `askck-lan-hosting` is the record.
 
 > ⚠ **Superseded in part (checked 2026-09-23):** The "Claude Code CLI (this server)" radio was removed with server-side Claude on 2026-09-10, and the "§3c Apply trap" left open here was closed by per-seat LLM choice the same day (a seat that chose keeps its own; since D17, 2026-09-11, Apply also writes the site default on purpose).
 

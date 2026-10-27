@@ -226,7 +226,7 @@ HOST=0.0.0.0 ./run.sh
 > itself a safe configuration. Browse via `localhost`, not the bind address.
 
 > **Hosted deployment (2026-08-26): the server of record now runs LAN-exposed on
-> Terrence's workstation, `http://10.33.22.17:8000/`,** as the systemd **user** unit
+> Terrence's workstation, `http://10.33.22.13:8000/`,** as the systemd **user** unit
 > `ask-ck.service` (`~/.config/systemd/user/`, `HOST=0.0.0.0`, `Restart=always`,
 > linger enabled, so it starts at boot and survives logout). The unit runs `run.sh`
 > itself — with a non-TTY stdin `run.sh` exec's uvicorn in the foreground, so all
@@ -242,8 +242,10 @@ HOST=0.0.0.0 ./run.sh
 > precisely why it is `always`: the pkill's clean SIGTERM would end an `on-failure`
 > unit permanently). The admin panel's Restart button is service-safe by design: it
 > touches a watched `.py` and `--reload` cycles the app **in-process**, so the
-> service MainPID never exits (verified 2026-08-26). Caveats: 10.33.22.17 is a DHCP
-> lease, and the exposure below is accepted and real — no auth, no firewall on this
+> service MainPID never exits (verified 2026-08-26). Caveats: 10.33.22.13 is a DHCP
+> lease (it was 10.33.22.17 until the 2026-10-23 host rebuild, which also dropped python3.13,
+> linger, the fstab automount and git-lfs — memory `askck-lan-hosting` has the recovery), and
+> the exposure below is accepted and real — no auth, no firewall on this
 > host, and any LAN seat's Apply rewrites the site default that never-configured seats start
 > from (D17). Since 2026-09-10 no seat can reach this box's Claude seat: server-side Claude is
 > gone, and every seat's Claude calls run on its own agent.

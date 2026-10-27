@@ -1,15 +1,33 @@
 ---
 name: askck-lan-hosting
-description: "Ask CK is LAN-hosted at http://10.33.22.17:8000/ as systemd user unit ask-ck.service; the front door is the local `ck` command — NONE of it is in the repo, so this memory is the record"
+description: "Ask CK is LAN-hosted at http://10.33.22.13:8000/ (was 10.33.22.17 until the 2026-10-23 host rebuild) as systemd user unit ask-ck.service; the front door is the local `ck` command — NONE of it is in the repo, so this memory is the record, including what a host rebuild loses"
 metadata:
   type: project
-  verified: 2026-09-22
+  verified: 2026-10-27
 ---
 
 **Since 2026-08-26 the Ask CK server of record runs LAN-exposed on Terrence's workstation
-(`terrenceb-dl`, `http://10.33.22.17:8000/`).** Three host-local artifacts make it so, and the
-repo contains **none of them** — this memory and SERVER-README "Hosted deployment" are the
-record:
+(`terrenceb-dl`, `http://10.33.22.13:8000/` — it was `http://10.33.22.17:8000/` until the
+2026-10-23 rebuild, see below).** Three host-local artifacts make it so, and the repo contains
+**none of them** — this memory and SERVER-README "Hosted deployment" are the record:
+
+**terrenceb-dl was rebuilt (fresh Ubuntu 24.04 install, new NIC `enp4s0`) on 2026-10-23, and
+the rebuild silently undid most of this.** Found 2026-10-27 because the gate said ".venv not
+found" and the unit had restarted 969 times. What was lost, and what put it back:
+- `/usr/bin/python3.13` (the repo `.venv` is built on it; Ubuntu 24.04 ships only 3.12) → the
+  deadsnakes PPA + `apt-get install python3.13` (Terrence ran it; the PPA add is refused to
+  Claude as external code). Same minor version, so the venv needed no rebuild — the full gate
+  proved it.
+- `loginctl enable-linger` → re-enabled by Terrence.
+- the `/etc/fstab` automount line → restored by Claude with consent, backup
+  `/etc/fstab.bak-2026-10-27`; inactive until the next reboot because the share was already
+  mounted by hand.
+- `git-lfs` and `pwsh` (5 agent-parity tests skip without it) → git-lfs reinstalled; pwsh not.
+- **the DHCP lease moved: 10.33.22.17 → 10.33.22.13.** Every pointer to `.17` went stale at
+  once: the seat-agent unit's `CK_AGENT_ORIGIN` (env beats `ck-agent.conf`, so the agent locked
+  CORS to the dead address), the `ck` wrapper's fallback, the installers' fallback, docs,
+  memories, bookmarks. **How to apply:** after ANY rebuild of this host, check those five
+  things first, and treat an address in a document as a claim to re-check (`ip -4 addr`).
 
 1. **`~/.config/systemd/user/ask-ck.service`** — `HOST=0.0.0.0`, `PORT=8000`,
    `Restart=always` (RestartSec=15), `ExecStartPre` probes `.venv/bin/python` so an unmounted
@@ -20,8 +38,9 @@ record:
    On LOCAL disk deliberately: the repo is on NFS, and the wrapper must work exactly when the
    share is down (`ck on` mounts it). `ck reload` = the admin panel's soft in-process reload.
 3. **`/etc/fstab` automount** for `tbhome.st.atlnz.lc:/home/terrenceb` →
-   `/media/terrenceb/mnt/testbox_home` (`nofail,x-systemd.automount,_netdev,soft`); backup at
-   `/etc/fstab.bak-2026-08-26`. `nofail` means a dead share can never hang or fail boot.
+   `/media/terrenceb/mnt/testbox_home` (`nofail,x-systemd.automount,_netdev,soft`); backups at
+   `/etc/fstab.bak-2026-08-26` and `/etc/fstab.bak-2026-10-27` (re-added after the rebuild).
+   `nofail` means a dead share can never hang or fail boot.
 
 **Why `Restart=always`, not `on-failure`:** `run.sh --stop`'s fallback `pkill -f 'uvicorn
 CK_server.main'` delivers a *clean* SIGTERM; `on-failure` would treat that as deliberate and
@@ -69,10 +88,12 @@ Known caveats, all accepted explicitly by Terrence on 2026-08-26:
   (`secrets.testboxes.json` — NO LONGER since 2026-10-12: the server's SSH run path and its
   profiles were removed; runs go through each user's own seat agent), and — since Option A — select "Claude Code CLI (this server)"
   and spend this box's Claude seat. Narrowings live in PLAN-llm-mode-selection.md §5.
-- **10.33.22.17 is a DHCP lease** (`dynamic` on enp0s31f6); the 0.0.0.0 bind doesn't care,
-  bookmarks do. A DHCP reservation would pin it.
+- **10.33.22.13 is a DHCP lease** (`dynamic` on `enp4s0`; it was 10.33.22.17 on `enp0s31f6`
+  before the 2026-10-23 rebuild — the lease has now moved once for real); the 0.0.0.0 bind
+  doesn't care, bookmarks and the seat agents' `CK_AGENT_ORIGIN` do. A DHCP reservation from IT
+  would pin it.
 - **Not reboot-tested end-to-end** (each link verified individually: automount unit loaded,
-  linger on, unit enabled, ExecStartPre retry works).
+  linger on, unit enabled, ExecStartPre retry works). Still true after the 2026-10-27 repair.
 - The scratch-server workflow ([[ckdb-wal-and-test-isolation]], port 8123) coexists untouched;
   the full gate ran green WHILE the hosted server was serving.
 

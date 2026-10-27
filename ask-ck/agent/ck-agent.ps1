@@ -14,7 +14,7 @@
   No dependencies beyond Windows PowerShell 5.1 (present on every Windows 10/11 machine).
 
     powershell -ExecutionPolicy Bypass -File ck-agent.ps1
-    $env:CK_AGENT_ORIGIN = 'http://10.33.22.17:8000'; .\ck-agent.ps1   # lock CORS to your server
+    $env:CK_AGENT_ORIGIN = 'http://10.33.22.13:8000'; .\ck-agent.ps1   # lock CORS to your server
 
   Security model (per signed-off plan): binds 127.0.0.1 ONLY (never 0.0.0.0), CORS is
   restricted to the Ask CK server origin, no token. Any process on THIS machine could call

@@ -42,7 +42,7 @@ Two facts every user of the tool must know:
 
 ## 3. The tool
 
-`ask-ck/tools/pt_agent_broker.py --server http://10.33.22.17:8000 --session S [--workers 4]
+`ask-ck/tools/pt_agent_broker.py --server http://10.33.22.13:8000 --session S [--workers 4]
 [--agent http://127.0.0.1:8765] [--log PATH] [--once]`
 
 - stdlib only (`urllib`, `threading`, `json`), like `ask-ck/agent/ck_agent.py`; runs on the

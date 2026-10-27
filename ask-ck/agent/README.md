@@ -43,7 +43,7 @@ repo's gate through `pwsh`:
 ```powershell
 powershell -ExecutionPolicy Bypass -File ck-agent.ps1
 # lock CORS to your server:
-$env:CK_AGENT_ORIGIN = 'http://10.33.22.17:8000'; powershell -ExecutionPolicy Bypass -File ck-agent.ps1
+$env:CK_AGENT_ORIGIN = 'http://10.33.22.13:8000'; powershell -ExecutionPolicy Bypass -File ck-agent.ps1
 ```
 
 It writes `agent.log` beside itself (`%LOCALAPPDATA%\ck-agent\agent.log` when installed by

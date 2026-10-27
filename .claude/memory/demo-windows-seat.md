@@ -25,7 +25,8 @@ autostart. This is that seat; no other Windows client has been seen hitting the 
 - On demo day 2026-09-10 it had **no** Claude agent, no Git and no source files — only the
   URL. Treat it as the model of a bare seat, which is what the plan must work on.
 - To re-identify a seat later: `journalctl --user -u ask-ck.service --since … | grep -oE
-  '([0-9]{1,3}\.){3}[0-9]{1,3}:[0-9]+ - "'` — 10.33.22.17 is this host's own LAN address and
+  '([0-9]{1,3}\.){3}[0-9]{1,3}:[0-9]+ - "'` — 10.33.22.13 is this host's own LAN address
+  (10.33.22.17 in journal entries before the 2026-10-23 rebuild, [[askck-lan-hosting]]) and
   127.0.0.1 is a browser on this host, so neither is a remote seat.
 
 **2026-09-11:** confirmed by the xrdp log — the 13:35 RDP session on demo day came from

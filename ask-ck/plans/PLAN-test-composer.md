@@ -259,7 +259,7 @@ Two ways in, both kept (*"because i want this to be backwards-compatible"*):
 ## 5. Deep link for Finalize
 
 B's Finalize writes into Zephyr step 1: *"…use script <TITLE> in the ask-ck tool. <LINK>"*.
-`<LINK>` = `http://10.33.22.17:8000/?panel=composer&script=<group>/<name>`. It opens the
+`<LINK>` = `http://10.33.22.13:8000/?panel=composer&script=<group>/<name>`. It opens the
 Composer with the script's case preselected in step 4 once a project and template are chosen.
 **The host part is the server of record** (memory `askck-lan-hosting`). If the server ever
 moves, old links in Zephyr break, so the link should go through a stable name (open §8.5).

@@ -74,7 +74,7 @@ def body(**kw):
 # ------------------------------------------------------------------ the hand-off
 
 def test_a_validation_handoff_names_the_script_by_its_absolute_path(env):
-    out = tc_runs.create_run(body(), seat="10.33.22.17")
+    out = tc_runs.create_run(body(), seat="10.33.22.13")
     h = out["handoff"]
     assert tc_runs.RUN_ID_RE.match(h["run_id"]) and h["schema"] == 1
     assert h["cases"] == [{"key": "AWPTCM-T33234", "kind": "script",

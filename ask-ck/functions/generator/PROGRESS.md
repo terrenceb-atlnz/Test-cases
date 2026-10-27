@@ -5,11 +5,61 @@ verified: 2026-09-28
 
 **Purpose**: This file exists so future sessions can quickly understand exactly where we are, what has been built, what the priorities are, and how to continue seamlessly.
 
-**Last Updated**: 2026-10-20, later (by Claude, with Terrence; an independent script for T33241 written beside the tool's for a head-to-head NEXT session; T33241 bundle + the tool's 9002_IPv4 output committed)
+**Last Updated**: 2026-10-27 (by Claude, with Terrence; terrenceb-dl had been rebuilt on 2026-10-23 — server repaired, host-local pieces restored, every live pointer moved from 10.33.22.17 to 10.33.22.13; the T33241 head-to-head is still NEXT)
 
 > **Reading note (2026-09-23 doc sweep).** Entries are frozen as written. Where an entry's
 > claim has since stopped being true, a ⚠ line under its heading says what changed.
 > Newest first. Paths in older entries predate these moves (the same as in CHANGELOG): `tool/` → `ask-ck/tools/`, `ask-ck/var/` → `ask-ck/db/`, `objective-drafting/` → `ask-ck/functions/generator/`, `pytest-create/` → `ask-ck/functions/pytest-creator/`, `js-tests/` → `tests/js/`, `ask-ck/ck-facelift/` → `ask-ck/plans/`, root reports → `docs/`, and completed plans `ask-ck/plans/` → `archive/plans/` (2026-09-11, 2026-09-23). Also retired 2026-09-23: the demo notes → `archive/plans/demo-2026-09-11/`, and `HANDOFF-generate-token-efficiency.md` + `Fragments_prompt.md` → `archive/records/`.
+
+## Latest session (2026-10-27) — terrenceb-dl was rebuilt on 10-23; server repaired; every live pointer moved 10.33.22.17 → 10.33.22.13
+
+No product work. `/orient-ck` found the gate dead ("repo-local .venv not found") and
+`ask-ck.service` crash-looping (969 restarts by 11:30): **the host had been reinstalled on
+2026-10-23** (fresh Ubuntu 24.04, new NIC `enp4s0`) and the reinstall dropped everything the
+hosting depended on — `/usr/bin/python3.13` (the `.venv` interpreter; 24.04 ships 3.12 only),
+`loginctl` linger, the `/etc/fstab` automount, `git-lfs`, `pwsh` — and **moved the DHCP lease
+from 10.33.22.17 to 10.33.22.13**. `.17` now belongs to another laptop (`angga-l11`), which
+answered ping and so made the old address look alive. Memory `askck-lan-hosting` records the
+rebuild and the recovery list; **after any rebuild of this host, check those five things first.**
+
+**Repaired (host-local, outside the repo, each with Terrence's consent):**
+- Terrence: `python3.13` from the deadsnakes PPA (the PPA add is refused to Claude as external
+  code) and `enable-linger`. 3.13.18 against a venv built on 3.13.14 — no venv rebuild, the gate
+  proved it.
+- Claude: fstab automount re-added (backup `/etc/fstab.bak-2026-10-27`; inactive until the next
+  reboot, the share was already mounted by hand); `git-lfs` installed; the seat agent's unit
+  `~/.config/systemd/user/ck-agent.service` re-pointed (`CK_AGENT_ORIGIN` env beats the
+  `ck-agent.conf` the re-run splash had already fixed, so the agent was refusing pages at `.13`)
+  and restarted — CORS preflight from `http://10.33.22.13:8000` verified; `~/.local/bin/ck`
+  fallback address. Server healthy at **`http://10.33.22.13:8000/`** since 13:49
+  (`is_permanent_db: true`, 83,816 embeddings, no journal errors).
+
+**Pointers moved, by Terrence's choice of the IP** over the DNS name `terrenceb-dl.ws.atlnz.lc`
+(which also resolves to `.13` and would have followed the lease; the trade-off is explained in
+`askck-lan-hosting`): installer fallbacks `ask-ck/agent/setup.sh` + `setup.ps1` (the served
+copies are filled from the browser's Host header, so the live one-liner was already right),
+`ck-agent.ps1` + `ask-ck/agent/README.md` examples, tests `test_seat_setup_route.py` /
+`test_test_composer.py` / csg-tool `test_sf_uploader.py`, SERVER-README "Hosted deployment",
+`.claude/agents/test-composer.agent.md`, PLAN-test-composer, PLAN-pt-agent-broker; memories
+`askck-lan-hosting` (verified 2026-10-27), `askck-vpn-access`, `demo-windows-seat`, the index,
+and device-testing's `bench-cannot-open-tcp-to-office-pcs`. A ⚠ line sits under CHANGELOG's
+2026-08-26 entry. Frozen records (this file's older entries, SESSION_STATE, CHANGELOG bodies,
+`archive/`, `runs/`, device-testing campaign logs) are deliberately untouched.
+
+**Left undone, named:**
+- **D — Zephyr.** The "use script … in the ask-ck tool" links Finalize wrote into Zephyr step 1
+  before 10-23 (runs of 10-12, 10-13, 10-19) carry `.17`; the code builds the link from
+  `request.base_url`, so new ones are right. Terrence excluded D from today's fix.
+- **Other seats.** Any agent installed from the splash before 10-23 has `.17` baked in: re-run
+  the one-liner from `http://10.33.22.13:8000/`.
+- **`pwsh`** not reinstalled — 5 agent-parity tests in `tests/test_ck_agent_transport.py` skip
+  (`sudo snap install powershell --classic`). Gate skips went 1 → 6 for that reason alone.
+- **A DHCP reservation from IT** is the only thing that stops this recurring.
+- Untracked `ask-ck/functions/test-composer/runs/2026-10-19/` (one Validation record,
+  `1133-val-ef4c`): keep or delete not decided; left as found.
+
+**Next session:** the T33241 head-to-head (entry below) — Claude has still not read the tool's
+script. Gate today: pytest 2103 / 6 skipped, vitest 409.
 
 ## Latest session (2026-10-20, later) — an independent T33241 script beside the tool's; the comparison is NEXT session
 

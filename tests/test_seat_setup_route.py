@@ -24,17 +24,17 @@ AGENT_DIR = _REPO / "ask-ck" / "agent"
 
 
 def test_manifest_lists_every_served_file_with_matching_hashes(client):
-    r = client.get("/setup/manifest.json", headers={"host": "10.33.22.17:8000"})
+    r = client.get("/setup/manifest.json", headers={"host": "10.33.22.13:8000"})
     assert r.status_code == 200
     m = r.json()
     assert set(m["files"]) == {"setup.ps1", "setup.sh", "ck-agent.ps1", "ck_agent.py"}
     assert m["agent_version"] == ck_agent.AGENT_VERSION
-    assert m["server"] == "http://10.33.22.17:8000"
+    assert m["server"] == "http://10.33.22.13:8000"
     for name, sha in m["files"].items():
-        body = client.get(f"/setup/{name}", headers={"host": "10.33.22.17:8000"}).content
+        body = client.get(f"/setup/{name}", headers={"host": "10.33.22.13:8000"}).content
         assert hashlib.sha256(body).hexdigest() == sha, f"{name}: manifest hash != served bytes"
-    assert m["one_liners"]["windows"] == "irm http://10.33.22.17:8000/setup/setup.ps1 | iex"
-    assert m["one_liners"]["ubuntu"] == "curl -fsSL http://10.33.22.17:8000/setup/setup.sh | bash"
+    assert m["one_liners"]["windows"] == "irm http://10.33.22.13:8000/setup/setup.ps1 | iex"
+    assert m["one_liners"]["ubuntu"] == "curl -fsSL http://10.33.22.13:8000/setup/setup.sh | bash"
 
 
 def test_agent_files_are_served_byte_identical_to_the_repo(client):
