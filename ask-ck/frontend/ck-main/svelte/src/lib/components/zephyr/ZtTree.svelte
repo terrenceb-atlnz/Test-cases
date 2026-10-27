@@ -61,7 +61,7 @@
   }
 
   .zt-key {
-    color: var(--color-sidebar-nav-active-bg);
+    color: var(--color-zt-key);
     font-family: "Roboto Mono Variable", "Roboto Mono", monospace;
     font-weight: 600;
   }

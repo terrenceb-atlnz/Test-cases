@@ -1,31 +1,39 @@
 <script>
-// @ts-nocheck
+  // @ts-nocheck
 
-  import PageCard from '../lib/components/PageCard.svelte';
-  import PageHeader from '../lib/components/PageHeader.svelte';
-  import ToolHeader from '../lib/components/ToolHeader.svelte';
-  import TcValidate from '../lib/components/testcomposer/TcValidate.svelte';
-  import TcCompose from '../lib/components/testcomposer/TcCompose.svelte';
-  import TcRun from '../lib/components/testcomposer/TcRun.svelte';
+  import PageCard from "../lib/components/PageCard.svelte";
+  import PageHeader from "../lib/components/PageHeader.svelte";
+  import ToolHeader from "../lib/components/ToolHeader.svelte";
+  import TcValidate from "../lib/components/testcomposer/TcValidate.svelte";
+  import TcCompose from "../lib/components/testcomposer/TcCompose.svelte";
+  import TcRun from "../lib/components/testcomposer/TcRun.svelte";
 
-  import checkicon from '../assets/icons/circle-check-big.svg'
-  import playIcon from '../assets/icons/circle-play.svg'
-  import scriptsIcon from '../assets/icons/file-stack.svg'
-  import composerIcon from '../assets/icons/list-check.svg'
-    import { assembleScript } from '../lib/services/pytest/generateService';
+  import checkicon from "../assets/icons/circle-check-big.svg";
+  import playIcon from "../assets/icons/circle-play.svg";
+  import scriptsIcon from "../assets/icons/file-stack.svg";
+  import composerIcon from "../assets/icons/list-check.svg";
+  import { assembleScript } from "../lib/services/pytest/generateService";
 
   // The three Test Composer pages, switched by the tab buttons below — each its own component
   // in lib/components/testcomposer/.
   const tabs = [
-    { id: 'validate', label: 'Validate a Script', icon: checkicon},
-    { id: 'compose', label: 'Compose a Run', icon: playIcon },
-    { id: 'run', label: 'Run Scripts', icon:scriptsIcon},
+    { id: "validate", label: "Validate a Script", icon: checkicon },
+    { id: "compose", label: "Compose a Run", icon: playIcon },
+    { id: "run", label: "Run Scripts", icon: scriptsIcon },
   ];
 
-  let activeTab = 'validate';
+  /** @type {string | null} A case key or script path to select in Validate a Script — set when
+      PyTest Creator's "Validate Test" opens this page; it then starts on that tab. */
+  export let preselect = null;
+
+  let activeTab = "validate";
 </script>
 
-<ToolHeader title={tabs.find(t => t.id === activeTab)?.label} tool="TEST COMPOSER" icon={composerIcon}/>
+<ToolHeader
+  title={tabs.find((t) => t.id === activeTab)?.label}
+  tool="TEST COMPOSER"
+  icon={composerIcon}
+/>
 
 <div class="generic-page">
   <!-- Same button look as the Settings tabs, laid out across the top. -->
@@ -41,41 +49,42 @@
         class:active={activeTab === tab.id}
         aria-selected={activeTab === tab.id}
         on:click={() => (activeTab = tab.id)}
-      ><img src={tab.icon} class='tab-icon' alt=''>{tab.label}</button>
+        ><img src={tab.icon} class="tab-icon" alt="" />{tab.label}</button
+      >
     {/each}
   </div>
 
   <div class="composer-panel" role="tabpanel">
-    {#if activeTab === 'validate'}
-      <TcValidate />
-    {:else if activeTab === 'compose'}
+    {#if activeTab === "validate"}
+      <TcValidate {preselect} />
+    {:else if activeTab === "compose"}
       <TcCompose />
-    {:else if activeTab === 'run'}
+    {:else if activeTab === "run"}
       <TcRun />
     {/if}
   </div>
 </div>
 
 <style>
-
   .generic-page {
-  flex: 1;
-  min-height: 0;
+    flex: 1;
+    min-height: 0;
   }
 
   .composer-tabs {
     display: flex;
     align-items: center;
-    gap: 2px;                 
+    gap: 2px;
     border-bottom: 3px solid var(--color-border-surface);
-    padding-left: 32px;        
+    padding-left: 32px;
+    width: 100%;
   }
 
   .composer-tab {
     display: flex;
     align-items: center;
     gap: 12px;
-    min-width: 20vw;;
+    min-width: 20vw;
     padding: 10px 16px;
     margin-bottom: -3px;
     border: 3px solid var(--color-border-surface);

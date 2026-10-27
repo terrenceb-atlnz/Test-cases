@@ -389,7 +389,8 @@
             genState = sessResult.gen_state || null;
             return result;
           }}
-          {onNavigate}
+          onValidate={() =>
+            onNavigate && onNavigate("composer", { preselect: session.key })}
           {onCreateAnother}
           onFinished={() => (stepperCompleted = true)}
         />

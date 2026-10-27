@@ -109,7 +109,13 @@
   /**
    * @param {string} pageId
    */
-  function selectPage(pageId) {
+  // What to select when Test Composer opens (PyTest Creator's "Validate Test" passes the case
+  // key). Set on every navigation, so a plain sidebar click to Test Composer starts clean.
+  let composerPreselect = null;
+
+  /** @param {string} pageId @param {{ preselect?: string | null }} [opts] */
+  function selectPage(pageId, opts = {}) {
+    composerPreselect = opts.preselect ?? null;
     activePage = pageId;
 
     const target = routeMap[pageId] || '/';
@@ -180,7 +186,7 @@
   };
 </script>
 
-<div class="app-shell" style:--sidebar-width={sidebarCollapsed ? '80px' : '260px'}>
+<div class="app-shell" style:--sidebar-width={sidebarCollapsed ? '80px' : '240px'}>
   <Sidebar items={navigation} activePage={activePage} collapsed={sidebarCollapsed} onSelect={selectPage} onToggle={toggleSidebar} />
   <Topbar />
 
@@ -201,7 +207,7 @@
           <PyTestPage onNavigate={selectPage} onCreateAnother={resetPytest} initialCaseId={pendingPytestCaseId} />
         {/key} -->
       {:else if activePage === 'composer'}
-        <TestComposerPage />
+        <TestComposerPage preselect={composerPreselect} />
       {:else if activePage === 'zephyr'}
         <ZephyrPage />
       {:else}

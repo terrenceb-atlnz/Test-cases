@@ -1,40 +1,40 @@
 # Sequence — AWPTCM-T33247
 
-1. On the DUT, create test VLAN 10 and add the test port to it as a tagged trunk member. Create routed VLAN 20 on the source port as an untagged access member. Configure 'interface vlan10' / 'ip address 192.168.10.1/24' and 'interface vlan20' / 'ip address 192.168.20.1/24'.
-   verify: Setup only, with no pass/fail check.
-2. Configure two static ARP entries on the DUT in global configuration: 'arp 192.168.10.201 0000.5e00.5301 <test port>' and 'arp 192.168.10.202 0000.5e00.5302 <test port>'.
-   verify: Setup only, with no pass/fail check.
-3. On the traffic host attached to the test port, start Scapy ARP/ICMP responders on VLAN 10 for neighbours 192.168.10.11, .12, .13 and .14, each with its own unique MAC. On the traffic host attached to the source port, configure 192.168.20.100/24 with gateway 192.168.20.1. Start tcpdump on the test-port host interface, capturing ARP and IP.
-   verify: Setup only, with no pass/fail check.
-4. From the DUT, ping 192.168.10.11, .12, .13 and .14 (2 packets each). Then read 'show arp' and save the full table.
-   verify: 'show arp' lists all four neighbours, each with the MAC its responder uses, on interface vlan10 and the test port, as dynamic entries. Both 192.168.10.201 (0000.5e00.5301) and 192.168.10.202 (0000.5e00.5302) are listed as static. Record the snapshot.
-5. Stop all traffic toward the neighbours, with no pings and no host-originated traffic. Run 'clear arp-cache' on the DUT, then read 'show arp' straight away.
-   verify: None of 192.168.10.11–.14 appear in 'show arp'. Both 192.168.10.201 and .202 are still present as static entries, with the same MAC, interface and port as in baselineArp.
-6. Count the rows in the 'show arp' output captured in step 5, before any new traffic starts.
-   verify: The global table contains no dynamic entries. The total row count equals the number of static entries (2), so it is lower than baselineCount by exactly the 4 cleared dynamic entries.
-7. Ping 192.168.10.11–.14 from the DUT again so the cache refills, and check that 'show arp' matches baselineArp. Stop the traffic, run 'clear arp-cache 192.168.10.12', then read 'show arp' straight away.
-   verify: 192.168.10.12 is missing. 192.168.10.11, .13 and .14 are still present as dynamic entries with their baseline MAC, interface and port. Both static entries are unchanged.
-8. Count the rows in the 'show arp' output captured in step 7, before any new traffic starts.
-   verify: The total row count is baselineCount minus 1. Only the 192.168.10.12 row is gone, and the global scope holds exactly 3 dynamic entries.
-9. With traffic still stopped, run 'clear arp-cache 192.168.10.11' and check in 'show arp' that .11 is missing. From the source-port host, start a continuous UDP stream routed through the DUT to 192.168.10.11 and .12, for example 10 pps for 10 s, while tcpdump captures on the test-port host.
-   verify: tcpdump shows ARP who-has requests from the DUT, with sender 192.168.10.1, for 192.168.10.11 and .12. 'show arp' then lists both as dynamic entries with their correct MACs again. tcpdump shows the routed UDP stream reaching both neighbours, and loss stops once ARP has resolved: every packet after the first ARP reply in the second half of the stream is received.
-10. Stop all traffic, run 'clear arp-cache', and check in 'show arp' that no dynamic entries are left. From the source-port host, start the routed UDP stream to all of 192.168.10.11–.14 while tcpdump captures on the test-port host.
-   verify: tcpdump shows the DUT sending an ARP request for each of the four neighbours. 'show arp' lists all four as dynamic entries again, with their baseline MACs. Every neighbour receives the stream, with no loss continuing after resolution. The static entries stay unchanged throughout.
-11. On the DUT, run 'ip vrf red' and 'ip vrf blue'. Create VLAN 30 and VLAN 40 and add them as tagged VLANs on the test port. On 'interface vlan30' apply 'ip vrf forwarding red' then 'ip address 192.168.30.1/24'. On 'interface vlan40' apply 'ip vrf forwarding blue' then 'ip address 192.168.40.1/24'. On the test-port host, start Scapy responders for 192.168.30.11–.12 (VLAN 30) and 192.168.40.11–.12 (VLAN 40), each with its own unique MAC.
-   verify: Setup only, with no pass/fail check.
-12. Ping all global neighbours from the DUT, then ping the red and blue neighbours with 'ping vrf red 192.168.30.11', 'ping vrf red 192.168.30.12', 'ping vrf blue 192.168.40.11' and 'ping vrf blue 192.168.40.12'. Read 'show arp', 'show arp vrf red' and 'show arp vrf blue', and save each table.
-   verify: The global table holds 192.168.10.11–.14 as dynamic entries plus the two static entries. The red VRF table holds 192.168.30.11 and .12 as dynamic entries on vlan30. The blue VRF table holds 192.168.40.11 and .12 as dynamic entries on vlan40.
-13. Stop all traffic. Run 'clear arp-cache vrf red', then read 'show arp vrf red', 'show arp vrf blue' and 'show arp' straight away.
-   verify: 192.168.30.11 and .12 are missing from the red VRF table. The blue VRF table and the global table match vrfBaseline exactly, including the static entries.
-14. Count the rows in the 'show arp vrf red' output captured in step 13, before any new traffic starts.
-   verify: The red VRF table contains no dynamic entries. Its entry count has dropped from 2 to 0, while the blue and global entry counts match vrfBaseline.
-15. Refill the red VRF cache with 'ping vrf red 192.168.30.11' and 'ping vrf red 192.168.30.12'. Stop the traffic, run 'clear arp-cache vrf red 192.168.30.11', then read 'show arp vrf red', 'show arp vrf blue' and 'show arp' straight away.
-   verify: 192.168.30.11 is missing from the red VRF table, and 192.168.30.12 is still there with its baseline MAC. The blue VRF table and the global table match vrfBaseline. The red entry count is exactly 1.
-16. Refill the red VRF cache. Snapshot the global, red and blue tables, then run 'clear arp-cache 192.168.10.99', an address with no entry in any table. Snapshot all three tables again.
-   verify: The DUT either rejects the command with an error indication or accepts it without output. Both are valid results, and the response should be logged. The global, red and blue tables are identical before and after the command, both row by row and in row count.
-17. Snapshot the global, red and blue tables, then run 'clear arp-cache vrf red 192.168.30.99', an address with no entry in that VRF. Snapshot all three tables again.
-   verify: The DUT either rejects the command with an error indication or accepts it without output. Both are valid results, and the response should be logged. The global, red and blue tables are identical before and after the command.
-18. Snapshot the global, red and blue tables, then run 'clear arp-cache vrf nosuchvrf'. Snapshot all three tables again.
-   verify: The DUT either rejects the command with an error indication (expected) or ignores it. The global, red and blue tables are identical before and after the command.
-19. Snapshot 'show arp', then run 'clear arp-cache 192.168.10.201' against the static entry. Read 'show arp' and 'show running-config' straight away.
-   verify: 192.168.10.201 is still listed as a static entry with MAC 0000.5e00.5301 on the test port. The running-config still contains the 'arp 192.168.10.201 0000.5e00.5301' line. All other entries match the snapshot. Any error indication or silent acceptance is logged as the DUT's handling and is acceptable either way.
+1. Set the DUT to a known base state. Create the test VLAN, add the test port to it as an access port, and give the VLAN interface an IPv4 address, e.g. 'interface vlan<test>' then 'ip address 192.168.10.1/24'. Connect the traffic host (Scapy/tcpdump) to the test port. On that host, emulate four neighbours, N1 to N4, each with its own IP in 192.168.10.0/24 and its own unique MAC. Each neighbour answers ARP requests for its own IP only while its responder is enabled.
+   verify: No check here (setup). The script reads the port names from the .setup [portlink] section.
+2. Configure two static ARP entries on the DUT for addresses in the test subnet that no emulated neighbour uses, S1 and S2. Use 'arp <S-ip> <S-mac> <test port>' for each.
+   verify: No check here (setup). Step 4 checks the static entries.
+3. Configure two VRFs on the DUT, VRF-A and VRF-B, with 'ip vrf <name>'. Create two more VLANs and add a VRF-test port to each. Bind one VLAN to each VRF with 'ip vrf forwarding <name>' before giving it an address, e.g. 'ip address 172.16.1.1/24' for VRF-A and 'ip address 172.16.2.1/24' for VRF-B. On the traffic host, emulate neighbours A1 and A2 in VRF-A's subnet, and B1 and B2 in VRF-B's subnet. Keep N1 to N4 in the global table on the test VLAN. Add one static ARP entry inside VRF-A for an unused address SA1, using 'arp vrf VRF-A <SA1-ip> <SA1-mac> <port>'.
+   verify: No check here (setup). The VRF steps depend on this. The DUT must have the VRF feature or licence.
+4. Populate the global cache. With N1 to N4 answering ARP, send IP traffic from the DUT to each of them, e.g. 'ping <Nx-ip> repeat 3' from the DUT's CLI. Then stop all neighbour traffic and disable the ARP responders so nothing can trigger relearning. Read 'show arp'.
+   verify: 'show arp' lists N1 to N4, each with its emulated MAC on the test VLAN, as dynamic entries. It lists S1 and S2 as static entries with their configured MACs. Record the full table as the baseline.
+5. With traffic stopped, run 'clear arp-cache' on the DUT.
+   verify: The command is accepted with no error.
+6. Immediately after step 5, before any traffic resumes, read 'show arp'.
+   verify: None of N1 to N4 appears. S1 and S2 are still present as static entries with exactly the IP-to-MAC mappings and interfaces from arpBaselineGlobal. The number of entries equals the step 4 total minus dynCountGlobal.
+7. Enable the N1 to N4 responders again and ping each of them once from the DUT so the dynamic entries come back. Stop traffic and disable the responders. Read 'show arp'. Then run 'clear arp-cache <N2-ip>'.
+   verify: Before the clear, 'show arp' lists N1 to N4 as dynamic and S1 and S2 as static, giving the pre-clear table. The single-address clear is accepted with no error.
+8. Immediately after step 7, with no traffic, read 'show arp'.
+   verify: N2's entry is gone. N1, N3, N4, S1 and S2 are present with the same MAC, interface and type as in arpPreSingle. The entry count is exactly one lower than in arpPreSingle.
+9. Try to clear a static entry by its address with 'clear arp-cache <S1-ip>'. Then read 'show arp'.
+   verify: The DUT either rejects the command with an error or accepts it silently. Either way, S1 is still listed as static with its original MAC and interface. All other entries match the table from step 8.
+10. Relearning after a single-address clear. Leave N2 cleared with traffic stopped. Start tcpdump on the traffic host on the test port, re-enable N2's ARP responder, and resume traffic from the DUT to N2 with 'ping <N2-ip> repeat 5'.
+   verify: The capture shows an ARP request from the DUT's MAC for N2's IP and N2's reply. 'show arp' lists N2 again as dynamic with its emulated MAC. Only the first ping may fail while the address resolves. The remaining pings succeed and the capture shows those echo requests sent to N2's MAC.
+11. Relearning after a clear-all. With traffic stopped and responders disabled, run 'clear arp-cache' and check with 'show arp' that N1 to N4 are gone. Start tcpdump, re-enable all responders, and ping each of N1 to N4 with 'repeat 5'.
+   verify: For each of N1 to N4, the capture shows an ARP request from the DUT and the neighbour's reply. 'show arp' lists all four as dynamic with the correct MACs, and S1 and S2 are unchanged. For each neighbour, loss is limited to the first ping and the rest succeed.
+12. Stop traffic and disable the responders. Read 'show arp' as the baseline. Run 'clear arp-cache <unused-ip>' for an address in the test subnet that has no ARP entry. Read 'show arp' again.
+   verify: The DUT either rejects the command with an error or accepts it silently. Either way, the table after the clear is identical to the baseline: the same entries, MACs, interfaces, types and count.
+13. Populate the VRF caches. With A1, A2, B1 and B2 answering ARP, ping each of them from the DUT inside its VRF, e.g. 'ping vrf VRF-A <A1-ip>'. Make sure N1 to N4 are also present in the global table, re-pinging them if needed. Stop all traffic and disable all responders. Read 'show arp' (which includes the VRF entries) and 'show arp vrf VRF-A' / 'show arp vrf VRF-B'.
+   verify: VRF-A lists A1 and A2 as dynamic and SA1 as static. VRF-B lists B1 and B2 as dynamic. The global table lists N1 to N4 as dynamic and S1 and S2 as static. Record all three tables.
+14. Run 'clear arp-cache vrf VRF-A'.
+   verify: The command is accepted with no error.
+15. Immediately after step 14, with no traffic, read 'show arp vrf VRF-A', 'show arp vrf VRF-B' and the global 'show arp'.
+   verify: VRF-A has no dynamic entries: A1 and A2 are gone. SA1 is still there as static with its original MAC. VRF-B and the global table match arpBaselineVrf exactly. The total count is exactly two lower than at baseline.
+16. Re-enable the A1 and A2 responders and ping both in VRF-A so the entries come back. Stop traffic and disable the responders. Run 'clear arp-cache vrf VRF-A <A1-ip>'. Then read 'show arp vrf VRF-A', 'show arp vrf VRF-B' and 'show arp'.
+   verify: The command is accepted. VRF-A has lost A1 and still has A2 (dynamic, same MAC) and SA1 (static). VRF-B and the global table match arpBaselineVrf. The total count is exactly one lower than before this clear.
+17. Read all ARP tables as the baseline. Run 'clear arp-cache vrf VRF-B <unused-ip>' for an address in VRF-B's subnet that has no entry. Read all ARP tables again.
+   verify: The DUT either rejects the command with an error or accepts it silently. Either way, the global, VRF-A and VRF-B tables are identical to the baseline.
+18. Read all ARP tables as the baseline. Run 'clear arp-cache vrf <name>' for a VRF name that is not configured on the DUT. Read all ARP tables again.
+   verify: The DUT either rejects the command with an error (for example, that the VRF does not exist) or makes no change. Either way, the global, VRF-A and VRF-B tables are identical to the baseline.
+19. Clean up. Remove the static ARP entries with 'no arp <S-ip>' and 'no arp vrf VRF-A <SA1-ip>'. Remove the VRF bindings, the VRFs, the extra VLANs and the IP addresses. Stop the emulated neighbours.
+   verify: No check here (teardown).

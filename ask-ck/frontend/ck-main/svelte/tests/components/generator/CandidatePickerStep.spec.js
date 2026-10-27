@@ -1,14 +1,16 @@
 import { describe, it, expect, vi, beforeAll, beforeEach } from "vitest";
 import { render, screen, fireEvent, within } from "@testing-library/svelte";
+import { scrollToSection, scrollToBottom, scrollToTop } from "../../../src/lib/utils/scroll.js";
+
 import CandidatePickerStep from "../../../src/lib/components/generator/CandidatePickerStep.svelte";
 
 // The scroll helpers call window.scrollTo / scrollIntoView, which jsdom does not implement —
 // replaced with no-ops so they cannot fail a test.
-// vi.mock("../../../src/lib/utils/scroll.js", () => ({
-//   scrollToSection: vi.fn(),
-//   scrollToBottom: vi.fn(),
-//   scrollToTop: vi.fn(),
-// }));
+vi.mock("../../../src/lib/utils/scroll.js", () => ({
+  scrollToSection: vi.fn(),
+  scrollToBottom: vi.fn(),
+  scrollToTop: vi.fn(),
+}));
 
 const candidateColumns = [
   { key: "id", label: "ID", width: 1 },
@@ -216,9 +218,131 @@ describe("CandidatePickerStep", () => {
 
   // onSearch(query) — its result replaces the candidates, minus anything already chosen
   describe("search", () => {
-    it("", () => {});
-    it("", () => {});
-    it("", () => {});
+    // What a search returns — different ids from mockCandidates, so replaced rows are easy to tell apart.
+    const searchResults = [
+        { id: "AWP-7001", title: "Master election", score: 0.9, description: "Step: 1. Elect a master" },
+        { id: "AWP-7002", title: "Master failover", score: 0.7, description: "Step: 1. Fail the master" },
+    ];
+
+    // Types a query into the search box and clicks the search button, as a user would.
+    async function searchFor(picker, query) {
+        await fireEvent.input(screen.getByPlaceholderText(picker.searchPlaceholder), { target: { value: query } });
+        await fireEvent.click(screen.getByRole("button", { name: picker.searchButtonLabel }));
+    }
+
+    it("calls onSearch with the typed query", async () => {
+      const onSearch = vi.fn(async () => []);
+      render(CandidatePickerStep, { props: { ...testLinkPicker, onSearch } });
+
+      await searchFor(testLinkPicker, "Master");
+
+      expect(onSearch).toHaveBeenCalledTimes(1);
+      expect(onSearch).toHaveBeenCalledWith("Master");
+    });
+
+    it("searches on Enter too", async () => {
+      const onSearch = vi.fn(async () => []);
+      render(CandidatePickerStep, { props: { ...testLinkPicker, onSearch } });
+
+      const input = screen.getByPlaceholderText(
+        testLinkPicker.searchPlaceholder,
+      );
+      await fireEvent.input(input, { target: { value: "Master" } });
+      await fireEvent.submit(input.closest("form"));
+
+      expect(onSearch).toHaveBeenCalledWith("Master");
+    });
+
+    it("replaces the candidates with the results", async () => {
+      const onSearch = vi.fn(async () => searchResults);
+      const { container } = render(CandidatePickerStep, {
+        props: {
+          ...testLinkPicker,
+          initialCandidates: mockCandidates,
+          onSearch,
+        },
+      });
+
+      await searchFor(testLinkPicker, "Master");
+
+      const candidates = within(tables(container).candidates);
+      expect(await candidates.findByText("AWP-7001")).toBeInTheDocument();
+      expect(candidates.getByText("AWP-7002")).toBeInTheDocument();
+      expect(candidates.queryByText("AWP-9208")).toBe(null); // the seeded row is gone
+    });
+
+    it("leaves out results that are already chosen", async () => {
+      const onSearch = vi.fn(async () => searchResults);
+      const { container } = render(CandidatePickerStep, {
+        props: { ...testLinkPicker, chosen: [searchResults[0]], onSearch },
+      });
+
+      await searchFor(testLinkPicker, "Master");
+
+      const { candidates, chosen } = tables(container);
+      expect(
+        await within(candidates).findByText("AWP-7002"),
+      ).toBeInTheDocument();
+      expect(within(candidates).queryByText("AWP-7001")).toBe(null);
+      expect(within(chosen).getByText("AWP-7001")).toBeInTheDocument();
+    });
+
+    it("shows an empty table when nothing matches", async () => {
+      const onSearch = vi.fn(async () => []);
+      const { container } = render(CandidatePickerStep, {
+        props: {
+          ...testLinkPicker,
+          initialCandidates: mockCandidates,
+          onSearch,
+        },
+      });
+
+      await searchFor(testLinkPicker, "nothing");
+
+      await vi.waitFor(() =>
+        expect(
+          within(tables(container).candidates).queryByText("AWP-9208"),
+        ).toBe(null),
+      );
+    });
+
+    it("clears ticked candidates, so Choose selected then moves nothing", async () => {
+      const onSearch = vi.fn(async () => mockCandidates); // same rows come back
+      const { container } = render(CandidatePickerStep, {
+        props: {
+          ...testLinkPicker,
+          initialCandidates: mockCandidates,
+          onSearch,
+        },
+      });
+
+      await fireEvent.click(
+        within(tables(container).candidates).getAllByRole("checkbox", {
+          name: "Select row",
+        })[0],
+      );
+      await searchFor(testLinkPicker, "VLAN");
+      await vi.waitFor(() => expect(onSearch).toHaveBeenCalled());
+      await fireEvent.click(
+        screen.getByRole("button", { name: /Choose selected/ }),
+      );
+
+      expect(within(tables(container).chosen).queryByText("AWP-9208")).toBe(
+        null,
+      );
+    });
+
+    it("scrolls back up to the intro", async () => {
+      render(CandidatePickerStep, {
+        props: { ...testLinkPicker, onSearch: vi.fn(async () => []) },
+      });
+
+      await searchFor(testLinkPicker, "Master");
+
+      await vi.waitFor(() =>
+        expect(scrollToSection).toHaveBeenCalledWith(".cases-intro"),
+      );
+    });
   });
 
   // onSuggest() via the LLM button — its result replaces the candidates, minus anything chosen

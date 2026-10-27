@@ -54,8 +54,8 @@
     padding: 12px 12px 0px 12px;
     border: 3px solid var(--color-tool-card-border);
     border-bottom: none;
-    border-radius: 10px 10px 0 0;
-    background: var(--color-tool-card-bg);
+    border-radius: 5px 5px 0 0;
+    background: var(--color-tool-card-bg-hover);
     transition:
       background-color 0.2s ease,
       border-color 0.2s ease;
@@ -69,7 +69,7 @@
 
   .tool-card h2 {
     margin: 0;
-    font-size: 0.94rem;
+    font-size: 1rem;
     line-height: 1.3;
     letter-spacing: 0.08em;
     text-transform: uppercase;
@@ -132,8 +132,8 @@
     padding: 0 18px var(--card-strip);
     border: 3px solid var(--color-tool-card-border);
     border-top: none; /* joins onto .header */
-    border-radius: 0 0 10px 10px;
-    background: var(--color-tool-card-bg);
+    border-radius: 0 0 5px 5px;
+    background: var(--color-tool-card-bg-hover);
     display: grid;
     grid-template-rows: 0fr;
     transition:

@@ -25,6 +25,8 @@
     transition:
       background-color 0.2s ease,
       border-color 0.2s ease;
+
+    border-bottom: 1px solid var(--color-border-topbar);
   }
 
   .brand {

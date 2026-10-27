@@ -8,6 +8,13 @@ which names the source. A member already here is left exactly as it is.
 from framework.ATPackets import *
 import scapy.all
 import threading
+from framework.ATLibrary import *
+from framework.ATLibrary.ATTools import *
+import datetime
+import enum
+import os
+import queue
+import time
 
 
 # ART 1366_vrf_lite/library_1366.py lines 45-55
@@ -545,3 +552,300 @@ class GarpPacket:
 
     def get_host_ip(self):
         return self.hostIP
+
+
+# ART 1355_nlb/library_1355.py lines 81-86
+# selected because it reads and parses 'show arp' into IP, MAC, interface and type records.
+# Use it to record the baselines and for every table comparison and count check.
+def getShowArp(dut):
+    dut.mode('#')
+    output = dut.cmd('show arp')
+    # Return 2nd to last entry
+    output = output.split('\r\n')[2:-1]
+    return output
+
+
+
+
+
+
+# ART 1340_past_issues_2/library_1340.py lines 88-93
+# selected because it compares the current tables against an expected snapshot. Use it to diff
+# against arpPreSingle and the other baselines, including the entry count.
+def checkTables(dut, port, ip, vlanNum=None, bridgeId=None, log=None):
+    result = True
+    result = result and __check_mac_table(dut, port, vlanNum, log)
+    result = result and __check_arp_table(dut, port, ip, vlanNum=vlanNum, bridgeId=bridgeId, log=log)
+    result = result and __check_ip_table(dut, port, ip, log=log)
+    return result
+
+
+
+
+
+
+# AI: dependency `sendArpGeneratedFromIp` of # ART 1355_nlb/library_1355.py lines 140-156
+def sendArpGeneratedFromIp(ethSrc, dstMac, arpSenderIp):
+    # Get the last octet of src ipaddress in hexadecimal format
+    ipOctet = '{0:02x}'.format(int(arpSenderIp.split(".")[3]))
+    sendArp(ethSrc, arpSenderIp, arpSenderHwAddr="00:11:22:aa:bb:" + ipOctet, dstMac=dstMac)
+
+
+
+
+
+
+# AI: dependency `sendArpMc` of # ART 1355_nlb/library_1355.py lines 140-156
+def sendArpMc(ethSrc, dstMac, arpSenderIp):
+    # reply with a multicast MAC in ARP layer which differs from src MAC
+    sendArp(ethSrc, arpSenderIp, arpSenderHwAddr=nlbMulticastMac, dstMac=dstMac)
+
+
+
+
+
+
+# AI: dependency `MacAddrType` of # ART 1355_nlb/library_1355.py lines 140-156
+class MacAddrType(Enum):
+    MC_MAC = 0
+    UC_MAC = 1
+    # MAC address is generated from src ip's last octet
+    UC_MAC_GENERATED_FROM_IP = 2
+
+
+
+
+
+
+# AI: dependency `__check_mac_table` of # ART 1340_past_issues_2/library_1340.py lines 88-93
+def __check_mac_table(dut, port, vlanNum, log=None):
+    if not log:
+        log = dut.log
+
+    result = True
+
+    if 'eth' not in port.name:
+        macColumns = 5
+        portColumn = 1
+
+        dut.mode('#')
+        output = dut.cmd('show mac add')
+        outLines = output.split('\n')
+        found = []
+        tags = [' {} '.format(vlanNum), 'dynamic']
+        for line in outLines:
+            # Prepend the line with a ' ' so the vlan ID is surrounded by spaces to allow unique identification
+            if all(tag in ' {}'.format(line) for tag in map(str, tags)):
+                found.append(line)
+
+        if not found:
+            log(output)
+            log('No entry in mac address table containing "{}"'.format('", "'.join(map(str, tags))))
+            result = False
+
+        if found:
+            cols = found[0].split()
+            # cols looks like ['1', 'port1.0.13', '0000.cd37.088d', 'forward', 'dynamic']
+            if len(cols) == macColumns:
+                foundPort = cols[portColumn]
+                log('Expected number of columns in the MAC table, retrieved port name is {}'.format(foundPort))
+            else:
+                foundPort = None
+                log(output)
+                log('Unexpected number of columns in the MAC table, expected {}, found {}, unable to determine port'.format(macColumns, len(cols)))
+                result = False
+
+            if foundPort and foundPort == port.name:
+                log('Retrieved port name {} is the same as the expected port name {}'.format(foundPort, port.name))
+            else:
+                log('Retrieved port name {} is different from the expected port name {}'.format(foundPort, port.name))
+                result = False
+    return result
+
+
+
+
+
+
+# AI: dependency `__check_ip_table` of # ART 1340_past_issues_2/library_1340.py lines 88-93
+def __check_ip_table(dut, port, ip, log=None):
+    if not log:
+        log = dut.log
+
+    result = True
+
+    dut.mode('#')
+    output = dut.cmd('show platform table ip')
+    if 'Feature unavailable' not in output:
+        log(output)
+        numInstances = output.count('[Instance')
+        outLines = output.split('\n')
+        found = []
+        for line in outLines:
+            if ip in line:
+                found.append(line)
+
+        if len(found) != numInstances:
+            log(f'{len(found)} entries found when {numInstances} instances exist')
+            result = False
+
+        if found:  # This check was for CFC400 supporting devices, not sure if it is still needed for stacks.
+            inconsistent = False
+            one = found[0]
+            for other in found[1:]:
+                if one != other:
+                    log('Entries are inconsistent between instances')
+                    log(f'One: {one}')
+                    log(f'Other: {other}')
+                    inconsistent = True
+                    result = False
+
+        if found and not inconsistent:
+            log(f'{one}')
+            log(f'All {numInstances} entries across all instances are the same')
+
+            # Determine the column number automatically from the table column headings.
+            frontPanelPort = 0
+            if dut.is_marvell():
+                frontPanelPort = None  # Can be int or str depending on platform
+
+                if dut.software_starts_with('SBx90xGEN3'):
+                    # Extract port string from FDB table
+                    fdb_section = False
+                    for line in outLines:
+                        if 'IPv4 in FDB table' in line:
+                            fdb_section = True
+                            continue
+                        if fdb_section:
+                            if line.strip() == '' or '---' in line:
+                                continue
+                            if ip in line:
+                                parts = line.split()
+                                try:
+                                    frontPanelPort = parts[4]  # e.g., 'port1.2.5'
+                                    log(f'Retrieved port string is {frontPanelPort}, expected port is {port.name}')
+                                    if frontPanelPort != port.name:
+                                        result = False
+                                except IndexError:
+                                    log(f'Failed to parse port from FDB line: {line}')
+                                    result = False
+                                break
+                        else:
+                            log('Unable to find FDB table in output, only applies to SBx90xGEN3')
+
+                else:
+                    # Generic Marvell case
+                    portColNum = 0
+                    for line in outLines:
+                        if all(tag in line for tag in ['IP', 'prefLen', 'Port']):
+                            portColNum = line.split().index('Port')
+                            break
+                    frontPanelPort = int(one.split()[portColNum])
+                    if dut.software_starts_with('x6'):
+                        frontPanelPort += 1
+
+                # Final comparison for numeric ports
+                if isinstance(frontPanelPort, int):
+                    log(f'Retrieved port number is {frontPanelPort}, expected port number is {port.num}')
+                    if not ((port.num == frontPanelPort) or (port.num == frontPanelPort + 24)):
+                        result = False
+
+            elif not dut.software_starts_with(['x550', 'x930', 'SBx908NG', 'x950']):
+                intfColNum = 0
+                for line in outLines:
+                    if all(tag in line for tag in ['IP', 'prefLen', 'Intf']):
+                        intfColNum = line.split().index('Intf')
+                        break
+                intfNum = one.split()[intfColNum]
+                log('Retrieved interface number {}'.format(intfNum))
+                output = dut.cmd('show platform table egress')
+                log(output)
+                outLines = output.split('\n')
+                portColNum = 0
+                for line in outLines:
+                    if all(tag in line for tag in ['Mac', 'Vlan', 'PORT']):
+                        portColNum = line.split().index('PORT')
+                for line in outLines:
+                    if intfNum in line:
+                        frontPanelPort = int(line.split()[portColNum])
+                        break
+                # There is no command to determine the port mapping on devices that use the egress table (x510, x310, etc)
+                # "sh platform swtable portmap" is only available on Marvell platforms (where we don't actually need it)
+                # For the moment let's be satisfied that an internal port number can be retrieved.
+                if frontPanelPort > 0:
+                    log('Retrieved port number is {}'.format(frontPanelPort))
+                else:
+                    log('Unable to retrieve the port number')
+                    result = False
+            else:
+                # Above checks are not supported on platforms that fall here CR-57513
+                pass
+    return result
+
+
+
+
+
+
+# AI: dependency `__check_arp_table` of # ART 1340_past_issues_2/library_1340.py lines 88-93
+def __check_arp_table(dut, port, ip, vlanNum=None, bridgeId=None, log=None):
+    if not log:
+        log = dut.log
+
+    result = True
+
+    dut.mode('#')
+    output = dut.cmd('show arp')
+    outLines = output.split('\n')
+    found = []
+    for line in outLines:
+        if bridgeId:
+            if 'eth' in port.name:
+                tags = [ip, 'dynamic', ' {} '.format(bridgeId)]
+            else:
+                tags = [ip, port, 'dynamic', ' {} '.format(bridgeId)]
+            if all(tag in line for tag in map(str, tags)):
+                found.append(line)
+        else:
+            if ip in line and ' vlan{} '.format(vlanNum) in line and 'dynamic' in line:
+                found.append(line)
+
+    if len(found) > 1:
+        log(output)
+        log('More than one entry found in the ARP table for {}'.format('VLAN {}'.format(vlanNum)) if not bridgeId else bridgeId)
+        result = False
+    elif len(found) == 0:
+        log(output)
+        log('No entry for {} found in the arp table'.format('VLAN {}'.format(vlanNum)) if not bridgeId else bridgeId)
+        result = False
+
+    columnsExpectedVlan = 5
+    columnsExpectedBridge = 5		# this has changed as of main-20180919-4, a hyphen replaces the blank space
+    portColumnVlan = 3
+    portColumnBridge = None
+    if found:
+        cols = found[0].split()
+        # cols looks like ['192.168.1.1',  '0009.41fb.c323', 'vlan10', 'port2.0.14', 'dynamic']   on switch ports
+        # cols looks like ['192.168.1.10', '0000.cd38.12ef', 'br1',  '-',  'dynamic']             on eth ports
+        if 'eth' in port.name:
+            expectedCols = columnsExpectedBridge
+            portCol = portColumnBridge
+        else:
+            expectedCols = columnsExpectedVlan
+            portCol = portColumnVlan
+        if len(cols) == expectedCols:
+            if portCol:
+                foundPort = cols[portCol]
+                log('Expected number of columns in the ARP table, retrieved port name is {}'.format(foundPort))
+        else:
+            log(output)
+            log('Unexpected number of columns in the ARP table, expected {}, found {}'.format(expectedCols, len(cols)))
+            result = False
+
+        if portCol:
+            if foundPort == port.name:
+                log('Retrieved port name {} is the same as the expected port name {}'.format(foundPort, port.name))
+            else:
+                log('Retrieved port name {} is different from the expected port name {}'.format(foundPort, port.name))
+                result = False
+    return result

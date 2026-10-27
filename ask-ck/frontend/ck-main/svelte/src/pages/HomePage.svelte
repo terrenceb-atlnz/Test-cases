@@ -24,7 +24,7 @@
         pageId: "generator",
         title: "Objective Generator",
         description:
-          "Turns a sparse AWPTCM manual case into a refined case with declarative objects, Zephyr-ready test steps, and traceability — with a review gate at every step.",
+          "Turns a sparse AWPTCM manual case into a refined case with declarative objectives, Zephyr-ready test steps, and traceability — with a review gate at every step.",
         icon: { src: testCaseIcon },
       },
       {
@@ -74,7 +74,7 @@
 
 <div class="home-page">
   <div class="home-banner-container">
-    <div class="home-banner" style:--banner-logo={`url(${atLogo})`}>
+    <div class="home-banner" class:admin={isAdmin} style:--banner-logo={`url(${atLogo})`}>
       <div class="home-hero">
         <button
           type="button"
@@ -116,7 +116,7 @@
   .home-page {
     flex: 1;
     margin: -16px 0;
-    padding: 4rem 8rem 0 8rem;
+    padding: 3rem 8rem 0 8rem;
   }
 
   .home-intro {
@@ -135,6 +135,10 @@
     display: flex;
   }
 
+  .home-banner.admin {
+    background-color: var(--color-banner-bg-admin);
+  }
+
   .home-banner::before {
     content: "";
     position: absolute;
@@ -145,6 +149,17 @@
     opacity: 0.15;
     pointer-events: none;
   }
+
+  /* .home-banner::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: var(--at-logo) right -80px top -240px / 820px auto no-repeat;
+    mix-blend-mode: m;
+    opacity: 0.15;
+    pointer-events: none;
+  } */
 
   .home-banner::after {
     content: "";
@@ -199,6 +214,10 @@
     padding: 1rem;
   }
 
+  .home-banner.admin .home-hero h1 {
+    border-left-color: var(--color-accent);
+  }
+
   .home-hero p {
     font-size: 1rem;
     color: var(--color-banner-text);
@@ -217,5 +236,6 @@
     align-items: start;
     justify-content: center;
     text-align: center;
+    zoom: 0.9;
   }
 </style>

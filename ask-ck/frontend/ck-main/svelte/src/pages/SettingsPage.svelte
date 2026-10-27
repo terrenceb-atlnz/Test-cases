@@ -328,6 +328,7 @@
     gap: 24px;
     align-items: flex-start;
     padding: 0 48px 28px;
+    margin-top: 24px;
   }
 
   .settings-tabs {
@@ -344,26 +345,22 @@
     align-items: center;
     gap: 10px;
     width: 100%;
-    padding: 10px 12px;
+    padding: 8px 20px 8px;
     background: transparent;
     border: none;
     border-radius: 8px;
     font: inherit;
-    font-weight: 600;
+    font-weight: 400;
     font-size: 0.94rem;
-    color: var(--color-text-heading);
+    color: var(--color-settings-tab-text);
     text-align: left;
     cursor: pointer;
     transition: background-color 0.2s ease, color 0.2s ease;
   }
 
-  .settings-tab-label {
-    font-size: 1rem;
-  }
-
   .settings-tab img {
-    width: 18px;
-    height: 18px;
+    width: 1.2rem;
+    height: auto;
     flex-shrink: 0;
     filter: var(--icon-filter-heading);
   }
@@ -372,7 +369,11 @@
     height: 2rem;
     width: auto;
     filter: var(--icon-filter-heading);
-    filter: invert(100%)
+  }
+
+  /* White icon on the filled (selected) button. */
+  .theme-options :global(.theme-option.selected .display-icon) {
+    filter: brightness(0) invert(1);
   }
 
   .option-type-label {
@@ -384,12 +385,7 @@
   }
 
   .settings-tab.active {
-    background: var(--color-accent);
-    color: #fff;
-  }
-
-  .settings-tab.active img {
-    filter: brightness(0) invert(1);
+    background: var(--color-sidebar-nav-active-bg);
   }
 
   .settings-panel {
@@ -425,23 +421,36 @@
 
   .theme-options {
     display: flex;
-    gap: 20px;
+    gap: 24px;
     margin-top: 16px;
+    zoom: 0.9;
   }
 
-  /* Scoped under .theme-options so it outranks Button's own .btn-primary background (two
-     classes there, three here) — a bare :global(.theme-option) loses that cascade. */
   .theme-options :global(.theme-option) {
     display: flex;
     align-items: center;
     justify-content: center; 
-    width: 80px;
-    height: 50px;
-    gap: 8px;
-    background-color: #767676;
+    width: 60px;
+    height: 60px;
+    background-color: var(--color-bg-surface);
     cursor: pointer;
+    border-radius: 999px;
+    border: 3px solid var(--color-accent);
+    transition: background-color 0.2s ease, transform 0.2s ease, filter 0.2s ease;
   }
 
+  /* Hover: lift slightly; unselected options take an accent tint, the selected one brightens. */
+  .theme-options :global(.theme-option:hover) {
+    opacity: 1.2;
+  }
+
+  .theme-options :global(.theme-option:not(.selected):hover) {
+    background-color: color-mix(in srgb, var(--color-accent) 15%, var(--color-bg-surface));
+  }
+
+  .theme-options :global(.theme-option.selected:hover) {
+    filter: brightness(1.1);
+  }
   /* The theme currently chosen (the theme store's value: light / dark / system). */
   .theme-options :global(.theme-option.selected) {
     background-color: var(--color-accent);
@@ -459,6 +468,7 @@
     display: flex;
     flex-direction: column;
     align-items: center;
+    gap: 8px
   }
 
   .llm-section h3 {

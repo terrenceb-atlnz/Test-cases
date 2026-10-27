@@ -148,8 +148,9 @@
   /** @type {(() => void) | null} Called once the save succeeds — parent marks the stepper finished */
   export let onFinished = null;
 
-  /** @type {((pageId: string) => void) | null} The save modal's "Compose Test". */
-  export let onNavigate = null;
+  /** @type {(() => void) | null} The save modal's "Validate Test" — the parent opens Test
+      Composer's Validate a Script with this case's saved script selected. */
+  export let onValidate = null;
 
   /** @type {((caseId?: string | null) => void) | null} The save modal's "Create Another PyTest". */
   export let onCreateAnother = null;
@@ -855,9 +856,9 @@
     }
   }
 
-  function goToComposer() {
+  function goToValidate() {
     showSaveModal = false;
-    onNavigate && onNavigate("composer");
+    onValidate && onValidate();
   }
 
   function createAnotherPytest() {
@@ -1162,7 +1163,7 @@
         <Button variant="outline" on:click={createAnotherPytest}
           >Create Another PyTest</Button
         >
-        <Button variant="outline" on:click={goToComposer}>Compose Test</Button>
+        <Button variant="outline" on:click={goToValidate}>Validate Test</Button>
       </svelte:fragment>
     </StatusModal>
   {:else if generateActiveUnit}

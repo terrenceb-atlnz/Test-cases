@@ -73,7 +73,7 @@
     font-weight: 700;
     letter-spacing: 0.12em;
     text-transform: uppercase;
-    color: rgba(234, 246, 255, 0.7);
+    color: var(--color-sidebar-section-label);
   }
 
   .nav-item {
@@ -83,45 +83,53 @@
     gap: 12px;
     width: 100%;
     background: transparent;
-    color: #dfeef8;
+    color: var(--color-sidebar-nav-text);
     border: none;
     padding: 8px 20px 8px;
     border-radius: 5px;
     text-align: left;
     cursor: pointer;
-    font-weight: 600;
+    font-weight: 500;
+    transition: background-color 0.2s ease, color 0.2s ease;
   }
 
   .nav-item:hover {
-    background: rgba(255, 255, 255, 0.08);
+    background: var(--color-sidebar-nav-hover-bg);
   }
 
   .nav-item.active {
     background: var(--color-sidebar-nav-active-bg);
-    color: var(--color-sidebar-nav-active-text);
-    border-left: 7px solid var(--color-sidebar-nav-active-side);
-    padding-left: 1.3rem;
+    /* color: var(--color-sidebar-nav-active-text); */
+    /* border-left: 7px solid var(--color-sidebar-nav-active-side); */
+    /* padding-left: 1.3rem; */
+    transition: background-color 0.2s ease, color 0.2s ease;
   }
 
   .nav-icon-svg {
-    width: 1.6em;
+    width: 1.3em;
     height: auto;
     display: block;
     filter: var(--icon-filter-nav);
     flex-shrink: 0;
   }
 
+  /* White icon on the filled active item, in both themes. */
+  /* .nav-item.active .nav-icon-svg {
+    filter: brightness(0) invert(1);
+  } */
+
   .nav-label {
     white-space: nowrap;
+    font-size: 0.9rem;
   }
 
   .collapse-toggle {
     width: 36px;
     height: 36px;
     border-radius: 8px;
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    border: 1px solid var(--color-sidebar-toggle-border);
     background: rgba(255, 255, 255, 0.06);
-    color: #fff;
+    color: var(--color-sidebar-nav-text);
     cursor: pointer;
     display: inline-flex;
     align-items: center;
@@ -133,17 +141,17 @@
   .collapse-toggle img {
     width: 1.5em;
     height: auto;
-    filter: brightness(0) invert(1);
+    filter: var(--icon-filter-nav);
   }
 
   .collapse-toggle:hover {
-    background: rgba(255, 255, 255, 0.12);
+    background: var(--color-sidebar-nav-hover-bg);
   }
 
   .sidebar-footer {
     margin-top: auto;
     font-size: 0.72rem;
-    color: rgba(234, 246, 255, 0.7);
+    color: var(--color-sidebar-section-label);
     text-align: left;
   }
 </style>
