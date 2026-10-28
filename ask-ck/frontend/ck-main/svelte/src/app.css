@@ -53,13 +53,13 @@
   --color-bg-page: #f6f8fb;
   --color-bg-shell: #f9fbfd;
   --color-bg-content: #fafafa;
-  --color-bg-topbar: #fafafa;
+  --color-bg-topbar: #ffffff;
   --color-border-topbar: rgba(13, 48, 78, 0.2);
   --color-bg-surface: #ffffff;
   --color-border-surface: #d7dee4;
 
   /* --- Sidebar and Settings tabs --- */
-  --color-bg-sidebar: #fafafa;
+  --color-bg-sidebar: #fff;
   --color-sidebar-section-label: #64748b;
   --color-sidebar-nav-text: #1f2d3a;
   --color-sidebar-nav-hover-bg: rgba(0, 0, 0, 0.05);

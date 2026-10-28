@@ -20,24 +20,18 @@
   /** The confirmed objective the steps are synthesized from. */
   export let objective = "";
 
-  /** @type {Array<{ description: string, expectedResult?: string }>} */
   export let steps = [];
 
   // --- Props: callbacks -------------------------------------------------------------
-  /** @type {() => Promise<any>} Run by the LLM button. */
   export let onSynthesize = async () => null;
 
-  /** @type {(steps: Array<{ description: string, expectedResult: string }>) => Promise<void>} */
   export let onSaveSteps = async () => {};
 
-  /** @type {() => Promise<{ wrote_bundle?: boolean, message?: string, saved_to?: string,
-      saved_files?: string[], validation?: { issues?: string[], warnings?: string[] } }>} */
   export let onExport = async () => ({});
 
-  /** @type {(opts: { dryRun: boolean }) => Promise<{ ok?: boolean, returncode?: number, output?: string }>} */
   export let onPushToZephyr = async () => ({});
 
-  /** @type {(() => void) | null} Called after a successful export — the parent marks the
+  /** Called after a successful export — the parent marks the
       stepper finished. */
   export let onFinished = null;
 
@@ -305,8 +299,8 @@
     <em>Export Repeatable Bundle</em>
     first if you've made edits). On the live Zephyr case it strips a leading
     <code>(N)</code>
-    title group, ensures version 2.0, and uploads the objective + steps +
-    traceability onto it. Run <em>Preview</em> first.
+    title group, ensures version 2.0, and uploads the objective + steps + traceability
+    onto it. Run <em>Preview</em> first.
   </p>
   {#if pushOutput}<pre class="push-output">{pushOutput}</pre>{/if}
 {/if}

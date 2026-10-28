@@ -1,15 +1,28 @@
 import { describe, it, expect, vi, beforeAll, beforeEach } from "vitest";
 import { render, screen, fireEvent, within } from "@testing-library/svelte";
 import { scrollToSection, scrollToBottom, scrollToTop } from "../../../src/lib/utils/scroll.js";
+import { startLlmProgress } from "../../../src/lib/services/llmProgressService.js";
 
 import OgCandidatePicker from "../../../src/lib/components/generator/OgCandidatePicker.svelte";
 
-// The scroll helpers call window.scrollTo / scrollIntoView, which jsdom does not implement —
-// replaced with no-ops so they cannot fail a test.
 vi.mock("../../../src/lib/utils/scroll.js", () => ({
   scrollToSection: vi.fn(),
   scrollToBottom: vi.fn(),
   scrollToTop: vi.fn(),
+}));
+
+// LlmButton (the "Suggest with LLM" button) starts a progress ticker that polls the server
+// and fetches token usage afterwards. There is no server in a test, so those two are
+// replaced; the rest of the module stays real. The fixed call id lets a test check the
+// headers that reach onSuggest.
+vi.mock("../../../src/lib/services/llmProgressService.js", async (importOriginal) => ({
+  ...(await importOriginal()),
+  startLlmProgress: vi.fn(() => ({
+    callId: "test-call-id",
+    headers: { "X-CK-LLM-Call": "test-call-id" },
+    stop: vi.fn(),
+  })),
+  fetchLatestLlmUsage: vi.fn(async () => null),
 }));
 
 const candidateColumns = [
@@ -22,6 +35,13 @@ const candidateColumns = [
 function tables(container) {
   const [candidates, chosen] = container.querySelectorAll(".data-table");
   return { candidates, chosen };
+}
+
+// Ticks the checkbox of row `index` in one of the two tables, as a user would.
+async function tick(table, index) {
+  await fireEvent.click(
+    within(table).getAllByRole("checkbox", { name: "Select row" })[index],
+  );
 }
 
 const mockCandidates = [
@@ -347,34 +367,285 @@ describe("OgCandidatePicker", () => {
 
   // onSuggest() via the LLM button — its result replaces the candidates, minus anything chosen
   describe("suggest with LLM", () => {
-    it("", () => {});
-    it("", () => {});
+    // What a suggestion returns — different ids from mockCandidates, so replaced rows are easy to tell apart.
+    const suggestions = [
+      { id: "AWP-8001", title: "Stacking resiliency", score: 0.88, description: "Step: 1. Reboot a stack member" },
+      { id: "AWP-8002", title: "Stacking ports", score: 0.64, description: "Step: 1. Check stack port status" },
+    ];
+
+    // Clicks the LLM button, as a user would.
+    async function clickSuggest() {
+      await fireEvent.click(screen.getByRole("button", { name: "Suggest with LLM" }));
+    }
+
+    it("calls onSuggest with the LLM call headers when clicked", async () => {
+      const onSuggest = vi.fn(async () => []);
+      render(OgCandidatePicker, { props: { ...testLinkPicker, onSuggest } });
+
+      await clickSuggest();
+
+      await vi.waitFor(() => expect(onSuggest).toHaveBeenCalledTimes(1));
+      expect(onSuggest).toHaveBeenCalledWith({ "X-CK-LLM-Call": "test-call-id" });
+    });
+
+    it("replaces the candidates with the suggestions" , async () => {
+      const onSuggest = vi.fn(async () => suggestions);
+      const { container } = render(OgCandidatePicker, {
+        props: {
+          ...testLinkPicker,
+          initialCandidates: mockCandidates,
+          onSuggest,
+        },
+      });      
+      const candidates = within(tables(container).candidates);
+
+      expect(await candidates.findByText("AWP-9208")).toBeInTheDocument();
+      expect(await candidates.findByText("AWP-9301")).toBeInTheDocument();
+      expect(candidates.queryByText("AWP-8001")).toBe(null); 
+      expect(candidates.queryByText("AWP-8002")).toBe(null);
+
+      await clickSuggest();
+      
+      expect(await candidates.findByText("AWP-8001")).toBeInTheDocument();
+      expect(await candidates.findByText("AWP-8002")).toBeInTheDocument();
+      expect(candidates.queryByText("AWP-9208")).toBe(null); 
+      expect(candidates.queryByText("AWP-9301")).toBe(null);
+
+    });
+
+    it("leaves out suggestions that are already chosen", async () => {
+      const onSuggest = vi.fn(async () => suggestions);
+      const { container } = render(OgCandidatePicker, {
+        props: { ...testLinkPicker, chosen: [suggestions[0]], onSuggest },
+      });
+
+      await clickSuggest();
+
+      const { candidates, chosen } = tables(container);
+      expect(await within(candidates).findByText("AWP-8002")).toBeInTheDocument();
+      expect(within(candidates).queryByText("AWP-8001")).toBe(null); // not offered again
+      expect(within(chosen).getByText("AWP-8001")).toBeInTheDocument(); // it stays chosen
+    });
+
+    it("clears ticked candidates, so Choose selected then moves nothing", async () => {
+      const onSuggest = vi.fn(async () => mockCandidates); // same rows come back
+      const { container } = render(OgCandidatePicker, {
+        props: { ...testLinkPicker, initialCandidates: mockCandidates, onSuggest },
+      });
+
+      await tick(tables(container).candidates, 0);
+      await clickSuggest();
+      await vi.waitFor(() => expect(scrollToSection).toHaveBeenCalled()); // the result has landed
+      await fireEvent.click(screen.getByRole("button", { name: /Choose selected/ }));
+
+      expect(within(tables(container).chosen).queryByText("AWP-9208")).toBe(null);
+    });
+
+    it("scrolls back up to the intro", async () => {
+      render(OgCandidatePicker, {
+        props: { ...testLinkPicker, onSuggest: vi.fn(async () => []) },
+      });
+
+      await clickSuggest();
+
+      await vi.waitFor(() =>
+        expect(scrollToSection).toHaveBeenCalledWith(".cases-intro"),
+      );
+    });
+
+    it("shows 'Suggesting…' on the button while onSuggest is running", async () => {
+      // The real ticker relabels the button every second ("Suggesting… 1s"); the shared mock
+      // never ticks, so for this one call it ticks once straight away.
+      startLlmProgress.mockImplementationOnce((verb, onTick) => {
+        onTick({ text: `${verb} 1s` });
+        return { callId: "test-call-id", headers: {}, stop: vi.fn() };
+      });
+      // A promise the test resolves itself, so the call stays "running" until finish() is called.
+      let finish;
+      const onSuggest = vi.fn(() => new Promise((resolve) => (finish = resolve)));
+      render(OgCandidatePicker, { props: { ...testLinkPicker, onSuggest } });
+
+      await clickSuggest();
+      expect(
+        await screen.findByRole("button", { name: "Suggesting… 1s" }),
+      ).toBeInTheDocument();
+
+      finish([]);
+      expect(
+        await screen.findByRole("button", { name: "Suggest with LLM" }),
+      ).toBeInTheDocument(); // back to its label once the call ends
+    });
+
+    it("shows an error banner when onSuggest fails, and keeps the candidates", async () => {
+      const onSuggest = vi.fn(async () => {
+        throw new Error("model offline");
+      });
+      const { container } = render(OgCandidatePicker, {
+        props: { ...testLinkPicker, initialCandidates: mockCandidates, onSuggest },
+      });
+
+      await clickSuggest();
+
+      expect(
+        await screen.findByText(/Suggest with LLM failed: model offline/),
+      ).toBeInTheDocument();
+      expect(
+        within(tables(container).candidates).getByText("AWP-9208"),
+      ).toBeInTheDocument(); // the list is untouched
+    });
   });
 
   // "↓ Choose selected" — ticked candidates move into chosen
   describe("choose selected", () => {
-    it("", () => {});
-    it("", () => {});
-    it("", () => {});
+    async function clickChoose() {
+      await fireEvent.click(screen.getByRole("button", { name: /Choose selected/ }));
+    }
+
+    it("moves ticked candidates into chosen, and only those", async () => {
+      const { container } = render(OgCandidatePicker, {
+        props: { ...testLinkPicker, initialCandidates: mockCandidates },
+      });
+
+      await tick(tables(container).candidates, 0); // AWP-9208
+      await clickChoose();
+
+      const { candidates, chosen } = tables(container);
+      expect(within(chosen).getByText("AWP-9208")).toBeInTheDocument();
+      expect(within(candidates).queryByText("AWP-9208")).toBe(null); // moved, not copied
+      expect(within(candidates).getByText("AWP-9301")).toBeInTheDocument(); // unticked row stays
+    });
+
+    it("does nothing when no candidate is ticked", async () => {
+      const { container } = render(OgCandidatePicker, {
+        props: { ...testLinkPicker, initialCandidates: mockCandidates },
+      });
+
+      await clickChoose();
+
+      const { candidates, chosen } = tables(container);
+      expect(within(chosen).queryByText("AWP-9208")).toBe(null);
+      expect(within(candidates).getByText("AWP-9208")).toBeInTheDocument();
+      expect(scrollToBottom).not.toHaveBeenCalled();
+    });
+
+    it("scrolls down to the chosen table", async () => {
+      const { container } = render(OgCandidatePicker, {
+        props: { ...testLinkPicker, initialCandidates: mockCandidates },
+      });
+
+      await tick(tables(container).candidates, 0);
+      await clickChoose();
+
+      expect(scrollToBottom).toHaveBeenCalledTimes(1);
+    });
   });
 
   // "Clear Selected" — ticked chosen rows move back to the candidates
   describe("clear selected", () => {
-    it("", () => {});
-    it("", () => {});
+    it("moves ticked chosen rows back to the candidates, and only those", async () => {
+      const { container } = render(OgCandidatePicker, {
+        props: { ...testLinkPicker, chosen: mockCandidates },
+      });
+
+      await tick(tables(container).chosen, 0); // AWP-9208
+      await fireEvent.click(screen.getByRole("button", { name: "Clear Selected" }));
+
+      const { candidates, chosen } = tables(container);
+      expect(within(candidates).getByText("AWP-9208")).toBeInTheDocument();
+      expect(within(chosen).queryByText("AWP-9208")).toBe(null);
+      expect(within(chosen).getByText("AWP-9301")).toBeInTheDocument(); // unticked row stays
+      expect(scrollToSection).toHaveBeenCalledWith(".cases-intro");
+    });
+
+    it("does nothing when no chosen row is ticked", async () => {
+      const { container } = render(OgCandidatePicker, {
+        props: { ...testLinkPicker, chosen: mockCandidates },
+      });
+
+      await fireEvent.click(screen.getByRole("button", { name: "Clear Selected" }));
+
+      const { candidates, chosen } = tables(container);
+      expect(within(chosen).getByText("AWP-9208")).toBeInTheDocument();
+      expect(within(candidates).queryByText("AWP-9208")).toBe(null);
+      expect(scrollToSection).not.toHaveBeenCalled();
+    });
   });
 
   // "Clear All" — every chosen row moves back to the candidates
   describe("clear all", () => {
-    it("", () => {});
-    it("", () => {});
+    it("moves every chosen row back to the candidates, ticked or not", async () => {
+      const { container } = render(OgCandidatePicker, {
+        props: { ...testLinkPicker, chosen: mockCandidates },
+      });
+
+      await fireEvent.click(screen.getByRole("button", { name: "Clear All" }));
+
+      const { candidates, chosen } = tables(container);
+      for (const c of mockCandidates) {
+        expect(within(candidates).getByText(c.id)).toBeInTheDocument();
+        expect(within(chosen).queryByText(c.id)).toBe(null);
+      }
+    });
+
+    it("scrolls back up to the intro", async () => {
+      render(OgCandidatePicker, {
+        props: { ...testLinkPicker, chosen: mockCandidates },
+      });
+
+      await fireEvent.click(screen.getByRole("button", { name: "Clear All" }));
+
+      expect(scrollToSection).toHaveBeenCalledWith(".cases-intro");
+    });
   });
 
   // "Review & Confirm" — onConfirm, its busy state, and its error banner
   describe("confirm", () => {
-    it("", () => {});
-    it("", () => {});
-    it("", () => {});
-    it("", () => {});
+    function confirmButton() {
+      return screen.getByRole("button", { name: "Review & Confirm" });
+    }
+
+    it("calls onConfirm when clicked", async () => {
+      const onConfirm = vi.fn(async () => {});
+      render(OgCandidatePicker, { props: { ...testLinkPicker, onConfirm } });
+
+      await fireEvent.click(confirmButton());
+
+      expect(onConfirm).toHaveBeenCalledTimes(1);
+    });
+
+    it("disables the button while onConfirm is running", async () => {
+      let finish;
+      const onConfirm = vi.fn(() => new Promise((resolve) => (finish = resolve)));
+      render(OgCandidatePicker, { props: { ...testLinkPicker, onConfirm } });
+
+      await fireEvent.click(confirmButton());
+      expect(confirmButton()).toBeDisabled();
+
+      finish();
+      await vi.waitFor(() => expect(confirmButton()).toBeEnabled());
+    });
+
+    it("shows an error banner when onConfirm fails", async () => {
+      const onConfirm = vi.fn(async () => {
+        throw new Error("server said no");
+      });
+      render(OgCandidatePicker, { props: { ...testLinkPicker, onConfirm } });
+
+      await fireEvent.click(confirmButton());
+
+      expect(
+        await screen.findByText(/Confirm failed: server said no/),
+      ).toBeInTheDocument();
+      expect(confirmButton()).toBeEnabled(); // the user can try again
+    });
+
+    it("does nothing when there is no onConfirm", async () => {
+      render(OgCandidatePicker, { props: { ...testLinkPicker } }); // onConfirm defaults to null
+
+      await fireEvent.click(confirmButton());
+
+      expect(confirmButton()).toBeEnabled();
+      expect(screen.queryByText(/Confirm failed/)).toBe(null);
+    });
   });
 });

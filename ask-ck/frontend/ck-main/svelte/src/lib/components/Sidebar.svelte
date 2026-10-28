@@ -79,7 +79,7 @@
   .nav-item {
     display: flex;
     align-items: center;
-    font-size: 1rem;
+    font-size: 1.1rem;
     gap: 12px;
     width: 100%;
     background: transparent;
@@ -139,7 +139,7 @@
   }
 
   .collapse-toggle img {
-    width: 1.5em;
+    width: 1.3em;
     height: auto;
     filter: var(--icon-filter-nav);
   }
