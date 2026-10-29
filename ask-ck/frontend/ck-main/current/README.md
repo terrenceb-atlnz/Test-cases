@@ -5,10 +5,11 @@ verified: 2026-10-06
 
 **Layout (2026-09-11):** `index.html`, `styles.css` and the assets sit here; the ES modules are
 sorted into **page directories** — `generator/`, `pytest-creator/`, `llm-config/`, `admin/`, `zephyr-tool/`, `test-composer/`, `validation/` — plus
-`shared/` for modules more than one page imports. The server mounts this directory at `/static`.
-The Svelte rewrite lives beside it at `../svelte/`. The **ATUI restyle** lives beside it at
-`../restyle/` (since 2026-09-30, `archive/plans/PLAN-atui-restyle.md`): its own `index.html` +
-`styles.css`, served at `/restyle` and `/restyle/static`, running **these** modules — see convention 5.
+`shared/` for modules more than one page imports. The server mounts this directory at `/static` and
+serves its `index.html` at **`/classic`** — since 2026-10-30 (`ask-ck/plans/PLAN-svelte-cutover.md`)
+`/` is the Svelte app beside it at `../svelte/`. The **ATUI restyle** at `../restyle/`
+(`archive/plans/PLAN-atui-restyle.md`) is **no longer served**; its files stay, and convention 5's
+static id-parity check still runs so it stays mountable.
 
 The Ask CK frontend used to be one 2663-line classic script (`static/app.js`).
 It is now browser-native ES modules — **no bundler, no build step, no
@@ -108,7 +109,9 @@ A shared-JS change for the restyle is live for Classic the moment it is saved (t
 production), so trial it from a separate worktree on the scratch server first.
 
 **6. Svelte islands (2026-10-09, PLAN-test-composer §6 / C-D1).** New UI is written in Svelte
-inside `current/`, not in Trent's app at `../svelte/`.
+inside `current/`, not in Trent's app at `../svelte/`. *⚠ 2026-10-30: superseded for NEW work by
+`PLAN-svelte-cutover.md` — Trent's app is now the UI at `/`; the islands keep serving Classic at
+`/classic` and these rules still govern them.*
 - **Source and build:**
   - the source is `svelte-src/` (its own `package.json`, with versions matched to Trent's branch;
     `node_modules` is ignored and the lock file is committed);

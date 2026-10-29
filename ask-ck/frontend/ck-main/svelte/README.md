@@ -93,8 +93,8 @@ To add a colour, add the token to all three blocks under the matching group comm
 
 This app is a port of the original Ask CK frontend in `ask-ck/frontend/ck-main/current/` (plain JavaScript modules, plus Svelte islands in `current/svelte-src/`). Both frontends use the same FastAPI backend and the same `/api` endpoints.
 
-- **The backend still serves the legacy frontend.** `CK_server/main.py` serves `current/`; it does not serve this app's `dist/` build yet.
-- **This app runs through the Vite dev server** on port `5173`, which forwards `/api` to the backend on port `8000`.
+- **Since 2026-10-30 the backend serves THIS app at `/`** (`ask-ck/plans/PLAN-svelte-cutover.md`): `CK_server/main.py` serves the committed `dist/` — build it with `ask-ck/tools/build_svelte_app.sh` from the repo root and commit `dist/` (the gate fails on a stale build). The legacy frontend stays at `/classic`.
+- **For development this app still runs through the Vite dev server** on port `5173`, which forwards `/api` to the backend on port `8000`.
 - **Ported code mostly says where it came from.** Most services copied from `current/` have comments naming the original file and noting what was changed to fit Svelte. `testComposerService.js`, `pytest/fragmentsService.js` and `zephyr/zephyrService.js` do not have them yet.
 
 ## Gaps in Project

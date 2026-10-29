@@ -8,6 +8,12 @@
 > Classic byte-identical, `tests/test_restyle_parity.py`). Not taken, by design: the real `at-*` web
 > components (S7 chose a CSS look-alike), and ATUI for Trent's Svelte UI (a separate question).
 >
+> **⚠ 2026-10-30 — S9 superseded.** The restyle is **no longer served** (`/restyle` and
+> `/restyle/static` removed; Classic's ATUI link gone) since Trent's Svelte app took `/` and Classic
+> moved to `/classic` — `ask-ck/plans/PLAN-svelte-cutover.md` D2. The files stay in the tree and
+> `tests/test_restyle_parity.py` keeps its static checks; deletion is a later decision. ATUI is still
+> not required (S6, re-confirmed as D6).
+>
 > **Phase 0 BUILT 2026-09-30** (`9c996c1`, then the served/swap commit): `/restyle` is live and the
 > Classic/ATUI swap is in both sidebars. The restart took ~30 s and did not wedge. **Awaiting:**
 > Terrence's Phase 0 checklist, his review of the §7 mapping (incl. the severity note), then

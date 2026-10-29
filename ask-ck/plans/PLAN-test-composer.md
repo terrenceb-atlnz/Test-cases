@@ -46,6 +46,8 @@ verified: 2026-10-09
 >   covers the Composer, Validation and the ZTT port. It does not touch Trent's Svelte app:
 >   *"lets not overwrite what Trent is doing, you doing it first will make it easier for him to
 >   do his work later."*
+>   *⚠ 2026-10-30: superseded by [`PLAN-svelte-cutover.md`](PLAN-svelte-cutover.md) — Trent's app is
+>   now served at `/`; the islands keep serving Classic at `/classic`.*
 > - **C-D2 — ZTT is ported to Svelte first, as the pilot, after the plans are written** (§6).
 > - **C-D3 — ZTT records its uploads**, and a project can also be added by its wiki link (§2.1).
 > - **C-D4 — email when done** goes through the server's postfix (A §8; verified 2026-10-09).
@@ -265,6 +267,9 @@ Composer with the script's case preselected in step 4 once a project and templat
 moves, old links in Zephyr break, so the link should go through a stable name (open §8.5).
 
 ## 6. UI — Svelte in `current/`, ZTT first
+
+> ⚠ 2026-10-30: the islands below still ship, on Classic at `/classic`; new UI goes in Trent's app,
+> which is the UI at `/` since [`PLAN-svelte-cutover.md`](PLAN-svelte-cutover.md).
 
 **Decision C-D1.** Components are written in Svelte (versions matched to Trent's branch:
 `svelte ^5.57`, `vite ^8.3`, `@sveltejs/vite-plugin-svelte ^7.3`, so they lift over). They are

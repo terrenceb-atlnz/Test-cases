@@ -266,13 +266,13 @@ Test-cases/
     ├── CK-main/                    # Backend: run.sh, requirements.txt, SERVER-README.md
     │   └── CK_server/              # FastAPI server (main.py, paths.py, routers/, templates/)
     ├── frontend/ck-main/
-    │   ├── current/                # The served front-end: index.html, styles.css, one directory per page
+    │   ├── current/                # Classic, served at /classic: index.html, styles.css, one directory per page
     │   │                           #   (generator/, pytest-creator/, test-composer/, validation/,
     │   │                           #   zephyr-tool/, llm-config/, admin/, shared/)
     │   │   ├── svelte-src/         #   Svelte source for the Test Composer and ZTT pages
     │   │   └── islands/            #   …and its built bundles, committed (no build step on the server)
-    │   ├── restyle/                # The ATUI restyle, served at /restyle — own HTML + CSS, current/'s JS
-    │   └── svelte/                 # A separate Svelte scaffold (Trent's) — not the source of the pages above
+    │   ├── restyle/                # The ATUI restyle — UNSERVED since 2026-10-30 (files kept); own HTML + CSS, current/'s JS
+    │   └── svelte/                 # The Svelte app served at / (Trent's); dist/ committed — ask-ck/tools/build_svelte_app.sh
     ├── functions/                  # One directory per page: its data, results and docs
     │   ├── generator/              # PROGRESS.md, OBJECTIVE_DRAFTING_PROCESS.md, refined-cases/
     │   ├── pytest-creator/         # Specs (TOPOLOGY-PROFILES, TEMPLATE-SPEC, …) and generated/
@@ -305,7 +305,8 @@ Test-cases/
 | [`ask-ck/agent/README.md`](ask-ck/agent/README.md) | The seat agent: install, update, what it runs |
 | [`ask-ck/functions/generator/LESSONS_LEARNED.md`](ask-ck/functions/generator/LESSONS_LEARNED.md) | Prior decisions and pitfalls |
 | [`docs/resources.md`](docs/resources.md) | Links to TestLink, Zephyr, ART |
-| [`archive/plans/PLAN-atui-restyle.md`](archive/plans/PLAN-atui-restyle.md) | The ATUI restyle at `/restyle`, swappable with Classic: settled decisions S1–S16, wording + icon lists |
+| [`ask-ck/plans/PLAN-svelte-cutover.md`](ask-ck/plans/PLAN-svelte-cutover.md) | The 2026-10-30 cutover: the Svelte app at `/`, Classic at `/classic`, the restyle unserved; decisions D1–D9, the known-issue checklist |
+| [`archive/plans/PLAN-atui-restyle.md`](archive/plans/PLAN-atui-restyle.md) | The ATUI restyle (unserved since 2026-10-30): settled decisions S1–S16, wording + icon lists |
 | [`docs/ATUI Design System/`](<docs/ATUI Design System/readme.md>) | Allied Telesis UI guidance from governance (received 2026-09-30). Also the `atui-design` skill, linked from `.claude/skills/` |
 | [`docs/`](docs/) | Repo-level documents: reviewer onboarding, the token-efficiency report, the memory-split inventory, captured prompts |
 

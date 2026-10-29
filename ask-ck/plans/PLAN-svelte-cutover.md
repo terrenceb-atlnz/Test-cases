@@ -2,9 +2,32 @@
 
 > ## Status (read first)
 >
-> **APPROVED 2026-10-30 (Terrence), NOT STARTED.** Written from this day's conversation, after a
-> read-only survey of `main`, `origin/userinterface` and the server. Nothing below has been merged,
-> installed, built or edited yet; each step's status is updated here as it lands.
+> **BUILT on branch `svelte-cutover` 2026-10-30 (steps 0–5); landing on main (step 6) and the manual
+> checklist are NEXT.** Approved by Terrence the same day from a read-only survey of `main`,
+> `origin/userinterface` and the server.
+>
+> **What happened at each step (the record):**
+> - **Step 1 merge** (`49164c5`): the two predicted conflicts, both to Terrence. `.families.json` →
+>   Trent's (adds 9003). `library_9002.py` was NOT a superset case: main's 19 helpers (T33241) and
+>   Trent's 37 (T33247, ARP/GARP/MAC-table) were disjoint, so the resolution is the **union** —
+>   main's text byte for byte, his 5 extra imports and 37 helpers appended (56 top-level names, no
+>   clash; both scripts keep what they `import *`). `ZtPage.svelte` restored from main (#25).
+> - **Trent's tip did not build**: `App.svelte` imports `./pages/ToolPage.svelte`, which his `87ddf78`
+>   deleted; the `{:else}` branch that renders it is unreachable. Terrence: restore the 18-line file
+>   byte-for-byte from `87ddf78^` (done in `3b3a761`) — **for Trent to finish** (delete the import
+>   and the dead branch, or keep the page).
+> - **Step 2** (`3b3a761`): `dist/` committed (1.8 MB, 20 files), `build_svelte_app.sh`,
+>   `test_svelte_app_built.py` (red on a one-byte source edit, proven), both `.gitignore`s.
+> - **Step 3** (`b8aa39c`): `main.py` as planned; `test_svelte_app_served.py` 12 checks (the
+>   `SPA_ROUTES == routes.js` check goes red when a route is dropped, proven); the parity test's
+>   four served-route asserts dropped; Classic's ATUI toggle removed.
+> - **First full gate was RED (4)**: the known worktree false red, plus three of Trent's data sets —
+>   `9001_Port` regenerated with framework imports (test G8 cannot exec it), the pre-numbering
+>   `generated/IPv6/` (bench-safety lint: `no privilege level`), and the T44333 bundle (empty Zephyr
+>   section). Terrence chose to **exclude all three** rather than touch a test (`203c7d9`); D4 now
+>   reads "kept, minus those three". Family 9003 stays registered.
+> - **Step 4**: Trent's Vitest in the gate: 4 files / 121 tests pass, 18 todo, 27 files skipped.
+> - **Step 5**: records below updated; memory `svelte-app-served-at-root`.
 >
 > **What it supersedes.** Two settled decisions are overtaken by this plan and carry a ⚠ line at
 > their source, not a rewrite: **S9** in [`archive/plans/PLAN-atui-restyle.md`](../../archive/plans/PLAN-atui-restyle.md)
@@ -18,7 +41,8 @@
 >   stay (tests rewritten so they pass unserved). Deletion is a later decision.
 > - **D3** `origin/userinterface` is **merged into main** (`--no-ff`). **Conflicts are shown to
 >   Terrence**, never resolved silently.
-> - **D4** The branch touches no `ck.db`. Its 55 data files under `ask-ck/functions/` are **kept**.
+> - **D4** The branch touches no `ck.db`. Its data files under `ask-ck/functions/` are **kept** —
+>   minus three sets excluded on 2026-10-30 after the first gate (see the record above).
 > - **D5** **No gap-fixing before cutover** (checklist §A). Recorded as follow-ups.
 > - **D6** **ATUI not required** for the Svelte app (S6 still holds).
 > - **D7** Server-written deep links (`/?panel=composer&script=…` Finalize link in Zephyr,
@@ -27,8 +51,8 @@
 > - **D9** Built `dist/` is **committed** and hash-guarded like the islands, **without editing
 >   Trent's `vite.config.js`** (a wrapper script writes `dist/.source-sha256`).
 >
-> **Step status:** 0 worktree ☐ · 1 merge ☐ · 2 dist + guard ☐ · 3 server + tests ☐ · 4 gate ☐ ·
-> 5 records ☐ · 6 landed on main ☐ · manual checklist ☐.
+> **Step status:** 0 worktree ☑ · 1 merge ☑ · 2 dist + guard ☑ · 3 server + tests ☑ · 4 gate ☑ ·
+> 5 records ☑ · 6 landed on main ☐ · manual checklist ☐.
 
 ## 1. Context
 

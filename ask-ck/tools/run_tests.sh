@@ -2,7 +2,8 @@
 # Run the Ask CK test suite + invariant guards, the same way CI would:
 #   1. invariant guards (db-only, framework-read-only)
 #   2. backend unit tests (pytest, in-process — no network/LLM)
-#   3. frontend unit tests (Vitest + jsdom — no browser/server/LLM)
+#   3. frontend unit tests (Vitest + jsdom — no browser/server/LLM) — Classic + the islands
+#   4. the Svelte app's unit tests (its own Vitest, ask-ck/frontend/ck-main/svelte/)
 # The Playwright E2E is NOT part of this gate — it is sparingly-run (npm run e2e).
 #
 #   ./ask-ck/tools/run_tests.sh
@@ -63,6 +64,19 @@ elif [[ ! -d node_modules/vitest ]]; then
   exit 2
 else
   npm test --silent
+fi
+
+echo
+echo "== Svelte app units (vitest, ask-ck/frontend/ck-main/svelte) =="
+# The app served at / (PLAN-svelte-cutover.md D8). Its deps are its own: a second npm install.
+SVELTE_APP="ask-ck/frontend/ck-main/svelte"
+if ! command -v npm >/dev/null 2>&1; then
+  echo "SKIPPED: npm not on PATH — install Node to run the Svelte app's unit layer." >&2
+elif [[ ! -d "$SVELTE_APP/node_modules/vitest" ]]; then
+  echo "ERROR: Svelte app deps not installed. Run: (cd $SVELTE_APP && npm install --legacy-peer-deps)" >&2
+  exit 2
+else
+  (cd "$SVELTE_APP" && npm test --silent)
 fi
 
 echo

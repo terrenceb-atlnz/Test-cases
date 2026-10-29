@@ -48,10 +48,14 @@ This version replaces the original single-file static `index.html` approach.
 - REST API consumed by the frontend: `/api/wizard` (Generator), `/api/pytest-create` (PyTest Creator), `/api/zephyr-tool` (Zephyr Templating Tool — template snapshot, analysis, upload dry run and real upload; see below) and the stub router `/api/test-composer`.
 - Serves the process documentation as interactive web pages.
 
-**Frontend**: Static web UI (vanilla JS + HTML, served by the backend) — `frontend/ck-main/current/index.html`.
-An ATUI-styled alternative, `frontend/ck-main/restyle/index.html`, runs the same JS at `/restyle` (its
-own CSS at `/restyle/static`); a Classic/ATUI switch beside the theme toggle moves between them, and `/`
-always opens Classic (`archive/plans/PLAN-atui-restyle.md`).
+**Frontend** (since the 2026-10-30 cutover, `ask-ck/plans/PLAN-svelte-cutover.md`): `/` is the Svelte app
+(`frontend/ck-main/svelte/`, Vite + Svelte 5, Trent Morgan's), served by the backend from its **committed**
+`dist/` — `/assets` for the hashed bundles, one route per `public/` file, and `dist/index.html` for every
+route in `svelte/src/routes.js`. Rebuild with `ask-ck/tools/build_svelte_app.sh` and commit `dist/`;
+`tests/test_svelte_app_built.py` fails the gate when it is stale. **Classic** — the older static UI
+(vanilla JS + HTML, `frontend/ck-main/current/index.html`, its files at `/static`) — stays served at
+`/classic`; its `?panel=` deep links work there. The ATUI restyle (`frontend/ck-main/restyle/`,
+`archive/plans/PLAN-atui-restyle.md`) is **no longer served**; its files stay in the tree.
 - **Ask CK multi-tool sidebar** (always-expanded sections, top→bottom):
   - **LLM** — live status + **Configure** entry (opens the LLM Provider Login as a main-area panel)
   - **Zephyr Templating Tool** — one page, **Organize Templates** (`panel-zt`, `zephyr-tool/zephyr-tool.js`): project URL → analysis → tick tree → Confirm → API Upload (dry run)
@@ -115,7 +119,7 @@ ask-ck/                              (layout of 2026-09-11 — PLAN-restructure-
 │   ├── run.sh                       ← Start script (PYTHONPATH=CK-main, CK_server.main:app)
 │   ├── requirements.txt / requirements-dev.txt
 │   └── CK_server/                   ← The actual server application
-│       ├── main.py                  ← FastAPI entry point ("Ask CK"); includes all routers; mounts the front-end at /static (the restyle at /restyle + /restyle/static)
+│       ├── main.py                  ← FastAPI entry point ("Ask CK"); includes all routers; serves the Svelte dist at / (+ /assets), Classic at /classic (+ /static)
 │       ├── paths.py                 ← Filesystem anchors (REFINED_DIR / PROCESS_MD / PT_GENERATED_DIR / DB_PATH / FRONTEND_DIR)
 │       ├── data.py                  ← Data loading (three DBs + indices)
 │       ├── llm.py                   ← Prompt templating + LLM call + parser
@@ -144,11 +148,11 @@ ask-ck/                              (layout of 2026-09-11 — PLAN-restructure-
 │           ├── prompts/             ← generate_objectives/steps/gaps, suggest_*, pt_*
 │           └── outputs/traceability.md.jinja
 ├── frontend/ck-main/
-│   ├── current/                     ← the served front-end: index.html, styles.css, assets, modules by page
+│   ├── current/                     ← Classic, served at /classic: index.html, styles.css, assets, modules by page
 │   │   ├── generator/  pytest-creator/  llm-config/  admin/  shared/
 │   │   └── README.md                ← module map + conventions
-│   ├── restyle/                     ← the ATUI restyle: own index.html + styles.css + atui/ (fonts, icons); shares current/'s JS
-│   └── svelte/                      ← the Svelte rewrite (Vite + Svelte 5, JavaScript)
+│   ├── restyle/                     ← the ATUI restyle (UNSERVED since 2026-10-30; files kept): own index.html + styles.css + atui/
+│   └── svelte/                      ← the Svelte app served at / (Vite + Svelte 5, Trent's); dist/ is COMMITTED (build_svelte_app.sh)
 ├── functions/                       ← one directory per page: data, results, docs
 │   ├── generator/                   ← PROGRESS.md, LESSONS_LEARNED.md, OBJECTIVE_DRAFTING_PROCESS.md, refined-cases/<Group>/AWPTCM-Txxxx/
 │   ├── pytest-creator/              ← TOPOLOGY-PROFILES.md, TEMPLATE-SPEC.md, SETUP-FILE-REFERENCE.md, LOGGING-CONTRACT.md, generated/
@@ -1603,7 +1607,9 @@ BLOCKs the case.
 
 - Most logic is in `CK_server/`.
 - To iterate on prompts: edit the `.jinja` files — Jinja's default `auto_reload` picks the change up on the next render; `--reload` watches only `.py`.
-- To iterate on the UI: edit `frontend/ck-main/current/index.html` (no rebuild step).
+- To iterate on the UI: the Svelte app → edit `frontend/ck-main/svelte/src/`, run
+  `ask-ck/tools/build_svelte_app.sh`, commit `dist/` (the gate's freshness guard insists); Classic →
+  edit `frontend/ck-main/current/` (no rebuild step), see it at `/classic`.
 - The wizard still supports manual editing of objectives/steps after LLM synthesis.
 - Session state lives in the ck.db `sessions` table (since 2026-07-16); the old `CK_server/sessions/*.json` are frozen under `archive/CK_server/sessions/`.
 - Full prompt + LLM response is captured in the exported session JSON for auditability.

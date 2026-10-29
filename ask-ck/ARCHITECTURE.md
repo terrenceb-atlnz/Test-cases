@@ -42,13 +42,15 @@ TypeScript, no Java, and no build step anywhere.**
 | **Generated output** | **Python 3** | Allied Telesis `framework` (ATTestSet/ATTestCase) | the product of the tool |
 | **Automation / entry points** | **Bash** | — | `setup.sh`, `run.sh`, `ask-ck/tools/*.sh` |
 
-**The served front end has no framework and no bundler by design.** `index.html` loads 22 ES
-modules directly; the browser resolves them natively — no JSX, TypeScript or Vue, and nothing is
-compiled. (A separate Svelte rewrite, Vite + Svelte 5, was scaffolded on 2026-09-11 at
-`frontend/ck-main/svelte/`; it is not served.) The only JavaScript dependencies in the root
-`package.json` are **dev-only test tooling** — Vitest, jsdom,
-`@testing-library/dom`, Playwright — so nothing is compiled to ship, and editing a `.js` file
-is live on the next reload.
+**Two front ends since 2026-10-30** (`ask-ck/plans/PLAN-svelte-cutover.md`). `/` is the Svelte app
+(Vite + Svelte 5, `frontend/ck-main/svelte/`, Trent Morgan's): it IS compiled, but never on the
+server — `ask-ck/tools/build_svelte_app.sh` builds it and its `dist/` is **committed**, with a
+source-hash guard in the gate (`tests/test_svelte_app_built.py`), so the hosted server still only
+serves files. `/classic` is the older front end, which has no framework and no bundler by design:
+`index.html` loads 22 ES modules directly; the browser resolves them natively — no JSX, TypeScript
+or Vue, and nothing is compiled, so editing a `.js` file there is live on the next reload. The
+root `package.json` holds only **dev-only test tooling** — Vitest, jsdom, `@testing-library/dom`,
+Playwright.
 
 Why it matters at this scale: a single-user internal tool that hot-reloads with `--reload` and
 serves static modules has no compile step to get wrong, no lockfile drift in the shipped

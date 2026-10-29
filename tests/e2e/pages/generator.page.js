@@ -60,7 +60,7 @@ export class GeneratorPage {
   }
 
   async open() {
-    await this.page.goto('/');
+    await this.page.goto('/');   // cutover 2026-10-30: Classic is at /classic now — this page object is stale (e2e is not in the gate)
     // Cold load lands on panel-main; wait for the app shell to be interactive.
     await expect(this.page.locator('#nav-generator')).toBeAttached();
     await this.expandGeneratorSection();
