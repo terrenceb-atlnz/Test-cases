@@ -8,7 +8,7 @@ pnpm-debug.log*
 lerna-debug.log*
 
 node_modules
-dist
+# dist/ is COMMITTED (ask-ck/plans/PLAN-svelte-cutover.md; build with ask-ck/tools/build_svelte_app.sh) — do not re-ignore it
 dist-ssr
 *.local
 

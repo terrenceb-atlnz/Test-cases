@@ -9,6 +9,9 @@ __pycache__/
 build/
 develop-eggs/
 dist/
+# …except the Svelte app's build, which is COMMITTED (ask-ck/plans/PLAN-svelte-cutover.md): the
+# hosted server serves files only, so dist/ ships in git and ask-ck/tools/build_svelte_app.sh stamps it.
+!ask-ck/frontend/ck-main/svelte/dist/
 downloads/
 eggs/
 .eggs/
