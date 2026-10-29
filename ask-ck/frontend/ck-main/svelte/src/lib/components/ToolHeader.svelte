@@ -16,10 +16,14 @@
 
 <style>
   .page-header {
+    border-top: 1px solid var(--color-border-surface);
     text-align: left;
     display: flex;
     align-items: center;
-    padding: 8px 32px 8px;
+    /* Pulled up into .content-inner's 16px top padding so the fade starts at the top bar. */
+    margin-top: -16px;
+    padding: 32px 46px 8px;
+    background: var(--color-bg-content);
   }
 
   .page-header h1 {

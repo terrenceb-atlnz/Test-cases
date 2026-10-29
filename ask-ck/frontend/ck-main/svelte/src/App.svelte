@@ -112,10 +112,14 @@
   // What to select when Test Composer opens (PyTest Creator's "Validate Test" passes the case
   // key). Set on every navigation, so a plain sidebar click to Test Composer starts clean.
   let composerPreselect = null;
+  let helpOpenSetupGuide = false;
+  let settingsInitialTab = 'general';
 
-  /** @param {string} pageId @param {{ preselect?: string | null }} [opts] */
+  /** @param {string} pageId @param {{ preselect?: string | null, openSetupGuide?: boolean, tab?: string }} [opts] */
   function selectPage(pageId, opts = {}) {
     composerPreselect = opts.preselect ?? null;
+    helpOpenSetupGuide = opts.openSetupGuide ?? false;
+    settingsInitialTab = opts.tab ?? 'general';
     activePage = pageId;
 
     const target = routeMap[pageId] || '/';
@@ -190,14 +194,14 @@
   <Sidebar items={navigation} activePage={activePage} collapsed={sidebarCollapsed} onSelect={selectPage} onToggle={toggleSidebar} />
   <Topbar />
 
-  <main class="content-panel">
+  <main class="content-panel" class:home={activePage === 'home'}>
     <div class="content-inner">
       {#if activePage === 'home'}
         <HomePage onNavigate={selectPage} />
       {:else if activePage === 'help'}
-        <HelpPage />
+        <HelpPage openSetupGuide={helpOpenSetupGuide} />
       {:else if activePage === 'settings'}
-        <SettingsPage />
+        <SettingsPage initialTab={settingsInitialTab} />
       {:else if activePage === 'generator'}
         <!-- Rendered unconditionally below instead, hidden via CSS once first visited — see
              generatorEverVisited above. Kept as its own branch here only so the {:else}

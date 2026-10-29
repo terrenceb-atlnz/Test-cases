@@ -71,7 +71,10 @@
     { title: "How often should I update my LLM model?", content: "" },
   ];
 
-  let setupGuideOpen = false;
+  /** Open the seat setup guide on arrival (the home page's "Set up seat" button). */
+  export let openSetupGuide = false;
+
+  let setupGuideOpen = openSetupGuide;
 
   /**
    * @type {number | null}

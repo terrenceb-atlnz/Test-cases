@@ -11,8 +11,10 @@
 <style>
   .page-header {
     text-align: left;
-    padding: 8px 32px 0px;
-    margin-left: 16px;
+    border-top: 1px solid var(--color-border-surface);
+    margin-top: -16px;
+    padding: 32px 32px 0px 48px;
+    background: var(--color-bg-content);
   }
 
   .page-header h1 {

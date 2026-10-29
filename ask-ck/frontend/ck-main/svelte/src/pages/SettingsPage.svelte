@@ -27,7 +27,10 @@
     { id: 'usage', label: 'Usage', icon: chartIcon },
   ];
 
-  let activeTab = 'general';
+  /** The tab to show on arrival (the home page's "Configure LLM" button passes 'llm'). */
+  export let initialTab = 'general';
+
+  let activeTab = initialTab;
 
   function selectTab(id) {
     activeTab = id;

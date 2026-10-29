@@ -34,7 +34,7 @@
     margin-bottom: var(--card-strip);
     padding: 0;
     border: none;
-    background: none;
+    background: var(--color-bg-surface);
     font: inherit;
     text-align: center;
     cursor: pointer;
@@ -49,6 +49,7 @@
     display: flex;
     flex-direction: row;
     gap: 24px;
+    max-height: 3rem;
     align-items: center;
     justify-content: center;
     padding: 12px 12px 0px 12px;
@@ -113,7 +114,7 @@
   }
 
   .card-icon img {
-    width: 2rem;
+    width: 1.6rem;
     height: auto;
     margin: 0 auto;
     filter: var(--icon-filter-muted);

@@ -3,14 +3,26 @@
 
   import PageCard from "../lib/components/PageCard.svelte";
   import AdminPanel from "../lib/components/AdminPanel.svelte";
+  import Button from "../lib/components/Button.svelte";
+  import { onMount } from "svelte";
   import { resolvedTheme } from "../lib/theme.js";
+  import {
+    loadConfig,
+    describeLLMStatus,
+  } from "../lib/services/llmConfigService.js";
+  import {
+    probeLocalAgent,
+    describeAgentStatus,
+  } from "../lib/services/agentService.js";
   import askCKLogoDark from "../assets/askck-logo.png";
   import askCKLogoLight from "../assets/askck-logo-light.png";
   import askCKAdminDark from "../assets/askck-admin.png";
   import askCKAdminLight from "../assets/askck-admin-light.png";
-
+  import aiIcon from "../assets/icons/brain-circuit.svg";
   import atLogoDark from "../assets/at-logo-2.png";
   import atLogoLight from "../assets/at-logo-2-white.png";
+  import atLogoDarkLong from "../assets/at-logo.png";
+  import atLogoLightLong from "../assets/at-logo-light.png";
   import testCaseIcon from "../assets/icons/clipboard-list.svg";
   import pytestIcon from "../assets/icons/pytest.svg";
   import testComposerIcon from "../assets/icons/list-check.svg";
@@ -55,7 +67,8 @@
   $: askCKAdmin = $resolvedTheme === "dark" ? askCKAdminLight : askCKAdminDark;
 
   // The banner's faded background logo follows the theme the same way (white on dark).
-  $: atLogo = $resolvedTheme === "dark" ? atLogoDark : atLogoLight;
+  $: bannerLogo = $resolvedTheme === "dark" ? atLogoDark : atLogoLight;
+  $: atLogo = $resolvedTheme === "dark" ?  atLogoLightLong : atLogoDarkLong;
 
   // Clicking the logo ADMIN_CLICKS_REQUIRED times switches the page into admin mode, which
   // shows the AdminPanel (its own component) under the cards.
@@ -70,6 +83,17 @@
     if (logoClickCount < ADMIN_CLICKS_REQUIRED) return;
     isAdmin = true;
   }
+
+  // LLM status for the aside: the configured LLM (same text as Settings) and the seat agent.
+  // probeLocalAgent only reads the agent's /health — checkLocalAgent would also ask it to
+  // update the CLI. No llm_health check here: that makes a real LLM call on every visit.
+  let llmStatus = null;
+  let agentStatus = null;
+
+  onMount(async () => {
+    llmStatus = describeLLMStatus(await loadConfig());
+    agentStatus = describeAgentStatus(await probeLocalAgent());
+  });
 </script>
 
 <div class="home-page">
@@ -77,7 +101,7 @@
     <div
       class="home-banner"
       class:admin={isAdmin}
-      style:--banner-logo={`url(${atLogo})`}
+      style:--banner-logo={`url(${bannerLogo})`}
     >
       <div class="home-hero">
         <button
@@ -89,16 +113,7 @@
           <img src={isAdmin ? askCKAdmin : askCKLogo} alt="Ask CK logo" />
         </button>
         <h1>{isAdmin ? "Welcome Admin" : "Welcome to Ask CK"}</h1>
-        <p class="home-intro">
-          Ask CK is a server-backed test-engineering workbench for the AWPTCM
-          test-case program. It brings the tools for enriching manual test
-          cases, mapping them to automation, and turning them into runnable
-          scripts into one place. Pick a tool from below, or read the
-          step-by-step guides inside the Help section. Most tools use an LLM via
-          a local subscription CLI — set that up first under <span
-            style="font-weight: bold;">Settings → LLM → LLM Provider Login</span
-          >.
-        </p>
+
       </div>
     </div>
   </div>
@@ -110,6 +125,55 @@
       {/each}
     </div>
   </div>
+  {#if !isAdmin}
+    <div class="home-content-container">
+      <div class="home-content">
+          <div class="home-content-imgs">
+            <img id="ck-logo" src={askCKLogo} alt="">
+            <img id="at-logo" src={atLogo} alt="">
+          </div>
+          <p class="home-intro">
+            Ask CK is a server-backed test-engineering workbench for the AWPTCM
+            test-case program. It brings the tools for enriching manual test
+            cases, mapping them to automation, and turning them into runnable
+            scripts into one place. Pick a tool from below, or read the
+            step-by-step guides inside the Help section. Most tools use an LLM via
+            a local subscription CLI — set that up first under <span
+              style="font-weight: bold;">Settings → LLM → LLM Provider Login</span
+            >.
+          </p>
+          <div class="home-links">
+            <h3 class="status-label">Links</h3>
+            <!-- Paste links here, one <li> each. -->
+            <ul>
+              <li><a href="https://wiki.atlnz.lc/awpwiki/index.php?title=Ask-ck&oldid=740690#Writing_to_Zephyr_.2F_Jira" target="_blank" rel="noopener noreferrer">Ask-ck alliedware+ wiki page</a></li>
+              <li><a href="https://github.com/terrenceb-atlnz/Test-cases?tab=readme-ov-file" target="_blank" rel="noopener noreferrer">Ask CK Git Repository- Test-cases</a></li>
+            </ul>
+          </div>
+      </div>
+        <div class="home-aside">
+          <!-- <h2 class="status-heading">LLM Status</h2> -->
+          <p class="status-label">Configured LLM</p>
+          {#if llmStatus}
+            <p class="status-text tone-{llmStatus.tone}">{llmStatus.text}</p>
+          {:else}
+            <p class="status-text">Checking…</p>
+          {/if}
+          <p class="status-label">Seat agent</p>
+          {#if agentStatus}
+            <p class="status-text tone-{agentStatus.tone}">
+              {#each agentStatus.lines as line}{line}<br />{/each}
+            </p>
+          {:else}
+            <p class="status-text">Checking…</p>
+          {/if}
+          <div class="aside-actions">
+            <Button variant="outline" on:click={() => onNavigate("help", { openSetupGuide: true })}>Set up seat</Button>
+            <Button variant="outline" on:click={() => onNavigate("settings", { tab: "llm" })}>Configure LLM</Button>
+          </div>
+      </div>
+    </div>
+  {/if}
 
   {#if isAdmin}
     <AdminPanel />
@@ -120,12 +184,9 @@
   .home-page {
     flex: 1;
     margin: -16px 0;
-    padding: 3rem 8rem 0 8rem;
+    padding: 3rem 3rem 0 3rem;
   }
 
-  .home-intro {
-    padding: 12px;
-  }
   .home-banner-container {
     position: relative;
   }
@@ -211,11 +272,6 @@
     border-left-color: var(--color-accent);
   }
 
-  .home-hero p {
-    font-size: 1rem;
-    color: var(--color-banner-text);
-  }
-
   .card-container {
     display: flex;
     justify-content: center;
@@ -230,5 +286,109 @@
     justify-content: center;
     text-align: center;
     zoom: 0.9;
+  }
+
+  .home-content-container {
+    display: grid;
+    grid-template-columns: 3fr 2fr;
+    gap: 12px;
+  }
+
+  .home-content {
+    background-color: var(--color-bg-surface);
+    border-radius: 10px;
+    border: 1px solid var(--color-border-surface);
+    padding: 12px 24px 12px 24px;
+    margin: 20px auto;
+    width: 100%;
+    height: 50vh;
+    flex-direction: column;
+    display: flex;
+    align-items: center;
+    text-align: center;
+    align-items: center;
+  }
+
+  .home-content p {
+    font-size: 0.94rem;
+    color: var(--color-banner-text);
+    line-height: 2;
+    border-top: 1px solid var(--color-border-surface);
+    padding-top: 2rem;
+  }
+
+  .home-content-imgs {
+    display: flex;
+    align-items: center;
+    gap: 4rem;
+  }
+
+  #ck-logo {
+    height: 5rem;
+    width: auto;
+  }
+  .status-heading {
+    margin: 0 0 8px;
+  }
+
+  .status-label {
+    margin: 12px 0 0;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+  }
+
+  .home-aside {
+    background-color: var(--color-bg-surface);
+    border-radius: 10px;
+    border: 1px solid var(--color-border-surface);
+    padding: 24px 24px 12px 24px;
+    margin: 20px auto;
+    width: 100%;
+    height: 50vh;
+    flex-direction: column;
+    display: flex;
+    gap: 8px
+  }
+
+  .home-aside h2 {
+    font-size: 1.2rem;
+  }
+  .home-aside .status-text {
+    margin: 4px 0 0;
+    line-height: 1.6;
+  }
+
+  .home-aside .tone-ok { color: var(--color-success); }
+  .home-aside .tone-warn { color: var(--color-warning); }
+  .home-aside .tone-error { color: var(--color-error); }
+
+  .aside-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 12px;
+  }
+
+  .home-links {
+    width: 100%;
+    text-align: left;
+  }
+
+  .home-links ul {
+    margin: 8px 0 0;
+    padding-left: 20px;
+    line-height: 2;
+    font-size: 0.94rem;
+  }
+
+  .home-links a {
+    color: var(--color-accent);
+  }
+
+  #at-logo {
+    height: 6rem;
+    width: auto;
   }
 </style>

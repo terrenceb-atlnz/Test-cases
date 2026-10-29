@@ -5,6 +5,10 @@
 </p>
 
 The Svelte frontend was created as a part of the BCIS309 Work Integrated Learning project under Ara Institute of Canterbury - Software Development student Trent Morgan. 
+<p align="center">
+<img src="./src/assets/readme-ui-light.png" alt="Home page in light mode" width="300">
+<img src="./src/assets/readme-ui-dark.png" alt="Home page in light mode" width="300">
+</p>
 The project contains 7 pages, each with its own route. 4 of them are the original Ask CK tools, and 3 support them:
 
 | Page | Route | What it is |

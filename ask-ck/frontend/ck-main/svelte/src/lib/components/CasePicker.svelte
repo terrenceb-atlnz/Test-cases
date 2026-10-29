@@ -151,7 +151,8 @@
     <Button variant="primary" disabled={!canLoad} on:click={handleLoad}
       >Load &amp; Confirm</Button
     >
-    <Button variant="outline" on:click={handleExport}>Export</Button>
+    <!-- Export does nothing so far, so it is commented out -->
+    <!-- <Button variant="outline" on:click={handleExport}>Export</Button> -->
   </div>
 </div>
 
@@ -182,6 +183,7 @@
 
   .case-select-wrapper {
     position: relative;
+    width: 45rem;
   }
 
   .case-select-chevron {

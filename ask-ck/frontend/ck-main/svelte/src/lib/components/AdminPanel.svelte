@@ -189,6 +189,7 @@
     border: 1px solid var(--color-border-surface);
     border-radius: 10px;
     background-color: var(--color-bg-surface);
+    height: 50vh;
   }
 
   .admin-status {
