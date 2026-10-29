@@ -2,9 +2,22 @@
 
 > ## Status (read first)
 >
-> **BUILT on branch `svelte-cutover` 2026-10-30 (steps 0–5); landing on main (step 6) and the manual
-> checklist are NEXT.** Approved by Terrence the same day from a read-only survey of `main`,
-> `origin/userinterface` and the server.
+> **LIVE on main since 2026-10-30 10:01 (`41f0c44`, Terrence: "Land it now"); the manual browser
+> checklist (§4) is NEXT, against production.** Approved by Terrence the same day from a read-only
+> survey of `main`, `origin/userinterface` and the server; built on branch `svelte-cutover` in a
+> scratch worktree, verified there, then landed as two fast-forwards.
+>
+> **Step 6 record:** no seat had touched the server in the 10 min before. FF 1 to `3b3a761` (merge +
+> dist, no `.py` → no reload), `npm install --legacy-peer-deps` in `svelte/` on main, FF 2 to `41f0c44`
+> → StatReload at 10:01:12, new worker up at 10:01:14 (2 s, no wedge), `/health` ok with the
+> permanent db, `/` = the Svelte app on localhost and on `http://10.33.22.13:8000/`, `/classic`,
+> `/assets` immutable, `/restyle` 404. **Gate on main: ALL GREEN** — pytest 2114 / 6 skipped, root
+> vitest 409, Svelte vitest 121 (18 todo). One snag on the way: the Vite scaffold's untracked
+> `svelte/src/lib/Counter.svelte` had sat on main's disk hidden by the old `lib/` ignore rule; Trent's
+> `/lib/` rule unhid it and the freshness guard hashed it (first gate red on that one test) — removed
+> (never tracked, referenced by nothing). Scratch server stopped, worktree removed; the merged local
+> branch `svelte-cutover` is left in place (not asked). **Terrence pushes** (main is 36 ahead of
+> origin). Trent should rebase `userinterface` onto main and finish `ToolPage` (see step 1).
 >
 > **What happened at each step (the record):**
 > - **Step 1 merge** (`49164c5`): the two predicted conflicts, both to Terrence. `.families.json` →
@@ -52,7 +65,7 @@
 >   Trent's `vite.config.js`** (a wrapper script writes `dist/.source-sha256`).
 >
 > **Step status:** 0 worktree ☑ · 1 merge ☑ · 2 dist + guard ☑ · 3 server + tests ☑ · 4 gate ☑ ·
-> 5 records ☑ · 6 landed on main ☐ · manual checklist ☐.
+> 5 records ☑ · 6 landed on main ☑ · manual checklist ☐ (against production, §4).
 
 ## 1. Context
 
