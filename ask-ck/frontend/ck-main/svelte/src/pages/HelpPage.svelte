@@ -5,9 +5,13 @@
   import PageHeader from "../lib/components/PageHeader.svelte";
   import Button from "../lib/components/Button.svelte";
   import { selectForCopy, SELECTED_HINT } from "../lib/utils/select.js";
+  import { seatSetupCommands } from "../lib/services/agentService.js";
 
-  const seatSetupWindowsCmd = "irm http://10.33.22.13:8000/setup/setup.ps1 | iex";
-  const seatSetupUbuntuCmd = "curl -fsSL http://10.33.22.13:8000/setup/setup.sh | bash";
+  // Built from the address this page was opened at, so they stay right if the server moves
+  // (it did on 2026-10-23) — see seatSetupCommands.
+  const seatSetupCmds = seatSetupCommands(window.location.origin);
+  const seatSetupWindowsCmd = seatSetupCmds.windows;
+  const seatSetupUbuntuCmd = seatSetupCmds.ubuntu;
 
   let windowsCopyLabel = "Select";
   let ubuntuCopyLabel = "Select";

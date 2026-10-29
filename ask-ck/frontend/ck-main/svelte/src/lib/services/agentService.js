@@ -423,3 +423,16 @@ export async function checkLocalAgent() {
   }
   return { status: s, update: upd };
 }
+
+// PORTED FROM current/llm-config/agent.js seatSetupCommands() (2026-10-30). The one-liners the
+// Help page shows are built from the page's OWN origin (window.location.origin), never typed in:
+// the server fills the installer copies it hands out at /setup/* from the request's Host header,
+// so whatever address the browser used is the address the seat agent gets configured with. A
+// tunnelled seat (ssh -L, browsing localhost:8000) sees localhost — correct for that seat.
+export function seatSetupCommands(origin) {
+  const o = String(origin || "").replace(/\/+$/, "");
+  return {
+    windows: `irm ${o}/setup/setup.ps1 | iex`,
+    ubuntu: `curl -fsSL ${o}/setup/setup.sh | bash`,
+  };
+}

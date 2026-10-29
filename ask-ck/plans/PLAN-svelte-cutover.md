@@ -132,7 +132,7 @@ Record each outcome here as it is tested.
 20. Classic at `/classic`: no path navigation or `href="/"` in `current/` [CONF]; share links now carry `/classic?…`.
 21. Locks across both UIs (his `lockService.js` exists [CONF]): same case from `/` and `/classic` on two seats.
 22. Per-seat LLM header on each page; claude_agent call from a tool page without visiting Settings.
-23. Help page one-liner shows the real origin (.13); one `location.origin` use [CONF].
+23. ~~Help page one-liner shows the real origin~~ It was **typed in** (`http://10.33.22.13:8000`), not derived — fixed 2026-10-30: `agentService.seatSetupCommands(window.location.origin)` (ported from Classic), spec in `tests/services/agentService.spec.js` incl. a no-literal-address check on HelpPage.svelte.
 24. Backend imports from `current/` (`cli_lookup`, `upload_refined.py`) unaffected; deleting `current/` later would break them.
 
 ### C. Merge-time
