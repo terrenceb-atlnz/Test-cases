@@ -176,21 +176,28 @@ async def _bind_session_id(request: Request, call_next):
     # no-cache makes them revalidate every load (ETag => 304 when unchanged, so
     # this is cheap). See ask-ck/frontend/ck-main/current/README.md convention #4. Modules now
     # live in page directories under /static/, so match on the extension, not one directory.
-    if request.url.path.startswith(("/static/", "/restyle/static/")) and request.url.path.endswith(".js"):
+    if request.url.path.startswith("/static/") and request.url.path.endswith(".js"):
         response.headers["Cache-Control"] = "no-cache"
+    elif request.url.path.startswith("/assets/"):
+        # The Svelte app's Vite build names these by content hash, so a changed file is a new
+        # URL: cache them for good (PLAN-svelte-cutover.md). Its index.html is no-cache below.
+        response.headers["Cache-Control"] = "public, max-age=31536000, immutable"
     return response
 
-# Serve the current front-end (ask-ck/frontend/ck-main/current/) at /static — the URL prefix is
-# kept so index.html's /static/styles.css and /static/ckc.jpg references stay valid.
+# Two front ends (ask-ck/plans/PLAN-svelte-cutover.md, 2026-10-30):
+#  * "/" is the Svelte app (ask-ck/frontend/ck-main/svelte/), served from its COMMITTED Vite build
+#    in svelte/dist/ — built by ask-ck/tools/build_svelte_app.sh, guarded by
+#    tests/test_svelte_app_built.py. Its hashed assets mount at /assets; its public/ files are
+#    registered one by one below; its index.html answers every route in src/routes.js.
+#  * Classic (ask-ck/frontend/ck-main/current/) stays at /classic, its files at /static — the
+#    prefix is kept so index.html's /static/styles.css and /static/ckc.jpg references stay valid.
+#  * The ATUI restyle (archive/plans/PLAN-atui-restyle.md) is no longer served; its files stay.
+# Both StaticFiles mounts check their directory at import: a missing svelte/dist/ fails the
+# server at startup on purpose — the build must be committed before this file points at it.
 static_dir = str(FRONTEND_DIR)
 app.mount("/static", StaticFiles(directory=static_dir), name="static")
-
-# The ATUI restyle (ask-ck/plans/PLAN-atui-restyle.md): a second front end beside current/, with its
-# own index.html + CSS, sharing current/'s JS (its page loads /static/shared/main.js). "/" always
-# serves current/; /restyle is opt-in via the Classic/ATUI swap in the sidebar. Kept here, not in
-# paths.py, so adding it was one file and one --reload.
-RESTYLE_DIR = FRONTEND_DIR.parent / "restyle"
-app.mount("/restyle/static", StaticFiles(directory=str(RESTYLE_DIR)), name="restyle_static")
+DIST_DIR = FRONTEND_DIR.parent / "svelte" / "dist"
+app.mount("/assets", StaticFiles(directory=str(DIST_DIR / "assets")), name="app_assets")
 
 app.state.app_data = None
 
@@ -257,18 +264,43 @@ async def favicon():
     return Response(status_code=204)
 
 
-@app.get("/", response_class=HTMLResponse)
-async def root():
-    """Main wizard UI (migrated from v1)."""
-    index_path = os.path.join(static_dir, "index.html")
-    with open(index_path) as f:
-        return HTMLResponse(f.read())
+# The Svelte app routes by history-API path (svelte/src/routes.js), so a refresh on /generator
+# must get its index.html, not a 404. An explicit list mirrored from routes.js, NOT a catch-all:
+# a mistyped /api/…, /static/… or /setup/… URL must keep 404-ing for seat agents, curl and tests.
+# tests/test_svelte_app_served.py asserts this tuple equals routes.js.
+SPA_ROUTES = ("/", "/help", "/llm", "/settings", "/generator", "/pytest", "/composer", "/zephyr")
 
-@app.get("/restyle", response_class=HTMLResponse)
-async def restyle_root():
-    """The ATUI restyle of the same UI (PLAN-atui-restyle.md). Opt-in; "/" stays current/."""
-    with open(RESTYLE_DIR / "index.html") as f:
-        return HTMLResponse(f.read())
+
+async def spa_index():
+    """The Svelte app. no-cache so a rebuilt dist/ (new hashed asset names) is picked up on reload."""
+    with open(DIST_DIR / "index.html", encoding="utf-8") as f:
+        return HTMLResponse(f.read(), headers={"Cache-Control": "no-cache"})
+
+
+for _route in SPA_ROUTES:
+    app.get(_route, response_class=HTMLResponse, include_in_schema=False)(spa_index)
+
+
+def _dist_root_file(name: str):
+    async def handler():
+        return FileResponse(DIST_DIR / name, headers={"Cache-Control": "no-cache"})
+    return handler
+
+
+# Vite copies svelte/public/ (askck-logo.png, icons.svg, favicon.svg) to the dist ROOT and the app
+# references them as /askck-logo.png. One route per file (dist/ is committed, so the set is fixed
+# until the next build lands and this file reloads). /favicon.* above keeps serving Classic's icon:
+# the Svelte page's icon is /askck-logo.png, so dist/favicon.svg is skipped.
+for _f in sorted(DIST_DIR.iterdir()):
+    if _f.is_file() and _f.name != "index.html" and not _f.name.startswith((".", "favicon.")):
+        app.get(f"/{_f.name}", include_in_schema=False)(_dist_root_file(_f.name))
+
+
+@app.get("/classic", response_class=HTMLResponse)
+async def classic_root():
+    """Classic — the ES-module UI in current/, kept as the fallback. Its ?panel= deep links work here."""
+    with open(os.path.join(static_dir, "index.html"), encoding="utf-8") as f:
+        return HTMLResponse(f.read(), headers={"Cache-Control": "no-cache"})
 
 @app.get("/process", response_class=HTMLResponse)
 async def process_page():
@@ -378,7 +410,9 @@ async def process_page():
 # a tab. Static assets are served straight off disk, so an edit is live with NO
 # restart (md5 of the file equals md5 of the served bytes while the process
 # keeps running), and an UNCOMMITTED edit leaves the SHA untouched. mtime+size
-# over the ~24 static files notices a changed asset without reading any of them.
+# over every file in BOTH served trees (current/ and svelte/dist/) notices a changed asset
+# without reading any of them. Classic tabs on /classic poll this; the Svelte app does not yet
+# (PLAN-svelte-cutover.md §2 item 5), but a rebuilt dist/ must still move the stamp.
 #
 # Cached for a few seconds: every open tab polls this, so an unguarded version
 # would turn a room full of browsers into a stat storm on every tick.
@@ -394,14 +428,15 @@ def _static_build_id() -> str:
         if _build_cache["stamp"] and (now - _build_cache["at"]) < _BUILD_TTL_S:
             return _build_cache["stamp"]
     parts = []
-    for root, _dirs, files in os.walk(static_dir):
-        for name in files:
-            fp = os.path.join(root, name)
-            try:
-                st = os.stat(fp)
-            except OSError:
-                continue  # vanished mid-walk; a later tick will see the tree settle
-            parts.append(f"{os.path.relpath(fp, static_dir)}:{st.st_mtime_ns}:{st.st_size}")
+    for label, base in (("current", static_dir), ("dist", str(DIST_DIR))):
+        for root, _dirs, files in os.walk(base):
+            for name in files:
+                fp = os.path.join(root, name)
+                try:
+                    st = os.stat(fp)
+                except OSError:
+                    continue  # vanished mid-walk; a later tick will see the tree settle
+                parts.append(f"{label}/{os.path.relpath(fp, base)}:{st.st_mtime_ns}:{st.st_size}")
     stamp = hashlib.sha256("\n".join(sorted(parts)).encode()).hexdigest()[:16]
     with _build_lock:
         _build_cache["stamp"] = stamp

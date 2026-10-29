@@ -5,7 +5,7 @@ Single source of truth for repo-layout paths after the ask-ck/ restructure:
     Test-cases/
     └── ask-ck/
         ├── CK-main/CK_server/       <- this package (the backend)
-        ├── frontend/ck-main/current <- the served front-end (FRONTEND_DIR); svelte/ beside it
+        ├── frontend/ck-main/current <- Classic (FRONTEND_DIR): /classic + /static; svelte/dist/ is "/"
         ├── functions/               <- one directory per page (2026-09-11 restructure)
         │   ├── generator/           <- Generator data, refined-cases, process docs, PROGRESS.md
         │   ├── pytest-creator/      <- PyTest Creator specs + generated/
@@ -44,8 +44,9 @@ DB_DIR = ASKCK_ROOT / "db"                                  # .../ask-ck/db  (wa
 DB_PATH = DB_DIR / "ck.db"                                  # SQLite (FTS5 + sqlite-vec) single file
 EMBED_MODEL_DIR = DB_DIR / "models"                         # local sentence-transformers cache
 
-# The current (pre-Svelte) front-end: index.html, styles.css, assets and the ES modules sorted
-# into page directories (generator/, pytest-creator/, llm-config/, admin/, shared/). Served at
-# /static by main.py. Moved out of CK_server/static on 2026-09-11 (PLAN-restructure batch 7);
-# the Svelte rewrite will live beside it at frontend/ck-main/svelte/.
+# Classic: index.html, styles.css, assets and the ES modules sorted into page directories
+# (generator/, pytest-creator/, llm-config/, admin/, shared/). Served at /classic and /static by
+# main.py. Moved out of CK_server/static on 2026-09-11 (PLAN-restructure batch 7). Since the
+# 2026-10-30 cutover (ask-ck/plans/PLAN-svelte-cutover.md) "/" is the Svelte app beside it at
+# frontend/ck-main/svelte/, served from its committed dist/ (DIST_DIR is defined in main.py).
 FRONTEND_DIR = ASKCK_ROOT / "frontend" / "ck-main" / "current"

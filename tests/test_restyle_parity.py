@@ -1,5 +1,10 @@
-"""The ATUI restyle (ask-ck/plans/PLAN-atui-restyle.md) shares current/'s JS, so it must carry
+"""The ATUI restyle (archive/plans/PLAN-atui-restyle.md) shares current/'s JS, so it must carry
 every hook that JS binds to.
+
+UNSERVED since the Svelte cutover (ask-ck/plans/PLAN-svelte-cutover.md, 2026-10-30): /restyle and
+/restyle/static are gone from main.py and Classic's ATUI link with them, but the files stay in
+the tree (deletion is a later decision). These checks are therefore all STATIC — they keep the
+restyle mountable again, and say nothing about what the server serves.
 
 restyle/index.html is its own page (S1) but loads /static/shared/main.js, which finds its
 elements by id and dispatches clicks by data-action. A hook present in current/index.html
@@ -21,7 +26,6 @@ class _Hooks(HTMLParser):
         super().__init__()
         self.ids, self.actions, self.classes = set(), set(), set()
         self.html_attrs = {}
-        self.links = {}
 
     def handle_starttag(self, tag, attrs):
         a = dict(attrs)
@@ -32,8 +36,6 @@ class _Hooks(HTMLParser):
         if "data-action" in a:
             self.actions.add(a["data-action"])
         self.classes.update((a.get("class") or "").split())
-        if tag == "a" and "ui-toggle-opt" in (a.get("class") or ""):
-            self.links[a.get("href")] = a
 
 
 def _parse(path):
@@ -75,11 +77,6 @@ def test_restyle_uses_its_own_stylesheet():
     assert 'href="/static/styles.css' not in html
 
 
-def test_swap_control_points_each_way():
-    assert "/restyle" in _parse(CURRENT).links, "Classic's swap control must link to /restyle"
-    assert "/" in _parse(RESTYLE).links, "restyle's swap control must link back to / (Classic)"
-
-
 def _sidebar_sections(path):
     """[(section label, [data-panel of each item, in order])] from the sidebar's top level."""
     html = path.read_text(encoding="utf-8")
@@ -99,21 +96,6 @@ def test_validation_lives_inside_test_composer_in_both_pages():
         assert sections.get("Test Composer") == ["panel-vd", "panel-tc", "panel-rs"], (page, sections.get("Test Composer"))
         assert "Validation" not in sections, page
         assert "panel-tc-tbd" not in page.read_text(encoding="utf-8"), page
-
-
-def test_restyle_route_serves_the_restyle_page(client):
-    r = client.get("/restyle")
-    assert r.status_code == 200 and 'data-ui="atui"' in r.text
-
-
-def test_root_still_serves_current(client):
-    r = client.get("/")
-    assert r.status_code == 200 and 'data-ui="atui"' not in r.text
-
-
-def test_restyle_static_serves_its_own_files(client):
-    assert client.get("/restyle/static/styles.css").status_code == 200
-    assert client.get("/restyle/static/atui/fonts/inter-latin-wght-normal.woff2").status_code == 200
 
 
 def test_both_pages_apply_the_saved_theme_before_first_paint():
