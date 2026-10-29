@@ -1,6 +1,6 @@
 ---
 name: svelte-app-served-at-root
-description: Since 2026-10-30 "/" is Trent's Svelte app served from the COMMITTED svelte/dist; rebuild with ask-ck/tools/build_svelte_app.sh and commit dist/; Classic at /classic; the restyle is unserved; the app reads no ?panel= deep links yet
+description: Since 2026-10-30 "/" is Trent's Svelte app served from the COMMITTED svelte/dist; rebuild with ask-ck/tools/build_svelte_app.sh and commit dist/; Classic at /classic; the restyle is unserved; ?panel= deep links ported into the app the same day
 metadata:
   type: project
   verified: 2026-10-30
@@ -26,9 +26,9 @@ the server at import on purpose.
   `main.py` reload. A new file in `svelte/public/` likewise gets its root route only after a reload.
 - The gate runs the app's own Vitest as a fourth layer (`run_tests.sh`), so `svelte/node_modules`
   must exist or the gate exits 2.
-- Known at cutover (checklist in the plan §2): the app reads NO query parameters, so the Finalize
-  link written into Zephyr (`/?panel=composer&script=…`) and run e-mails (`/?panel=tc-runs&run=…`)
-  land on its home page — prefix `/classic` by hand until ported; it does not poll `/api/version`;
-  `navigator.clipboard` is used (undefined on http seats); no session restore on refresh.
+- Deep links: the app reads them since the same day (`testComposerModel.deepLink`, Classic's contract
+  plus `/composer?script=…`), so the Finalize link in Zephyr and the run e-mails open Test Composer
+  on the right tab. Still known (plan §2): it does not poll `/api/version`; `navigator.clipboard` is
+  used (undefined on http seats); no session restore on refresh.
 - Related: [[editing-backend-restarts-production]] (the `main.py` edit reloaded production once),
   [[askck-lan-hosting]], [[gate-does-not-start-the-server]].

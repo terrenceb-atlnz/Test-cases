@@ -15,6 +15,7 @@
   import Topbar from './lib/components/Topbar.svelte';
 
   import { loadConfig } from './lib/services/llmConfigService.js';
+  import { deepLink } from './lib/components/testcomposer/testComposerModel.js';
   import { ckBrokerLoop } from './lib/services/agentService.js';
 
   import HomePage from './pages/HomePage.svelte';
@@ -123,13 +124,18 @@
   // What to select when Test Composer opens (PyTest Creator's "Validate Test" passes the case
   // key). Set on every navigation, so a plain sidebar click to Test Composer starts clean.
   let composerPreselect = null;
+  // A deep link's tab and run id (testComposerModel.deepLink) — set with the preselect, cleared the same way.
+  let composerTab = null;
+  let composerOpenRun = null;
   let helpOpenSetupGuide = false;
   let settingsInitialTab = 'general';
 
-  /** @param {string} pageId @param {{ preselect?: string | null, openSetupGuide?: boolean, tab?: string }} [opts] */
+  /** @param {string} pageId @param {{ preselect?: string | null, openRun?: string | null, openSetupGuide?: boolean, tab?: string }} [opts] */
   function selectPage(pageId, opts = {}) {
     composerPreselect = opts.preselect ?? null;
-    if (pageId === 'composer' && composerPreselect) composerInstanceKey += 1;
+    composerOpenRun = opts.openRun ?? null;
+    composerTab = pageId === 'composer' ? (opts.tab ?? null) : null;
+    if (pageId === 'composer' && (composerPreselect || composerOpenRun || composerTab)) composerInstanceKey += 1;
     helpOpenSetupGuide = opts.openSetupGuide ?? false;
     settingsInitialTab = opts.tab ?? 'general';
     activePage = pageId;
@@ -146,6 +152,12 @@
 
   onMount(() => {
     syncActivePageFromPath(window.location.pathname);
+
+    // A deep link the server wrote (Finalize's link in Zephyr, the run e-mails) or Classic's
+    // `?panel=` form wins over the path: open Test Composer on the tab it names, with its script
+    // or run (PLAN-svelte-cutover D7, ported 2026-10-30). Read once, at load.
+    const link = deepLink(window.location.search, window.location.pathname);
+    if (link) selectPage('composer', { preselect: link.preselect, openRun: link.openRun, tab: link.tab });
 
     const handlePopState = () => {
       syncActivePageFromPath(window.location.pathname);
@@ -247,7 +259,7 @@
       {#if composerEverVisited}
         <div class="keep-alive-page" style:display={activePage === 'composer' ? 'contents' : 'none'}>
           {#key composerInstanceKey}
-            <TestComposerPage preselect={composerPreselect} />
+            <TestComposerPage preselect={composerPreselect} initialTab={composerTab} openRun={composerOpenRun} />
           {/key}
         </div>
       {/if}

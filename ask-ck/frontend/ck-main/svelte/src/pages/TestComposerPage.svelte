@@ -22,11 +22,19 @@
     { id: "run", label: "Run Scripts", icon: scriptsIcon },
   ];
 
-  /** @type {string | null} A case key or script path to select in Validate a Script — set when
-      PyTest Creator's "Validate Test" opens this page; it then starts on that tab. */
+  /** @type {string | null} A case key or script path to select on the tab this page opens on —
+      PyTest Creator's "Validate Test" passes a case key (Validate tab, the default); a deep link
+      passes a script path with the tab it names (testComposerModel.deepLink). */
   export let preselect = null;
+  /** @type {string | null} Which tab to open on: "validate" (default), "compose" or "run". */
+  export let initialTab = null;
+  /** @type {string | null} A run id to open on that tab — the run e-mails' `?panel=tc-runs&run=` link. */
+  export let openRun = null;
 
-  let activeTab = "validate";
+  let activeTab = tabs.some((t) => t.id === initialTab) ? initialTab : "validate";
+  // `preselect` / `openRun` belong to the tab the page opened on, never to a tab the user clicks
+  // to afterwards (a case key meant for Validate is not a script path for Compose).
+  const landing = activeTab;
 </script>
 
 <ToolHeader
@@ -56,11 +64,11 @@
 
   <div class="composer-panel" role="tabpanel">
     {#if activeTab === "validate"}
-      <TcValidate {preselect} />
+      <TcValidate preselect={landing === "validate" ? preselect : null} openRun={landing === "validate" ? openRun : null} />
     {:else if activeTab === "compose"}
-      <TcCompose />
+      <TcCompose preselect={landing === "compose" ? preselect : null} openRun={landing === "compose" ? openRun : null} />
     {:else if activeTab === "run"}
-      <TcRun />
+      <TcRun openRun={landing === "run" ? openRun : null} />
     {/if}
   </div>
 </div>

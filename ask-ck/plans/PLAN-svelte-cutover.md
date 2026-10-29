@@ -67,13 +67,19 @@
 > - **D5** **No gap-fixing before cutover** (checklist §A). Recorded as follow-ups.
 > - **D6** **ATUI not required** for the Svelte app (S6 still holds).
 > - **D7** Server-written deep links (`/?panel=composer&script=…` Finalize link in Zephyr,
->   `/?panel=tc-runs&run=…` run e-mails) are **left as-is**. Follow-up.
+>   `/?panel=tc-runs&run=…` run e-mails) were left as-is at cutover. **Ported the same day at
+>   Terrence's ask:** `testComposerModel.deepLink` (pure, Classic's contract + a `/composer?script=`
+>   path form) read once in `App.svelte` on mount → `TestComposerPage` gains `initialTab` + `openRun`
+>   and hands `preselect`/`openRun` only to the tab it opened on. Spec: his
+>   `tests/components/testcomposer/testComposerModel.spec.js` (7). The server still writes the
+>   same links, so nothing already in Zephyr or e-mails changes. Not yet: a Run Scripts share link
+>   opens the tab but does not fill it (`TcRun` has no `link` prop). **Browser check pending** (§2 #6).
 > - **D8** Trent's Vitest suite is **added to the gate**, plus a dist-freshness pytest guard.
 > - **D9** Built `dist/` is **committed** and hash-guarded like the islands, **without editing
 >   Trent's `vite.config.js`** (a wrapper script writes `dist/.source-sha256`).
 >
 > **Step status:** 0 worktree ☑ · 1 merge ☑ · 2 dist + guard ☑ · 3 server + tests ☑ · 4 gate ☑ ·
-> 5 records ☑ · 6 landed on main ☑ · manual checklist ☐ (against production, §4).
+> 5 records ☑ · 6 landed on main ☑ · manual checklist ☐ (against production, §4) · deep links ported ☑ (sync 3).
 
 ## 1. Context
 
@@ -106,7 +112,7 @@ Record each outcome here as it is tested.
 3. Not responsive [README].
 4. `navigator.clipboard.writeText` ×4 (TcCompose:356, TcRun:210, HelpPage:20 unguarded; TcLogViewer:48 try/catch) — undefined on http LAN seats [CONF].
 5. No `/api/version` poll ⇒ no stale-tab guard in his app; Classic tabs still poll [CONF].
-6. No query-parameter reads ⇒ Finalize links in Zephyr, run e-mails, and his own TcCompose share links (`?panel=composer&project=…`) land on home [CONF] (D7).
+6. ~~No query-parameter reads~~ **PORTED 2026-10-30** (D7): `?panel=composer|validation|tc-runs|run-scripts` and `/composer?script=|run=` open Test Composer on the right tab with the script/run. To verify in a browser: a Finalize link from Zephyr, a run e-mail link, and `/composer?script=9002_IPv4/test-9002.33241.py`. His TcCompose share link (`?panel=composer&project=…`) opens Compose but its `project`/`wiki`/`template` fields are not read; a Run Scripts link opens the tab unfilled.
 7. Admin mode is client-side only [README]; verify `/api/admin` calls and URL reachability.
 8. PyTest→Composer "Validate Test" preselect is in-memory via `selectPage`; refresh loses it [CONF].
 9. Vitest: 2 real spec files, rest `describe.todo`, e2e empty [README].

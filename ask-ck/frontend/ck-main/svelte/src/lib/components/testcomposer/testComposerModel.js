@@ -52,6 +52,40 @@ export function runBody(kind, setup, extra = {}) {
   );
 }
 
+/** Which Test Composer tab a run id belongs to, by the kind baked into the id (same rule as
+ *  current/test-composer/test-composer.js): `…-val-…` Validate, `…-scr-…` Run Scripts, else Compose. */
+export function tabForRun(runId) {
+  if (/-val-/.test(runId)) return "validate";
+  if (/-scr-/.test(runId)) return "run";
+  return "compose";
+}
+
+/** Deep links (pure) — the same contract Classic reads in current/test-composer/test-composer.js,
+ *  ported 2026-10-30 (PLAN-svelte-cutover D7), because the SERVER writes these and they already sit
+ *  in Zephyr cases and sent e-mails:
+ *    `?panel=composer&script=<group>/<file>`   Finalize's "use script … in the ask-ck tool" link
+ *    `?panel=validation&script=…`              Validate a Script on that script
+ *    `?panel=run-scripts&…`                    a Run Scripts share link (opens the tab; the fields are
+ *                                              not filled yet — TcRun has no `link` prop)
+ *    `?panel=tc-runs&run=<run id>`             the run e-mails, routed by the run id's kind
+ *  plus this app's own path form: on /composer, a bare `?script=` or `?run=`.
+ *  Returns `{ tab, preselect, openRun }` for TestComposerPage, or null when the URL carries none. */
+export function deepLink(search, pathname = "") {
+  const q = new URLSearchParams(search || "");
+  const panel = q.get("panel");
+  const run = q.get("run") || null;
+  const script = q.get("script") || null;
+  if (panel === "composer") return { tab: "compose", preselect: script, openRun: run };
+  if (panel === "validation") return { tab: "validate", preselect: script, openRun: run };
+  if (panel === "run-scripts") return { tab: "run", preselect: null, openRun: run };
+  if (panel === "tc-runs" && run) return { tab: tabForRun(run), preselect: null, openRun: run };
+  if (!panel && (pathname || "").replace(/\/+$/, "") === "/composer") {
+    if (run) return { tab: tabForRun(run), preselect: script, openRun: run };
+    if (script) return { tab: "compose", preselect: script, openRun: null };
+  }
+  return null;
+}
+
 /** Run Scripts' share link (PLAN-run-scripts §3): the scripts in run order and the bench settings,
  *  never the email (R-D4) — whoever opens it gets the mail. Parsed by test-composer.js deepLink. */
 export function scriptsLink(href, { source, scripts, setup, start }) {
