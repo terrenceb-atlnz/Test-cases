@@ -1,6 +1,6 @@
 <script>
   //@ts-nocheck
-  import { onMount } from 'svelte';
+  import { onDestroy, onMount } from 'svelte';
 
   import houseIcon from './assets/icons/house.svg';
   import helpIcon from './assets/icons/circle-question-mark.svg';
@@ -17,11 +17,12 @@
   import { loadConfig } from './lib/services/llmConfigService.js';
   import { deepLink } from './lib/components/testcomposer/testComposerModel.js';
   import { ckBrokerLoop } from './lib/services/agentService.js';
+  import { startVersionWatch } from './lib/services/versionService.js';
+  import ConfirmModal from './lib/components/ConfirmModal.svelte';
 
   import HomePage from './pages/HomePage.svelte';
   import HelpPage from './pages/HelpPage.svelte';
   import SettingsPage from './pages/SettingsPage.svelte';
-  import ToolPage from './pages/ToolPage.svelte';
   import CaseGeneratorPage from './pages/GeneratorPage.svelte';
   import PyTestPage from './pages/PyTestPage.svelte';
   import TestComposerPage from './pages/TestComposerPage.svelte';
@@ -54,6 +55,12 @@
 
   /** @type {string} */
   let activePage = 'home';
+
+  // Stale-tab guard (versionService.js, ported from current/shared/version.js): the server's
+  // build id moved while this tab was open, so it is running an older bundle. Prompt only —
+  // the reload is the user's click, never automatic (unsaved work, live case locks).
+  let serverUpdated = false;
+  let stopVersionWatch = null;
 
   // The Objective Generator keeps its whole component instance mounted (hidden via CSS,
   // never destroyed) once first visited, so switching to another sidebar item and back
@@ -146,6 +153,8 @@
     }
   }
 
+  onDestroy(() => stopVersionWatch && stopVersionWatch());
+
   function toggleSidebar() {
     sidebarCollapsed = !sidebarCollapsed;
   }
@@ -158,6 +167,8 @@
     // or run (PLAN-svelte-cutover D7, ported 2026-10-30). Read once, at load.
     const link = deepLink(window.location.search, window.location.pathname);
     if (link) selectPage('composer', { preselect: link.preselect, openRun: link.openRun, tab: link.tab });
+
+    stopVersionWatch = startVersionWatch(() => (serverUpdated = true));
 
     const handlePopState = () => {
       syncActivePageFromPath(window.location.pathname);
@@ -181,38 +192,16 @@
     };
   });
 
-  /**
-   * @type {{
-   *   [key: string]: {
-   *     title: string,
-   *     intro: string,
-   *     cards: Array<{ title: string, description: string, accent: string }>
-   *   }
-   * }}
-   */
-  const toolPages = {
-    generator: {
-      title: 'Objective Generator',
-      intro: 'Turn sparse manual test cases into refined, reviewable cases.',
-      cards: [{ title: 'Generator', description: 'Create a structured test narrative and validation plan.', accent: 'blue' }]
-    },
-    pytest: {
-      title: 'PyTest Creator',
-      intro: 'Translate completed case artifacts into framework-level executable test scripts.',
-      cards: [{ title: 'Script export', description: 'Build the final executable framework payload.', accent: 'gray' }]
-    },
-    composer: {
-      title: 'Test Composer',
-      intro: 'Compose multi-step workflows, dependencies, and validation sequences.',
-      cards: [{ title: 'Composition', description: 'Combine test blocks into larger execution plans.', accent: 'blue' }]
-    },
-    zephyr: {
-      title: 'Zephyr Templating',
-      intro: 'Prepare templates and outputs for Zephyr-ready reporting and lifecycle tracking.',
-      cards: [{ title: 'Template output', description: 'Package case structure for Zephyr consumers.', accent: 'gray' }]
-    }
-  };
 </script>
+
+<ConfirmModal
+  bind:open={serverUpdated}
+  title="Server updated"
+  message="This page is running an older version of Ask CK. Refresh to load the current one. Anything you have not saved will be lost."
+  confirmText="Refresh page"
+  cancelText="Not now"
+  onConfirm={() => window.location.reload()}
+/>
 
 <div class="app-shell" style:--sidebar-width={sidebarCollapsed ? '80px' : '240px'}>
   <Sidebar items={navigation} activePage={activePage} collapsed={sidebarCollapsed} onSelect={selectPage} onToggle={toggleSidebar} />
@@ -228,16 +217,13 @@
         <SettingsPage initialTab={settingsInitialTab} />
       {:else if activePage === 'generator'}
         <!-- Rendered unconditionally below instead, hidden via CSS once first visited — see
-             generatorEverVisited above. Kept as its own branch here only so the {:else}
-             ToolPage fallback doesn't wrongly catch 'generator'. -->
+             generatorEverVisited above. -->
       {:else if activePage === 'pytest'}
         <!-- {#key pytestInstanceKey}
           <PyTestPage onNavigate={selectPage} onCreateAnother={resetPytest} initialCaseId={pendingPytestCaseId} />
         {/key} -->
       {:else if activePage === 'composer' || activePage === 'zephyr'}
         <!-- Kept alive below, like the Generator and PyTest Creator. -->
-      {:else}
-        <ToolPage page={toolPages[activePage] || toolPages.generator} />
       {/if}
 
       {#if generatorEverVisited}
