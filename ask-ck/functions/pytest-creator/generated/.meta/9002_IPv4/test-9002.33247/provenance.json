@@ -1,0 +1,147 @@
+{
+  "case_key": "AWPTCM-T33247",
+  "group": "IPv4",
+  "name": "test-9002.33247",
+  "saved_at": "2026-10-26T21:12:38.600887+00:00",
+  "iterations": 5,
+  "fragments": [
+    {
+      "source_id": "art/1355_nlb/test-1355.1001.py",
+      "symbol": "TestSet",
+      "maps_to": [
+        1
+      ]
+    },
+    {
+      "source_id": "art/1355_nlb/library_1355.py",
+      "symbol": "replyArpRequest",
+      "maps_to": [
+        1,
+        4,
+        7,
+        10,
+        11,
+        13,
+        16
+      ]
+    },
+    {
+      "source_id": "art/1351_gratuitous_arp/test-1351.1001.py",
+      "symbol": "TestCase_8",
+      "maps_to": [
+        2,
+        9
+      ]
+    },
+    {
+      "source_id": "art/1366_vrf_lite/test-1366.1001.py",
+      "symbol": "TestCase_1",
+      "maps_to": [
+        3
+      ]
+    },
+    {
+      "source_id": "art/1366_vrf_lite/test-1366.1001.py",
+      "symbol": "TestCase_7",
+      "maps_to": [
+        3,
+        19
+      ]
+    },
+    {
+      "source_id": "art/1366_vrf_lite/library_1366.py",
+      "symbol": "check_vrf_configuration",
+      "maps_to": [
+        3,
+        13,
+        18
+      ]
+    },
+    {
+      "source_id": "art/1366_vrf_lite/test-1366.1001.py",
+      "symbol": "TestCase_4",
+      "maps_to": [
+        4,
+        5,
+        6,
+        7,
+        9,
+        11,
+        12
+      ]
+    },
+    {
+      "source_id": "art/1355_nlb/library_1355.py",
+      "symbol": "getShowArp",
+      "maps_to": [
+        4,
+        6,
+        7,
+        8,
+        9,
+        11,
+        12,
+        15,
+        17,
+        18
+      ]
+    },
+    {
+      "source_id": "art/1340_past_issues_2/library_1340.py",
+      "symbol": "checkTables",
+      "maps_to": [
+        8,
+        9,
+        12,
+        15,
+        16,
+        17,
+        18
+      ]
+    },
+    {
+      "source_id": "art/1361_mac_learning/test-1361.1001.py",
+      "symbol": "TestCase_8",
+      "maps_to": [
+        10,
+        11
+      ]
+    },
+    {
+      "source_id": "art/1351_gratuitous_arp/test-1351.1001.py",
+      "symbol": "TestCase_6",
+      "maps_to": [
+        10,
+        11
+      ]
+    },
+    {
+      "source_id": "art/1366_vrf_lite/test-1366.1001.py",
+      "symbol": "TestCase_6",
+      "maps_to": [
+        13,
+        14,
+        15,
+        16,
+        17,
+        18
+      ]
+    },
+    {
+      "source_id": "art/1366_vrf_lite/library_1366.py",
+      "symbol": "traffic_test",
+      "maps_to": [
+        13,
+        16
+      ]
+    },
+    {
+      "source_id": "art/1366_vrf_lite/test-1366.1001.py",
+      "symbol": "TestCase_2",
+      "maps_to": [
+        19
+      ]
+    }
+  ],
+  "llm": {}
+}

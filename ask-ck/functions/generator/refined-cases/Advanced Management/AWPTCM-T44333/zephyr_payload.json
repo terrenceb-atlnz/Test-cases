@@ -1,0 +1,50 @@
+{
+  "AWPTCM-T44333": {
+    "objective": "<ul>\n  <li>Installed flow entries retained without expiry for the whole period the controller connection is interrupted when the non-rule-expiry option is in effect.</li>\n  <li>Traffic matching retained flow entries forwarded or blocked exactly as before for the duration of the interruption.</li>\n  <li>Traffic matching no installed entry handled according to the secure fail mode while the controller is unreachable.</li>\n  <li>Flow entries subject to normal timeout expiry during an interruption when the non-rule-expiry option is absent, as the default behaviour.</li>\n  <li>The flow table resynchronised with the controller on reconnection, with stale entries replaced and no duplicate or orphaned entries.</li>\n  <li>Retained entries remaining intact across repeated short interruptions, with no gradual loss of entries.</li>\n  <li>Removal of the non-rule-expiry option restoring default expiry behaviour on the next interruption.</li>\n  <li>An incompatible fail-mode and non-rule-expiry combination rejected with a clear error, with the prior OpenFlow configuration retained.</li>\n  <li>The fail mode and non-rule-expiry option reported in the OpenFlow status and persisting across a save and reload.</li>\n</ul>",
+    "testScript": {
+      "type": "steps",
+      "steps": [
+        {
+          "description": "Note: Related ART Tests linked in Traceability.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify flow retention with the DUT connected to an OpenFlow controller, the non-rule-expiry option enabled, and a set of flow entries installed that carry both idle and hard timeouts. Interrupt the controller connection for longer than the shortest installed timeout and confirm the installed entries remain present throughout the interruption.",
+          "expectedResult": ""
+        },
+        {
+          "description": "With the non-rule-expiry option enabled and a traffic generator attached to the DUT data ports, install entries that forward and entries that drop matching traffic. Run traffic matching each entry before, during and after a controller interruption and confirm the forwarding and blocking behaviour is unchanged while the controller is unreachable.",
+          "expectedResult": ""
+        },
+        {
+          "description": "During a controller interruption with the secure fail mode in effect, send traffic that matches no installed entry alongside traffic that matches retained entries. Confirm the unmatched traffic is handled according to the secure fail mode and is not forwarded through any other path.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Repeat the interruption with the non-rule-expiry option absent, using entries whose timeouts elapse within the interruption period. Confirm the entries expire on their normal timeouts and that traffic previously matching them is then handled as unmatched traffic.",
+          "expectedResult": ""
+        },
+        {
+          "description": "While the controller is disconnected, change the controller's intended flow set by modifying, adding and removing entries. Restore the connection and confirm the DUT flow table resynchronises to the controller's view, with stale entries replaced and no duplicate or orphaned entries remaining.",
+          "expectedResult": ""
+        },
+        {
+          "description": "With the non-rule-expiry option enabled and a populated flow table, interrupt and restore the controller connection repeatedly with short interruptions, including interruptions shorter than the controller's reconnection interval. Confirm the flow entry count and content stay intact after every cycle, with no gradual loss of entries.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Remove the non-rule-expiry option from a DUT that previously had it enabled, with timed entries installed. Interrupt the controller connection again and confirm the entries now expire on their normal timeouts as with the default behaviour.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Attempt to configure the non-rule-expiry option together with a fail mode it is not compatible with, both by adding the option to an existing fail mode and by changing the fail mode while the option is set. Confirm each attempt is rejected with a clear error and the previous OpenFlow configuration is retained.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify the fail mode and non-rule-expiry option are reported in the OpenFlow status for both the enabled and default configurations. Save the configuration, reload the DUT, and confirm both settings persist and that retention behaviour on the next interruption matches the saved configuration.",
+          "expectedResult": ""
+        }
+      ]
+    }
+  }
+}

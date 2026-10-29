@@ -79,7 +79,7 @@ verified: 2026-10-09
 | Step 5 the run (`RunManager`, `--noupdate --nodefaultcfg`) | **Changes.** bench-runner runs it, through `/test-mode --from-ask-ck`, with the same flags (memory `framework-run-always-noupdate`). |
 | §2.5 results routing (the "New Script?" toggle) | **Simplified.** A Validation run is always a script under test, so its record always goes to `generated/.meta/<group>/<name>/test/<run_id>/`. The toggle is gone. Campaign records are C's. |
 | The hand-back into `step7` (`run_result/{key}`) | **Kept as an option** (§8 open 3): the repair now happens in the session, so the creator's Fix-from-run is a second path, not the main one. |
-| The creator's Run, Validate and Testboxes panels | **Retire** when Validation ships (slice V4). Trent's Svelte branch already says *"Validating and fixing a script happens later, in Test Composer"* (`GenerateStep.svelte`): the same split. |
+| The creator's Run, Validate and Testboxes panels | **Retire** when Validation ships (slice V4). Trent's Svelte branch already says *"Validating and fixing a script happens later, in Test Composer"* (`PtGenerate.svelte`): the same split. |
 
 ## 2. The flow
 

@@ -1,0 +1,383 @@
+{
+  "case_key": "AWPTCM-T44187",
+  "group": "IPv6",
+  "name": "ssh_ipv6",
+  "saved_at": "2026-09-16T22:47:05.757943+00:00",
+  "iterations": 4,
+  "fragments": [
+    {
+      "source_id": "art/1348_security/test-1348.1001.py",
+      "symbol": "TestSet",
+      "maps_to": [
+        1
+      ]
+    },
+    {
+      "source_id": "art/1341_limits/library_1341.py",
+      "symbol": "generate_dict_of_usernames_and_passwords",
+      "maps_to": [
+        1
+      ]
+    },
+    {
+      "source_id": "art/1341_limits/library_1341.py",
+      "symbol": "configure_ip_interfaces_for_test",
+      "maps_to": [
+        1,
+        5
+      ]
+    },
+    {
+      "source_id": "art/1341_limits/library_1341.py",
+      "symbol": "run_show_command",
+      "maps_to": [
+        1,
+        18,
+        19,
+        29
+      ]
+    },
+    {
+      "source_id": "art/1348_security/library_1348.py",
+      "symbol": "enable_ssh",
+      "maps_to": [
+        2,
+        21
+      ]
+    },
+    {
+      "source_id": "art/1348_security/test-1348.6001.py",
+      "symbol": "TestCase_2",
+      "maps_to": [
+        2,
+        20,
+        21,
+        27
+      ]
+    },
+    {
+      "source_id": "art/1348_security/library_1348.py",
+      "symbol": "portscan_service_connectivity",
+      "maps_to": [
+        2,
+        20
+      ]
+    },
+    {
+      "source_id": "legacy/5705_DNS/test-5705.1001.py",
+      "symbol": "TestCase_9",
+      "maps_to": [
+        2
+      ]
+    },
+    {
+      "source_id": "art/1348_security/library_1348.py",
+      "symbol": "Generic_SSH_Login_From_TB",
+      "maps_to": [
+        3,
+        4,
+        5,
+        6,
+        9,
+        15,
+        24,
+        25,
+        28
+      ]
+    },
+    {
+      "source_id": "legacy/tools/Validation/IPv6_Scenario/Single_device_test_scripts/Poll_device_ssh.py",
+      "symbol": "connector",
+      "maps_to": [
+        3
+      ]
+    },
+    {
+      "source_id": "art/6000_link_check/library_6000.py",
+      "symbol": "create_ssh_swi_object",
+      "maps_to": [
+        3,
+        8,
+        16,
+        17,
+        21,
+        29
+      ]
+    },
+    {
+      "source_id": "art/1348_security/library_1348.py",
+      "symbol": "connect_via_ssh",
+      "maps_to": [
+        3,
+        25,
+        26
+      ]
+    },
+    {
+      "source_id": "art/1363_ipv6/test-1363.1001.py",
+      "symbol": "TestCase_2",
+      "maps_to": [
+        4,
+        5,
+        24,
+        28
+      ]
+    },
+    {
+      "source_id": "legacy/tools/Validation/IPv6_Scenario/Tobiah_scripts/Old scripts/ssh_to_tftpv6_boot_devices.py",
+      "symbol": "connection_updater",
+      "maps_to": [
+        5
+      ]
+    },
+    {
+      "source_id": "legacy/tools/Validation/IPv6_Scenario/Single_device_test_scripts/get_memory_consumption.py",
+      "symbol": "connector",
+      "maps_to": [
+        6,
+        29
+      ]
+    },
+    {
+      "source_id": "art/1348_security/library_1348.py",
+      "symbol": "send_shell_command",
+      "maps_to": [
+        6,
+        7,
+        8,
+        16,
+        17,
+        19
+      ]
+    },
+    {
+      "source_id": "art/1337_cli_walk/test-1337.1.py",
+      "symbol": "TestCase_1",
+      "maps_to": [
+        7
+      ]
+    },
+    {
+      "source_id": "art/1348_security/library_1348.py",
+      "symbol": "Generic_SSH_CLI_Commands",
+      "maps_to": [
+        7,
+        8,
+        18,
+        9,
+        10,
+        16,
+        22,
+        28
+      ]
+    },
+    {
+      "source_id": "art/1348_security/library_1348.py",
+      "symbol": "handle_pagination",
+      "maps_to": [
+        7
+      ]
+    },
+    {
+      "source_id": "legacy/5049_validation_example/test-5049.3109.py",
+      "symbol": "SSHExecCmdTestCase",
+      "maps_to": [
+        7
+      ]
+    },
+    {
+      "source_id": "art/1348_security/library_1348.py",
+      "symbol": "Generic_SSH_Concurrent_Login_From_TB",
+      "maps_to": [
+        8,
+        16,
+        17
+      ]
+    },
+    {
+      "source_id": "art/6000_link_check/test-6000.7001-memory.py",
+      "symbol": "TestCase_4",
+      "maps_to": [
+        8,
+        29
+      ]
+    },
+    {
+      "source_id": "art/1348_security/test-1348.6002.py",
+      "symbol": "TestCase_22",
+      "maps_to": [
+        9,
+        10
+      ]
+    },
+    {
+      "source_id": "art/1348_security/test-1348.1001.py",
+      "symbol": "TestCase_6",
+      "maps_to": [
+        9,
+        10,
+        11,
+        14,
+        28
+      ]
+    },
+    {
+      "source_id": "art/1348_security/library_1348.py",
+      "symbol": "Generic_SSH_Deny_Users",
+      "maps_to": [
+        10,
+        11,
+        13,
+        24,
+        28
+      ]
+    },
+    {
+      "source_id": "art/1348_security/library_1348.py",
+      "symbol": "remote_connect_test",
+      "maps_to": [
+        11,
+        12,
+        13,
+        22,
+        23
+      ]
+    },
+    {
+      "source_id": "art/1348_security/test-1348.6003.py",
+      "symbol": "TestCase_5",
+      "maps_to": [
+        12
+      ]
+    },
+    {
+      "source_id": "art/6000_link_check/test-6000.7001-memory.py",
+      "symbol": "TestCase_5",
+      "maps_to": [
+        12,
+        23,
+        29
+      ]
+    },
+    {
+      "source_id": "art/6000_link_check/library_6000.py",
+      "symbol": "fail_ssh_attempt",
+      "maps_to": [
+        12,
+        13,
+        14,
+        17,
+        20,
+        24
+      ]
+    },
+    {
+      "source_id": "legacy/tools/Validation/IPv6_Scenario/Single_device_test_scripts/netconf_tests.py",
+      "symbol": "unconfigured_netconf_user_get_request_test",
+      "maps_to": [
+        13,
+        14,
+        26
+      ]
+    },
+    {
+      "source_id": "art/1348_security/library_1348.py",
+      "symbol": "get_show_log",
+      "maps_to": [
+        14,
+        27,
+        29
+      ]
+    },
+    {
+      "source_id": "art/1348_security/test-1348.6003.py",
+      "symbol": "TestCase_6",
+      "maps_to": [
+        15
+      ]
+    },
+    {
+      "source_id": "legacy/tools/Validation/IPv6_Scenario/Single_device_test_scripts/netconf_tests.py",
+      "symbol": "priv15_lockout_after_attempts_test",
+      "maps_to": [
+        15,
+        27
+      ]
+    },
+    {
+      "source_id": "art/1348_security/test-1348.1002.py",
+      "symbol": "TestCase_7",
+      "maps_to": [
+        19
+      ]
+    },
+    {
+      "source_id": "art/1348_security/library_1348.py",
+      "symbol": "expect_service_blocked",
+      "maps_to": [
+        20
+      ]
+    },
+    {
+      "source_id": "legacy/5049_validation_example/test-5049.3109.py",
+      "symbol": "SSHExecCmdRebootTestCase",
+      "maps_to": [
+        20,
+        28
+      ]
+    },
+    {
+      "source_id": "art/1348_security/test-1348.6003.py",
+      "symbol": "TestCase_9",
+      "maps_to": [
+        22
+      ]
+    },
+    {
+      "source_id": "art/6000_link_check/test-6000.7001-memory.py",
+      "symbol": "TestCase_6",
+      "maps_to": [
+        23,
+        26,
+        29
+      ]
+    },
+    {
+      "source_id": "art/1348_security/library_1348.py",
+      "symbol": "Generic_Cyphers_SecureMode_SSH",
+      "maps_to": [
+        25
+      ]
+    },
+    {
+      "source_id": "art/1348_security/library_1348.py",
+      "symbol": "monitor_logs_for_continued_change",
+      "maps_to": [
+        25,
+        27
+      ]
+    },
+    {
+      "source_id": "art/1348_security/test-1348.6002.py",
+      "symbol": "TestCase_28",
+      "maps_to": [
+        26
+      ]
+    },
+    {
+      "source_id": "art/1348_security/library_1348.py",
+      "symbol": "compare_logs",
+      "maps_to": [
+        27
+      ]
+    },
+    {
+      "source_id": "art/6000_link_check/library_6000.py",
+      "symbol": "dump_all_memory_data",
+      "maps_to": [
+        29
+      ]
+    }
+  ],
+  "llm": {}
+}

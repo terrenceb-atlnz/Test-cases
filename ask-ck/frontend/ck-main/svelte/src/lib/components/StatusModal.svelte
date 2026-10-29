@@ -1,0 +1,171 @@
+<script>
+  //@ts-nocheck
+
+  import Button from "./Button.svelte";
+
+  export let open = false;
+
+  export let status = "success";
+
+  export let title = "";
+
+  export let message = "";
+
+  export let caseTitle = "";
+
+  export let closeText = "Close";
+
+  export let onClose = null;
+
+  function handleClose() {
+    open = false;
+    onClose && onClose();
+  }
+
+  function handleBackdropKeydown(event) {
+    if (event.key === "Escape") handleClose();
+  }
+</script>
+
+{#if open}
+  <div
+    class="modal-backdrop"
+    role="button"
+    tabindex="0"
+    on:click={handleClose}
+    on:keydown={handleBackdropKeydown}
+  >
+    <div
+      class="modal-dialog"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="status-modal-title"
+      tabindex="-1"
+      on:click|stopPropagation
+      on:keydown|stopPropagation
+    >
+      <div class="modal-status-row">
+        {#if status === "success"}
+          <span
+            class="modal-status-badge modal-status-badge-success"
+            aria-hidden="true">&#10003;</span
+          >
+        {:else}
+          <span
+            class="modal-status-badge modal-status-badge-error"
+            aria-hidden="true">!</span
+          >
+        {/if}
+        <div class="case-box">
+          <p
+            id="status-modal-title"
+            class="modal-title"
+            class:error={status === "error"}
+          >
+            {title}
+          </p>
+          {#if caseTitle}
+            <p class="case-title">{caseTitle}</p>
+          {/if}
+        </div>
+      </div>
+      {#if message}
+        <p class="modal-message">{message}</p>
+      {/if}
+      <div class="modal-actions">
+        <slot name="actions" />
+        <Button variant="primary" on:click={handleClose}>{closeText}</Button>
+      </div>
+    </div>
+  </div>
+{/if}
+
+<style>
+  .modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 16px;
+    padding-bottom: 10vh;
+  }
+
+  .modal-dialog {
+    width: 100%;
+    min-width: 420px;
+    max-width: 500px;
+    padding: 32px;
+    border-radius: 12px;
+    border: 1px solid var(--color-border-surface);
+    background: var(--color-bg-surface);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.25);
+  }
+
+  .modal-status-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+
+  .modal-status-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    color: #fff;
+    font-weight: 700;
+    font-size: 0.9rem;
+    line-height: 1;
+  }
+
+  .modal-status-badge-success {
+    background: var(--color-success);
+  }
+
+  .modal-status-badge-error {
+    background: var(--color-error);
+  }
+
+  .modal-title {
+    margin: 0;
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--color-success);
+  }
+
+  .modal-title.error {
+    color: var(--color-error);
+  }
+
+  .case-box {
+    display: flex;
+    flex-direction: column;
+  }
+  .case-title {
+    font-weight: 800;
+    font-size: 0.9rem;
+    color: var(--color-text-muted);
+    margin: 0;
+    margin-top: 4px;
+  }
+
+  .modal-message {
+    margin: 0 0 20px;
+    color: var(--color-text-muted);
+    font-size: 0.88rem;
+    font-style: italic;
+  }
+
+  .modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+  }
+</style>

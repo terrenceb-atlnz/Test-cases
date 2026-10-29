@@ -1,0 +1,720 @@
+<script>
+// @ts-nocheck
+
+  import PageHeader from '../lib/components/PageHeader.svelte';
+  import Button from '../lib/components/Button.svelte';
+  import settingsIcon from '../assets/icons/settings.svg';
+  import wrenchIcon from '../assets/icons/wrench.svg';
+  import chartIcon from '../assets/icons/chart-column.svg';
+  import eyeIcon from '../assets/icons/eye.svg';
+  import sunIcon from '../assets/icons/sun.svg'
+  import moonIcon from '../assets/icons/moon.svg'
+  import sunMoonIcon from '../assets/icons/sun-moon.svg'
+  import { theme, setTheme, resolvedTheme } from '../lib/theme.js';
+  import localLlmIconDark from '../assets/local-llm.png';
+  import localLlmIconLight from '../assets/local-llm-light.png';
+  import claudeLlmIconDark from '../assets/claude-llm.png';
+  import claudeLlmIconLight from '../assets/claude-llm-light.png';
+  import UnderConstruction from '../lib/components/UnderConstruction.svelte';
+  import ErrorBanner from '../lib/components/ErrorBanner.svelte';
+  import { onMount } from 'svelte';
+  import { applyConfig, loadConfig, checkHealth, describeLLMStatus, seatLlmRetiredNotice } from '../lib/services/llmConfigService.js';
+  import { checkLocalAgent as probeLocalAgent, describeAgentStatus, ckBrokerLoop } from '../lib/services/agentService.js';
+
+  const tabs = [
+    { id: 'general', label: 'General', icon: settingsIcon },
+    { id: 'llm', label: 'LLM', icon: wrenchIcon },
+    { id: 'usage', label: 'Usage', icon: chartIcon },
+  ];
+
+  /** The tab to show on arrival (the home page's "Configure LLM" button passes 'llm'). */
+  export let initialTab = 'general';
+
+  let activeTab = initialTab;
+
+  function selectTab(id) {
+    activeTab = id;
+  }
+
+  $: providers = [
+    { id: 'local-llm', title: 'Local LLM', icon: $resolvedTheme === 'dark' ? localLlmIconLight : localLlmIconDark },
+    { id: 'claude-cli', title: 'Claude Code', icon: $resolvedTheme === 'dark' ? claudeLlmIconLight : claudeLlmIconDark }
+  ];
+
+  let activeProvider = 'local-llm';
+
+  let localLlmMode = 'fast';
+  let localLlmKeyInput = '';
+  let localLlmKeyState = '';
+
+  let claudeModel = 'sonnet';
+  let unitFillsRoute = '';
+  let stepMatchingRoute = '';
+
+  const ROUTE_MODELS = ['haiku', 'sonnet', 'opus'];
+
+  // {text, tone} — reflects whatever config Apply/cold-load last resolved, this seat or site default.
+  let llmStatus = null;
+  let retiredNotice = null;
+
+  // "Check my local agent" — one button above both cards. Pings whichever backend is
+  // currently configured (llm_health) AND the user's own ck-agent process, together.
+  let checking = false;
+  let healthResult = null;
+  let agentStatus = null;
+
+  function applyLoadedConfig(config) {
+    llmStatus = describeLLMStatus(config);
+    if (!config) return;
+    const am = (config.auth_method || '').toLowerCase();
+    if (am === 'claude_agent') {
+      activeProvider = 'claude-cli';
+      if (ROUTE_MODELS.includes(config.model)) claudeModel = config.model;
+      unitFillsRoute = ROUTE_MODELS.includes(config.unit_model) ? config.unit_model : '';
+      stepMatchingRoute = ROUTE_MODELS.includes(config.match_model) ? config.match_model : '';
+    } else if (am === 'local_llm') {
+      activeProvider = 'local-llm';
+      if (config.model === 'vllm-fast' || config.model === 'vllm-thinking') localLlmMode = config.model;
+      if (config.local_llm_key_set !== undefined) {
+        localLlmKeyState = config.local_llm_key_set ? 'key stored ✓' : '⚠ no key stored';
+      }
+    }
+  }
+
+  onMount(async () => {
+    retiredNotice = seatLlmRetiredNotice();
+    applyLoadedConfig(await loadConfig());
+    if (activeProvider === 'claude-cli') ckBrokerLoop();
+  });
+
+  async function applyLocalLlm() {
+    const body = {
+      provider: 'openai',
+      auth_method: 'local_llm',
+      model: localLlmMode === 'thinking' ? 'vllm-thinking' : 'vllm-fast',
+    };
+    const key = localLlmKeyInput.trim();
+    if (key) body.local_llm_key = key;
+    const config = await applyConfig(undefined, body);
+    localLlmKeyInput = '';
+    if (config) applyLoadedConfig(config);
+  }
+
+  async function applyClaude() {
+    const body = {
+      provider: 'claude',
+      auth_method: 'claude_agent',
+      model: claudeModel,
+      unit_model: unitFillsRoute,
+      match_model: stepMatchingRoute,
+    };
+    const config = await applyConfig(undefined, body);
+    if (config) applyLoadedConfig(config);
+    ckBrokerLoop();
+  }
+
+  async function checkMyLocalAgent() {
+    checking = true;
+    const [health, { status, update }] = await Promise.all([checkHealth(), probeLocalAgent()]);
+    healthResult = health;
+    agentStatus = describeAgentStatus(status, update);
+    checking = false;
+  }
+</script>
+
+<PageHeader title="Settings" intro="Settings and configurations for Ask CK" />
+
+<div class="settings-layout">
+  <div class="settings-tabs">
+    {#each tabs as tab}
+      <button
+        type="button"
+        class="settings-tab"
+        class:active={activeTab === tab.id}
+        on:click={() => selectTab(tab.id)}
+      >
+        {#if tab.icon}
+          <img src={tab.icon} alt="" aria-hidden="true" />
+        {/if}
+        <span class="settings-tab-label">{tab.label}</span>
+      </button>
+    {/each}
+  </div>
+
+  <div class="settings-panel">
+      <!-- GENERAL TAB  -->
+    {#if activeTab === 'general'}
+      <div class="settings-box settings-box-text">
+      <h3>Display configuration</h3>
+        <p>Configure your display preferences.</p>
+        <div class="theme-options">
+          <div class="option-label"> 
+            <Button 
+              class="theme-option {$theme === 'light' ? 'selected' : ''}"
+              on:click={() => setTheme('light')}
+              ><img class="display-icon" src={sunIcon} alt=sun-icon/>
+            </Button>
+            <p class="option-type-label">Light</p>
+          </div>
+          <div class="option-label">
+            <Button 
+              class="theme-option {$theme === 'dark' ? 'selected' : ''}"
+              on:click={() => setTheme('dark')}
+              ><img class="display-icon" src={moonIcon} alt=moon-icon/>
+            </Button>
+            <p class="option-type-label">Dark</p>
+          </div>
+          <div class="option-label">
+            <Button 
+              class="theme-option {$theme === 'system' ? 'selected' : ''}"
+              on:click={() => setTheme('system')}
+              ><img class="display-icon" src={sunMoonIcon} alt=sun-moon-icon/>
+            </Button>
+            <p class="option-type-label">System</p>
+          </div>
+        </div>
+      </div>
+
+    <!-- LLM TAB  -->
+    {:else if activeTab === 'llm'}
+      <div class="llm-section">
+        <h3>LLM Provider Login</h3>
+        <!-- <p class="llm-subtitle">Log in to an LLM provider via a local subscription CLI.</p>
+        <hr class="llm-rule" /> -->
+        <p class="llm-description">
+          Use a locally logged-in subscription CLI or the org's vLLM — no developer API keys.
+          Apply / Login saves the workspace default; it is applied to cases as they load. The two
+          Claude options differ in whose seat pays: my local machine brokers each call through an
+          agent on the user's own box, so seats are never shared; this server runs claude here and
+          spends this server's single seat for everyone. Pick the second only for a shared or
+          headless deployment.
+        </p>
+
+        {#if retiredNotice}
+          <p class="llm-notice llm-notice-warn">{retiredNotice}</p>
+        {/if}
+
+        <div class="llm-status-row">
+          <Button variant="outline" on:click={checkMyLocalAgent} disabled={checking}>
+            {checking ? 'Checking…' : 'Check my local agent'}
+          </Button>
+          <!-- Error tones show in the ErrorBanner; ok / warn stay inline status text. -->
+          {#if llmStatus}
+            {#if llmStatus.tone === 'error'}
+              <ErrorBanner message={llmStatus.text} />
+            {:else}
+              <span class="provider-inline-status tone-{llmStatus.tone}">{llmStatus.text}</span>
+            {/if}
+          {/if}
+          {#if healthResult}
+            {#if healthResult.ok}
+              <span class="provider-inline-status tone-ok">Backend reachable</span>
+            {:else}
+              <ErrorBanner message={healthResult.detail || 'Backend unreachable'} />
+            {/if}
+          {/if}
+          {#if agentStatus}
+            {#if agentStatus.tone === 'error'}
+              <ErrorBanner message={agentStatus.lines.join(' ')} />
+            {:else}
+              <span class="provider-inline-status tone-{agentStatus.tone}">
+                {#each agentStatus.lines as line}{line}<br />{/each}
+              </span>
+            {/if}
+          {/if}
+        </div>
+
+        <div class="provider-list">
+          {#each providers as provider}
+            <div class="provider-card" class:active={activeProvider === provider.id}>
+              <div class="provider-identity">
+                <h4 class="provider-title">{provider.title}</h4>
+                <img class="provider-icon" src={provider.icon} alt="" aria-hidden="true" />
+              </div>
+
+              <div class="provider-divider"></div>
+
+              <div class="provider-config">
+                {#if provider.id === 'local-llm'}
+                  <p class="provider-field-label">Mode</p>
+                  <div class="provider-field-row">
+                    <label class="provider-radio">
+                      <input type="radio" name="local-llm-mode" value="fast" bind:group={localLlmMode} />
+                      Fast
+                    </label>
+                    <label class="provider-radio">
+                      <input type="radio" name="local-llm-mode" value="thinking" bind:group={localLlmMode} />
+                      Thinking
+                    </label>
+                    <input type="text" placeholder="Local LLM API key (leave blank to keep stored key)" class="provider-text-input" bind:value={localLlmKeyInput} />
+                    {#if localLlmKeyState}<span class="provider-field-inline-label">{localLlmKeyState}</span>{/if}
+                  </div>
+                {:else if provider.id === 'claude-cli'}
+                  <p class="provider-field-label">Model</p>
+                  <div class="provider-field-row">
+                    <label class="provider-radio">
+                      <input type="radio" name="claude-model" value="haiku" bind:group={claudeModel} />
+                      Haiku
+                    </label>
+                    <label class="provider-radio">
+                      <input type="radio" name="claude-model" value="sonnet" bind:group={claudeModel} />
+                      Sonnet
+                    </label>
+                    <label class="provider-radio">
+                      <input type="radio" name="claude-model" value="opus" bind:group={claudeModel} />
+                      Opus
+                    </label>
+                  </div>
+
+                  <p class="provider-field-label">Route</p>
+                  <div class="provider-field-row">
+                    <span class="provider-field-inline-label">unit fills:</span>
+                    <select class="provider-select" bind:value={unitFillsRoute}>
+                      <option value="">same</option>
+                      <option value="haiku">Haiku</option>
+                      <option value="sonnet">Sonnet</option>
+                      <option value="opus">Opus</option>
+                    </select>
+                    <span class="provider-field-inline-label">step matching:</span>
+                    <select class="provider-select" bind:value={stepMatchingRoute}>
+                      <option value="">same</option>
+                      <option value="haiku">Haiku</option>
+                      <option value="sonnet">Sonnet</option>
+                      <option value="opus">Opus</option>
+                    </select>
+                  </div>
+                {/if}
+              </div>
+
+              {#if activeProvider === provider.id}
+                <span class="provider-status">Using</span>
+              {:else}
+                <Button
+                  variant="primary"
+                  class="provider-position"
+                  on:click={() => (provider.id === 'local-llm' ? applyLocalLlm() : applyClaude())}
+                >Apply</Button>
+              {/if}
+            </div>
+          {/each}
+        </div>
+
+        <div class="llm-note">
+          <h4>Claude Code CLI — via your local agent (per-user, unshared)</h4>
+          <p>
+            On a shared Ask CK page, the server never runs <code>claude</code>. Instead, a tiny
+            agent on <strong>your own machine</strong> runs it against <strong>your own</strong>
+            Claude login, brokered through this browser tab. Your seat is never shared with
+            other users, and the server never sees your credentials.
+          </p>
+          <!-- <ol>
+            <li>On your machine, install Claude Code (anthropic.com/claude-code) and run <code>claude → /login</code>.</li>
+            <li>Start the agent: <code>cd ask-ck/agent && ./run-agent.sh</code> (leave it running). See <code>ask-ck/agent/README.md</code>.</li>
+            <li>Click <strong>"Check my local agent"</strong> to confirm it's reachable and logged in.</li>
+            <li>Click <strong>"Apply / Login"</strong>. Leave Model blank to use the CLI's default.</li>
+          </ol> -->
+          <p class="llm-note-footer"><em>Usage counts against your own Claude seat's limits. If a call fails, make sure the agent is still running and you're logged in.</em></p>
+        </div>
+      </div>
+
+    <!-- USAGE TAB  -->
+    {:else if activeTab === 'usage'}
+      <UnderConstruction />
+    {/if}
+
+  </div>
+</div>
+
+<style>
+  .settings-layout {
+    display: flex;
+    gap: 24px;
+    align-items: flex-start;
+    padding: 0 48px 28px;
+    margin-top: 24px;
+  }
+
+  .settings-tabs {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    width: 180px;
+    padding: 8px 0 8px;
+    flex-shrink: 0;
+  }
+
+  .settings-tab {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 8px 20px 8px;
+    background: transparent;
+    border: none;
+    border-radius: 8px;
+    font: inherit;
+    font-weight: 400;
+    font-size: 0.94rem;
+    color: var(--color-settings-tab-text);
+    text-align: left;
+    cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease;
+  }
+
+  .settings-tab img {
+    width: 1.2rem;
+    height: auto;
+    flex-shrink: 0;
+    filter: var(--icon-filter-heading);
+  }
+
+  .display-icon {
+    height: 2rem;
+    width: auto;
+    filter: var(--icon-filter-heading);
+  }
+
+  /* White icon on the filled (selected) button. */
+  .theme-options :global(.theme-option.selected .display-icon) {
+    filter: brightness(0) invert(1);
+  }
+
+  .option-type-label {
+    font-weight: 600;
+  }
+
+  .settings-tab:hover {
+    background: rgba(0, 83, 143, 0.06);
+  }
+
+  .settings-tab.active {
+    background: var(--color-sidebar-nav-active-bg);
+  }
+
+  .settings-panel {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .settings-box {
+    background: var(--color-bg-surface);
+    border: 1px solid var(--color-border-surface);
+    border-radius: 10px;
+    min-height: 120px;
+    padding: 20px;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+  }
+
+  .settings-box-text h3 {
+    margin: 0 0 4px;
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--color-text-heading);
+  }
+
+  .settings-box-text p {
+    margin: 0;
+    color: var(--color-text-muted);
+    font-size: 0.94rem;
+    line-height: 1.5;
+  }
+
+  .theme-options {
+    display: flex;
+    gap: 24px;
+    margin-top: 16px;
+    zoom: 0.9;
+  }
+
+  .theme-options :global(.theme-option) {
+    display: flex;
+    align-items: center;
+    justify-content: center; 
+    width: 60px;
+    height: 60px;
+    background-color: var(--color-bg-surface);
+    cursor: pointer;
+    border-radius: 999px;
+    border: 3px solid var(--color-accent);
+    transition: background-color 0.2s ease, transform 0.2s ease, filter 0.2s ease;
+  }
+
+  /* Hover: lift slightly; unselected options take an accent tint, the selected one brightens. */
+  .theme-options :global(.theme-option:hover) {
+    opacity: 1.2;
+  }
+
+  .theme-options :global(.theme-option:not(.selected):hover) {
+    background-color: color-mix(in srgb, var(--color-accent) 15%, var(--color-bg-surface));
+  }
+
+  .theme-options :global(.theme-option.selected:hover) {
+    filter: brightness(1.1);
+  }
+  /* The theme currently chosen (the theme store's value: light / dark / system). */
+  .theme-options :global(.theme-option.selected) {
+    background-color: var(--color-accent);
+  }
+
+  .llm-section {
+    background: var(--color-bg-surface);
+    border: 1px solid var(--color-border-surface);
+    border-radius: 10px;
+    padding: 20px;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+  }
+
+  .option-label {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px
+  }
+
+  .llm-section h3 {
+    margin: 0 0 4px;
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--color-text-heading);
+  }
+/* 
+  .llm-subtitle {
+    margin: 0;
+    color: var(--color-text-muted);
+    font-size: 0.9rem;
+  }
+
+  .llm-rule {
+    border: none;
+    border-top: 1px solid var(--color-border-surface);
+    margin: 14px 0;
+  } */
+
+  .llm-description {
+    margin: 0 0 20px;
+    color: var(--color-text-muted);
+    font-size: 0.92rem;
+    line-height: 1.6;
+  }
+
+  .llm-note {
+    margin-top: 20px;
+  }
+
+  .llm-note h4 {
+    margin: 0 0 10px;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--color-text-heading);
+  }
+
+  .llm-note p {
+    margin: 0 0 14px;
+    color: var(--color-text-muted);
+    font-size: 0.92rem;
+    line-height: 1.6;
+  }
+
+  .llm-note strong {
+    color: var(--color-text-heading);
+  }
+
+  .llm-note code {
+    background: var(--color-code-bg);
+    padding: 1px 5px;
+    border-radius: 4px;
+    font-size: 0.88em;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+
+  /* .llm-note ol {
+    margin: 0 0 14px;
+    padding-left: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    color: var(--color-text-muted);
+    font-size: 0.92rem;
+    line-height: 1.5;
+  } */
+
+  .llm-note-footer {
+    margin-bottom: 0 !important;
+  }
+
+  .provider-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .provider-card {
+    position: relative;
+    display: flex;
+    align-items: stretch;
+    gap: 20px;
+    border: 1px solid var(--color-border-surface);
+    background: var(--color-bg-surface);
+    border-radius: 10px;
+    padding: 20px;
+    min-height: 12em;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+  }
+
+  .provider-card.active {
+    border: 2px solid var(--color-accent);
+    background: color-mix(in srgb, var(--color-accent) 10%, var(--color-bg-surface));
+  }
+
+  .provider-identity {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+    flex: 0 0 auto;
+    min-width: 100px;
+  }
+
+  .provider-title {
+    margin: 0;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--color-text-heading);
+  }
+
+  .provider-icon {
+    width: auto;
+    height: 5em;
+    display: block;
+  }
+
+  .provider-divider {
+    flex: 0 0 auto;
+    width: 1px;
+    align-self: stretch;
+    background: var(--color-border-surface);
+  }
+
+  .provider-config {
+    flex: 1;
+    min-width: 0;
+    padding-bottom: 36px;
+  }
+
+  .provider-field-label {
+    margin: 0 0 8px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+  }
+
+  .provider-field-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 18px;
+  }
+
+  .provider-field-row:last-child {
+    margin-bottom: 0;
+  }
+
+  .provider-radio {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--color-text);
+    font-size: 0.9rem;
+    cursor: pointer;
+  }
+
+  .provider-radio input {
+    accent-color: var(--color-accent);
+    width: 15px;
+    height: 15px;
+    cursor: pointer;
+  }
+
+  .provider-text-input {
+    width: 200px;
+    padding: 6px 10px;
+    border-radius: 8px;
+    border: 1px solid var(--color-border-surface);
+    background: var(--color-bg-surface);
+    color: var(--color-text);
+    font: inherit;
+    font-size: 0.88rem;
+  }
+
+  .provider-field-inline-label {
+    color: var(--color-text-muted);
+    font-size: 0.88rem;
+  }
+
+  .provider-select {
+    padding: 6px 10px;
+    border-radius: 8px;
+    border: 1px solid var(--color-border-surface);
+    background: var(--color-bg-surface);
+    color: var(--color-text);
+    font: inherit;
+    font-size: 0.88rem;
+    min-width: 200px;
+  }
+
+  .llm-notice {
+    margin: 0 0 16px;
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    line-height: 1.5;
+  }
+
+  .llm-notice-warn {
+    background: color-mix(in srgb, var(--color-warning) 12%, transparent);
+    color: var(--color-warning);
+  }
+
+  .llm-status-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 14px;
+    margin-top: 16px;
+    margin-bottom: 14px;
+  }
+
+  .provider-inline-status {
+    font-size: 0.88rem;
+    line-height: 1.5;
+    font-style: italic;
+  }
+
+  .tone-ok { color: var(--color-success); }
+  .tone-warn { color: var(--color-warning); }
+  .tone-error { color: var(--color-error); }
+
+  .provider-status,
+  :global(.provider-position) {
+    position: absolute;
+    right: 20px;
+    bottom: 20px;
+  }
+
+  .provider-status {
+    padding: 6px 16px;
+    border-radius: 10px;
+    font: inherit;
+    font-weight: 600;
+    font-size: 0.85rem;
+    border: 1px solid var(--color-accent);
+    color: var(--color-accent);
+    background: transparent;
+  }
+</style>

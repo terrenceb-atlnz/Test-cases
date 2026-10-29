@@ -1,0 +1,28 @@
+{
+  "schema": 1,
+  "run_id": "2026-10-29T1532-val-42fa",
+  "kind": "validation",
+  "seat": "127.0.0.1",
+  "created": "2026-10-29T15:32:52+13:00",
+  "testbox": "tb470",
+  "consoles": "all",
+  "pdu": null,
+  "constraints": "no restarts",
+  "template": null,
+  "template_setup_rel": null,
+  "project": null,
+  "cases": [
+    {
+      "key": "AWPTCM-T44187",
+      "kind": "script",
+      "script": "/home/trentm/Test-cases/ask-ck/functions/pytest-creator/generated/IPv6/ssh_ipv6.py",
+      "script_rel": "ask-ck/functions/pytest-creator/generated/IPv6/ssh_ipv6.py",
+      "case_payload_rel": "ask-ck/functions/generator/refined-cases/IPv6/AWPTCM-T44187/zephyr_payload.json"
+    }
+  ],
+  "options": {
+    "email": null,
+    "start_after": null
+  },
+  "start_at": null
+}
