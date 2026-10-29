@@ -61,6 +61,30 @@
   // --- Per-step state -----------------------------------------------------------------
   const SUMMARY_STEP_ID = "__summary__";
 
+  // Candidates are shown in one table per script library, stacked in this order. A script's
+  // library is its `db` ("<db>/<suite_dir>/<file>" is also its id). Anything outside these
+  // three falls into an "Other" table, shown only when it has rows, so nothing is hidden.
+  const LIBRARIES = [
+    { id: "art", label: "ART" },
+    { id: "legacy", label: "Legacy" },
+    { id: "svt", label: "SVT" },
+  ];
+  const KNOWN_LIBRARY_IDS = LIBRARIES.map((l) => l.id);
+
+  function libraryOf(script) {
+    const db = script.db || String(script.id || "").split("/")[0];
+    return KNOWN_LIBRARY_IDS.includes(db) ? db : "other";
+  }
+
+  // Each library's table ticks into its own list; "Choose selected" takes them all.
+  function emptySelection() {
+    return { art: [], legacy: [], svt: [], other: [] };
+  }
+
+  function allSelectedCandidateIds(state) {
+    return Object.values(state.selectedCandidateIds).flat();
+  }
+
   // Per sequenced-step search state, keyed by step.n — populated lazily below.
   let scriptSearchState = {};
   let activeStepId = null;
@@ -81,7 +105,7 @@
           search: "",
           candidates: [],
           chosen,
-          selectedCandidateIds: [],
+          selectedCandidateIds: emptySelection(),
           selectedChosenIds: [],
         };
         // Seeded alongside the step's own state, so exactly once per step.
@@ -99,6 +123,14 @@
   $: activeStepIndex = sequencedTestSteps.findIndex(
     (s) => s.n === activeStepId,
   );
+
+  // The active step's candidates split by library, for the stacked candidate tables.
+  $: candidatesByLibrary = (() => {
+    const groups = emptySelection();
+    for (const c of scriptSearchState[activeStepId]?.candidates ?? [])
+      groups[libraryOf(c)].push(c);
+    return groups;
+  })();
 
   function selectStep(stepId) {
     activeStepId = stepId;
@@ -154,7 +186,7 @@
         stepId,
         headers,
       );
-      scriptSearchState[stepId].selectedCandidateIds = [];
+      scriptSearchState[stepId].selectedCandidateIds = emptySelection();
       scriptSearchState = scriptSearchState;
     } finally {
       suggestingStepN = null;
@@ -243,22 +275,21 @@
       coverage: r.coverage || "partial",
       covers_steps: [stepId],
     }));
-    scriptSearchState[stepId].selectedCandidateIds = [];
+    scriptSearchState[stepId].selectedCandidateIds = emptySelection();
     scriptSearchState = scriptSearchState;
   }
 
   // --- Moving scripts between candidates and chosen ---------------------------------
   function chooseSelectedForStep(stepId) {
     const state = scriptSearchState[stepId];
-    const moving = state.candidates.filter((c) =>
-      state.selectedCandidateIds.includes(c.id),
-    );
+    const selectedIds = allSelectedCandidateIds(state);
+    const moving = state.candidates.filter((c) => selectedIds.includes(c.id));
     if (moving.length === 0) return;
     scriptSearchState[stepId].chosen = [...state.chosen, ...moving];
     scriptSearchState[stepId].candidates = state.candidates.filter(
-      (c) => !state.selectedCandidateIds.includes(c.id),
+      (c) => !selectedIds.includes(c.id),
     );
-    scriptSearchState[stepId].selectedCandidateIds = [];
+    scriptSearchState[stepId].selectedCandidateIds = emptySelection();
     scriptSearchState = scriptSearchState;
     scrollToBottom();
   }
@@ -487,11 +518,22 @@
     <p class="step-table-label">
       Candidates — tick rows and choose to shortlist them for this step
     </p>
-    <Table
-      columns={tableColumns}
-      rows={scriptSearchState[activeStepId].candidates}
-      bind:selected={scriptSearchState[activeStepId].selectedCandidateIds}
-    />
+    {#each LIBRARIES as library (library.id)}
+      <p class="step-table-label library-label">{library.label}</p>
+      <Table
+        columns={tableColumns}
+        rows={candidatesByLibrary[library.id]}
+        bind:selected={scriptSearchState[activeStepId].selectedCandidateIds[library.id]}
+      />
+    {/each}
+    {#if candidatesByLibrary.other.length > 0}
+      <p class="step-table-label library-label">Other</p>
+      <Table
+        columns={tableColumns}
+        rows={candidatesByLibrary.other}
+        bind:selected={scriptSearchState[activeStepId].selectedCandidateIds.other}
+      />
+    {/if}
 
     <div class="testlink-choose-actions">
       <Button
@@ -558,6 +600,12 @@
     letter-spacing: 0.06em;
     text-transform: uppercase;
     color: var(--color-text-muted);
+  }
+
+  /* Each library's heading sits under the Candidates label, a size down. */
+  .library-label {
+    margin-top: 16px;
+    font-size: 0.8rem;
   }
 
   .summary-title {

@@ -589,6 +589,40 @@
   // described the pre-fix code), which is re-read off the session afterwards.
   let fixError = "";
 
+  // Pop-up after a fix finishes (or fails): what was fixed and what the reviewer does next.
+  let showFixModal = false;
+  let fixModalStatus = "success";
+  let fixModalTitle = "";
+  let fixModalMessage = "";
+
+  const REASSEMBLE_STEPS =
+    "Go back to Summary, use Confirm all, then Assemble & Lint.";
+
+  function showFixResult(status, title, message) {
+    fixModalStatus = status;
+    fixModalTitle = title;
+    fixModalMessage = message;
+    showFixModal = true;
+  }
+
+  function goToSummaryFromFix() {
+    showFixModal = false;
+    selectGenerateUnit(GENERATE_SUMMARY_STEP_ID);
+  }
+
+  // Held fixes are not applied yet — each orange unit's Confirm Unit applies its fix first.
+  function heldFixesMessage(held) {
+    return (
+      `Fixes for ${held.length} unit(s) are ready: ${held.map(unitTitle).join(", ")}. ` +
+      `Open each orange unit and use Confirm Unit to apply its fix, then go back to Summary, ` +
+      `use Confirm all, then Assemble & Lint.`
+    );
+  }
+
+  function errorText(e) {
+    return (e && e.message) || String(e);
+  }
+
   // Re-assembly after a unit fix is the user's step: the script is marked not assembled, so
   // Assemble & Lint on Summary has to be run again before Review/Fix is usable.
   function markNotAssembled(message) {
@@ -605,6 +639,15 @@
   // would discard the fix. Every unit then turns orange for confirmation (Confirm all on
   // Summary); re-assembly stays manual and now reproduces the fixed script.
   async function runFixScript(headers) {
+    try {
+      return await fixScript(headers);
+    } catch (e) {
+      showFixResult("error", "Fix Whole Script failed", errorText(e));
+      throw e; // the LlmButton still shows its own error banner
+    }
+  }
+
+  async function fixScript(headers) {
     await onPushCodeEdits(assembledCode);
     const d = await onFixScript(headers);
     fixesUnlocked = false;
@@ -621,6 +664,14 @@
           ? ` ${dropped.length} unit(s) no longer exist in the fixed script: ${dropped.map(unitTitle).join(", ")}.`
           : ""),
     );
+    showFixResult(
+      "success",
+      "Script fixed",
+      `The whole script was revised and re-cut into its units, which are now in review. ${REASSEMBLE_STEPS}` +
+        (dropped.length
+          ? ` ${dropped.length} unit(s) no longer exist in the fixed script: ${dropped.map(unitTitle).join(", ")}.`
+          : ""),
+    );
     return d;
   }
 
@@ -633,7 +684,13 @@
   // click-to-stop cannot cancel them.
   async function runFixUnits() {
     await onPushCodeEdits(assembledCode);
-    const d = await onFixUnits([...fixUnitTargets]);
+    let d;
+    try {
+      d = await onFixUnits([...fixUnitTargets]);
+    } catch (e) {
+      showFixResult("error", "Fix Units failed", errorText(e));
+      throw e; // the LlmButton still shows its own error banner
+    }
     const dispatched = d.dispatched || [];
     for (const id of dispatched) runningUnitIds[id] = true;
     runningUnitIds = runningUnitIds;
@@ -684,15 +741,33 @@
       markNotAssembled(
         `Fix units: the units landed but re-assembly failed — ${fu.error}.${heldNote}`,
       );
+      showFixResult(
+        "error",
+        "Fix Units failed",
+        `The units landed but re-assembly failed — ${fu.error}.${heldNote}`,
+      );
     } else if ((fu.failed || []).length) {
       runStatus = `Fix units: ${fu.failed.length} unit(s) failed (${fu.failed.map(unitTitle).join(", ")}) — re-run them individually.${heldNote}`;
+      showFixResult(
+        "error",
+        "Fix Units failed",
+        `${fu.failed.length} unit(s) failed (${fu.failed.map(unitTitle).join(", ")}) — re-run them individually.${heldNote}`,
+      );
     } else if (fu.assembled) {
       // Lint-only fixes are spliced straight in (D2) and the server re-assembled with them.
       markNotAssembled(
         `Fix units: ${(fu.applied || []).length} unit(s) re-generated.${heldNote}`,
       );
+      showFixResult(
+        "success",
+        "Units fixed",
+        held.length
+          ? `${(fu.applied || []).length} unit(s) re-generated. ${heldFixesMessage(held)}`
+          : `${(fu.applied || []).length} unit(s) re-generated. ${REASSEMBLE_STEPS}`,
+      );
     } else {
       runStatus = `Fix units:${heldNote || " nothing came back to apply."}`;
+      if (held.length) showFixResult("success", "Units fixed", heldFixesMessage(held));
     }
   }
 
@@ -1060,13 +1135,15 @@
             type="code"
             bind:value={assembledCode}
             placeholder={"Not assembled yet. Assemble & Lint on the Summary step first."}
-            height="650px"
+            height="800px"
           />
         </div>
       </div>
       <div class="review-section">
         <p class="step-table-label">Script Review</p>
         {#if assembled}
+        <div class="script-review-window">
+          <p class="step-table-label">Review Script</p>
           <div class="step-actions review-fix-row review-button">
             <LlmButton
               label="Review with LLM"
@@ -1075,39 +1152,42 @@
               onRun={runReview}
               onResult={handleReviewResult}
             />
+          </div>    
+          <PtReviewFindings {review} stale={reviewStale} code={assembledCode} />
+                 
+          <p class="step-table-label">Fix Script</p>
+
+          <div class="step-actions">
+            <LlmButton
+              label="Fix Whole Script"
+              verb="Fixing…"
+              disabled={!fixesAvailable}
+              title={fixesAvailable ? "" : FIX_LOCKED_HINT}
+              onRun={runFixScript}
+            />
+            <LlmButton
+              label="Fix Units"
+              verb="Fixing units…"
+              disabled={!fixesAvailable ||
+                fixUnitTargets.size === 0 ||
+                Object.keys(runningUnitIds).length > 0}
+              title={!fixesAvailable
+                ? FIX_LOCKED_HINT
+                : fixUnitTargets.size === 0
+                  ? "No unit to fix — no red units, and no lint error names a unit (use Fix Whole Script for whole-file errors)"
+                  : ""}
+              onRun={runFixUnits}
+            />
           </div>
+
+        </div>
         {/if}
-        <PtReviewFindings {review} stale={reviewStale} code={assembledCode} />
       </div>
+        
     </div>
 
     {@render divergedNotice()}
 
-    {#if assembled}
-      <p class="step-table-label">Fix Scripts From LLM Review</p>
-      <div class="step-actions review-fix-row">
-        <LlmButton
-          label="Fix Whole Script"
-          verb="Fixing…"
-          disabled={!fixesAvailable}
-          title={fixesAvailable ? "" : FIX_LOCKED_HINT}
-          onRun={runFixScript}
-        />
-        <LlmButton
-          label="Fix Units"
-          verb="Fixing units…"
-          disabled={!fixesAvailable ||
-            fixUnitTargets.size === 0 ||
-            Object.keys(runningUnitIds).length > 0}
-          title={!fixesAvailable
-            ? FIX_LOCKED_HINT
-            : fixUnitTargets.size === 0
-              ? "No unit to fix — no red units, and no lint error names a unit (use Fix Whole Script for whole-file errors)"
-              : ""}
-          onRun={runFixUnits}
-        />
-      </div>
-    {/if}
     <p class="step-table-label">Script Naming</p>
     <div class="naming-fields">
       <label class="naming-field">
@@ -1128,14 +1208,14 @@
           placeholder="e.g. test_amf_master"
         />
       </label>
-    </div>
-    <div class="step-actions">
-      <Button
-        variant="success"
-        disabled={!assembled}
-        loading={isSaving}
-        on:click={saveAndFinish}>Save and Finish</Button
-      >
+      <div id="finish-button" class="step-actions">
+        <Button
+          variant="success"
+          disabled={!assembled}
+          loading={isSaving}
+          on:click={saveAndFinish}>Save and Finish</Button
+        >
+      </div>
     </div>
     <ErrorBanner message={fixError && `Fix failed: ${fixError}`} />
 
@@ -1246,6 +1326,19 @@
       >
     </div>
   {/if}
+
+  <StatusModal
+    bind:open={showFixModal}
+    status={fixModalStatus}
+    title={fixModalTitle}
+    message={fixModalMessage}
+    {caseTitle}
+    closeText="Close"
+  >
+    <svelte:fragment slot="actions">
+      <Button variant="outline" on:click={goToSummaryFromFix}>Go to Summary</Button>
+    </svelte:fragment>
+  </StatusModal>
 </div>
 
 <style>
@@ -1266,8 +1359,13 @@
 
   .naming-fields {
     display: flex;
+    flex-direction: column;
     gap: 16px;
     margin: 10px 0 20px;
+    padding: 24px 24px 0px 24px;
+    background-color: var(--color-bg-surface);
+    border: 1px solid var(--color-border-surface);
+    border-radius: 15px;
   }
 
   .naming-field {
@@ -1500,5 +1598,17 @@
 
   .review-section {
     width: 40%;
+  }
+
+  .script-review-window {
+    background-color: var(--color-bg-surface);
+    border: 1px solid var(--color-border-surface);
+    border-radius: 10px;
+    padding: 12px;
+    height: 800px;
+  }
+
+  #finish-button {
+    margin: 12px 0px 24px 0px
   }
 </style>
