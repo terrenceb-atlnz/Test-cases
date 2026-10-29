@@ -19,6 +19,14 @@
 > branch `svelte-cutover` is left in place (not asked). **Terrence pushes** (main is 36 ahead of
 > origin). Trent should rebase `userinterface` onto main and finish `ToolPage` (see step 1).
 >
+> **Sync 2, same day (`af658b9` + `366b6e9`):** Trent's `8434747` ("implemented Terrence feedback",
+> 9 Svelte source files + T44333 PyTest history + two run records) merged clean on branch
+> `svelte-sync`, dist rebuilt (new hashed assets), guard green, Svelte vitest 121, fast-forwarded —
+> no `.py`, so no reload; production picked the new bundle up on the next load. Gate on main ALL
+> GREEN (pytest 2114 / 6 skipped, vitest 409, Svelte 121). Merge-base is now his tip, so the three
+> excluded data sets stay excluded. His tip still imports `ToolPage.svelte` (the restored file
+> keeps it building).
+>
 > **What happened at each step (the record):**
 > - **Step 1 merge** (`49164c5`): the two predicted conflicts, both to Terrence. `.families.json` →
 >   Trent's (adds 9003). `library_9002.py` was NOT a superset case: main's 19 helpers (T33241) and
