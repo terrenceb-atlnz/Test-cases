@@ -28,7 +28,7 @@ the server at import on purpose.
   must exist or the gate exits 2.
 - Deep links: the app reads them since the same day (`testComposerModel.deepLink`, Classic's contract
   plus `/composer?script=…`), so the Finalize link in Zephyr and the run e-mails open Test Composer
-  on the right tab. Still known (plan §2): it does not poll `/api/version`; `navigator.clipboard` is
-  used (undefined on http seats); no session restore on refresh.
+  on the right tab. The stale-tab guard is ported too (`versionService.js`). Still known (plan §2):
+  `navigator.clipboard` is used (undefined on http seats); no session restore on refresh.
 - Related: [[editing-backend-restarts-production]] (the `main.py` edit reloaded production once),
   [[askck-lan-hosting]], [[gate-does-not-start-the-server]].

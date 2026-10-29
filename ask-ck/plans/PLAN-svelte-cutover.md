@@ -35,8 +35,9 @@
 >   clash; both scripts keep what they `import *`). `ZtPage.svelte` restored from main (#25).
 > - **Trent's tip did not build**: `App.svelte` imports `./pages/ToolPage.svelte`, which his `87ddf78`
 >   deleted; the `{:else}` branch that renders it is unreachable. Terrence: restore the 18-line file
->   byte-for-byte from `87ddf78^` (done in `3b3a761`) — **for Trent to finish** (delete the import
->   and the dead branch, or keep the page).
+>   byte-for-byte from `87ddf78^` (done in `3b3a761`). **Closed the same day (sync 3, `7e987bf`):**
+>   Terrence — *"if we don't need it, delete it again"* — so the import, the `toolPages` data block,
+>   the unreachable `{:else}` branch and the file are gone.
 > - **Step 2** (`3b3a761`): `dist/` committed (1.8 MB, 20 files), `build_svelte_app.sh`,
 >   `test_svelte_app_built.py` (red on a one-byte source edit, proven), both `.gitignore`s.
 > - **Step 3** (`b8aa39c`): `main.py` as planned; `test_svelte_app_served.py` 12 checks (the
@@ -79,7 +80,7 @@
 >   Trent's `vite.config.js`** (a wrapper script writes `dist/.source-sha256`).
 >
 > **Step status:** 0 worktree ☑ · 1 merge ☑ · 2 dist + guard ☑ · 3 server + tests ☑ · 4 gate ☑ ·
-> 5 records ☑ · 6 landed on main ☑ · manual checklist ☐ (against production, §4) · deep links ported ☑ (sync 3).
+> 5 records ☑ · 6 landed on main ☑ · manual checklist ☐ (against production, §4) · sync 3 ☑ (deep links, stale-tab guard, ToolPage gone).
 
 ## 1. Context
 
@@ -111,7 +112,7 @@ Record each outcome here as it is tested.
 2. Admin "Reset current case session" not ported [README]; two `resetSession` refs exist — check for a stub.
 3. Not responsive [README].
 4. `navigator.clipboard.writeText` ×4 (TcCompose:356, TcRun:210, HelpPage:20 unguarded; TcLogViewer:48 try/catch) — undefined on http LAN seats [CONF].
-5. No `/api/version` poll ⇒ no stale-tab guard in his app; Classic tabs still poll [CONF].
+5. ~~No `/api/version` poll~~ **PORTED 2026-10-30**: `lib/services/versionService.js` (from Classic's `shared/version.js`) polls every 60 s, prompts once per tab via his ConfirmModal, never reloads by itself. Spec: `tests/services/versionService.spec.js`. To verify in a browser: leave a tab open across a `build_svelte_app.sh` + commit; the prompt appears within a minute.
 6. ~~No query-parameter reads~~ **PORTED 2026-10-30** (D7): `?panel=composer|validation|tc-runs|run-scripts` and `/composer?script=|run=` open Test Composer on the right tab with the script/run. To verify in a browser: a Finalize link from Zephyr, a run e-mail link, and `/composer?script=9002_IPv4/test-9002.33241.py`. His TcCompose share link (`?panel=composer&project=…`) opens Compose but its `project`/`wiki`/`template` fields are not read; a Run Scripts link opens the tab unfilled.
 7. Admin mode is client-side only [README]; verify `/api/admin` calls and URL reachability.
 8. PyTest→Composer "Validate Test" preselect is in-memory via `selectPage`; refresh loses it [CONF].
