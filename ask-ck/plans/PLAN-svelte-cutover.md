@@ -27,6 +27,12 @@
 > excluded data sets stay excluded. His tip still imports `ToolPage.svelte` (the restored file
 > keeps it building).
 >
+> **Syncs 4–5, same day:** `fcdac64` copy buttons select for Ctrl+C (§2 #4); `17ec529` + `a9e7cfe`
+> Help page one-liners follow the page origin (§2 #23). Gate ALL GREEN at `a9e7cfe` (pytest 2114 /
+> 6 skipped, vitest 409, Svelte vitest 141 / 18 todo). Branches and worktrees pruned. Parked by
+> Terrence: Playwright, restyle/current deletion, the 2026-10-19 run record. **Next:** the manual
+> browser checklist (§4), then the remaining §2 A gaps (1+8, 2, 3, 9, 10, 12).
+>
 > **What happened at each step (the record):**
 > - **Step 1 merge** (`49164c5`): the two predicted conflicts, both to Terrence. `.families.json` →
 >   Trent's (adds 9003). `library_9002.py` was NOT a superset case: main's 19 helpers (T33241) and

@@ -3,7 +3,7 @@ name: askck-lan-hosting
 description: "Ask CK is LAN-hosted at http://10.33.22.13:8000/ (was 10.33.22.17 until the 2026-10-23 host rebuild) as systemd user unit ask-ck.service; the front door is the local `ck` command — NONE of it is in the repo, so this memory is the record, including what a host rebuild loses"
 metadata:
   type: project
-  verified: 2026-10-27
+  verified: 2026-10-30
 ---
 
 **Since 2026-08-26 the Ask CK server of record runs LAN-exposed on Terrence's workstation

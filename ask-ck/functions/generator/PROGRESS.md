@@ -5,11 +5,72 @@ verified: 2026-09-28
 
 **Purpose**: This file exists so future sessions can quickly understand exactly where we are, what has been built, what the priorities are, and how to continue seamlessly.
 
-**Last Updated**: 2026-10-27 (by Claude, with Terrence; terrenceb-dl had been rebuilt on 2026-10-23 — server repaired, host-local pieces restored, every live pointer moved from 10.33.22.17 to 10.33.22.13; the T33241 head-to-head is still NEXT)
+**Last Updated**: 2026-10-30 (by Claude, with Terrence; the Svelte cutover — Trent's app is the UI at `/`, Classic at `/classic` — is LIVE; the manual browser checklist is next)
 
 > **Reading note (2026-09-23 doc sweep).** Entries are frozen as written. Where an entry's
 > claim has since stopped being true, a ⚠ line under its heading says what changed.
 > Newest first. Paths in older entries predate these moves (the same as in CHANGELOG): `tool/` → `ask-ck/tools/`, `ask-ck/var/` → `ask-ck/db/`, `objective-drafting/` → `ask-ck/functions/generator/`, `pytest-create/` → `ask-ck/functions/pytest-creator/`, `js-tests/` → `tests/js/`, `ask-ck/ck-facelift/` → `ask-ck/plans/`, root reports → `docs/`, and completed plans `ask-ck/plans/` → `archive/plans/` (2026-09-11, 2026-09-23). Also retired 2026-09-23: the demo notes → `archive/plans/demo-2026-09-11/`, and `HANDOFF-generate-token-efficiency.md` + `Fragments_prompt.md` → `archive/records/`.
+
+## Latest session (2026-10-30) — the Svelte cutover: Trent's app at `/`, Classic at `/classic`, the restyle unserved — LIVE since 10:01
+
+Terrence: *"I want to cutover to using the Svelte interface instead of current/restyle."* Everything
+is in [`ask-ck/plans/PLAN-svelte-cutover.md`](../../plans/PLAN-svelte-cutover.md) — decisions D1–D9, the
+35-item known-issue checklist (the test record), the step-by-step landing record, and what is open.
+The short form:
+
+**What the survey found.** `svelte/` on main was the untouched Vite scaffold; **the real app was Trent
+Morgan's, on the unmerged `origin/userinterface`** (30 commits, rebased to 10-19, latest that day).
+Two settled decisions stood in the way and were superseded with ⚠ lines, not rewrites: S9 ("both
+UIs are permanent", PLAN-atui-restyle) and C-D1 (islands in `current/`, "not Trent's app",
+PLAN-test-composer). Terrence's choices: Svelte at `/`, Classic kept at `/classic`, restyle unserved
+but not deleted, merge his branch with conflicts shown, keep his data, ship his known gaps as-is,
+no ATUI, his Vitest in the gate, `dist/` committed with a hash guard.
+
+**Built on a worktree branch, landed as two fast-forwards (one reload, 2 s, no wedge):**
+- `49164c5` merge: `.families.json` → his (adds 9003); `library_9002.py` was an add/add of DISJOINT
+  helper sets (main's 19 for T33241, his 37 for T33247) → **union**; `ZtPage.svelte` restored
+  (his git-mv had silently deleted the zt island's source).
+- His tip did not build (`App.svelte` imported a `ToolPage.svelte` his `87ddf78` deleted) — restored
+  from his history, later removed for good at Terrence's word (`7e987bf`).
+- `3b3a761` `dist/` committed (1.8 MB), `ask-ck/tools/build_svelte_app.sh` stamps
+  `dist/.source-sha256`, `tests/test_svelte_app_built.py` fails the gate when stale — Trent's
+  `vite.config.js` untouched. Both `.gitignore`s un-ignore `dist/`.
+- `b8aa39c` `main.py`: `DIST_DIR`, `/assets` immutable, `SPA_ROUTES` (an explicit tuple mirrored
+  from `routes.js`, no catch-all — `tests/test_svelte_app_served.py` pins it), root public files,
+  `/classic`, `/restyle` gone, `/api/version` over both trees.
+- **First gate RED (4):** three of his data sets — `9001_Port` regenerated with framework imports
+  (test G8 cannot exec it), the pre-numbering `generated/IPv6/` (bench-safety lint: `no privilege
+  level`), the T44333 bundle (empty Zephyr section) — **excluded** at Terrence's choice (`203c7d9`),
+  no test changed. Fourth = the known worktree false red.
+- `41f0c44` gate layer 4 = his Vitest (`run_tests.sh`); records in CLAUDE.md, READMEs, ARCHITECTURE,
+  SERVER-README, plans, memory `svelte-app-served-at-root`.
+- Landing snag: the scaffold's untracked `src/lib/Counter.svelte` had hidden under the old `lib/`
+  ignore rule on main's disk; his `/lib/` rule unhid it and the guard hashed it — removed.
+
+**Then four follow-ups the same day, each worktree → ff → gate:** sync 2 (Trent's `8434747`,
+clean); **deep links ported** (`4fece86`: `testComposerModel.deepLink`, Classic's `?panel=` contract +
+`/composer?script=`, read once in `App.svelte`; `TestComposerPage` gains `initialTab`/`openRun`);
+**stale-tab guard ported** (`7e987bf`: `versionService.js` → his ConfirmModal, never auto-reloads);
+**copy buttons select instead of copying** (`fcdac64`: Terrence — `execCommand('copy')` fails on
+every seat too, so nothing writes the clipboard on http; `lib/utils/select.js`); **Help page
+one-liners follow the page origin** (`17ec529`, they had been typed in as `.13`). Each with a spec in
+his suite: 121 → 141 passing. One honest red: `17ec529`'s spec used `import.meta.url` (http under
+jsdom) and my landing chain's `grep | head` swallowed the exit code, so main's gate was red for a
+few minutes until `a9e7cfe`. **Lesson recorded in memory `testing-suite-3-layer`: never pipe the
+gate through a filter — read the exit code.**
+
+**Housekeeping at Terrence's word:** eight local branches deleted (six merged, two superseded),
+the two stale worktree entries pruned; the DHCP-reservation item dropped ("we will never get it");
+the untracked 2026-10-19 run record, the T33241 head-to-head, Playwright, the restyle/current
+deletion and the stranded personal memory slugs all explicitly parked.
+
+**Open, named:** the **manual browser checklist** against production (plan §4, then §2 items 1–3,
+7–12, 21–22 recorded there); Trent is rebasing `userinterface` onto main — **push first**, all the
+App.svelte changes are in today's commits; Terrence wants to **go over the gaps** (plan §2 A) —
+remaining after today: session restore on F5 (+ the Validate-Test hand-off), the admin case reset,
+responsiveness, his todo specs, the placeholder `/llm` route, theme not shared with `/classic`.
+
+Gate: pytest 2114 / 6 skipped, vitest 409, Svelte vitest 141 (18 todo) — ALL GREEN at `a9e7cfe`.
 
 ## Latest session (2026-10-27) — terrenceb-dl was rebuilt on 10-23; server repaired; every live pointer moved 10.33.22.17 → 10.33.22.13
 

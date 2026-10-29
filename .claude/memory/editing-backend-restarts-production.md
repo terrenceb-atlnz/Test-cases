@@ -3,7 +3,7 @@ name: editing-backend-restarts-production
 description: ask-ck.service runs uvicorn --reload against the working tree, so ANY save to CK_server/*.py bounces the live server — a reload can wedge on the agent long-polls, and the worker can also die silently (defunct, 2026-10-19); Claude's unit restart is refused, Terrence restarts
 metadata:
   type: project
-  verified: 2026-10-19
+  verified: 2026-10-30
 ---
 
 The hosted server (`systemd --user` unit `ask-ck.service`, LAN on :8000) runs:
@@ -134,3 +134,9 @@ the auto-mode classifier refused Claude's `systemctl --user restart ask-ck.servi
 Deploy] — not retryable, and `ck restart` is the same act, so do not route round it. Diagnose, then
 hand Terrence `ck restart` (the unit was restarted outside the session at 11:24:37 and was healthy at once). Seats holding case locks (that
 day 10.33.12.16 on T33234 + T33236) lose them until their page reloads.
+
+**2026-10-30 — the branch method five times in one day (the Svelte cutover and four syncs).** Same
+recipe, plus one symlink for the app's own `svelte/node_modules`; the one backend `.py` landing
+reloaded production in 2 s with no wedge at a quiet moment (no seat in the journal for 10 min).
+A front-end-only fast-forward needs no reload at all: the server reads `dist/index.html` per
+request and the new hashed assets are new URLs.

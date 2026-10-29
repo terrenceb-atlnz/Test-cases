@@ -21,6 +21,30 @@ current working thread see
 > `ask-ck/ck-facelift/`, `pytest-create/` and `CK-main/` plan paths moved to `ask-ck/plans/` on 2026-09-11 and, once complete, to `archive/plans/`.
 > `js-tests/` → `tests/js/`, `e2e/` → `tests/e2e/`, `static/js/` → `ask-ck/frontend/ck-main/current/<page>/` (2026-09-11).
 
+## 2026-10-30 — The UI at `/` is Trent's Svelte app; Classic at `/classic`; the ATUI restyle unserved
+
+**What.** `main.py` serves `ask-ck/frontend/ck-main/svelte/dist/` (Trent Morgan's Vite + Svelte 5
+app, merged from `origin/userinterface`) at `/` and at every route in its `src/routes.js`, with
+its hashed bundles at `/assets` (immutable) and its `public/` files at the root; the ES-module UI
+in `current/` moves to `/classic` (files still at `/static`); `/restyle` and `/restyle/static` are
+gone (the files stay). `dist/` is **committed** and `ask-ck/tools/build_svelte_app.sh` stamps it;
+`tests/test_svelte_app_built.py` fails the gate when it is stale and `tests/test_svelte_app_served.py`
+pins the route list to `routes.js`. The gate gains a fourth layer, the app's own Vitest. Ported into
+the app the same day: the server-written deep links (`?panel=composer&script=…`, `?panel=tc-runs&run=…`),
+the stale-tab guard (`/api/version` → a prompt, never an automatic reload), and every copy button
+now SELECTS the text for a manual Ctrl+C. Plan and record: `ask-ck/plans/PLAN-svelte-cutover.md`.
+
+**Why.** Terrence's call, 2026-10-30: the Svelte interface replaces `current/`/`restyle/` as the
+UI people use; Classic stays reachable as a fallback while his app's gaps are worked off, and the
+restyle's files stay until deletion is decided separately. The build is committed, not run on the
+server, for the same reason as the islands: the hosted server serves files only and the working tree
+is production. An explicit route list rather than a catch-all keeps `/api`, `/static` and `/setup`
+typos 404-ing for seat agents and tests. Copy buttons select instead of writing the clipboard
+because on a plain-http LAN origin `navigator.clipboard` is undefined and, per Terrence, the
+legacy `execCommand('copy')` fails on every seat tried too. Superseded by this entry: S9 in
+`archive/plans/PLAN-atui-restyle.md` ("both UIs are permanent") and C-D1 in
+`ask-ck/plans/PLAN-test-composer.md` (new UI in `current/`, "not Trent's app") — both carry ⚠ lines.
+
 ## 2026-10-27 — Server of record is `http://10.33.22.13:8000/`; installer fallbacks and docs follow
 
 **What.** terrenceb-dl was reinstalled on 2026-10-23 and its DHCP lease moved from

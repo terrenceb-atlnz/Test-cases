@@ -9,7 +9,7 @@
 - [Auth + case-locking plan](auth-and-case-locking-plan.md) — multi-user is the end-use; Phase 1 locking SHIPPED 2026-07-29 as an IN-MEMORY registry — do NOT add a case_locks table; no-auth LAN accepted by Terrence 2026-09-23 (LDAP later)
 - [Shared tree — status has a short shelf life](shared-tree-status-has-short-shelf-life.md) — a concurrent stream edits this repo; re-run gate + git status before stating either; stage explicit paths
 - [Gate does not start the server](gate-does-not-start-the-server.md) — after layout/anchor changes smoke-test on the SCRATCH server (run_scratch_server.sh --bg, port 8123); grep slash-prefixed old paths too; `npm install` + a .py name trips the hook
-- [3-layer test suite](testing-suite-3-layer.md) — pytest + Vitest/jsdom run by ./ask-ck/tools/run_tests.sh; it is `set -euo pipefail` so a pytest red means vitest NEVER RUNS; Playwright E2E sparingly-run, NOT in the gate
+- [4-layer test suite](testing-suite-3-layer.md) — guards + pytest + root Vitest + the Svelte app's Vitest (since 2026-10-30), run by ./ask-ck/tools/run_tests.sh; `set -euo pipefail` so a red stops the rest; NEVER pipe the gate through grep (a filter's exit code masked a red); Playwright E2E NOT in the gate
 
 - [AW+ speed/duplex constraint](awplus-speed-duplex-constraint.md) — half duplex impossible ≥1 Gig; NOT documented, so a docs harvest alone can't capture cross-command physical rules
 - [AW+ ecofriendly + port naming](awplus-ecofriendly-and-port-naming.md) — `ecofriendly` not "ecomode"; `lpi` deprecated but TestLink says LPI; port1.1.x = chassis/slot — never hardcode a port

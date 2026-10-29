@@ -1,10 +1,10 @@
 ---
 name: testing-suite-3-layer
-description: Ask-CK has a 3-layer test suite + one gate — pytest (backend) + Vitest/jsdom (frontend) run by run_tests.sh; Playwright E2E is sparingly-run separately
+description: Ask-CK's gate run_tests.sh has FOUR layers since 2026-10-30 — guards, pytest, root Vitest (Classic + islands), the Svelte app's own Vitest; set -euo pipefail so a red stops the rest; never pipe the gate through grep — read its exit code; Playwright E2E separate
 metadata: 
   node_type: memory
   type: project
-  verified: 2026-10-07
+  verified: 2026-10-30
   originSessionId: 5da34e66-6995-49af-8d5e-491007959772
   modified: 2026-07-27T00:32:32.933Z
 ---
@@ -38,6 +38,14 @@ actively dangerous rather than cosmetic — it is masking every layer behind it.
 
 Seen again 2026-09-30: one false pytest red inside a scratch worktree left Vitest unrun until it was
 run by hand — same shape, same fix.
+
+**2026-10-30 — a FOURTH layer, and the opposite mistake.** `run_tests.sh` now also runs the Svelte
+app's own Vitest (`cd ask-ck/frontend/ck-main/svelte && npm test`; exits 2 if its `node_modules`
+is missing — a second `npm install --legacy-peer-deps` per clone), after the root Vitest. The
+opposite mistake happened the same day: a landing chain ran `npm test | grep … | head`, the grep's
+exit code replaced vitest's, a red spec sailed through and main's gate was red until a follow-up
+commit. **How to apply:** run the gate (or a layer) to a log file and read its exit code / summary
+line afterwards; never put a filter in the pipeline you are gating on.
 
 **Why:** the user wanted regression protection after big changes; chose Vitest over Jasmine for
 readable failure output, and E2E-first as a known-good reference the unit layer derives from.

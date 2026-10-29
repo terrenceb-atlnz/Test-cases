@@ -5207,3 +5207,22 @@ Server healthy at http://10.33.22.13:8000/. Details and the "after any rebuild" 
 PROGRESS 2026-10-27 and memory `askck-lan-hosting`. Terrence pushed the 10-19/10-20 commits
 during this session (main was at parity with origin before this wrap's commit). Gate: pytest
 2103 / 6 skipped (5 = pwsh), vitest 409. Next: the T33241 head-to-head.
+
+## Session Close / Handoff (2026-10-30) — the Svelte cutover is LIVE: Trent's app at `/`, Classic at `/classic`, the restyle unserved
+
+Terrence asked to cut over to the Svelte interface. The survey found the real app on Trent's
+unmerged `origin/userinterface` (main's `svelte/` was the scaffold); two settled decisions (S9,
+C-D1) were superseded with ⚠ lines. Built on a worktree branch per `PLAN-svelte-cutover.md`
+(D1–D9, a 35-item checklist as the test record): merge with the two conflicts resolved at
+Terrence's word (families → his; `library_9002.py` → the UNION of two disjoint helper sets),
+`ZtPage.svelte` restored, his tip's missing `ToolPage.svelte` restored then removed for good,
+`dist/` committed with a hash guard, `main.py` serving the app at `/` + `/assets` and Classic at
+`/classic`, his Vitest as gate layer 4, three of his data sets excluded after they turned the gate
+red. Landed as two fast-forwards at 10:01 (one reload, 2 s). Same day: sync of his `8434747`, the
+deep links ported, the stale-tab guard ported, copy buttons select for Ctrl+C (execCommand fails on
+the seats too — memory corrected), Help page one-liners follow the page origin. Eight local
+branches and two stale worktrees pruned. Terrence pushed mid-session; main is 3 ahead at the wrap.
+Gate: pytest 2114 / 6 skipped, vitest 409, Svelte vitest 141 (18 todo), ALL GREEN at `a9e7cfe`.
+Next: the manual browser checklist against production, then go over the remaining gaps (plan §2 A).
+Trent is rebasing onto main — push first. The 2026-10-27 entry's "next: the T33241 head-to-head" is
+parked (Terrence, 2026-10-30), not superseded.
