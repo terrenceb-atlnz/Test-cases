@@ -19,8 +19,10 @@ describe("seatSetupCommands", () => {
   });
 
   it("never carries a typed-in address: the source has none", async () => {
+    // jsdom gives import.meta.url an http: scheme, so resolve from the suite's root (vitest runs in svelte/).
     const fs = await import("node:fs");
-    const src = fs.readFileSync(new URL("../../src/pages/HelpPage.svelte", import.meta.url), "utf-8");
+    const path = await import("node:path");
+    const src = fs.readFileSync(path.resolve(process.cwd(), "src/pages/HelpPage.svelte"), "utf-8");
     expect(src).not.toMatch(/https?:\/\/\d+\.\d+\.\d+\.\d+/);
   });
 
