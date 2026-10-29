@@ -68,7 +68,7 @@
 
   // The banner's faded background logo follows the theme the same way (white on dark).
   $: bannerLogo = $resolvedTheme === "dark" ? atLogoDark : atLogoLight;
-  $: atLogo = $resolvedTheme === "dark" ?  atLogoLightLong : atLogoDarkLong;
+  $: atLogo = $resolvedTheme === "dark" ? atLogoLightLong : atLogoDarkLong;
 
   // Clicking the logo ADMIN_CLICKS_REQUIRED times switches the page into admin mode, which
   // shows the AdminPanel (its own component) under the cards.
@@ -113,7 +113,6 @@
           <img src={isAdmin ? askCKAdmin : askCKLogo} alt="Ask CK logo" />
         </button>
         <h1>{isAdmin ? "Welcome Admin" : "Welcome to Ask CK"}</h1>
-
       </div>
     </div>
   </div>
@@ -128,49 +127,71 @@
   {#if !isAdmin}
     <div class="home-content-container">
       <div class="home-content">
-          <div class="home-content-imgs">
-            <img id="ck-logo" src={askCKLogo} alt="">
-            <img id="at-logo" src={atLogo} alt="">
-          </div>
-          <p class="home-intro">
-            Ask CK is a server-backed test-engineering workbench for the AWPTCM
-            test-case program. It brings the tools for enriching manual test
-            cases, mapping them to automation, and turning them into runnable
-            scripts into one place. Pick a tool from below, or read the
-            step-by-step guides inside the Help section. Most tools use an LLM via
-            a local subscription CLI — set that up first under <span
-              style="font-weight: bold;">Settings → LLM → LLM Provider Login</span
-            >.
-          </p>
-          <div class="home-links">
-            <h3 class="status-label">Links</h3>
-            <!-- Paste links here, one <li> each. -->
-            <ul>
-              <li><a href="https://wiki.atlnz.lc/awpwiki/index.php?title=Ask-ck&oldid=740690#Writing_to_Zephyr_.2F_Jira" target="_blank" rel="noopener noreferrer">Ask-ck alliedware+ wiki page</a></li>
-              <li><a href="https://github.com/terrenceb-atlnz/Test-cases?tab=readme-ov-file" target="_blank" rel="noopener noreferrer">Ask CK Git Repository- Test-cases</a></li>
-            </ul>
-          </div>
+        <div class="home-content-imgs">
+          <img id="ck-logo" src={askCKLogo} alt="" />
+          <img id="at-logo" src={atLogo} alt="" />
+        </div>
+        <p class="home-intro">
+          Ask CK is a server-backed test-engineering workbench for the AWPTCM
+          test-case program. It brings the tools for enriching manual test
+          cases, mapping them to automation, and turning them into runnable
+          scripts into one place. Pick a tool from below, or read the
+          step-by-step guides inside the Help section. Most tools use an LLM via
+          a local subscription CLI — set that up first under <span
+            style="font-weight: bold;">Settings → LLM → LLM Provider Login</span
+          >.
+        </p>
       </div>
-        <div class="home-aside">
-          <!-- <h2 class="status-heading">LLM Status</h2> -->
-          <p class="status-label">Configured LLM</p>
-          {#if llmStatus}
-            <p class="status-text tone-{llmStatus.tone}">{llmStatus.text}</p>
-          {:else}
-            <p class="status-text">Checking…</p>
-          {/if}
-          <p class="status-label">Seat agent</p>
-          {#if agentStatus}
-            <p class="status-text tone-{agentStatus.tone}">
-              {#each agentStatus.lines as line}{line}<br />{/each}
-            </p>
-          {:else}
-            <p class="status-text">Checking…</p>
-          {/if}
-          <div class="aside-actions">
-            <Button variant="outline" on:click={() => onNavigate("help", { openSetupGuide: true })}>Set up seat</Button>
-            <Button variant="outline" on:click={() => onNavigate("settings", { tab: "llm" })}>Configure LLM</Button>
-          </div>
+      <div class="home-aside">
+        <!-- <h2 class="status-heading">LLM Status</h2> -->
+        <p class="status-label">Configured LLM</p>
+        {#if llmStatus}
+          <p class="status-text tone-{llmStatus.tone}">{llmStatus.text}</p>
+        {:else}
+          <p class="status-text">Checking…</p>
+        {/if}
+        <div class="aside-actions">
+          <Button
+            variant="outline"
+            on:click={() => onNavigate("settings", { tab: "llm" })}
+            >Configure LLM</Button
+          >
+        </div>
+        <p class="status-label">Seat agent</p>
+        {#if agentStatus}
+          <p class="status-text tone-{agentStatus.tone}">
+            {#each agentStatus.lines as line}{line}<br />{/each}
+          </p>
+        {:else}
+          <p class="status-text">Checking…</p>
+        {/if}
+        <div class="aside-actions">
+          <Button
+            variant="outline"
+            on:click={() => onNavigate("help", { openSetupGuide: true })}
+            >Set up seat</Button
+          >
+        </div>
+        <div class="home-links">
+          <h3 class="status-label">Ask CK Links</h3>
+          <!-- Paste links here, one <li> each. -->
+          <ul>
+            <li>
+              <a
+                href="https://wiki.atlnz.lc/awpwiki/index.php?title=Ask-ck&oldid=740690#Writing_to_Zephyr_.2F_Jira"
+                target="_blank"
+                rel="noopener noreferrer">Ask-ck alliedware+ wiki page</a
+              >
+            </li>
+            <li>
+              <a
+                href="https://github.com/terrenceb-atlnz/Test-cases?tab=readme-ov-file"
+                target="_blank"
+                rel="noopener noreferrer">Ask CK Git Repository</a
+              >
+            </li>
+          </ul>
+        </div>
       </div>
     </div>
   {/if}
@@ -350,20 +371,27 @@
     height: 50vh;
     flex-direction: column;
     display: flex;
-    gap: 8px
+    gap: 8px;
   }
 
-  .home-aside h2 {
+  /* .home-aside h2 {
     font-size: 1.2rem;
-  }
+  } */
   .home-aside .status-text {
     margin: 4px 0 0;
     line-height: 1.6;
+    font-size: 0.94rem;
   }
 
-  .home-aside .tone-ok { color: var(--color-success); }
-  .home-aside .tone-warn { color: var(--color-warning); }
-  .home-aside .tone-error { color: var(--color-error); }
+  .home-aside .tone-ok {
+    color: var(--color-success);
+  }
+  .home-aside .tone-warn {
+    color: var(--color-warning);
+  }
+  .home-aside .tone-error {
+    color: var(--color-error);
+  }
 
   .aside-actions {
     display: flex;

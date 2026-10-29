@@ -5,8 +5,8 @@
   import PageHeader from "../lib/components/PageHeader.svelte";
   import Button from "../lib/components/Button.svelte";
 
-  const seatSetupWindowsCmd = "irm http://…/setup/setup.ps1 | iex";
-  const seatSetupUbuntuCmd = "curl -fsSL http://…/setup/setup.sh | bash";
+  const seatSetupWindowsCmd = "irm http://10.33.22.13:8000/setup/setup.ps1 | iex";
+  const seatSetupUbuntuCmd = "curl -fsSL http://10.33.22.13:8000/setup/setup.sh | bash";
 
   let windowsCopyLabel = "Copy";
   let ubuntuCopyLabel = "Copy";

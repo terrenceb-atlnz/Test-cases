@@ -4,8 +4,8 @@
   "testbox": "tb470",
   "seat": "127.0.0.1",
   "created": "2026-10-29T15:38:52+13:00",
-  "state": "running",
-  "last_seq": 1129,
+  "state": "done",
+  "last_seq": 1384,
   "results": {},
   "notices": [
     {
@@ -22,14 +22,19 @@
       "scope": "AWPTCM-T44187",
       "needed": "I-5: TC22 dials addresses off eth3's prefix, so its traffic would leave the lab segment via tb470's default route",
       "did": "Assumed: the repair derives both addresses from eth3's prefix; the check keeps its meaning (valid, not configured on the DUT, not routed)"
+    },
+    {
+      "scope": "AWPTCM-T44187",
+      "needed": "the \"no restarts\" constraint was breached in run 2: the framework CLI-rebooted swi_e and swi_f at 16:03:17 after TC1 failed its post-tear_down config compare, even with no [power] in the run .setup",
+      "did": "repair loop stopped, case BLOCKED; a re-run needs the Test Engineer to lift \"no restarts\" or rule on suppressing the framework restart"
     }
   ],
   "regrades": {},
-  "cost_usd": 8.992013400000001,
-  "tokens": 21090717,
-  "turns": 4,
+  "cost_usd": 11.4928946,
+  "tokens": 29406953,
+  "turns": 8,
   "started": "2026-10-29T15:38:53+13:00",
-  "ended": null,
+  "ended": "2026-10-29T16:40:37+13:00",
   "session_id": "s1793241532-2",
   "cases": [
     {
@@ -41,5 +46,6 @@
   ],
   "mailed": [],
   "start_at": null,
-  "updates_cost_usd": 0.025477
+  "updates_cost_usd": 0.036011,
+  "done_marker": true
 }

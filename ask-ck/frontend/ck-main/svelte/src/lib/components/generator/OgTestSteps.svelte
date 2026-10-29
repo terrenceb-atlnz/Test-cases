@@ -349,7 +349,7 @@
     gap: 16px;
     padding: 24px;
     margin-bottom: 12px;
-    /* border: 1px solid var(--color-border-surface); */
+    border: 1px solid var(--color-border-surface);
     border-radius: 8px;
     background: var(--color-bg-surface);
     flex: 1;
@@ -360,7 +360,7 @@
     color: var(--color-text);
     font-size: 0.94rem;
     font-weight: 500;
-    line-height: 2;
+    /* line-height: 1; */
   }
 
   .objectives-html :global(ul) {
@@ -381,7 +381,7 @@
     font-weight: 500;
     flex: 1;
     min-height: 0;
-    gap: 24px;
+    /* gap: 24px; */
   }
 
   .step-expected {

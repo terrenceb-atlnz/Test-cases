@@ -66,6 +66,17 @@
   let pyTestEverVisited = false;
   $: if (activePage === 'pytest') pyTestEverVisited = true;
 
+  // Test Composer and Zephyr Templating are kept alive the same way.
+  let composerEverVisited = false;
+  $: if (activePage === 'composer') composerEverVisited = true;
+
+  let zephyrEverVisited = false;
+  $: if (activePage === 'zephyr') zephyrEverVisited = true;
+
+  // Test Composer reads `preselect` only when it mounts, so a navigation that carries one
+  // (PyTest Creator's "Validate Test") remounts it; a plain sidebar visit keeps its state.
+  let composerInstanceKey = 0;
+
   // Bumped to force PyTestPage to remount from scratch — used both for "Create Another
   // PyTest" (caseId omitted) and for switching to a different case mid-session (caseId given),
   // so a stale case's downstream state (sequence/scripts/fragments/generate/...) can never leak
@@ -118,6 +129,7 @@
   /** @param {string} pageId @param {{ preselect?: string | null, openSetupGuide?: boolean, tab?: string }} [opts] */
   function selectPage(pageId, opts = {}) {
     composerPreselect = opts.preselect ?? null;
+    if (pageId === 'composer' && composerPreselect) composerInstanceKey += 1;
     helpOpenSetupGuide = opts.openSetupGuide ?? false;
     settingsInitialTab = opts.tab ?? 'general';
     activePage = pageId;
@@ -210,10 +222,8 @@
         <!-- {#key pytestInstanceKey}
           <PyTestPage onNavigate={selectPage} onCreateAnother={resetPytest} initialCaseId={pendingPytestCaseId} />
         {/key} -->
-      {:else if activePage === 'composer'}
-        <TestComposerPage preselect={composerPreselect} />
-      {:else if activePage === 'zephyr'}
-        <ZephyrPage />
+      {:else if activePage === 'composer' || activePage === 'zephyr'}
+        <!-- Kept alive below, like the Generator and PyTest Creator. -->
       {:else}
         <ToolPage page={toolPages[activePage] || toolPages.generator} />
       {/if}
@@ -231,6 +241,20 @@
           {#key pytestInstanceKey}
             <PyTestPage onNavigate={selectPage} onCreateAnother={resetPytest} initialCaseId={pendingPytestCaseId} />
           {/key}
+        </div>
+      {/if}
+
+      {#if composerEverVisited}
+        <div class="keep-alive-page" style:display={activePage === 'composer' ? 'contents' : 'none'}>
+          {#key composerInstanceKey}
+            <TestComposerPage preselect={composerPreselect} />
+          {/key}
+        </div>
+      {/if}
+
+      {#if zephyrEverVisited}
+        <div class="keep-alive-page" style:display={activePage === 'zephyr' ? 'contents' : 'none'}>
+          <ZephyrPage />
         </div>
       {/if}
     </div>

@@ -75,7 +75,7 @@
   <div>
     <p class="review-note">
       Review with LLM to produce a holistic review of each error in the
-      assembled script.
+      assembled script. Fix whole script or broken units after review.
     </p>
   </div>
 {/if}
@@ -204,9 +204,8 @@
     display: flex;
     flex-direction: column;
     gap: 10px;
-    margin-top: 8px;
     overflow: scroll;
-    max-height: 55vh;
+    max-height: 58vh;   /* or a fixed px value */
     padding: 12px;
     border-top: 5px solid var(--color-border-surface);
     border-bottom: 5px solid var(--color-border-surface);

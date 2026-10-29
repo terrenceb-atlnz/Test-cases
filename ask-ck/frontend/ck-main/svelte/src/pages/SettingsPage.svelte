@@ -24,7 +24,7 @@
   const tabs = [
     { id: 'general', label: 'General', icon: settingsIcon },
     { id: 'llm', label: 'LLM', icon: wrenchIcon },
-    { id: 'usage', label: 'Usage', icon: chartIcon },
+    // { id: 'usage', label: 'Usage', icon: chartIcon },
   ];
 
   /** The tab to show on arrival (the home page's "Configure LLM" button passes 'llm'). */
@@ -318,8 +318,8 @@
       </div>
 
     <!-- USAGE TAB  -->
-    {:else if activeTab === 'usage'}
-      <UnderConstruction />
+    <!-- {:else if activeTab === 'usage'}
+      <UnderConstruction /> -->
     {/if}
 
   </div>
