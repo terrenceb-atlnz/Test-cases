@@ -5,6 +5,7 @@
   },
   "families": {
     "Port": 9001,
-    "IPv4": 9002
+    "IPv4": 9002,
+    "Advanced Management": 9003
   }
 }

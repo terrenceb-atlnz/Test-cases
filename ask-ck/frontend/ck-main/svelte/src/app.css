@@ -52,14 +52,14 @@
   /* --- Page, shell and surfaces --- */
   --color-bg-page: #f6f8fb;
   --color-bg-shell: #f9fbfd;
-  --color-bg-content: #fdfdfd;
+  --color-bg-content: #fefefe;
   --color-bg-topbar: #ffffff;
   --color-border-topbar: rgba(146, 164, 180, 0.987);
   --color-bg-surface: #ffffff;
   --color-border-surface: #d7dee4;
 
   /* --- Sidebar and Settings tabs --- */
-  --color-bg-sidebar: #ffffff;
+  --color-bg-sidebar: #f1f1f1;
   --color-sidebar-section-label: #64748b;
   --color-sidebar-nav-text: #1f2d3a;
   --color-sidebar-nav-hover-bg: rgba(0, 0, 0, 0.05);
@@ -279,7 +279,7 @@
   --color-bg-page: #1c1e1f;
   --color-bg-shell: #1c1e1f;
   --color-bg-content: #1c1e1f;
-  --color-bg-topbar: #000000;
+  --color-bg-topbar: #131313;
   --color-border-topbar: rgba(255, 255, 255, 0.08);
   --color-bg-surface: #131313;
   --color-border-surface: #34383c;

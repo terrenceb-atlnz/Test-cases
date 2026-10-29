@@ -120,7 +120,7 @@
 
   .nav-label {
     white-space: nowrap;
-    font-size: 0.9rem;
+    font-size: 0.94rem;
   }
 
   .collapse-toggle {

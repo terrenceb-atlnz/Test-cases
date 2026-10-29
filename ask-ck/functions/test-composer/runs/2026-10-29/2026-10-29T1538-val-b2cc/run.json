@@ -1,0 +1,45 @@
+{
+  "run_id": "2026-10-29T1538-val-b2cc",
+  "kind": "validation",
+  "testbox": "tb470",
+  "seat": "127.0.0.1",
+  "created": "2026-10-29T15:38:52+13:00",
+  "state": "running",
+  "last_seq": 1129,
+  "results": {},
+  "notices": [
+    {
+      "scope": "AWPTCM-T44187",
+      "needed": "I-4(a): tb.disable_ipv6() in TC1/TC9/TC14 tear_down is a host-wide sysctl on tb470 (root, STANDING-ORDERS \u00a74)",
+      "did": "Assumed: the repair drops the three calls in the work copy; IPv6 is already enabled on tb470; no check is removed"
+    },
+    {
+      "scope": "AWPTCM-T44187",
+      "needed": "I-4(b): TC4 (loopback IPv6 SSH) needs a runtime route on tb470 (root, STANDING-ORDERS \u00a74)",
+      "did": "TC4 excluded from the run, recorded NOT TESTED under NOT RUN; re-run it alone once the Test Engineer allows the route"
+    },
+    {
+      "scope": "AWPTCM-T44187",
+      "needed": "I-5: TC22 dials addresses off eth3's prefix, so its traffic would leave the lab segment via tb470's default route",
+      "did": "Assumed: the repair derives both addresses from eth3's prefix; the check keeps its meaning (valid, not configured on the DUT, not routed)"
+    }
+  ],
+  "regrades": {},
+  "cost_usd": 8.992013400000001,
+  "tokens": 21090717,
+  "turns": 4,
+  "started": "2026-10-29T15:38:53+13:00",
+  "ended": null,
+  "session_id": "s1793241532-2",
+  "cases": [
+    {
+      "key": "AWPTCM-T44187",
+      "kind": "script",
+      "cycle": null,
+      "script": "/home/trentm/Test-cases/ask-ck/functions/pytest-creator/generated/IPv6/ssh_ipv6.py"
+    }
+  ],
+  "mailed": [],
+  "start_at": null,
+  "updates_cost_usd": 0.025477
+}

@@ -12,9 +12,9 @@
       <img src={brandLogo} alt="Allied Telesis logo" />
     </div>
   </div>
-  <div class="ask-ck">
+  <!-- <div class="ask-ck">
     <h1>Ask CK</h1>
-  </div>
+  </div> -->
 </header>
 
 <style>
@@ -48,7 +48,7 @@
     object-fit: cover;
   }
 
-  .ask-ck {
+  /* .ask-ck {
     width: 100%;
     display: flex;
     justify-content: end;  
@@ -58,5 +58,5 @@
     font-size: 1.2rem;
     height: 28px;
     text-transform: uppercase;
-  }
+  } */
 </style>

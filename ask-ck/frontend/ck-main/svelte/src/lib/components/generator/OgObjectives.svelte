@@ -224,6 +224,8 @@
     margin-bottom: 12px;
     border-radius: 8px;
     background: var(--color-bg-surface);
+    border: 1px solid var(--color-border-surface);
+
     flex: 1;
     min-height: 0;
   }
@@ -239,7 +241,6 @@
     padding-left: 20px;
     display: flex;
     flex-direction: column;
-    gap: 24px;
   }
 
   .objectives-edit-note {
@@ -257,7 +258,7 @@
     color: var(--color-text);
     font: inherit;
     font-size: 0.9rem;
-    line-height: 3;
+    line-height: 1.5;
     resize: vertical;
     flex: 1;
     min-height: 0;
