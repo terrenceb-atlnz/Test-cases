@@ -5,7 +5,8 @@
   // bench → template (with what it can run) → Validate the bench against the template → the live
   // project tree filtered to runnable cases → Start → results. Launches go through THIS seat's
   // ck-agent (D7). Ported from current/svelte-src/src/tc/TcPage.svelte.
-  import { onMount } from "svelte";
+  import { onMount, tick } from "svelte";
+  import { selectForCopy, SELECTED_HINT } from "../../utils/select.js";
   import TcAgentWindow from "./TcAgentWindow.svelte";
   import TcResultsTable from "./TcResultsTable.svelte";
   import TcRunsList from "./TcRunsList.svelte";
@@ -72,7 +73,9 @@
   let health = $state(null);
   let status = $state({ msg: "", bad: false });
   let dryRun = $state(null);
-  let copyLabel = $state("Copy share link");
+  let copyLabel = $state("Share link");
+  let shareHref = $state("");       // shown, selected, for a manual Ctrl+C (lib/utils/select.js)
+  let shareInput = $state(null);
 
   const project = $derived(
     source === "templated"
@@ -345,21 +348,19 @@
       : JSON.stringify(runBody("composer", setup, body()), null, 2);
   }
 
-  // The button's own label says whether the copy worked (as Help's Copy), then resets.
+  // No clipboard write — plain http has none that works on the seats (lib/utils/select.js): the
+  // link appears in the box under the button, selected, and the user presses Ctrl+C.
   async function shareLink() {
     const u = new URL(window.location.href);
     u.searchParams.set("panel", "composer");
     if (project) u.searchParams.set("project", project.id);
     if (wikiUrl) u.searchParams.set("wiki", wikiUrl);
     if (template) u.searchParams.set("template", template);
-    try {
-      await navigator.clipboard.writeText(u.toString());
-      copyLabel = "Copied!";
-      setStatus("Share link copied.");
-    } catch (_) {
-      copyLabel = "Copy failed";
-    }
-    setTimeout(() => (copyLabel = "Copy share link"), 1500);
+    shareHref = u.toString();
+    await tick();
+    copyLabel = selectForCopy(shareInput) ? SELECTED_HINT : "Share link";
+    setStatus("The share link is selected below — press Ctrl+C to copy it.");
+    setTimeout(() => (copyLabel = "Share link"), 3000);
   }
 
   onMount(() => {
@@ -565,6 +566,10 @@
         >{dryRun ? "Hide" : "Show"} the hand-off</Button
       >
       <Button variant="primary" copy on:click={shareLink}>{copyLabel}</Button>
+      {#if shareHref}
+        <input class="form-input tc-share-link" readonly aria-label="Share link" bind:this={shareInput}
+          value={shareHref} onclick={(e) => e.currentTarget.select()} />
+      {/if}
       <LlmButton
         label={`Start (${tickedCases.length})`}
         verb="Starting…"

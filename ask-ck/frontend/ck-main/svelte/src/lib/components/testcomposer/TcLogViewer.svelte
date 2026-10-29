@@ -2,6 +2,7 @@
   // @ts-nocheck
   import Button from '../Button.svelte';
   import ErrorBanner from '../ErrorBanner.svelte';
+  import { selectForCopy, SELECTED_HINT } from '../../utils/select.js';
 
   // A port of the ART Log Viewer's DESIGN (author's permission, 2026-10-09): two panes, any file in
   // either pane so timestamps line up, the tail first and "Load earlier" in chunks, download, copy.
@@ -44,8 +45,12 @@
     } catch (e) { panes[i] = { ...p, busy: false }; error = e.message; }
   }
 
+  let preEls = $state([]);
+  let hints = $state({});
+  // Select the pane's text for a manual Ctrl+C — no clipboard write on plain http (lib/utils/select.js).
   function copy(i) {
-    try { navigator.clipboard.writeText(panes[i].text); } catch (_) { /* http: no clipboard API */ }
+    hints[i] = selectForCopy(preEls[i]) ? SELECTED_HINT : '';
+    setTimeout(() => (hints[i] = ''), 3000);
   }
 
   function hl(line) {
@@ -71,11 +76,11 @@
             </select>
             {#if p.path}
               <a class="tc-link-btn" href={`/api/test-composer/runs/${encodeURIComponent(runId)}/download?path=${encodeURIComponent(p.path)}`}>Download</a>
-              <Button variant="outline" copy on:click={() => copy(i)}>Copy</Button>
+              <Button variant="outline" copy on:click={() => copy(i)}>{hints[i] || 'Select all'}</Button>
             {/if}
           </div>
           {#if p.more}<div><Button variant="outline" loading={p.busy} on:click={() => earlier(i)}>{p.busy ? 'Loading…' : 'Load earlier'}</Button></div>{/if}
-          <pre class="tc-pre tc-log">{#each p.text.split('\n') as line}<span class={hl(line)}>{line}</span>{'\n'}{/each}</pre>
+          <pre class="tc-pre tc-log" bind:this={preEls[i]}>{#each p.text.split('\n') as line}<span class={hl(line)}>{line}</span>{'\n'}{/each}</pre>
         </div>
       {/each}
     </div>

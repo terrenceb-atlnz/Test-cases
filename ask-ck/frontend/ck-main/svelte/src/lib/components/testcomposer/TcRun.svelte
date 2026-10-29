@@ -2,7 +2,8 @@
   // @ts-nocheck
 
   // Test Composer — the "Run Scripts" tab. A placeholder until the page is built.
-  import { onMount, untrack } from "svelte";
+  import { onMount, tick, untrack } from "svelte";
+  import { selectForCopy, SELECTED_HINT } from "../../utils/select.js";
   import TcAgentWindow from "./TcAgentWindow.svelte";
   import TcResultsTable from "./TcResultsTable.svelte";
   import TcRunsList from "./TcRunsList.svelte";
@@ -60,7 +61,9 @@
   let health = $state(null);
   let busy = $state(false);
   let status = $state({ msg: "", bad: false });
-  let copyLabel = $state("Copy share link");
+  let copyLabel = $state("Share link");
+  let shareHref = $state("");       // shown, selected, for a manual Ctrl+C (lib/utils/select.js)
+  let shareInput = $state(null);
   let run = $state(null); // {runId, sessionId}
   let runState = $state(null);
   let refreshKey = $state(0);
@@ -198,24 +201,21 @@
     }
   }
 
-  // The button's own label says whether the copy worked (as Help's Copy), then resets.
+  // No clipboard write — plain http has none that works on the seats (lib/utils/select.js): the
+  // link appears in the box under the button, selected, and the user presses Ctrl+C.
   async function copyLink() {
-    const href = scriptsLink(window.location.href, {
+    shareHref = scriptsLink(window.location.href, {
       source: sourceId,
       scripts: order,
       setup,
       start: startAfter,
     });
-    try {
-      await navigator.clipboard.writeText(href);
-      copyLabel = "Copied!";
-      setStatus(
-        "Share link copied. It carries the scripts and the bench settings, never your email.",
-      );
-    } catch (_) {
-      copyLabel = "Copy failed";
-    }
-    setTimeout(() => (copyLabel = "Copy share link"), 1500);
+    await tick();
+    copyLabel = selectForCopy(shareInput) ? SELECTED_HINT : "Share link";
+    setStatus(
+      "The share link is selected below — press Ctrl+C to copy it. It carries the scripts and the bench settings, never your email.",
+    );
+    setTimeout(() => (copyLabel = "Share link"), 3000);
   }
 
   /** Refill the page from a finished run's hand-off: same scripts, order and bench; this seat's email. */
@@ -361,6 +361,10 @@
       </div>
       <div class="launch-line">
         <Button variant="primary" copy on:click={copyLink}>{copyLabel}</Button>
+        {#if shareHref}
+          <input class="form-input tc-share-link" readonly aria-label="Share link" bind:this={shareInput}
+            value={shareHref} onclick={(e) => e.currentTarget.select()} />
+        {/if}
         <LlmButton
           label={`${startAfter ? "Schedule" : "Launch"} (${order.length})`}
           verb={startAfter ? "Scheduling…" : "Launching…"}

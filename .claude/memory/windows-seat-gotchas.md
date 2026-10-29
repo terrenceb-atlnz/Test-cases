@@ -3,7 +3,7 @@ name: windows-seat-gotchas
 description: Four Windows/PowerShell facts the seat-setup demo (2026-09-11) paid for — a 32,767-char command line (pass big steers by --system-prompt-file), case-INSENSITIVE variable names ($Conf == $conf), a native command's stderr is TERMINATING under $ErrorActionPreference='Stop', and navigator.clipboard is undefined on plain http
 metadata:
   type: project
-  verified: 2026-09-23
+  verified: 2026-10-30
 ---
 
 **Four things a Linux gate cannot reach by running the code** — each cost a demo step on
@@ -22,7 +22,11 @@ metadata:
    missing task writes to stderr and killed the setup script after two ✔. Run natives with
    `Continue` and judge by exit code (`Invoke-Native` in `setup.ps1`).
 4. **`navigator.clipboard` exists only in a secure context.** Ask CK is plain http on a LAN
-   address, so on every real seat it is undefined; use `document.execCommand('copy')`.
+   address, so on every real seat it is undefined — and the legacy `document.execCommand('copy')`
+   **fails on every seat tried as well** (Terrence, 2026-10-30; the earlier advice here to use it
+   was wrong). Nothing writes the clipboard on http. What works everywhere: show the text
+   SELECTED and say "press Ctrl+C" — `svelte/src/lib/utils/select.js` does this for every copy
+   button in the Svelte app (2026-10-30); Classic's `agent.js` reaches the same fallback by itself.
 
 **How to apply:** anything that must hold on a Windows seat needs either a live `pwsh` run in
 the gate (the agent has one) or a structural pin — and a person at a real seat once, with the

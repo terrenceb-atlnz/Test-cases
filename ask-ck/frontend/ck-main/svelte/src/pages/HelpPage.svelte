@@ -4,25 +4,26 @@
   import chevronRightIcon from "../assets/icons/chevron-right.svg";
   import PageHeader from "../lib/components/PageHeader.svelte";
   import Button from "../lib/components/Button.svelte";
+  import { selectForCopy, SELECTED_HINT } from "../lib/utils/select.js";
 
   const seatSetupWindowsCmd = "irm http://10.33.22.13:8000/setup/setup.ps1 | iex";
   const seatSetupUbuntuCmd = "curl -fsSL http://10.33.22.13:8000/setup/setup.sh | bash";
 
-  let windowsCopyLabel = "Copy";
-  let ubuntuCopyLabel = "Copy";
+  let windowsCopyLabel = "Select";
+  let ubuntuCopyLabel = "Select";
+  let windowsCmdEl;
+  let ubuntuCmdEl;
 
-  async function copySetupCommand(text, which) {
+  // No clipboard write — plain http has none that works on the seats (lib/utils/select.js): the
+  // command box is selected and the user presses Ctrl+C.
+  function copySetupCommand(which) {
     const setLabel =
       which === "windows"
         ? (v) => (windowsCopyLabel = v)
         : (v) => (ubuntuCopyLabel = v);
-    try {
-      await navigator.clipboard.writeText(text);
-      setLabel("Copied!");
-    } catch (e) {
-      setLabel("Copy failed");
-    }
-    setTimeout(() => setLabel("Copy"), 1500);
+    const el = which === "windows" ? windowsCmdEl : ubuntuCmdEl;
+    setLabel(selectForCopy(el) ? SELECTED_HINT : "Select");
+    setTimeout(() => setLabel("Select"), 3000);
   }
 
   const toolGuides = [
@@ -143,12 +144,11 @@
                 <strong>Windows</strong> — open <strong>PowerShell</strong> and
                 paste:
                 <div class="copy-field-row">
-                  <div class="copy-field-box">{seatSetupWindowsCmd}</div>
+                  <div class="copy-field-box" bind:this={windowsCmdEl}>{seatSetupWindowsCmd}</div>
                   <Button
                     variant="primary"
                     copy
-                    on:click={() =>
-                      copySetupCommand(seatSetupWindowsCmd, "windows")}
+                    on:click={() => copySetupCommand("windows")}
                   >
                     {windowsCopyLabel}
                   </Button>
@@ -164,12 +164,11 @@
               <li>
                 <strong>Ubuntu</strong> — open a terminal and paste:
                 <div class="copy-field-row">
-                  <div class="copy-field-box">{seatSetupUbuntuCmd}</div>
+                  <div class="copy-field-box" bind:this={ubuntuCmdEl}>{seatSetupUbuntuCmd}</div>
                   <Button
                     variant="primary"
                     copy
-                    on:click={() =>
-                      copySetupCommand(seatSetupUbuntuCmd, "ubuntu")}
+                    on:click={() => copySetupCommand("ubuntu")}
                   >
                     {ubuntuCopyLabel}
                   </Button>
