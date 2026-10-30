@@ -1,7 +1,7 @@
 # Ask CK - Svelte Frontend GUI
 
 <p align="center">
-<img src="./src/assets/askck-logo.png" alt="Home page in light mode" width="150">
+<img src="./src/assets/askck-logo-light.png" alt="Home page in light mode" width="150">
 </p>
 
 The Svelte frontend was created as a part of the BCIS309 Work Integrated Learning project under Ara Institute of Canterbury - Software Development student Trent Morgan. 
